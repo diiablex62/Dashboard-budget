@@ -15,8 +15,7 @@ export default function App() {
       <div
         className={`flex-1 relative ${
           isNavbarFixed ? "pt-16" : "" // Ajoutez un padding-top si la Navbar est fixe
-        }`}
-      >
+        }`}>
         <Navbar />
         <div className='p-6'>
           <h1 className='text-3xl font-bold mb-6 text-gray-800'>Dashboard</h1>

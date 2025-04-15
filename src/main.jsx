@@ -6,7 +6,9 @@ import { AppProvider } from "./context/AppContext"; // Importez le contexte
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AppProvider> {/* Enveloppez l'application avec AppProvider */}
+    <AppProvider>
+      {" "}
+      {/* Enveloppez l'application avec AppProvider */}
       <App />
     </AppProvider>
   </React.StrictMode>

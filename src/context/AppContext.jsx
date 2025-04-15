@@ -19,8 +19,7 @@ export function AppProvider({ children }) {
         setSidebarType,
         isNavbarFixed, // Assurez-vous que cette propriété est incluse
         setIsNavbarFixed, // Assurez-vous que cette propriété est incluse
-      }}
-    >
+      }}>
       {children}
     </AppContext.Provider>
   );

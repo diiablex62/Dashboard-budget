@@ -19,8 +19,7 @@ export default function Sidebar() {
         sidebarType === "transparent" ? "bg-transparent" : "bg-white"
       } text-gray-800 flex flex-col shadow-md ${
         isNavbarFixed ? "mt-16" : "" // Ajoutez un margin-top si la Navbar est fixe
-      }`}
-    >
+      }`}>
       <h2 className='text-3xl font-bold p-8 border-b border-gray-200'>
         Mon budget
       </h2>
