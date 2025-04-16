@@ -1,8 +1,8 @@
 import React, { useState, useContext } from "react";
-import { AppContext } from "../context/AppContext"; // Importez le contexte
+import { AppContext } from "../context/AppContext";
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
-  const { sidebarType, setSidebarType } = useContext(AppContext); // Utilisez le contexte pour gérer le type de barre latérale
+  const { sidebarType, setSidebarType } = useContext(AppContext);
   const [selectedColor, setSelectedColor] = useState("blue");
 
   const colors = ["pink", "black", "blue", "green", "orange", "red"];
@@ -13,7 +13,10 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
         <h2 className='text-xl font-bold'>Paramètres</h2>
         <button
           className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
-          onClick={() => setIsSettingsOpen(false)}>
+          onClick={() => {
+            console.log("Fermeture des paramètres"); // Vérifiez si cette ligne s'exécute
+            setIsSettingsOpen(false); // Ferme les paramètres
+          }}>
           &times;
         </button>
       </div>
@@ -71,16 +74,6 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
               Blanc
             </button>
           </div>
-        </div>
-
-        {/* Navbar Fixed */}
-        <div className='mt-6 flex items-center justify-between'>
-          <h3 className='text-sm font-bold text-gray-800'>Navbar Fixe</h3>
-          <label className='relative inline-flex items-center cursor-pointer'>
-            <input type='checkbox' className='sr-only peer' />
-            <div className='w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer-checked:bg-blue-500'></div>
-            <span className='ml-3 text-sm font-medium text-gray-800'>Fixe</span>
-          </label>
         </div>
       </div>
     </div>
