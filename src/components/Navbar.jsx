@@ -22,7 +22,7 @@ export default function Navbar() {
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
           className='text-xl cursor-pointer'
-          onClick={() => navigate("/onglet1")} // Redirigez vers l'accueil
+          onClick={() => navigate("/")} 
         />
         <span>/</span>
         <span className='text-lg font-medium text-gray-800'>{activeTitle}</span>
@@ -41,8 +41,8 @@ export default function Navbar() {
           className='text-gray-500 text-2xl cursor-pointer'
           title='Paramètres'
           onClick={() => {
-            console.log("Ouverture des paramètres"); // Debug
-            setIsSettingsOpen(true); // Ouvrez les paramètres
+            console.log("Ouverture des paramètres");
+            setIsSettingsOpen(true);
           }}
         />
         <AiOutlineBell className='text-gray-500 text-2xl cursor-pointer' />

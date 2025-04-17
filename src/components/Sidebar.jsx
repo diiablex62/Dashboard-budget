@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, useLocation } from "react-router-dom"; // Importez useLocation
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Importez useNavigate
 import "../styles/tailwind.css";
 import { AppContext } from "../context/AppContext";
 import {
@@ -8,14 +8,16 @@ import {
   AiOutlineTable,
   AiOutlineFileText,
   AiOutlineBell,
+  AiOutlineSetting,
 } from "react-icons/ai";
 import { FaMapMarkedAlt } from "react-icons/fa";
 
 export default function Sidebar() {
-  const { sidebarType, isNavbarFixed } = useContext(AppContext);
-  const location = useLocation(); // Obtenez l'URL actuelle
+  const { sidebarType, isNavbarFixed, setIsSettingsOpen } =
+    useContext(AppContext);
+  const location = useLocation();
+  const navigate = useNavigate(); // Initialisez useNavigate
 
-  // Map des titres en fonction des chemins
   const titles = {
     "/": "Dashboard",
     "/onglet1": "Onglet 1",
@@ -25,7 +27,7 @@ export default function Sidebar() {
     "/onglet5": "Onglet 5",
   };
 
-  const activeTitle = titles[location.pathname] || "Page inconnue"; // Utilisez un titre par défaut si le chemin n'est pas trouvé
+  const activeTitle = titles[location.pathname] || "Page inconnue";
 
   return (
     <div
@@ -33,7 +35,7 @@ export default function Sidebar() {
         sidebarType === "transparent" ? "bg-transparent" : "bg-white"
       } text-gray-800 flex flex-col shadow-md ${isNavbarFixed ? "mt-16" : ""}`}>
       <h2 className='text-3xl font-bold p-8 border-b border-gray-200'>
-        Gestion de budget {/* Titre fixe */}
+        Gestion de budget
       </h2>
       <nav className='flex-1'>
         <ul className='space-y-4'>
@@ -42,11 +44,11 @@ export default function Sidebar() {
               location.pathname === "/"
                 ? "bg-gray-100 text-blue-500"
                 : "hover:bg-gray-100"
-            }`}>
-            <Link to='/' className='flex items-center w-full'>
-              <AiOutlineDashboard className='mr-6 text-2xl' />
-              <span className='text-lg font-medium'>Dashboard</span>
-            </Link>
+            }`}
+            onClick={() => navigate("/")} // Redirigez vers Dashboard
+          >
+            <AiOutlineDashboard className='mr-6 text-2xl' />
+            <span className='text-lg font-medium'>Dashboard</span>
           </li>
           <li
             className={`flex items-center p-4 rounded-lg cursor-pointer ${
@@ -103,6 +105,7 @@ export default function Sidebar() {
               <span className='text-lg font-medium'>Onglet 5</span>
             </Link>
           </li>
+      
         </ul>
       </nav>
     </div>

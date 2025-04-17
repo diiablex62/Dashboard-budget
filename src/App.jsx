@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import "./styles/tailwind.css";
 import Sidebar from "./components/Sidebar";
@@ -20,10 +21,13 @@ import {
   AiOutlineBell,
   AiOutlineUser,
   AiOutlineSetting,
-} from "react-icons/ai"; // Importez les icônes nécessaires
+  AiOutlineSearch,
+} from "react-icons/ai";
 
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { setIsSettingsOpen } = useContext(AppContext);
 
   const titles = {
     "/": "Dashboard",
@@ -39,30 +43,35 @@ function Navbar() {
   return (
     <div className='p-4 border-b border-gray-200 bg-transparent flex items-center justify-between'>
       <div className='flex items-center space-x-2'>
-        <AiOutlineHome className='text-2xl text-gray-600' />{" "}
-        {/* Icône "Accueil" */}
-        <span className='text-gray-400'>/</span> {/* Séparateur */}
-        <h1 className='text-xl font-semibold text-gray-800'>
-          {activeTitle}
-        </h1>{" "}
-        {/* Titre dynamique */}
+        <AiOutlineHome
+          className='text-2xl text-gray-600 cursor-pointer'
+          onClick={() => navigate("/")}
+        />
+        <span className='text-gray-400'>/</span>
+        <h1 className='text-xl font-semibold text-gray-800'>{activeTitle}</h1>
       </div>
       <div className='flex items-center space-x-4'>
+        <div className='relative'>
+          <input
+            type='text'
+            placeholder='Rechercher...'
+            className='border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+          />
+          <AiOutlineSearch className='absolute left-3 top-2.5 text-gray-400 text-lg' />
+        </div>
         <AiOutlineBell
           className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
           title='Notifications'
-        />{" "}
-        {/* Icône Notifications */}
+        />
         <AiOutlineUser
           className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
           title='Mon compte'
-        />{" "}
-        {/* Icône Mon compte */}
+        />
         <AiOutlineSetting
           className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
           title='Paramètres'
-        />{" "}
-        {/* Icône Paramètres */}
+          onClick={() => setIsSettingsOpen(true)}
+        />
       </div>
     </div>
   );
@@ -71,14 +80,14 @@ function Navbar() {
 export default function App() {
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
 
-  console.log("isSettingsOpen:", isSettingsOpen); // Vérifiez si l'état change
+  console.log("isSettingsOpen:", isSettingsOpen);
 
   return (
     <Router>
       <div className='flex bg-gray-50'>
         <Sidebar />
         <div className='flex-1 relative'>
-          <Navbar /> {/* Assurez-vous que Navbar est ici */}
+          <Navbar />
           <div className='p-6'>
             <Routes>
               <Route path='/' element={<Dashboard />} />

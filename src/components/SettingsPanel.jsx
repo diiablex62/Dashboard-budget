@@ -14,8 +14,8 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
         <button
           className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
           onClick={() => {
-            console.log("Fermeture des paramètres"); // Vérifiez si cette ligne s'exécute
-            setIsSettingsOpen(false); // Ferme les paramètres
+            console.log("Fermeture des paramètres"); 
+            setIsSettingsOpen(false); 
           }}>
           &times;
         </button>
@@ -46,35 +46,7 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
           </div>
         </div>
 
-        {/* Sidenav Type */}
-        <div className='mt-6'>
-          <h3 className='text-sm font-bold text-gray-800'>
-            Type de barre latérale
-          </h3>
-          <p className='text-gray-500 text-sm'>
-            Choisissez entre différents types de barres latérales.
-          </p>
-          <div className='flex items-center space-x-2 mt-2'>
-            <button
-              className={`px-4 py-2 rounded-lg border-2 ${
-                sidebarType === "transparent"
-                  ? "bg-white text-gray-800 border-gray-800"
-                  : "bg-gray-100 text-gray-800 border-gray-300"
-              }`}
-              onClick={() => setSidebarType("transparent")}>
-              Transparent
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg border-2 ${
-                sidebarType === "white"
-                  ? "bg-white text-gray-800 border-gray-800"
-                  : "bg-gray-100 text-gray-800 border-gray-300"
-              }`}
-              onClick={() => setSidebarType("white")}>
-              Blanc
-            </button>
-          </div>
-        </div>
+      
       </div>
     </div>
   );
