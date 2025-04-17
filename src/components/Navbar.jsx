@@ -41,7 +41,6 @@ export default function Navbar() {
           className='text-gray-500 text-2xl cursor-pointer'
           title='Paramètres'
           onClick={() => {
-            console.log("Ouverture des paramètres");
             setIsSettingsOpen(true);
           }}
         />

@@ -80,8 +80,6 @@ function Navbar() {
 export default function App() {
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
 
-  console.log("isSettingsOpen:", isSettingsOpen);
-
   return (
     <Router>
       <div className='flex bg-gray-50'>

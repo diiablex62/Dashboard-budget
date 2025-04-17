@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Importez useNavigate
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../styles/tailwind.css";
 import { AppContext } from "../context/AppContext";
 import {
@@ -13,10 +13,10 @@ import {
 import { FaMapMarkedAlt } from "react-icons/fa";
 
 export default function Sidebar() {
-  const { sidebarType, isNavbarFixed, setIsSettingsOpen } =
+  const { sidebarType, isNavbarFixed } =
     useContext(AppContext);
   const location = useLocation();
-  const navigate = useNavigate(); // Initialisez useNavigate
+  const navigate = useNavigate(); 
 
   const titles = {
     "/": "Dashboard",
@@ -27,7 +27,7 @@ export default function Sidebar() {
     "/onglet5": "Onglet 5",
   };
 
-  const activeTitle = titles[location.pathname] || "Page inconnue";
+  const ACTIVE_TITLE = titles[location.pathname] || "Page inconnue";
 
   return (
     <div
@@ -45,7 +45,7 @@ export default function Sidebar() {
                 ? "bg-gray-100 text-blue-500"
                 : "hover:bg-gray-100"
             }`}
-            onClick={() => navigate("/")} // Redirigez vers Dashboard
+            onClick={() => navigate("/")} 
           >
             <AiOutlineDashboard className='mr-6 text-2xl' />
             <span className='text-lg font-medium'>Dashboard</span>

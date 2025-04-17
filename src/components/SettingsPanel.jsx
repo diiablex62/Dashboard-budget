@@ -1,8 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { AppContext } from "../context/AppContext";
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
-  const { sidebarType, setSidebarType } = useContext(AppContext);
   const [selectedColor, setSelectedColor] = useState("blue");
 
   const colors = ["pink", "black", "blue", "green", "orange", "red"];
@@ -14,7 +13,6 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
         <button
           className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
           onClick={() => {
-            console.log("Fermeture des paramètres"); 
             setIsSettingsOpen(false); 
           }}>
           &times;
