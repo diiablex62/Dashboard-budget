@@ -24,10 +24,10 @@ import {
   AiOutlineSearch,
 } from "react-icons/ai";
 
-function Navbar() {
+function Navbar({ setIsSettingsOpen }) {
+  const { activeTitle } = useContext(AppContext);
   const location = useLocation();
   const navigate = useNavigate();
-  const { setIsSettingsOpen } = useContext(AppContext);
 
   const titles = {
     "/": "Dashboard",
@@ -38,7 +38,12 @@ function Navbar() {
     "/onglet5": "Onglet 5",
   };
 
-  const activeTitle = titles[location.pathname] || "Page inconnue";
+  const excludedRoutes = ["/login", "/register"];
+  const currentTitle = excludedRoutes.includes(location.pathname)
+    ? ""
+    : titles[location.pathname] || "Page inconnue";
+
+  const isLoggedIn = false; 
 
   return (
     <div className='p-4 border-b border-gray-200 bg-transparent flex items-center justify-between'>
@@ -47,8 +52,14 @@ function Navbar() {
           className='text-2xl text-gray-600 cursor-pointer'
           onClick={() => navigate("/")}
         />
-        <span className='text-gray-400'>/</span>
-        <h1 className='text-xl font-semibold text-gray-800'>{activeTitle}</h1>
+        {currentTitle && (
+          <>
+            <span className='text-gray-400'>/</span>
+            <h1 className='text-xl font-semibold text-gray-800'>
+              {currentTitle}
+            </h1>
+          </>
+        )}
       </div>
       <div className='flex items-center space-x-4'>
         <div className='relative'>
@@ -59,14 +70,18 @@ function Navbar() {
           />
           <AiOutlineSearch className='absolute left-3 top-2.5 text-gray-400 text-lg' />
         </div>
-        <AiOutlineBell
-          className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
-          title='Notifications'
-        />
-        <AiOutlineUser
-          className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
-          title='Mon compte'
-        />
+        {isLoggedIn && (
+          <>
+            <AiOutlineBell
+              className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
+              title='Notifications'
+            />
+            <AiOutlineUser
+              className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
+              title='Mon compte'
+            />
+          </>
+        )}
         <AiOutlineSetting
           className='text-2xl text-gray-600 cursor-pointer hover:text-gray-800'
           title='Paramètres'
@@ -85,7 +100,7 @@ export default function App() {
       <div className='flex bg-gray-50'>
         <Sidebar />
         <div className='flex-1 relative'>
-          <Navbar />
+          <Navbar setIsSettingsOpen={setIsSettingsOpen} />
           <div className='p-6'>
             <Routes>
               <Route path='/' element={<Dashboard />} />

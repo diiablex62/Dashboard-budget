@@ -100,6 +100,20 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
+      <div className='p-4 border-t border-gray-200'>
+        <button
+          className='w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300'
+          onClick={() => navigate("/login")}
+        >
+          Se connecter
+        </button>
+        <button
+          className='w-full mt-4 bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-gray-200 transition duration-300'
+          onClick={() => navigate("/register")} 
+        >
+          S'inscrire
+        </button>
+      </div>
     </div>
   );
 }
