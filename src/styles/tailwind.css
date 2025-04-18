@@ -2,3 +2,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --primary-color: #3b82f6; /* Couleur principale */
+  --primary-hover-color: #2563eb; /* Teinte différente pour le hover */
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.text-primary {
+  color: var(--primary-color);
+}
+
+.border-primary {
+  border-color: var(--primary-color);
+}
+
+.bg-primary-hover {
+  background-color: var(--primary-hover-color);
+}

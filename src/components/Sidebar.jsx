@@ -13,7 +13,7 @@ import {
 import { FaMapMarkedAlt } from "react-icons/fa";
 
 export default function Sidebar() {
-  const { sidebarType, isNavbarFixed } = useContext(AppContext);
+  const { sidebarType, isNavbarFixed, primaryColor } = useContext(AppContext); // Récupère la couleur principale
   const navigate = useNavigate();
 
   return (
@@ -31,10 +31,12 @@ export default function Sidebar() {
               to='/'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                  isActive
+                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineDashboard className='mr-6 text-2xl' />
+              <AiOutlineDashboard className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Dashboard</span>
             </NavLink>
           </li>
@@ -43,10 +45,12 @@ export default function Sidebar() {
               to='/onglet1'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                  isActive
+                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineUser className='mr-6 text-2xl text-gray-600' />
+              <AiOutlineUser className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Onglet 1</span>
             </NavLink>
           </li>
@@ -55,10 +59,12 @@ export default function Sidebar() {
               to='/onglet2'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                  isActive
+                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineTable className='mr-6 text-2xl text-gray-600' />
+              <AiOutlineTable className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Onglet 2</span>
             </NavLink>
           </li>
@@ -67,10 +73,12 @@ export default function Sidebar() {
               to='/onglet3'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                  isActive
+                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineFileText className='mr-6 text-2xl text-gray-600' />
+              <AiOutlineFileText className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Onglet 3</span>
             </NavLink>
           </li>
@@ -79,10 +87,12 @@ export default function Sidebar() {
               to='/onglet4'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                  isActive
+                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <FaMapMarkedAlt className='mr-6 text-2xl text-gray-600' />
+              <FaMapMarkedAlt className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Onglet 4</span>
             </NavLink>
           </li>
@@ -91,10 +101,12 @@ export default function Sidebar() {
               to='/onglet5'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                  isActive
+                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineBell className='mr-6 text-2xl text-gray-600' />
+              <AiOutlineBell className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Onglet 5</span>
             </NavLink>
           </li>
@@ -102,13 +114,13 @@ export default function Sidebar() {
       </nav>
       <div className='p-4 border-t border-gray-200'>
         <button
-          className='w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300'
+          className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'
           onClick={() => navigate("/auth", { state: { isLogin: true } })} // Redirection vers Auth avec isLogin=true
         >
           Se connecter
         </button>
         <button
-          className='w-full mt-4 bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-gray-200 transition duration-300'
+          className='w-full mt-4 bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-gray-200 transition duration-300 cursor-pointer'
           onClick={() => navigate("/auth", { state: { isLogin: false } })} // Redirection vers Auth avec isLogin=false
         >
           S'inscrire

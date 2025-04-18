@@ -21,7 +21,7 @@ function InputField({ id, label, type, placeholder }) {
 
 function SocialButton({ Icon, alt, text }) {
   return (
-    <button className='w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition duration-300'>
+    <button className='w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
       <Icon className='w-5 h-5' />
       {text}
     </button>
@@ -45,7 +45,7 @@ export default function Auth() {
       <div
         className={`absolute inset-y-0 w-1/2 ${
           isLogin ? "left-0" : "right-0"
-        } bg-blue-500 flex items-center justify-center`}>
+        } bg-[var(--primary-color)] flex items-center justify-center`}>
         <img
           src={cochonImage}
           alt='Illustration'
@@ -61,7 +61,7 @@ export default function Auth() {
           {/* Bouton Revenir à l'accueil */}
           <button
             onClick={() => navigate("/")}
-            className='mb-4 flex items-center text-blue-500 hover:text-blue-700 text-sm font-medium transition duration-300 cursor-pointer'>
+            className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               className='h-4 w-4 mr-2'
@@ -100,7 +100,7 @@ export default function Auth() {
                 />
                 <button
                   type='submit'
-                  className='w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300'>
+                  className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'>
                   Connexion
                 </button>
               </form>
@@ -131,7 +131,7 @@ export default function Auth() {
                 Vous n'avez pas de compte ?{" "}
                 <button
                   onClick={() => setIsLogin(false)}
-                  className='text-blue-500 hover:underline'>
+                  className='text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] cursor-pointer'>
                   Inscrivez-vous ici
                 </button>
               </p>
@@ -165,7 +165,7 @@ export default function Auth() {
                 />
                 <button
                   type='submit'
-                  className='w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300'>
+                  className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'>
                   Inscription
                 </button>
               </form>
@@ -196,7 +196,7 @@ export default function Auth() {
                 Vous avez déjà un compte ?{" "}
                 <button
                   onClick={() => setIsLogin(true)}
-                  className='text-blue-500 hover:underline'>
+                  className='text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] cursor-pointer'>
                   Connectez-vous ici
                 </button>
               </p>
