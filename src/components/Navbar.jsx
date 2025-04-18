@@ -7,18 +7,19 @@ import {
 } from "react-icons/ai";
 import { FaUserCircle } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
-import { useNavigate } from "react-router-dom"; // Importez useNavigate
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const { activeTitle, setIsSettingsOpen, isNavbarFixed } =
     useContext(AppContext);
-  const navigate = useNavigate(); // Initialisez useNavigate
+  const navigate = useNavigate();
 
   return (
     <div
       className={`w-full p-4 flex items-center justify-between ${
         isNavbarFixed ? "fixed top-0 left-0 bg-white shadow-md z-50" : ""
       }`}>
+      {/* Section gauche : Navigation */}
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
           className='text-xl cursor-pointer'
@@ -27,6 +28,8 @@ export default function Navbar() {
         <span>/</span>
         <span className='text-lg font-medium text-gray-800'>{activeTitle}</span>
       </div>
+
+      {/* Section droite : Recherche et icônes */}
       <div className='flex items-center space-x-4'>
         <div className='relative'>
           <input
@@ -40,9 +43,7 @@ export default function Navbar() {
         <AiOutlineSetting
           className='text-gray-500 text-2xl cursor-pointer'
           title='Paramètres'
-          onClick={() => {
-            setIsSettingsOpen(true);
-          }}
+          onClick={() => setIsSettingsOpen(true)} // Ouvre les paramètres
         />
         <AiOutlineBell className='text-gray-500 text-2xl cursor-pointer' />
       </div>

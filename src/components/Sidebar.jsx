@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom"; // Importez NavLink
 import "../styles/tailwind.css";
 import { AppContext } from "../context/AppContext";
 import {
@@ -13,21 +13,8 @@ import {
 import { FaMapMarkedAlt } from "react-icons/fa";
 
 export default function Sidebar() {
-  const { sidebarType, isNavbarFixed } =
-    useContext(AppContext);
-  const location = useLocation();
-  const navigate = useNavigate(); 
-
-  const titles = {
-    "/": "Dashboard",
-    "/onglet1": "Onglet 1",
-    "/onglet2": "Onglet 2",
-    "/onglet3": "Onglet 3",
-    "/onglet4": "Onglet 4",
-    "/onglet5": "Onglet 5",
-  };
-
-  const ACTIVE_TITLE = titles[location.pathname] || "Page inconnue";
+  const { sidebarType, isNavbarFixed } = useContext(AppContext);
+  const navigate = useNavigate();
 
   return (
     <div
@@ -39,73 +26,78 @@ export default function Sidebar() {
       </h2>
       <nav className='flex-1'>
         <ul className='space-y-4'>
-          <li
-            className={`flex items-center p-4 rounded-lg cursor-pointer ${
-              location.pathname === "/"
-                ? "bg-gray-100 text-blue-500"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => navigate("/")} 
-          >
-            <AiOutlineDashboard className='mr-6 text-2xl' />
-            <span className='text-lg font-medium'>Dashboard</span>
+          <li>
+            <NavLink
+              to='/'
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer ${
+                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                }`
+              }>
+              <AiOutlineDashboard className='mr-6 text-2xl' />
+              <span className='text-lg font-medium'>Dashboard</span>
+            </NavLink>
           </li>
-          <li
-            className={`flex items-center p-4 rounded-lg cursor-pointer ${
-              location.pathname === "/onglet1"
-                ? "bg-gray-100 text-blue-500"
-                : "hover:bg-gray-100"
-            }`}>
-            <Link to='/onglet1' className='flex items-center w-full'>
+          <li>
+            <NavLink
+              to='/onglet1'
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer ${
+                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                }`
+              }>
               <AiOutlineUser className='mr-6 text-2xl text-gray-600' />
               <span className='text-lg font-medium'>Onglet 1</span>
-            </Link>
+            </NavLink>
           </li>
-          <li
-            className={`flex items-center p-4 rounded-lg cursor-pointer ${
-              location.pathname === "/onglet2"
-                ? "bg-gray-100 text-blue-500"
-                : "hover:bg-gray-100"
-            }`}>
-            <Link to='/onglet2' className='flex items-center w-full'>
+          <li>
+            <NavLink
+              to='/onglet2'
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer ${
+                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                }`
+              }>
               <AiOutlineTable className='mr-6 text-2xl text-gray-600' />
               <span className='text-lg font-medium'>Onglet 2</span>
-            </Link>
+            </NavLink>
           </li>
-          <li
-            className={`flex items-center p-4 rounded-lg cursor-pointer ${
-              location.pathname === "/onglet3"
-                ? "bg-gray-100 text-blue-500"
-                : "hover:bg-gray-100"
-            }`}>
-            <Link to='/onglet3' className='flex items-center w-full'>
+          <li>
+            <NavLink
+              to='/onglet3'
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer ${
+                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                }`
+              }>
               <AiOutlineFileText className='mr-6 text-2xl text-gray-600' />
               <span className='text-lg font-medium'>Onglet 3</span>
-            </Link>
+            </NavLink>
           </li>
-          <li
-            className={`flex items-center p-4 rounded-lg cursor-pointer ${
-              location.pathname === "/onglet4"
-                ? "bg-gray-100 text-blue-500"
-                : "hover:bg-gray-100"
-            }`}>
-            <Link to='/onglet4' className='flex items-center w-full'>
+          <li>
+            <NavLink
+              to='/onglet4'
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer ${
+                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                }`
+              }>
               <FaMapMarkedAlt className='mr-6 text-2xl text-gray-600' />
               <span className='text-lg font-medium'>Onglet 4</span>
-            </Link>
+            </NavLink>
           </li>
-          <li
-            className={`flex items-center p-4 rounded-lg cursor-pointer ${
-              location.pathname === "/onglet5"
-                ? "bg-gray-100 text-blue-500"
-                : "hover:bg-gray-100"
-            }`}>
-            <Link to='/onglet5' className='flex items-center w-full'>
+          <li>
+            <NavLink
+              to='/onglet5'
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer ${
+                  isActive ? "bg-gray-100 text-blue-500" : "hover:bg-gray-100"
+                }`
+              }>
               <AiOutlineBell className='mr-6 text-2xl text-gray-600' />
               <span className='text-lg font-medium'>Onglet 5</span>
-            </Link>
+            </NavLink>
           </li>
-      
         </ul>
       </nav>
     </div>
