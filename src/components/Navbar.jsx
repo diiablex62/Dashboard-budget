@@ -3,12 +3,12 @@ import { AiOutlineSetting, AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { FaUserCircle } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
-import SettingsPanel from "./SettingsPanel"; // Import du composant SettingsPanel
+import SettingsPanel from "./SettingsPanel";
 
 export default function Navbar() {
-  const { activeTitle, isNavbarFixed, primaryColor } = useContext(AppContext); // Ajout de la couleur principale
+  const { activeTitle, isNavbarFixed, isSettingsOpen, setIsSettingsOpen } =
+    useContext(AppContext); // Utilise `isSettingsOpen` et `setIsSettingsOpen` du contexte
   const navigate = useNavigate();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // État local pour gérer l'ouverture des paramètres
   const [searchText, setSearchText] = useState(""); // État local pour le texte de recherche
 
   const isLoggedIn = false; // Remplacez par une logique réelle pour vérifier si l'utilisateur est connecté
@@ -66,8 +66,7 @@ export default function Navbar() {
       {/* Panneau des paramètres */}
       {isSettingsOpen && (
         <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
-      )}{" "}
-      {/* Passe la fonction comme prop */}
+      )}
     </div>
   );
 }

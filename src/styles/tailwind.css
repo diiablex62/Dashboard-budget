@@ -4,8 +4,8 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #3b82f6; /* Couleur principale */
-  --primary-hover-color: #2563eb; /* Teinte différente pour le hover */
+  --primary-color: #007bff; /* Couleur par défaut (bleu) */
+  --primary-hover-color: #0056b3; /* Teinte différente pour le hover */
 }
 
 .bg-primary {

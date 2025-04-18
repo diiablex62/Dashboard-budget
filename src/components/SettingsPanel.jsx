@@ -5,7 +5,13 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => setIsVisible(true), []);
+  useEffect(() => {
+    const savedColor = localStorage.getItem("primaryColor");
+    const colorToApply = savedColor || primaryColor;
+    setPrimaryColor(colorToApply);
+    applyColorToDocument(colorToApply);
+    setIsVisible(true);
+  }, []);
 
   const colors = [
     "#FFC0CB",
@@ -18,6 +24,11 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
 
   const handleColorChange = (color) => {
     setPrimaryColor(color);
+    localStorage.setItem("primaryColor", color);
+    applyColorToDocument(color);
+  };
+
+  const applyColorToDocument = (color) => {
     document.documentElement.style.setProperty("--primary-color", color);
     document.documentElement.style.setProperty(
       "--primary-hover-color",

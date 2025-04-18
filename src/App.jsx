@@ -13,40 +13,11 @@ import Onglet5 from "./pages/Onglet5";
 import Auth from "./pages/Auth";
 
 export default function App() {
-  const { isSettingsOpen, setIsSettingsOpen, primaryColor } =
-    useContext(AppContext);
+  const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const location = useLocation();
 
   const isolatedRoutes = ["/auth"];
   const isIsolatedRoute = isolatedRoutes.includes(location.pathname);
-
-  useEffect(() => {
-    // Vérifie si primaryColor est valide, sinon utilise une couleur par défaut
-    const validPrimaryColor =
-      primaryColor && primaryColor.startsWith("#") && primaryColor.length === 7
-        ? primaryColor
-        : "#007BFF"; // Couleur par défaut (bleu)
-
-    // Met à jour la couleur principale et les couleurs de hover dynamiquement
-    document.documentElement.style.setProperty(
-      "--primary-color",
-      validPrimaryColor
-    );
-
-    // Génère une teinte plus foncée pour le bouton "Se connecter"
-    const hoverColor = generateColorFromPrimary(validPrimaryColor, -15); // Assombrit légèrement
-    document.documentElement.style.setProperty(
-      "--primary-hover-color",
-      hoverColor
-    );
-
-    // Génère une teinte plus claire pour d'autres usages si nécessaire
-    const lightColor = generateColorFromPrimary(validPrimaryColor, 10); // Éclaircit légèrement
-    document.documentElement.style.setProperty(
-      "--primary-light-color",
-      lightColor
-    );
-  }, [primaryColor]); // Ajout de la dépendance à `primaryColor`
 
   // Fonction pour générer une couleur plus claire ou plus foncée
   const generateColorFromPrimary = (color, adjustment) => {
@@ -137,6 +108,61 @@ export default function App() {
     const hsl = hexToHSL(color);
     hsl.l = Math.max(10, Math.min(90, hsl.l + adjustment)); // Ajuste la luminosité tout en restant dans une plage visible
     return hslToHex(hsl);
+  };
+
+  // Applique immédiatement la couleur choisie avant que React ne monte
+  if (typeof window !== "undefined") {
+    const savedColor = localStorage.getItem("primaryColor");
+    const validPrimaryColor =
+      savedColor && savedColor.startsWith("#") && savedColor.length === 7
+        ? savedColor
+        : "#007BFF"; // Couleur par défaut (bleu)
+
+    document.documentElement.style.setProperty(
+      "--primary-color",
+      validPrimaryColor
+    );
+
+    const hoverColor = generateColorFromPrimary(validPrimaryColor, -15);
+    document.documentElement.style.setProperty(
+      "--primary-hover-color",
+      hoverColor
+    );
+
+    const lightColor = generateColorFromPrimary(validPrimaryColor, 10);
+    document.documentElement.style.setProperty(
+      "--primary-light-color",
+      lightColor
+    );
+  }
+
+  useEffect(() => {
+    // Récupère la couleur enregistrée dans le localStorage ou utilise la couleur par défaut
+    const savedColor = localStorage.getItem("primaryColor");
+    const validPrimaryColor =
+      savedColor && savedColor.startsWith("#") && savedColor.length === 7
+        ? savedColor
+        : primaryColor;
+
+    setPrimaryColor(validPrimaryColor); // Met à jour le contexte
+  }, []); // Exécute une seule fois au chargement
+
+  const applyColorToDocument = (color) => {
+    document.documentElement.style.setProperty("--primary-color", color);
+
+    // Génère une teinte plus foncée pour le hover
+    const hoverColor = generateColorFromPrimary(color, -15);
+    document.documentElement.style.setProperty(
+      "--primary-hover-color",
+      hoverColor
+    );
+
+    // Génère une teinte plus claire pour d'autres usages si nécessaire
+    const lightColor = generateColorFromPrimary(color, 10);
+    document.documentElement.style.setProperty(
+      "--primary-light-color",
+      lightColor
+    );
   };
 
   return (

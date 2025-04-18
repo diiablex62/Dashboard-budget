@@ -3,18 +3,46 @@ import { useNavigate, useLocation } from "react-router-dom";
 import cochonImage from "../assets/img/cochon.png";
 import Google from "../components/Google";
 
-function InputField({ id, label, type, placeholder }) {
+function InputField({ id, label, type, placeholder, showToggle, onToggle }) {
   return (
-    <div className='mb-4'>
-      <label htmlFor={id} className='block text-sm font-medium text-gray-700'>
+    <div className='mb-6 relative'>
+      <label
+        htmlFor={id}
+        className='block text-sm font-medium text-gray-700 mb-1'>
         {label}
       </label>
-      <input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        className='mt-1 w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
-      />
+      <div className='relative'>
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          className='w-full border border-gray-300 rounded-lg p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500'
+        />
+        {showToggle && (
+          <button
+            type='button'
+            onClick={onToggle}
+            className='absolute inset-y-0 right-3 flex items-center justify-center text-gray-500'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              className='h-5 w-5'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              strokeWidth={2}>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d={
+                  type === "password"
+                    ? "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274.857-.683 1.662-1.208 2.385M17.657 17.657A9.969 9.969 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.969 9.969 0 011.636-2.627"
+                    : "M3 3l18 18M9.879 9.879A3 3 0 0115 12m-3 3a3 3 0 01-3-3m12.121 2.121A9.969 9.969 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.969 9.969 0 011.636-2.627M17.657 17.657L6.343 6.343"
+                }
+              />
+            </svg>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -31,6 +59,8 @@ function SocialButton({ Icon, alt, text }) {
 export default function Auth() {
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,10 +70,10 @@ export default function Auth() {
   }, [location.state]);
 
   return (
-    <div className='flex min-h-screen bg-white overflow-hidden relative'>
+    <div className='flex min-h-screen bg-white'>
       {/* Section gauche : Image */}
       <div
-        className={`absolute inset-y-0 w-1/2 ${
+        className={`w-1/2 ${
           isLogin ? "left-0" : "right-0"
         } bg-[var(--primary-color)] flex items-center justify-center`}>
         <img
@@ -53,10 +83,7 @@ export default function Auth() {
         />
       </div>
       {/* Section droite : Formulaire */}
-      <div
-        className={`absolute inset-y-0 w-1/2 ${
-          isLogin ? "right-0" : "left-0"
-        } flex items-center justify-center bg-white`}>
+      <div className={`w-1/2 flex items-center justify-center bg-white`}>
         <div className='w-full max-w-md p-8 rounded-lg shadow-md'>
           {/* Bouton Revenir à l'accueil */}
           <button
@@ -95,8 +122,10 @@ export default function Auth() {
                 <InputField
                   id='password'
                   label='Mot de passe'
-                  type='password'
+                  type={showPassword ? "text" : "password"}
                   placeholder='Mot de passe'
+                  showToggle
+                  onToggle={() => setShowPassword(!showPassword)}
                 />
                 <button
                   type='submit'
@@ -146,12 +175,6 @@ export default function Auth() {
               </p>
               <form>
                 <InputField
-                  id='username'
-                  label="Nom d'utilisateur"
-                  type='text'
-                  placeholder="Nom d'utilisateur"
-                />
-                <InputField
                   id='email'
                   label='Adresse e-mail'
                   type='email'
@@ -160,8 +183,18 @@ export default function Auth() {
                 <InputField
                   id='password'
                   label='Mot de passe'
-                  type='password'
+                  type={showPassword ? "text" : "password"}
                   placeholder='Mot de passe'
+                  showToggle
+                  onToggle={() => setShowPassword(!showPassword)}
+                />
+                <InputField
+                  id='confirm-password'
+                  label='Confirmez le mot de passe'
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder='Confirmez le mot de passe'
+                  showToggle
+                  onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
                 />
                 <button
                   type='submit'
