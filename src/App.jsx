@@ -24,8 +24,8 @@ import {
   AiOutlineSearch,
 } from "react-icons/ai";
 
-function Navbar({ setIsSettingsOpen }) {
-  const { activeTitle } = useContext(AppContext);
+function Navbar() {
+  const { activeTitle, setIsSettingsOpen } = useContext(AppContext);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,7 +43,7 @@ function Navbar({ setIsSettingsOpen }) {
     ? ""
     : titles[location.pathname] || "Page inconnue";
 
-  const isLoggedIn = false; 
+  const isLoggedIn = false;
 
   return (
     <div className='p-4 border-b border-gray-200 bg-transparent flex items-center justify-between'>
@@ -100,7 +100,7 @@ export default function App() {
       <div className='flex bg-gray-50'>
         <Sidebar />
         <div className='flex-1 relative'>
-          <Navbar setIsSettingsOpen={setIsSettingsOpen} />
+          <Navbar />
           <div className='p-6'>
             <Routes>
               <Route path='/' element={<Dashboard />} />
