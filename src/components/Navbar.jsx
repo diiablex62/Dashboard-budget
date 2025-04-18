@@ -25,7 +25,7 @@ export default function Navbar() {
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
           className='text-xl cursor-pointer'
-          onClick={() => navigate("/")} 
+          onClick={() => navigate("/")}
         />
         <span>/</span>
         <span className='text-lg font-medium text-gray-800'>{activeTitle}</span>
