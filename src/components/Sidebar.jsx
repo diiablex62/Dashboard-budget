@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { NavLink, useNavigate } from "react-router-dom"; 
+import { NavLink, useNavigate } from "react-router-dom";
 import "../styles/tailwind.css";
 import { AppContext } from "../context/AppContext";
 import {
@@ -14,7 +14,7 @@ import { FaMapMarkedAlt } from "react-icons/fa";
 
 export default function Sidebar() {
   const { sidebarType, isNavbarFixed } = useContext(AppContext);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   return (
     <div
@@ -103,13 +103,13 @@ export default function Sidebar() {
       <div className='p-4 border-t border-gray-200'>
         <button
           className='w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300'
-          onClick={() => navigate("/login")} 
+          onClick={() => navigate("/auth", { state: { isLogin: true } })} // Redirection vers Auth avec isLogin=true
         >
           Se connecter
         </button>
         <button
           className='w-full mt-4 bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-gray-200 transition duration-300'
-          onClick={() => navigate("/register")} 
+          onClick={() => navigate("/auth", { state: { isLogin: false } })} // Redirection vers Auth avec isLogin=false
         >
           S'inscrire
         </button>

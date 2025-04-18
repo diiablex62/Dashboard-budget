@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom"; 
 import cochonImage from "../assets/img/cochon.png";
-import Google from "../components/Google"; // Import du composant Google
+import Google from "../components/Google"; 
 
 function InputField({ id, label, type, placeholder }) {
   return (
@@ -29,8 +29,15 @@ function SocialButton({ Icon, alt, text }) {
 }
 
 export default function Auth() {
+  const location = useLocation(); 
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state?.isLogin !== undefined) {
+      setIsLogin(location.state.isLogin); 
+    }
+  }, [location.state]);
 
   return (
     <div className='flex min-h-screen bg-white overflow-hidden relative'>
@@ -54,8 +61,21 @@ export default function Auth() {
           {/* Bouton Revenir à l'accueil */}
           <button
             onClick={() => navigate("/")}
-            className='mb-4 text-blue-500 hover:underline text-sm'>
-            ← Revenir à l'accueil
+            className='mb-4 flex items-center text-blue-500 hover:text-blue-700 text-sm font-medium transition duration-300 cursor-pointer'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              className='h-4 w-4 mr-2'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              strokeWidth={2}>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M15 19l-7-7 7-7'
+              />
+            </svg>
+            Revenir à l'accueil
           </button>
           {isLogin ? (
             <>
