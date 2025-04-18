@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; 
+import { useNavigate, useLocation } from "react-router-dom";
 import cochonImage from "../assets/img/cochon.png";
-import Google from "../components/Google"; 
+import Google from "../components/Google";
 
 function InputField({ id, label, type, placeholder }) {
   return (
@@ -29,13 +29,13 @@ function SocialButton({ Icon, alt, text }) {
 }
 
 export default function Auth() {
-  const location = useLocation(); 
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.isLogin !== undefined) {
-      setIsLogin(location.state.isLogin); 
+      setIsLogin(location.state.isLogin);
     }
   }, [location.state]);
 
@@ -79,8 +79,10 @@ export default function Auth() {
           </button>
           {isLogin ? (
             <>
-              <h2 className='text-2xl font-bold text-center mb-2'>Connexion</h2>
-              <p className='text-center text-sm text-gray-500 mb-6'>
+              <h2 className='text-3xl font-extrabold text-center mb-1 text-gray-800'>
+                Connexion
+              </h2>
+              <p className='text-center text-base text-gray-600 mb-6'>
                 Connectez-vous pour continuer
               </p>
               <form>
@@ -136,10 +138,10 @@ export default function Auth() {
             </>
           ) : (
             <>
-              <h2 className='text-2xl font-bold text-center mb-2'>
+              <h2 className='text-3xl font-extrabold text-center mb-1 text-gray-800'>
                 Inscription
               </h2>
-              <p className='text-center text-sm text-gray-500 mb-6'>
+              <p className='text-center text-base text-gray-600 mb-6'>
                 Inscrivez-vous pour continuer
               </p>
               <form>
