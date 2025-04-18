@@ -25,7 +25,6 @@ import {
 } from "react-icons/ai";
 
 function Navbar() {
-  const { activeTitle, setIsSettingsOpen } = useContext(AppContext);
   const location = useLocation();
   const navigate = useNavigate();
 
