@@ -1,18 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
   const [selectedColor, setSelectedColor] = useState("blue");
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true); // Active l'animation lorsque le composant est monté
+  }, []);
 
   const colors = ["pink", "black", "blue", "green", "orange", "red"];
 
   return (
-    <div className='fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50'>
+    <div
+      className={`fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50 transform transition-transform duration-500 ${
+        isVisible ? "translate-x-0" : "translate-x-full"
+      }`}
+    >
       <div className='p-4 flex items-center justify-between border-b'>
         <h2 className='text-xl font-bold'>Paramètres</h2>
         <button
           className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
-          onClick={() => setIsSettingsOpen(false)} // Ferme les paramètres
+          onClick={() => {
+            setIsVisible(false); // Désactive l'animation avant de fermer
+            setTimeout(() => setIsSettingsOpen(false), 500); // Ferme après l'animation
+          }}
         >
           &times;
         </button>
