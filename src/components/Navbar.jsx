@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   AiOutlineSearch,
   AiOutlineSetting,
@@ -8,11 +8,12 @@ import {
 import { FaUserCircle } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
+import SettingsPanel from "./SettingsPanel"; // Import du composant SettingsPanel
 
 export default function Navbar() {
-  const { activeTitle, setIsSettingsOpen, isNavbarFixed } =
-    useContext(AppContext);
+  const { activeTitle, isNavbarFixed } = useContext(AppContext);
   const navigate = useNavigate();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // État local pour gérer l'ouverture des paramètres
 
   const isLoggedIn = false; // Remplacez par une logique réelle pour vérifier si l'utilisateur est connecté
 
@@ -30,7 +31,6 @@ export default function Navbar() {
         <span>/</span>
         <span className='text-lg font-medium text-gray-800'>{activeTitle}</span>
       </div>
-
       {/* Section droite : Recherche et icônes */}
       <div className='flex items-center space-x-4'>
         <div className='relative'>
@@ -41,7 +41,7 @@ export default function Navbar() {
           />
           <AiOutlineSearch className='absolute left-3 top-2.5 text-gray-400 text-lg' />
         </div>
-        {isLoggedIn && ( // Affiche uniquement si l'utilisateur est connecté
+        {isLoggedIn && (
           <>
             <FaUserCircle className='text-gray-500 text-2xl cursor-pointer' />
             <AiOutlineBell className='text-gray-500 text-2xl cursor-pointer' />
@@ -50,9 +50,14 @@ export default function Navbar() {
         <AiOutlineSetting
           className='text-gray-500 text-2xl cursor-pointer'
           title='Paramètres'
-          onClick={() => setIsSettingsOpen(true)} // Ouvre les paramètres
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)} // Bascule l'état des paramètres
         />
       </div>
+      {/* Panneau des paramètres */}
+      {isSettingsOpen && (
+        <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
+      )}{" "}
+      {/* Passe la fonction comme prop */}
     </div>
   );
 }

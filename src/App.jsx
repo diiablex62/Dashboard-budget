@@ -4,20 +4,20 @@ import "./styles/tailwind.css";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import { AppContext } from "./context/AppContext";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
 import Onglet1 from "./pages/Onglet1";
 import Onglet2 from "./pages/Onglet2";
 import Onglet3 from "./pages/Onglet3";
 import Onglet4 from "./pages/Onglet4";
 import Onglet5 from "./pages/Onglet5";
+import Auth from "./pages/Auth";
+
 
 export default function App() {
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
   const location = useLocation();
 
-  const isolatedRoutes = ["/login", "/register"];
+  const isolatedRoutes = ["/auth"];
   const isIsolatedRoute = isolatedRoutes.includes(location.pathname);
 
   return (
@@ -31,8 +31,7 @@ export default function App() {
         <div className={isIsolatedRoute ? "w-full" : "p-6"}>
           <Routes>
             <Route path='/' element={<Dashboard />} />
-            <Route path='/login' element={<Login />} />
-            <Route path='/register' element={<Register />} />
+            <Route path='/auth' element={<Auth />} />
             <Route path='/onglet1' element={<Onglet1 />} />
             <Route path='/onglet2' element={<Onglet2 />} />
             <Route path='/onglet3' element={<Onglet3 />} />

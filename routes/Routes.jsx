@@ -1,8 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "../src/pages/Dashboard";
-import Login from "../src/pages/Login";
-import Register from "../src/pages/Register";
+import Login from "../src/pages/_Login";
+import Register from "../src/pages/_Register";
 import Onglet1 from "../src/pages/Onglet1";
 import Onglet2 from "../src/pages/Onglet2";
 import Onglet3 from "../src/pages/Onglet3";

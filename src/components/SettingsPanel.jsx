@@ -12,9 +12,8 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
         <h2 className='text-xl font-bold'>Paramètres</h2>
         <button
           className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
-          onClick={() => {
-            setIsSettingsOpen(false); 
-          }}>
+          onClick={() => setIsSettingsOpen(false)} // Ferme les paramètres
+        >
           &times;
         </button>
       </div>
@@ -43,8 +42,6 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
             ))}
           </div>
         </div>
-
-      
       </div>
     </div>
   );
