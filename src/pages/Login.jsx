@@ -1,5 +1,4 @@
 import React from "react";
-import { Button } from "@/components/button"; // Mise à jour du chemin
 
 export default function Login() {
   return (
