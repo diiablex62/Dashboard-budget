@@ -20,8 +20,8 @@ export default function App() {
         <div className='p-6'>
           <Routes>
             <Route path='/' element={<Dashboard />} />
-            <Route path='/login' element={<Login />} /> 
-            <Route path='/register' element={<Register />} />{" /"}
+            <Route path='/login' element={<Login />} /> {/* Route Login */}
+            <Route path='/register' element={<Register />} />{" "}
             {/* Route Register */}
           </Routes>
         </div>

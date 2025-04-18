@@ -32,9 +32,9 @@ export default function Login() {
               className='mt-1 w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
           </div>
-          <Button type='submit' className='w-full'>
+          <button type='submit' className='w-full'>
             Connexion
-          </Button>
+          </button>
         </form>
         <p className='text-center text-sm text-gray-600 mt-4'>
           Pas encore inscrit ?{" "}
