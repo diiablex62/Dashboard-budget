@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import cochonImage from "../assets/img/cochon.png"; 
+import { useNavigate } from "react-router-dom";
+import cochonImage from "../assets/img/cochon.png";
+import Google from "../components/Google"; // Import du composant Google
 
 function InputField({ id, label, type, placeholder }) {
   return (
@@ -17,10 +19,10 @@ function InputField({ id, label, type, placeholder }) {
   );
 }
 
-function SocialButton({ src, alt, text }) {
+function SocialButton({ Icon, alt, text }) {
   return (
     <button className='w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition duration-300'>
-      <img src={src} alt={alt} className='w-5 h-5' />
+      <Icon className='w-5 h-5' />
       {text}
     </button>
   );
@@ -28,6 +30,7 @@ function SocialButton({ src, alt, text }) {
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
 
   return (
     <div className='flex min-h-screen bg-white overflow-hidden relative'>
@@ -48,6 +51,12 @@ export default function Auth() {
           isLogin ? "right-0" : "left-0"
         } flex items-center justify-center bg-white`}>
         <div className='w-full max-w-md p-8 rounded-lg shadow-md'>
+          {/* Bouton Revenir à l'accueil */}
+          <button
+            onClick={() => navigate("/")}
+            className='mb-4 text-blue-500 hover:underline text-sm'>
+            ← Revenir à l'accueil
+          </button>
           {isLogin ? (
             <>
               <h2 className='text-2xl font-bold text-center mb-2'>Connexion</h2>
@@ -80,12 +89,18 @@ export default function Auth() {
               </div>
               <div className='space-y-4'>
                 <SocialButton
-                  src='https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png'
+                  Icon={Google}
                   alt='Google'
                   text='Connexion avec Google'
                 />
                 <SocialButton
-                  src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
+                  Icon={() => (
+                    <img
+                      src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
+                      alt='GitHub'
+                      className='w-5 h-5'
+                    />
+                  )}
                   alt='GitHub'
                   text='Connexion avec GitHub'
                 />
@@ -139,12 +154,18 @@ export default function Auth() {
               </div>
               <div className='space-y-4'>
                 <SocialButton
-                  src='https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png'
+                  Icon={Google}
                   alt='Google'
                   text='Inscription avec Google'
                 />
                 <SocialButton
-                  src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
+                  Icon={() => (
+                    <img
+                      src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
+                      alt='GitHub'
+                      className='w-5 h-5'
+                    />
+                  )}
                   alt='GitHub'
                   text='Inscription avec GitHub'
                 />
