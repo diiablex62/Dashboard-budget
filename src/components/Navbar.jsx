@@ -14,6 +14,8 @@ export default function Navbar() {
     useContext(AppContext);
   const navigate = useNavigate();
 
+  const isLoggedIn = false; // Remplacez par une logique réelle pour vérifier si l'utilisateur est connecté
+
   return (
     <div
       className={`w-full p-4 flex items-center justify-between ${
@@ -39,13 +41,17 @@ export default function Navbar() {
           />
           <AiOutlineSearch className='absolute left-3 top-2.5 text-gray-400 text-lg' />
         </div>
-        <FaUserCircle className='text-gray-500 text-2xl cursor-pointer' />
+        {isLoggedIn && ( // Affiche uniquement si l'utilisateur est connecté
+          <>
+            <FaUserCircle className='text-gray-500 text-2xl cursor-pointer' />
+            <AiOutlineBell className='text-gray-500 text-2xl cursor-pointer' />
+          </>
+        )}
         <AiOutlineSetting
           className='text-gray-500 text-2xl cursor-pointer'
           title='Paramètres'
           onClick={() => setIsSettingsOpen(true)} // Ouvre les paramètres
         />
-        <AiOutlineBell className='text-gray-500 text-2xl cursor-pointer' />
       </div>
     </div>
   );

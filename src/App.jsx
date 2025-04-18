@@ -8,6 +8,11 @@ import { AppContext } from "./context/AppContext";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Onglet1 from "./pages/Onglet1";
+import Onglet2 from "./pages/Onglet2";
+import Onglet3 from "./pages/Onglet3";
+import Onglet4 from "./pages/Onglet4";
+import Onglet5 from "./pages/Onglet5";
 
 export default function App() {
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
@@ -20,9 +25,13 @@ export default function App() {
         <div className='p-6'>
           <Routes>
             <Route path='/' element={<Dashboard />} />
-            <Route path='/login' element={<Login />} /> {/* Route Login */}
-            <Route path='/register' element={<Register />} />{" "}
-            {/* Route Register */}
+            <Route path='/login' element={<Login />} />
+            <Route path='/register' element={<Register />} />
+            <Route path='/onglet1' element={<Onglet1 />} />{" "}
+            <Route path='/onglet2' element={<Onglet2 />} />{" "}
+            <Route path='/onglet3' element={<Onglet3 />} />{" "}
+            <Route path='/onglet4' element={<Onglet4 />} />{" "}
+            <Route path='/onglet5' element={<Onglet5 />} />{" "}
           </Routes>
         </div>
         {isSettingsOpen && (
