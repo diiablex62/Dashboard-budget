@@ -12,16 +12,15 @@ export default function Navbar() {
     isSettingsOpen,
     setIsSettingsOpen,
     isLoggedIn,
-  } = useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
+  } = useContext(AppContext);
   const navigate = useNavigate();
-  const [searchText, setSearchText] = useState(""); // État local pour le texte de recherche
+  const [searchText, setSearchText] = useState("");
 
   return (
     <div
       className={`w-full p-4 flex items-center justify-between ${
         isNavbarFixed ? "fixed top-0 left-0 bg-white shadow-md z-50" : ""
       }`}>
-      {/* Section gauche : Navigation */}
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
           className='text-xl cursor-pointer'
@@ -30,13 +29,12 @@ export default function Navbar() {
         <span>/</span>
         <span className='text-lg font-medium text-gray-800'>{activeTitle}</span>
       </div>
-      {/* Section droite : Recherche et icônes */}
       <div className='flex items-center space-x-4'>
         <div className='relative flex-1 max-w-md'>
           <input
             type='text'
-            value={searchText} // Liaison avec l'état
-            onChange={(e) => setSearchText(e.target.value)} // Met à jour l'état lors de la saisie
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
             placeholder='Rechercher...'
             className='w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] text-gray-800 placeholder-gray-400'
           />
@@ -54,7 +52,7 @@ export default function Navbar() {
             />
           </svg>
         </div>
-        {isLoggedIn && ( // Affiche les boutons uniquement si l'utilisateur est connecté
+        {isLoggedIn && (
           <>
             <FaUserCircle
               className='text-gray-500 text-2xl cursor-pointer'
@@ -69,10 +67,9 @@ export default function Navbar() {
         <AiOutlineSetting
           className='text-gray-500 text-2xl cursor-pointer'
           title='Paramètres'
-          onClick={() => setIsSettingsOpen(!isSettingsOpen)} // Bascule l'état des paramètres
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
         />
       </div>
-      {/* Panneau des paramètres */}
       {isSettingsOpen && (
         <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
       )}

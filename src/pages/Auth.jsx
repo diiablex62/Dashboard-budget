@@ -232,18 +232,8 @@ export default function Auth() {
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setFormData((prev) => {
-      const updatedFormData = { ...prev, [id]: value };
-      if (id !== "confirmPassword") {
-        validateField(id, value);
-      }
-      return updatedFormData;
-    });
-  };
-
-  const handlePasswordChange = (e) => {
-    const { value } = e.target;
-    setFormData((prev) => ({ ...prev, password: value }));
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (id !== "confirmPassword") validateField(id, value);
   };
 
   const handleSubmit = async (e) => {
@@ -255,11 +245,6 @@ export default function Auth() {
       toast.success("Connexion réussie ! Redirection en cours...", {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
       setTimeout(() => {
         setIsLoggedIn(true);
@@ -269,20 +254,9 @@ export default function Auth() {
       const formattedErrors = {};
       validationErrors.inner.forEach((error) => {
         formattedErrors[error.path] = error.message;
-        toast.error(error.message, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+        toast.error(error.message, { position: "top-right", autoClose: 3000 });
       });
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        ...formattedErrors,
-      }));
+      setErrors((prevErrors) => ({ ...prevErrors, ...formattedErrors }));
     }
   };
 
@@ -355,7 +329,7 @@ export default function Auth() {
                       type='password'
                       placeholder='Mot de passe'
                       value={formData.password}
-                      onChange={handlePasswordChange}
+                      onChange={handleChange}
                       error={errors.password}
                       showPassword={showPassword}
                       togglePasswordVisibility={handlePasswordVisibilityToggle}
@@ -404,7 +378,7 @@ export default function Auth() {
                       type='password'
                       placeholder='Mot de passe'
                       value={formData.password}
-                      onChange={handlePasswordChange}
+                      onChange={handleChange}
                       error={errors.password}
                       showPassword={showPassword}
                       togglePasswordVisibility={handlePasswordVisibilityToggle}
@@ -415,12 +389,7 @@ export default function Auth() {
                       type='password'
                       placeholder='Confirmez le mot de passe'
                       value={formData.confirmPassword}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          confirmPassword: e.target.value,
-                        }))
-                      }
+                      onChange={handleChange}
                       error={errors.confirmPassword}
                       showPassword={showConfirmPassword}
                       togglePasswordVisibility={
