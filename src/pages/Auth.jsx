@@ -77,7 +77,7 @@ export default function Auth() {
     const primaryColor = getComputedStyle(document.documentElement)
       .getPropertyValue("--primary-color")
       .trim();
-     if (primaryColor === "#FFA500") {
+    if (primaryColor === "#FFA500") {
       setAuthImage(orangeImage); // Image pour le site orange
     } else {
       setAuthImage(bleuImage); // Image par défaut
