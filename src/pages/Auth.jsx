@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import cochonImage from "../assets/img/cochon.png";
+import bleuImage from "../assets/img/auth-bleu.png"; // par defaut et si le site est bleu
+import orangeImage from "../assets/img/auth-orange.jpg"; // Image pour le site orange
+
 import Google from "../components/Google";
 
 function InputField({ id, label, type, placeholder, showToggle, onToggle }) {
@@ -61,6 +63,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [authImage, setAuthImage] = useState(bleuImage); // État pour l'image
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,6 +71,18 @@ export default function Auth() {
       setIsLogin(location.state.isLogin);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    // Change l'image en fonction de la couleur principale
+    const primaryColor = getComputedStyle(document.documentElement)
+      .getPropertyValue("--primary-color")
+      .trim();
+     if (primaryColor === "#FFA500") {
+      setAuthImage(orangeImage); // Image pour le site orange
+    } else {
+      setAuthImage(bleuImage); // Image par défaut
+    }
+  }, []);
 
   return (
     <div className='flex min-h-screen bg-white'>
@@ -77,7 +92,7 @@ export default function Auth() {
           isLogin ? "left-0" : "right-0"
         } bg-[var(--primary-color)] flex items-center justify-center`}>
         <img
-          src={cochonImage}
+          src={authImage}
           alt='Illustration'
           className='w-full h-screen object-cover'
         />

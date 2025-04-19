@@ -14,12 +14,12 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
   }, []);
 
   const colors = [
-    "#FFC0CB",
-    "#000000",
-    "#007BFF",
-    "#008000",
-    "#FFA500",
-    "#FF0000",
+    "#000000", // Black
+    "#007BFF", // Blue
+    "#FF6347", // Orange
+    "#008000",  // Green
+    "#FFA500", // Orange
+    "#FF0000", // Red
   ];
 
   const handleColorChange = (color) => {

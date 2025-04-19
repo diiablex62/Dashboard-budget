@@ -19,11 +19,10 @@ export default function App() {
   const isolatedRoutes = ["/auth"];
   const isIsolatedRoute = isolatedRoutes.includes(location.pathname);
 
-  // Fonction pour générer une couleur plus claire ou plus foncée
   const generateColorFromPrimary = (color, adjustment) => {
     if (!color.startsWith("#") || color.length !== 7) {
       console.error("Invalid color format:", color);
-      return "#007BFF"; // Retourne la couleur par défaut (bleu) en cas d'erreur
+      return "#007BFF"; 
     }
 
     const hexToHSL = (hex) => {
@@ -110,13 +109,12 @@ export default function App() {
     return hslToHex(hsl);
   };
 
-  // Applique immédiatement la couleur choisie avant que React ne monte
   if (typeof window !== "undefined") {
     const savedColor = localStorage.getItem("primaryColor");
     const validPrimaryColor =
       savedColor && savedColor.startsWith("#") && savedColor.length === 7
         ? savedColor
-        : "#007BFF"; // Couleur par défaut (bleu)
+        : "#007BFF"; 
 
     document.documentElement.style.setProperty(
       "--primary-color",
@@ -137,7 +135,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    // Récupère la couleur enregistrée dans le localStorage ou utilise la couleur par défaut
     const savedColor = localStorage.getItem("primaryColor");
     const validPrimaryColor =
       savedColor && savedColor.startsWith("#") && savedColor.length === 7
