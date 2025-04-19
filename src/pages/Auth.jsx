@@ -18,7 +18,7 @@ function InputField({ id, label, type, placeholder, showToggle, onToggle }) {
           id={id}
           type={type}
           placeholder={placeholder}
-          className='w-full border border-gray-300 rounded-lg p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='w-full border border-gray-300 rounded-lg p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] text-gray-800 placeholder-gray-400'
         />
         {showToggle && (
           <button
