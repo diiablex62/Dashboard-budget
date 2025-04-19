@@ -85,12 +85,12 @@ export default function Auth() {
   }, []);
 
   return (
-    <div className='flex min-h-screen bg-white'>
+    <div className='flex min-h-screen bg-white overflow-hidden relative'>
       {/* Section gauche : Image */}
       <div
-        className={`w-1/2 ${
-          isLogin ? "left-0" : "right-0"
-        } bg-[var(--primary-color)] flex items-center justify-center`}>
+        className={`absolute inset-y-0 w-1/2 ${
+          isLogin ? "left-0" : "translate-x-full"
+        } bg-[var(--primary-color)] flex items-center justify-center transition-transform duration-500`}>
         <img
           src={authImage}
           alt='Illustration'
@@ -98,7 +98,10 @@ export default function Auth() {
         />
       </div>
       {/* Section droite : Formulaire */}
-      <div className={`w-1/2 flex items-center justify-center bg-white`}>
+      <div
+        className={`absolute inset-y-0 w-1/2 ${
+          isLogin ? "translate-x-full" : "left-0"
+        } flex items-center justify-center bg-white transition-transform duration-500`}>
         <div className='w-full max-w-md p-8 rounded-lg shadow-md'>
           {/* Bouton Revenir à l'accueil */}
           <button
