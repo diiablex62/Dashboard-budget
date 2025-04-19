@@ -11,6 +11,8 @@ import Onglet3 from "./pages/Onglet3";
 import Onglet4 from "./pages/Onglet4";
 import Onglet5 from "./pages/Onglet5";
 import Auth from "./pages/Auth";
+import { ToastContainer } from "react-toastify"; // Importez ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Importez les styles de toast
 
 export default function App() {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
@@ -22,7 +24,7 @@ export default function App() {
   const generateColorFromPrimary = (color, adjustment) => {
     if (!color.startsWith("#") || color.length !== 7) {
       console.error("Invalid color format:", color);
-      return "#007BFF"; 
+      return "#007BFF";
     }
 
     const hexToHSL = (hex) => {
@@ -114,7 +116,7 @@ export default function App() {
     const validPrimaryColor =
       savedColor && savedColor.startsWith("#") && savedColor.length === 7
         ? savedColor
-        : "#007BFF"; 
+        : "#007BFF";
 
     document.documentElement.style.setProperty(
       "--primary-color",
@@ -203,6 +205,7 @@ export default function App() {
           </Routes>
         </div>
       </div>
+      <ToastContainer /> {/* Ajoutez le conteneur de toast ici */}
     </div>
   );
 }

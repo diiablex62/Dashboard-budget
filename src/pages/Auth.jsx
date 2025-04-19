@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import * as yup from "yup"; // Réintègre l'importation de yup
-import bleuImage from "../assets/img/auth-bleu.png"; // par defaut et si le site est bleu
-import orangeImage from "../assets/img/auth-orange.jpg"; // Image pour le site orange
+import * as yup from "yup";
+import bleuImage from "../assets/img/auth-bleu.png";
+import orangeImage from "../assets/img/auth-orange.jpg";
 import Google from "../components/Google";
-import EyeOpenIcon from "../assets/Icons/EyeOpenIcon.svg"; // Nouvelle icône pour l'œil ouvert
-import EyeClosedIcon from "../assets/Icons/EyeClosedIcon.svg"; // Nouvelle icône pour l'œil fermé
-import { AppContext } from "../context/AppContext"; // Importez AppContext
+import EyeOpenIcon from "../assets/Icons/EyeOpenIcon.svg";
+import EyeClosedIcon from "../assets/Icons/EyeClosedIcon.svg";
+import { AppContext } from "../context/AppContext";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const loginSchema = yup.object().shape({
   email: yup
@@ -43,7 +45,7 @@ const registerSchema = yup.object().shape({
   confirmPassword: yup
     .string()
     .oneOf(
-      [yup.ref("password"), undefined], // Remplacez `null` par `undefined`
+      [yup.ref("password"), undefined],
       "Les mots de passe doivent correspondre."
     )
     .required("La confirmation du mot de passe est requise."),
@@ -128,7 +130,7 @@ function InputFieldWithEye({
 function PasswordStrengthIndicator({ password }) {
   const getStrength = () => {
     if (!password) return { strength: "Faible", color: "red" };
-    const hasUpperCase = /[A-Z]/.test(password); // Vérifie correctement les majuscules
+    const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /[0-9]/.test(password);
     const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
@@ -157,7 +159,7 @@ function PasswordStrengthIndicator({ password }) {
 function PasswordCriteria({ password }) {
   const criteria = [
     { label: "Au moins 8 caractères", test: (pw) => pw.length >= 8 },
-    { label: "Au moins une majuscule", test: (pw) => /[A-Z]/.test(pw) }, // Vérifie correctement les majuscules
+    { label: "Au moins une majuscule", test: (pw) => /[A-Z]/.test(pw) },
     { label: "Au moins un chiffre", test: (pw) => /[0-9]/.test(pw) },
     {
       label: "Au moins un caractère spécial",
@@ -182,19 +184,19 @@ function PasswordCriteria({ password }) {
 
 export default function Auth() {
   const location = useLocation();
-  const { setIsLoggedIn } = useContext(AppContext); // Récupérez setIsLoggedIn depuis le contexte
+  const { setIsLoggedIn } = useContext(AppContext);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // État pour masquer/afficher la confirmation du mot de passe
-  const [authImage, setAuthImage] = useState(bleuImage); // État pour l'image
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [authImage, setAuthImage] = useState(bleuImage);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [showPasswordStrength, setShowPasswordStrength] = useState(false); // État pour afficher ou non la force du mot de passe
-  const [touchedFields, setTouchedFields] = useState({}); // État pour suivre les champs touchés
+  const [showPasswordStrength, setShowPasswordStrength] = useState(false);
+  const [touchedFields, setTouchedFields] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -215,14 +217,12 @@ export default function Auth() {
   }, []);
 
   const handleBlur = (field) => {
-    setTouchedFields((prev) => ({ ...prev, [field]: true })); // Marque le champ comme touché
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
   };
 
   const validateField = async (field, value) => {
     try {
       const schema = isLogin ? loginSchema : registerSchema;
-
-      // Supprime la validation explicite pour confirmPassword ici
       await yup.reach(schema, field).validate(value, { context: formData });
       setErrors((prev) => ({ ...prev, [field]: "" }));
     } catch (validationError) {
@@ -232,22 +232,17 @@ export default function Auth() {
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    console.log(`Modification du champ : ${id}, nouvelle valeur : ${value}`); // Log pour suivre les changements
     setFormData((prev) => {
       const updatedFormData = { ...prev, [id]: value };
-
-      // Valide uniquement le champ modifié, sans valider confirmPassword en temps réel
       if (id !== "confirmPassword") {
         validateField(id, value);
       }
-
       return updatedFormData;
     });
   };
 
   const handlePasswordChange = (e) => {
     const { value } = e.target;
-    console.log(`Modification du mot de passe principal : ${value}`); // Log pour suivre les changements de mot de passe
     setFormData((prev) => ({ ...prev, password: value }));
   };
 
@@ -257,20 +252,37 @@ export default function Auth() {
       const schema = isLogin ? loginSchema : registerSchema;
       await schema.validate(formData, { abortEarly: false });
       setErrors({});
-      console.log("Formulaire valide :", formData);
-
-      // Fausse validation et redirection
+      toast.success("Connexion réussie ! Redirection en cours...", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       setTimeout(() => {
-        alert("Connexion réussie ! Redirection en cours...");
-        setIsLoggedIn(true); // Mettez à jour l'état de connexion
-        navigate("/"); // Redirection vers la page d'accueil
-      }, 1000);
+        setIsLoggedIn(true);
+        navigate("/");
+      }, 3000);
     } catch (validationErrors) {
       const formattedErrors = {};
       validationErrors.inner.forEach((error) => {
         formattedErrors[error.path] = error.message;
+        toast.error(error.message, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       });
-      setErrors(formattedErrors);
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        ...formattedErrors,
+      }));
     }
   };
 
@@ -284,7 +296,6 @@ export default function Auth() {
 
   return (
     <div className='flex min-h-screen bg-white overflow-hidden relative'>
-      {/* Section gauche : Image */}
       <div
         className={`absolute inset-y-0 w-1/2 ${
           isLogin ? "left-0" : "translate-x-full"
@@ -295,13 +306,11 @@ export default function Auth() {
           className='w-full h-screen object-cover'
         />
       </div>
-      {/* Section droite : Formulaire */}
       <div
         className={`absolute inset-y-0 w-1/2 ${
           isLogin ? "translate-x-full" : "left-0"
         } flex items-center justify-center bg-white transition-transform duration-500`}>
         <div className='w-full max-w-md p-8 rounded-lg shadow-md'>
-          {/* Bouton Revenir à l'accueil */}
           <button
             onClick={() => navigate("/")}
             className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
@@ -351,7 +360,6 @@ export default function Auth() {
                       showPassword={showPassword}
                       togglePasswordVisibility={handlePasswordVisibilityToggle}
                     />
-                    {/* Affiche les critères de mot de passe uniquement si l'email est valide */}
                     <PasswordCriteria password={formData.password} />
                   </>
                 )}
@@ -412,14 +420,13 @@ export default function Auth() {
                           ...prev,
                           confirmPassword: e.target.value,
                         }))
-                      } // Met à jour uniquement la valeur
-                      error={errors.confirmPassword} // Affiche l'erreur uniquement lors de la validation du formulaire
+                      }
+                      error={errors.confirmPassword}
                       showPassword={showConfirmPassword}
                       togglePasswordVisibility={
                         handleConfirmPasswordVisibilityToggle
                       }
                     />
-                    {/* Affiche les critères de mot de passe uniquement si l'email est valide */}
                     <PasswordCriteria password={formData.password} />
                   </>
                 )}

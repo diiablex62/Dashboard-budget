@@ -6,8 +6,13 @@ import { useNavigate } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
 
 export default function Navbar() {
-  const { activeTitle, isNavbarFixed, isSettingsOpen, setIsSettingsOpen, isLoggedIn } =
-    useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
+  const {
+    activeTitle,
+    isNavbarFixed,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    isLoggedIn,
+  } = useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState(""); // État local pour le texte de recherche
 
@@ -51,8 +56,14 @@ export default function Navbar() {
         </div>
         {isLoggedIn && ( // Affiche les boutons uniquement si l'utilisateur est connecté
           <>
-            <FaUserCircle className='text-gray-500 text-2xl cursor-pointer' title='Mon compte' />
-            <AiOutlineBell className='text-gray-500 text-2xl cursor-pointer' title='Notifications' />
+            <FaUserCircle
+              className='text-gray-500 text-2xl cursor-pointer'
+              title='Mon compte'
+            />
+            <AiOutlineBell
+              className='text-gray-500 text-2xl cursor-pointer'
+              title='Notifications'
+            />
           </>
         )}
         <AiOutlineSetting
