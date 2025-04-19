@@ -1,11 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import * as yup from "yup"; // Réintègre l'importation de yup
 import bleuImage from "../assets/img/auth-bleu.png"; // par defaut et si le site est bleu
 import orangeImage from "../assets/img/auth-orange.jpg"; // Image pour le site orange
-
 import Google from "../components/Google";
+import EyeOpenIcon from "../assets/Icons/EyeOpenIcon.svg"; // Nouvelle icône pour l'œil ouvert
+import EyeClosedIcon from "../assets/Icons/EyeClosedIcon.svg"; // Nouvelle icône pour l'œil fermé
+import { AppContext } from "../context/AppContext"; // Importez AppContext
 
-function InputField({ id, label, type, placeholder, showToggle, onToggle }) {
+const loginSchema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Veuillez entrer une adresse e-mail valide.")
+    .required("L'adresse e-mail est requise."),
+  password: yup
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères.")
+    .matches(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule.")
+    .matches(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre.")
+    .matches(
+      /[!@#$%^&*(),.?":{}|<>]/,
+      "Le mot de passe doit contenir au moins un caractère spécial."
+    )
+    .required("Le mot de passe est requis."),
+});
+
+const registerSchema = yup.object().shape({
+  email: yup
+    .string()
+    .email("Veuillez entrer une adresse e-mail valide.")
+    .required("L'adresse e-mail est requise."),
+  password: yup
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères.")
+    .matches(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule.")
+    .matches(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre.")
+    .matches(
+      /[!@#$%^&*(),.?":{}|<>]/,
+      "Le mot de passe doit contenir au moins un caractère spécial."
+    )
+    .required("Le mot de passe est requis."),
+  confirmPassword: yup
+    .string()
+    .oneOf(
+      [yup.ref("password"), undefined], // Remplacez `null` par `undefined`
+      "Les mots de passe doivent correspondre."
+    )
+    .required("La confirmation du mot de passe est requise."),
+});
+
+function InputField({ id, label, type, placeholder, value, onChange, error }) {
   return (
     <div className='mb-6 relative'>
       <label
@@ -18,52 +62,139 @@ function InputField({ id, label, type, placeholder, showToggle, onToggle }) {
           id={id}
           type={type}
           placeholder={placeholder}
-          className='w-full border border-gray-300 rounded-lg p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] text-gray-800 placeholder-gray-400'
+          value={value}
+          onChange={onChange}
+          className={`w-full border ${
+            error ? "border-red-500" : "border-gray-300"
+          } rounded-lg p-2 pr-10 focus:outline-none focus:ring-2 ${
+            error ? "focus:ring-red-500" : "focus:ring-[var(--primary-color)]"
+          } text-gray-800 placeholder-gray-400`}
         />
-        {showToggle && (
-          <button
-            type='button'
-            onClick={onToggle}
-            className='absolute inset-y-0 right-3 flex items-center justify-center text-gray-500'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              className='h-5 w-5'
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-              strokeWidth={2}>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d={
-                  type === "password"
-                    ? "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274.857-.683 1.662-1.208 2.385M17.657 17.657A9.969 9.969 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.969 9.969 0 011.636-2.627"
-                    : "M3 3l18 18M9.879 9.879A3 3 0 0115 12m-3 3a3 3 0 01-3-3m12.121 2.121A9.969 9.969 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.969 9.969 0 011.636-2.627M17.657 17.657L6.343 6.343"
-                }
-              />
-            </svg>
-          </button>
-        )}
+        {error && <p className='text-red-500 text-sm mt-1'>{error}</p>}
       </div>
     </div>
   );
 }
 
-function SocialButton({ Icon, alt, text }) {
+function InputFieldWithEye({
+  id,
+  label,
+  type,
+  placeholder,
+  value,
+  onChange,
+  error,
+  showPassword,
+  togglePasswordVisibility,
+  onBlur,
+}) {
   return (
-    <button className='w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
-      <Icon className='w-5 h-5' />
-      {text}
-    </button>
+    <div className='mb-6 relative'>
+      <label
+        htmlFor={id}
+        className='block text-sm font-medium text-gray-700 mb-1'>
+        {label}
+      </label>
+      <div className='relative'>
+        <input
+          id={id}
+          type={showPassword ? "text" : type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          className={`w-full border ${
+            error ? "border-red-500" : "border-gray-300"
+          } rounded-lg p-2 pr-10 focus:outline-none focus:ring-2 ${
+            error ? "focus:ring-red-500" : "focus:ring-[var(--primary-color)]"
+          } text-gray-800 placeholder-gray-400`}
+        />
+        <img
+          src={showPassword ? EyeOpenIcon : EyeClosedIcon}
+          alt={
+            showPassword
+              ? "Masquer le mot de passe"
+              : "Afficher le mot de passe"
+          }
+          className='absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer h-5 w-5'
+          onClick={togglePasswordVisibility}
+        />
+        {error && <p className='text-red-500 text-sm mt-1'>{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+function PasswordStrengthIndicator({ password }) {
+  const getStrength = () => {
+    if (!password) return { strength: "Faible", color: "red" };
+    const hasUpperCase = /[A-Z]/.test(password); // Vérifie correctement les majuscules
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /[0-9]/.test(password);
+    const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    const score = [
+      hasUpperCase,
+      hasLowerCase,
+      hasNumbers,
+      hasSpecialChars,
+    ].filter(Boolean).length;
+
+    if (score <= 2) return { strength: "Faible", color: "red" };
+    if (score === 3) return { strength: "Moyen", color: "orange" };
+    return { strength: "Fort", color: "green" };
+  };
+
+  const { strength, color } = getStrength();
+
+  return (
+    <p className={`text-sm mt-1`} style={{ color }}>
+      Force du mot de passe : {strength}
+    </p>
+  );
+}
+
+function PasswordCriteria({ password }) {
+  const criteria = [
+    { label: "Au moins 8 caractères", test: (pw) => pw.length >= 8 },
+    { label: "Au moins une majuscule", test: (pw) => /[A-Z]/.test(pw) }, // Vérifie correctement les majuscules
+    { label: "Au moins un chiffre", test: (pw) => /[0-9]/.test(pw) },
+    {
+      label: "Au moins un caractère spécial",
+      test: (pw) => /[!@#$%^&*(),.?":{}|<>]/.test(pw),
+    },
+  ];
+
+  return (
+    <ul className='mt-1 space-y-0.5'>
+      {criteria.map((criterion, index) => (
+        <li
+          key={index}
+          className={`text-xs ${
+            criterion.test(password) ? "text-green-500" : "text-red-500"
+          }`}>
+          {criterion.label}
+        </li>
+      ))}
+    </ul>
   );
 }
 
 export default function Auth() {
   const location = useLocation();
+  const { setIsLoggedIn } = useContext(AppContext); // Récupérez setIsLoggedIn depuis le contexte
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // État pour masquer/afficher la confirmation du mot de passe
   const [authImage, setAuthImage] = useState(bleuImage); // État pour l'image
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [showPasswordStrength, setShowPasswordStrength] = useState(false); // État pour afficher ou non la force du mot de passe
+  const [touchedFields, setTouchedFields] = useState({}); // État pour suivre les champs touchés
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,16 +204,83 @@ export default function Auth() {
   }, [location.state]);
 
   useEffect(() => {
-    // Change l'image en fonction de la couleur principale
     const primaryColor = getComputedStyle(document.documentElement)
       .getPropertyValue("--primary-color")
       .trim();
     if (primaryColor === "#FFA500") {
-      setAuthImage(orangeImage); // Image pour le site orange
+      setAuthImage(orangeImage);
     } else {
-      setAuthImage(bleuImage); // Image par défaut
+      setAuthImage(bleuImage);
     }
   }, []);
+
+  const handleBlur = (field) => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true })); // Marque le champ comme touché
+  };
+
+  const validateField = async (field, value) => {
+    try {
+      const schema = isLogin ? loginSchema : registerSchema;
+
+      // Supprime la validation explicite pour confirmPassword ici
+      await yup.reach(schema, field).validate(value, { context: formData });
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    } catch (validationError) {
+      setErrors((prev) => ({ ...prev, [field]: validationError.message }));
+    }
+  };
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    console.log(`Modification du champ : ${id}, nouvelle valeur : ${value}`); // Log pour suivre les changements
+    setFormData((prev) => {
+      const updatedFormData = { ...prev, [id]: value };
+
+      // Valide uniquement le champ modifié, sans valider confirmPassword en temps réel
+      if (id !== "confirmPassword") {
+        validateField(id, value);
+      }
+
+      return updatedFormData;
+    });
+  };
+
+  const handlePasswordChange = (e) => {
+    const { value } = e.target;
+    console.log(`Modification du mot de passe principal : ${value}`); // Log pour suivre les changements de mot de passe
+    setFormData((prev) => ({ ...prev, password: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const schema = isLogin ? loginSchema : registerSchema;
+      await schema.validate(formData, { abortEarly: false });
+      setErrors({});
+      console.log("Formulaire valide :", formData);
+
+      // Fausse validation et redirection
+      setTimeout(() => {
+        alert("Connexion réussie ! Redirection en cours...");
+        setIsLoggedIn(true); // Mettez à jour l'état de connexion
+        navigate("/"); // Redirection vers la page d'accueil
+      }, 1000);
+    } catch (validationErrors) {
+      const formattedErrors = {};
+      validationErrors.inner.forEach((error) => {
+        formattedErrors[error.path] = error.message;
+      });
+      setErrors(formattedErrors);
+    }
+  };
+
+  const handlePasswordVisibilityToggle = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleConfirmPasswordVisibilityToggle = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   return (
     <div className='flex min-h-screen bg-white overflow-hidden relative'>
@@ -130,50 +328,39 @@ export default function Auth() {
               <p className='text-center text-base text-gray-600 mb-6'>
                 Connectez-vous pour continuer
               </p>
-              <form>
+              <form onSubmit={handleSubmit}>
                 <InputField
                   id='email'
                   label='Adresse e-mail'
                   type='email'
                   placeholder='Adresse e-mail'
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={errors.email}
                 />
-                <InputField
-                  id='password'
-                  label='Mot de passe'
-                  type={showPassword ? "text" : "password"}
-                  placeholder='Mot de passe'
-                  showToggle
-                  onToggle={() => setShowPassword(!showPassword)}
-                />
+                {errors.email === "" && (
+                  <>
+                    <InputFieldWithEye
+                      id='password'
+                      label='Mot de passe'
+                      type='password'
+                      placeholder='Mot de passe'
+                      value={formData.password}
+                      onChange={handlePasswordChange}
+                      error={errors.password}
+                      showPassword={showPassword}
+                      togglePasswordVisibility={handlePasswordVisibilityToggle}
+                    />
+                    {/* Affiche les critères de mot de passe uniquement si l'email est valide */}
+                    <PasswordCriteria password={formData.password} />
+                  </>
+                )}
                 <button
                   type='submit'
                   className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'>
                   Connexion
                 </button>
               </form>
-              <div className='flex items-center my-6'>
-                <div className='flex-1 h-px bg-gray-300'></div>
-                <span className='px-4 text-sm text-gray-500'>OU</span>
-                <div className='flex-1 h-px bg-gray-300'></div>
-              </div>
-              <div className='space-y-4'>
-                <SocialButton
-                  Icon={Google}
-                  alt='Google'
-                  text='Connexion avec Google'
-                />
-                <SocialButton
-                  Icon={() => (
-                    <img
-                      src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
-                      alt='GitHub'
-                      className='w-5 h-5'
-                    />
-                  )}
-                  alt='GitHub'
-                  text='Connexion avec GitHub'
-                />
-              </div>
               <p className='text-center text-sm text-gray-600 mt-6'>
                 Vous n'avez pas de compte ?{" "}
                 <button
@@ -191,58 +378,57 @@ export default function Auth() {
               <p className='text-center text-base text-gray-600 mb-6'>
                 Inscrivez-vous pour continuer
               </p>
-              <form>
+              <form onSubmit={handleSubmit}>
                 <InputField
                   id='email'
                   label='Adresse e-mail'
                   type='email'
                   placeholder='Adresse e-mail'
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={errors.email}
                 />
-                <InputField
-                  id='password'
-                  label='Mot de passe'
-                  type={showPassword ? "text" : "password"}
-                  placeholder='Mot de passe'
-                  showToggle
-                  onToggle={() => setShowPassword(!showPassword)}
-                />
-                <InputField
-                  id='confirm-password'
-                  label='Confirmez le mot de passe'
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder='Confirmez le mot de passe'
-                  showToggle
-                  onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-                />
+                {errors.email === "" && (
+                  <>
+                    <InputFieldWithEye
+                      id='password'
+                      label='Mot de passe'
+                      type='password'
+                      placeholder='Mot de passe'
+                      value={formData.password}
+                      onChange={handlePasswordChange}
+                      error={errors.password}
+                      showPassword={showPassword}
+                      togglePasswordVisibility={handlePasswordVisibilityToggle}
+                    />
+                    <InputFieldWithEye
+                      id='confirmPassword'
+                      label='Confirmez le mot de passe'
+                      type='password'
+                      placeholder='Confirmez le mot de passe'
+                      value={formData.confirmPassword}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          confirmPassword: e.target.value,
+                        }))
+                      } // Met à jour uniquement la valeur
+                      error={errors.confirmPassword} // Affiche l'erreur uniquement lors de la validation du formulaire
+                      showPassword={showConfirmPassword}
+                      togglePasswordVisibility={
+                        handleConfirmPasswordVisibilityToggle
+                      }
+                    />
+                    {/* Affiche les critères de mot de passe uniquement si l'email est valide */}
+                    <PasswordCriteria password={formData.password} />
+                  </>
+                )}
                 <button
                   type='submit'
                   className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'>
                   Inscription
                 </button>
               </form>
-              <div className='flex items-center my-6'>
-                <div className='flex-1 h-px bg-gray-300'></div>
-                <span className='px-4 text-sm text-gray-500'>OU</span>
-                <div className='flex-1 h-px bg-gray-300'></div>
-              </div>
-              <div className='space-y-4'>
-                <SocialButton
-                  Icon={Google}
-                  alt='Google'
-                  text='Inscription avec Google'
-                />
-                <SocialButton
-                  Icon={() => (
-                    <img
-                      src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
-                      alt='GitHub'
-                      className='w-5 h-5'
-                    />
-                  )}
-                  alt='GitHub'
-                  text='Inscription avec GitHub'
-                />
-              </div>
               <p className='text-center text-sm text-gray-600 mt-6'>
                 Vous avez déjà un compte ?{" "}
                 <button

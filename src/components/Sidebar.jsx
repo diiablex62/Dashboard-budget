@@ -13,7 +13,7 @@ import {
 import { FaMapMarkedAlt } from "react-icons/fa";
 
 export default function Sidebar() {
-  const { sidebarType, isNavbarFixed, primaryColor } = useContext(AppContext); // Récupère la couleur principale
+  const { sidebarType, isNavbarFixed, isLoggedIn } = useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
   const navigate = useNavigate();
 
   return (
@@ -112,20 +112,20 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
-      <div className='p-4 border-t border-gray-200'>
-        <button
-          className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'
-          onClick={() => navigate("/auth", { state: { isLogin: true } })} // Redirection vers Auth avec isLogin=true
-        >
-          Se connecter
-        </button>
-        <button
-          className='w-full mt-4 bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-gray-200 transition duration-300 cursor-pointer'
-          onClick={() => navigate("/auth", { state: { isLogin: false } })} // Redirection vers Auth avec isLogin=false
-        >
-          S'inscrire
-        </button>
-      </div>
+      {!isLoggedIn && ( // Affiche les boutons uniquement si l'utilisateur n'est pas connecté
+        <div className='p-4 border-t border-gray-200'>
+          <button
+            className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'
+            onClick={() => navigate("/auth", { state: { isLogin: true } })}>
+            Se connecter
+          </button>
+          <button
+            className='w-full mt-4 bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-gray-200 transition duration-300 cursor-pointer'
+            onClick={() => navigate("/auth", { state: { isLogin: false } })}>
+            S'inscrire
+          </button>
+        </div>
+      )}
     </div>
   );
 }

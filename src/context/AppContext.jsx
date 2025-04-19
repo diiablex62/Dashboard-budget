@@ -7,6 +7,7 @@ export function AppProvider({ children }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // État pour l'ouverture des paramètres
   const [sidebarType, setSidebarType] = useState("white");
   const [primaryColor, setPrimaryColor] = useState("#007BFF"); // Couleur principale par défaut
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // État pour la connexion fictive
 
   return (
     <AppContext.Provider
@@ -19,6 +20,8 @@ export function AppProvider({ children }) {
         setSidebarType,
         primaryColor,
         setPrimaryColor,
+        isLoggedIn, // Expose l'état de connexion
+        setIsLoggedIn, // Expose la fonction pour changer l'état de connexion
       }}>
       {children}
     </AppContext.Provider>
