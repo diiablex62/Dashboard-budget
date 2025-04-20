@@ -41,39 +41,44 @@ export default function App() {
         {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
         <div className={isIsolatedRoute ? "w-full" : "p-6"}>
           <Routes>
-            {isLoggedIn ? (
-              <>
-                <Route
-                  path='/'
-                  element={<Dashboard primaryColor={primaryColor} />}
-                />
-                <Route
-                  path='/onglet1'
-                  element={<Onglet1 primaryColor={primaryColor} />}
-                />
-                <Route
-                  path='/onglet2'
-                  element={<Onglet2 primaryColor={primaryColor} />}
-                />
-                <Route
-                  path='/onglet3'
-                  element={<Onglet3 primaryColor={primaryColor} />}
-                />
-                <Route
-                  path='/onglet4'
-                  element={<Onglet4 primaryColor={primaryColor} />}
-                />
-                <Route
-                  path='/onglet5'
-                  element={<Onglet5 primaryColor={primaryColor} />}
-                />
-              </>
-            ) : (
-              <Route
-                path='/auth'
-                element={<Auth primaryColor={primaryColor} />}
-              />
-            )}
+            <Route
+              path='/'
+              element={<Dashboard primaryColor={primaryColor} />}
+            />
+            <Route
+              path='/auth'
+              element={<Auth primaryColor={primaryColor} />}
+            />
+            <Route
+              path='/onglet1'
+              element={<Onglet1 primaryColor={primaryColor} />}
+            />
+            <Route
+              path='/onglet2'
+              element={<Onglet2 primaryColor={primaryColor} />}
+            />
+            <Route
+              path='/onglet3'
+              element={<Onglet3 primaryColor={primaryColor} />}
+            />
+            <Route
+              path='/onglet4'
+              element={<Onglet4 primaryColor={primaryColor} />}
+            />
+            <Route
+              path='/onglet5'
+              element={<Onglet5 primaryColor={primaryColor} />}
+            />
+            <Route
+              path='*'
+              element={
+                <div className='flex items-center justify-center h-screen'>
+                  <h1 className='text-2xl font-bold text-red-500'>
+                    Page non trouvée
+                  </h1>
+                </div>
+              }
+            />
           </Routes>
         </div>
       </div>

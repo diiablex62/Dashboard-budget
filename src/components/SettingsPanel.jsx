@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { AppContext } from "../context/AppContext";
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const [isVisible, setIsVisible] = useState(false);
+  const panelRef = useRef(null); // Référence pour détecter les clics en dehors
 
   useEffect(() => {
     const savedColor = localStorage.getItem("primaryColor");
@@ -11,13 +12,30 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
     setPrimaryColor(colorToApply);
     applyColorToDocument(colorToApply);
     setIsVisible(true);
+
+    // Gestionnaire de clic pour fermer le panneau
+    const handleClickOutside = (event) => {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        closePanel();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  const closePanel = () => {
+    setIsVisible(false);
+    setTimeout(() => setIsSettingsOpen(false), 500);
+  };
 
   const colors = [
     "#000000", // Black
     "#007BFF", // Blue
     "#FF6347", // Orange
-    "#008000",  // Green
+    "#008000", // Green
     "#FFA500", // Orange
     "#FF0000", // Red
   ];
@@ -95,15 +113,13 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
     <div
       className={`fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50 transform transition-transform duration-500 ${
         isVisible ? "translate-x-0" : "translate-x-full"
-      }`}>
+      }`}
+      ref={panelRef}>
       <div className='p-4 flex items-center justify-between border-b'>
         <h2 className='text-xl font-bold'>Paramètres</h2>
         <button
           className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(() => setIsSettingsOpen(false), 500);
-          }}>
+          onClick={closePanel}>
           &times;
         </button>
       </div>

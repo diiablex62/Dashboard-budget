@@ -9,7 +9,10 @@ import EyeClosedIcon from "../assets/Icons/EyeClosedIcon.svg";
 import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
+import { GithubAuthProvider } from "firebase/auth";
 
+// Correction des schémas
 const loginSchema = yup.object().shape({
   email: yup
     .string()
@@ -134,21 +137,17 @@ function PasswordStrengthIndicator({ password }) {
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /[0-9]/.test(password);
     const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
     const score = [
       hasUpperCase,
       hasLowerCase,
       hasNumbers,
       hasSpecialChars,
     ].filter(Boolean).length;
-
     if (score <= 2) return { strength: "Faible", color: "red" };
     if (score === 3) return { strength: "Moyen", color: "orange" };
     return { strength: "Fort", color: "green" };
   };
-
   const { strength, color } = getStrength();
-
   return (
     <p className={`text-sm mt-1`} style={{ color }}>
       Force du mot de passe : {strength}
@@ -166,7 +165,6 @@ function PasswordCriteria({ password }) {
       test: (pw) => /[!@#$%^&*(),.?":{}|<>]/.test(pw),
     },
   ];
-
   return (
     <ul className='mt-1 space-y-0.5'>
       {criteria.map((criterion, index) => (
@@ -246,7 +244,6 @@ export default function Auth() {
         position: "top-right",
         autoClose: 3000,
       });
-
       // Enregistrez l'utilisateur dans le localStorage
       localStorage.setItem("user", JSON.stringify({ email: formData.email }));
       setIsLoggedIn(true); // Mettez à jour l'état de connexion
@@ -269,20 +266,52 @@ export default function Auth() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleGoogleAuth = () => {
-    toast.info("Connexion avec Google en cours...", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    // Ajoutez ici la logique pour la connexion via Google
+  const handleGoogleAuth = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      // Enregistrez les informations de l'utilisateur dans le localStorage
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ email: user.email, displayName: user.displayName })
+      );
+      toast.success(`Bienvenue ${user.displayName} !`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setIsLoggedIn(true); // Mettez à jour l'état de connexion
+      navigate("/"); // Redirigez vers le tableau de bord
+    } catch (error) {
+      console.error("Erreur lors de la connexion avec Google :", error);
+      toast.error("Échec de la connexion avec Google.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
   };
 
-  const handleGithubAuth = () => {
+  const handleGithubAuth = async () => {
     toast.info("Connexion avec GitHub en cours...", {
       position: "top-right",
       autoClose: 3000,
     });
+    const githubProvider = new GithubAuthProvider();
+    const result = await signInWithPopup(auth, githubProvider);
     // Ajoutez ici la logique pour la connexion via GitHub
+    // Enregistrez les informations de l'utilisateur dans le localStorage
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        email: result.user.email,
+        displayName: result.user.displayName,
+      })
+    );
+    toast.success(`Bienvenue ${result.user.displayName} !`, {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    setIsLoggedIn(true); // Mettez à jour l'état de connexion
+    navigate("/"); // Redirigez vers le tableau de bord
   };
 
   return (
@@ -362,13 +391,13 @@ export default function Auth() {
               </div>
               <button
                 onClick={handleGoogleAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer mb-4'>
+                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
                 <Google className='mr-2 text-xl' />
                 Connexion avec Google
               </button>
               <button
                 onClick={handleGithubAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer mb-4'>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
                   className='mr-2 h-5 w-5'

@@ -1,8 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
-import SettingsPanel from "./SettingsPanel"; // Importez SettingsPanel
+import SettingsPanel from "./SettingsPanel";
+import Google from "./Google"; // Importez le logo Google
+import GitHub from "./GitHub"; // Importez le nouveau logo GitHub
 
 export default function Navbar() {
   const {
@@ -11,11 +13,33 @@ export default function Navbar() {
     isSettingsOpen,
     setIsSettingsOpen,
     isLoggedIn,
-    setIsLoggedIn, // Ajoutez setIsLoggedIn ici
+    setIsLoggedIn,
   } = useContext(AppContext);
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null); // Stocke les informations de l'utilisateur
+  const dropdownRef = useRef(null); // Référence pour détecter les clics en dehors
+
+  useEffect(() => {
+    // Récupérez les informations de l'utilisateur depuis le localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      setUser(storedUser);
+    }
+
+    // Gestionnaire de clic pour fermer le dropdown
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
@@ -56,19 +80,33 @@ export default function Navbar() {
               />
             </svg>
           </div>
-          <div className='relative'>
+          <div className='relative' ref={dropdownRef}>
             <div
-              className='w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center cursor-pointer'
+              className='w-10 h-10 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold shadow-md'
               onClick={toggleDropdown}>
-              <span className='text-sm font-bold text-gray-800'>S</span>
+              {user?.displayName
+                ? user.displayName.charAt(0).toUpperCase()
+                : "?"}
             </div>
             {isDropdownOpen && (
-              <div className='absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2'>
-                <div className='px-4 py-2 text-sm text-gray-800'>
-                  <p className='font-bold'>shadcn</p>
-                  <p className='text-gray-500'>m@example.com</p>
+              <div className='absolute right-0 mt-2 bg-white shadow-lg rounded-lg py-2 w-64 border border-gray-200'>
+                <div className='px-4 py-3 border-b border-gray-200'>
+                  <div className='flex items-center space-x-3'>
+                    <div className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-lg font-bold'>
+                      {user?.displayName
+                        ? user.displayName.charAt(0).toUpperCase()
+                        : "?"}
+                    </div>
+                    <div>
+                      <p className='text-sm font-semibold text-gray-800'>
+                        {user?.displayName || "Utilisateur"}
+                      </p>
+                      <p className='text-xs text-gray-500'>
+                        {user?.email || "Email inconnu"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <hr className='my-1' />
                 <ul className='text-sm text-gray-800'>
                   <li
                     className='px-4 py-2 hover:bg-gray-100 cursor-pointer'
@@ -91,7 +129,7 @@ export default function Navbar() {
                     setIsDropdownOpen(false);
                     localStorage.removeItem("user"); // Supprimez les informations de l'utilisateur
                     setIsLoggedIn(false); // Mettez à jour l'état de connexion
-                    navigate("/logout");
+                    navigate("/"); // Redirigez vers le tableau de bord
                   }}>
                   Se déconnecter
                 </div>
