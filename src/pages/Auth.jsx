@@ -417,30 +417,32 @@ export default function Auth() {
                 <span className='mx-2 text-gray-500 text-sm'>OU</span>
                 <hr className='flex-grow border-gray-300' />
               </div>
-              <button
-                onClick={handleGoogleAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer mb-4'>
-                <Google className='mr-2 text-xl' />
-                Connexion avec Google
-              </button>
-              <button
-                onClick={handleGithubAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer mb-4'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='mr-2 h-5 w-5'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'>
-                  <path d='M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.263.82-.583 0-.287-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.997.108-.775.418-1.305.762-1.605-2.665-.305-5.467-1.335-5.467-5.93 0-1.31.468-2.382 1.235-3.222-.123-.303-.535-1.523.117-3.176 0 0 1.007-.322 3.3 1.23a11.52 11.52 0 013.003-.403c1.02.005 2.045.137 3.003.403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.24 2.873.118 3.176.77.84 1.233 1.912 1.233 3.222 0 4.61-2.807 5.625-5.48 5.92.43.37.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.217.7.825.583C20.565 21.798 24 17.3 24 12c0-6.63-5.37-12-12-12z' />
-                </svg>
-                Connexion avec GitHub
-              </button>
-              <button
-                onClick={handleMicrosoftAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
-                <Microsoft className='mr-2 text-xl' />
-                Connexion avec Microsoft
-              </button>
+              <div className='grid grid-cols-3 gap-4'>
+                <button
+                  onClick={handleGoogleAuth}
+                  className='flex flex-col items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                  <Google className='text-xl mb-1' />
+                  <span className='text-xs'>Google</span>
+                </button>
+                <button
+                  onClick={handleGithubAuth}
+                  className='flex flex-col items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-6 w-6 mb-1' // Ajustez la taille pour correspondre
+                    fill='currentColor'
+                    viewBox='0 0 24 24'>
+                    <path d='M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.263.82-.583 0-.287-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.997.108-.775.418-1.305.762-1.605-2.665-.305-5.467-1.335-5.467-5.93 0-1.31.468-2.382 1.235-3.222-.123-.303-.535-1.523.117-3.176 0 0 1.007-.322 3.3 1.23a11.52 11.52 0 013.003-.403c1.02.005 2.045.137 3.003.403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.24 2.873.118 3.176.77.84 1.233 1.912 1.233 3.222 0 4.61-2.807 5.625-5.48 5.92.43.37.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.217.7.825.583C20.565 21.798 24 17.3 24 12c0-6.63-5.37-12-12-12z' />
+                  </svg>
+                  <span className='text-xs'>GitHub</span>
+                </button>
+                <button
+                  onClick={handleMicrosoftAuth}
+                  className='flex flex-col items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                  <Microsoft className='text-xl mb-1' />
+                  <span className='text-xs'>Microsoft</span>
+                </button>
+              </div>
               <p className='text-center text-sm text-gray-600 mt-6'>
                 Vous n'avez pas de compte ?{" "}
                 <button
@@ -503,30 +505,32 @@ export default function Auth() {
                 <span className='mx-2 text-gray-500 text-sm'>OU</span>
                 <hr className='flex-grow border-gray-300' />
               </div>
-              <button
-                onClick={handleGoogleAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer mb-4'>
-                <Google className='mr-2 text-xl' />
-                Inscription avec Google
-              </button>
-              <button
-                onClick={handleGithubAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer mb-4'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='mr-2 h-5 w-5'
-                  fill='currentColor'
-                  viewBox='0 0 24 24'>
-                  <path d='M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.263.82-.583 0-.287-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.997.108-.775.418-1.305.762-1.605-2.665-.305-5.467-1.335-5.467-5.93 0-1.31.468-2.382 1.235-3.222-.123-.303-.535-1.523.117-3.176 0 0 1.007-.322 3.3 1.23a11.52 11.52 0 013.003-.403c1.02.005 2.045.137 3.003.403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.24 2.873.118 3.176.77.84 1.233 1.912 1.233 3.222 0 4.61-2.807 5.625-5.48 5.92.43.37.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.217.7.825.583C20.565 21.798 24 17.3 24 12c0-6.63-5.37-12-12-12z' />
-                </svg>
-                Inscription avec GitHub
-              </button>
-              <button
-                onClick={handleMicrosoftAuth}
-                className='w-full flex items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
-                <Microsoft className='mr-2 text-xl' />
-                Inscription avec Microsoft
-              </button>
+              <div className='grid grid-cols-3 gap-4'>
+                <button
+                  onClick={handleGoogleAuth}
+                  className='flex flex-col items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                  <Google className='text-xl mb-1' />
+                  <span className='text-xs'>Google</span>
+                </button>
+                <button
+                  onClick={handleGithubAuth}
+                  className='flex flex-col items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-6 w-6 mb-1' // Ajustez la taille pour correspondre
+                    fill='currentColor'
+                    viewBox='0 0 24 24'>
+                    <path d='M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.263.82-.583 0-.287-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.835 2.807 1.305 3.492.997.108-.775.418-1.305.762-1.605-2.665-.305-5.467-1.335-5.467-5.93 0-1.31.468-2.382 1.235-3.222-.123-.303-.535-1.523.117-3.176 0 0 1.007-.322 3.3 1.23a11.52 11.52 0 013.003-.403c1.02.005 2.045.137 3.003.403 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.24 2.873.118 3.176.77.84 1.233 1.912 1.233 3.222 0 4.61-2.807 5.625-5.48 5.92.43.37.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.217.7.825.583C20.565 21.798 24 17.3 24 12c0-6.63-5.37-12-12-12z' />
+                  </svg>
+                  <span className='text-xs'>GitHub</span>
+                </button>
+                <button
+                  onClick={handleMicrosoftAuth}
+                  className='flex flex-col items-center justify-center bg-white border border-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-100 transition duration-300 cursor-pointer'>
+                  <Microsoft className='text-xl mb-1' />
+                  <span className='text-xs'>Microsoft</span>
+                </button>
+              </div>
               <p className='text-center text-sm text-gray-600 mt-6'>
                 Vous avez déjà un compte ?{" "}
                 <button
