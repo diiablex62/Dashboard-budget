@@ -15,6 +15,8 @@ export default function Auth() {
 
   // Définir l'état initial de isLogin en fonction de location.state
   const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
+  const [showEmailForm, setShowEmailForm] = useState(false); // État pour afficher le sous-formulaire
+  const [email, setEmail] = useState(""); // État pour stocker l'email
 
   const handleAuthProvider = async (provider, providerName) => {
     try {
@@ -30,6 +32,13 @@ export default function Auth() {
     } catch {
       toast.error(`Échec de la connexion avec ${providerName}.`);
     }
+  };
+
+  const handleEmailSubmit = (e) => {
+    e.preventDefault();
+    // Logique pour gérer la soumission de l'email
+    toast.success("Un lien magique a été envoyé à votre adresse e-mail !");
+    setShowEmailForm(false); // Fermer le sous-formulaire après soumission
   };
 
   useEffect(() => {
@@ -59,77 +68,125 @@ export default function Auth() {
           isLogin ? "translate-x-full" : "left-0"
         } flex items-center justify-center bg-white transition-transform duration-500`}>
         <div className='bg-white p-8 rounded-lg shadow-lg max-w-md w-full'>
-          {/* Bouton retour au dashboard */}
-          <button
-            onClick={() => navigate("/")}
-            className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              className='h-4 w-4 mr-2'
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-              strokeWidth={2}>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M15 19l-7-7 7-7'
-              />
-            </svg>
-            Retour au dashboard
-          </button>
+          {/* Lien conditionnel pour le dashboard ou changer le mode de connexion */}
+          {!showEmailForm ? (
+            <a
+              href='/'
+              className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-4 w-4 mr-2'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                strokeWidth={2}>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M15 19l-7-7 7-7'
+                />
+              </svg>
+              Retour au dashboard
+            </a>
+          ) : (
+            <a
+              onClick={() => setShowEmailForm(false)} // Revenir à la liste des options
+              className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-4 w-4 mr-2'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                strokeWidth={2}>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M15 19l-7-7 7-7'
+                />
+              </svg>
+              Changer le mode de connexion
+            </a>
+          )}
 
           <h2 className='text-2xl font-bold text-center mb-6'>
             {isLogin ? "Content de te revoir." : "Rejoignez-nous."}
           </h2>
-          <div className='space-y-4'>
-            <button
-              onClick={() => handleAuthProvider(googleProvider, "Google")}
-              className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-              <Google className='w-5 h-5 mr-2' />
-              Connectez-vous avec Google
-            </button>
-            <button
-              onClick={() =>
-                handleAuthProvider(new GithubAuthProvider(), "Facebook")
-              }
-              className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-              <img
-                src='https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg'
-                alt='Facebook'
-                className='w-5 h-5 mr-2'
+          {!showEmailForm ? (
+            <div className='space-y-4'>
+              <button
+                onClick={() => handleAuthProvider(googleProvider, "Google")}
+                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
+                <Google className='w-5 h-5 mr-2' />
+                Connectez-vous avec Google
+              </button>
+              <button
+                onClick={() =>
+                  handleAuthProvider(new GithubAuthProvider(), "Facebook")
+                }
+                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
+                <img
+                  src='https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg'
+                  alt='Facebook'
+                  className='w-5 h-5 mr-2'
+                />
+                Connectez-vous avec Facebook
+              </button>
+              <button
+                onClick={() =>
+                  handleAuthProvider(new OAuthProvider("apple.com"), "Apple")
+                }
+                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
+                <img
+                  src='https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'
+                  alt='Apple'
+                  className='w-5 h-5 mr-2'
+                />
+                Connectez-vous avec Apple
+              </button>
+              <button
+                onClick={() =>
+                  handleAuthProvider(new OAuthProvider("twitter.com"), "X")
+                }
+                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
+                <span className='text-xl font-bold mr-2'>X</span>
+                Connectez-vous avec X
+              </button>
+              <button
+                onClick={() => setShowEmailForm(true)} // Afficher le sous-formulaire
+                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
+                <img
+                  src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Mail_%28iOS%29.svg'
+                  alt='Email'
+                  className='w-5 h-5 mr-2'
+                />
+                Connectez-vous avec votre e-mail
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleEmailSubmit} className='space-y-4'>
+              <h3 className='text-lg font-semibold text-center'>
+                Connectez-vous avec votre e-mail
+              </h3>
+              <p className='text-sm text-center text-gray-600'>
+                Saisissez l'adresse e-mail associée à votre compte et nous vous
+                enverrons un lien magique dans votre boîte de réception.
+              </p>
+              <input
+                type='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder='Votre email'
+                required
+                className='w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]'
               />
-              Connectez-vous avec Facebook
-            </button>
-            <button
-              onClick={() =>
-                handleAuthProvider(new OAuthProvider("apple.com"), "Apple")
-              }
-              className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-              <img
-                src='https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'
-                alt='Apple'
-                className='w-5 h-5 mr-2'
-              />
-              Connectez-vous avec Apple
-            </button>
-            <button
-              onClick={() =>
-                handleAuthProvider(new OAuthProvider("twitter.com"), "X")
-              }
-              className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-              <span className='text-xl font-bold mr-2'>X</span>
-              Connectez-vous avec X
-            </button>
-            <button className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-              <img
-                src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Mail_%28iOS%29.svg'
-                alt='Email'
-                className='w-5 h-5 mr-2'
-              />
-              Connectez-vous avec votre e-mail
-            </button>
-          </div>
+              <button
+                type='submit'
+                className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300'>
+                Continuer
+              </button>
+            </form>
+          )}
           <p className='text-center text-sm text-gray-600 mt-6'>
             {isLogin ? (
               <>
