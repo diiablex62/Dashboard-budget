@@ -11,6 +11,9 @@ import Onglet3 from "./pages/Onglet3";
 import Onglet4 from "./pages/Onglet4";
 import Onglet5 from "./pages/Onglet5";
 import Auth from "./pages/Auth";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import UserDataDeletion from "./pages/UserDataDeletion";
+import Terms from "./pages/Terms";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -69,6 +72,10 @@ export default function App() {
               path='/onglet5'
               element={<Onglet5 primaryColor={primaryColor} />}
             />
+            <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+            <Route path='/privacy' element={<PrivacyPolicy />} />
+            <Route path='/user-data-deletion' element={<UserDataDeletion />} />
+            <Route path='/terms' element={<Terms />} />
             <Route
               path='*'
               element={

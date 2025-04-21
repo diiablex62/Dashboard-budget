@@ -156,7 +156,12 @@ export default function Auth() {
               </button>
               <button
                 onClick={() => {
-                  toast.error("Facebook n'est pas accessible en localhost.");
+                  const facebookProvider = new FacebookAuthProvider();
+                  facebookProvider.setCustomParameters({
+                    redirect_uri:
+                      "https://budget-e4f90.firebaseapp.com/__/auth/handler", // URL de redirection
+                  });
+                  handleAuthProvider(facebookProvider, "Facebook");
                 }}
                 className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
                 <img
@@ -236,25 +241,15 @@ export default function Auth() {
           </p>
           <p className='text-center text-xs text-gray-500 mt-4'>
             Cliquez sur « Se connecter » pour accepter les{" "}
-            <Link to='/terms' className='text-blue-500 hover:underline'>
+            <a href='/terms' className='text-blue-500 hover:underline'>
               conditions d'utilisation
-            </Link>{" "}
+            </a>{" "}
             et la{" "}
-            <Link to='/privacy' className='text-blue-500 hover:underline'>
+            <a href='/privacy' className='text-blue-500 hover:underline'>
               politique de confidentialité
-            </Link>
+            </a>
             .
           </p>
-          <div className='relative'>
-            <div className='dropdown-menu absolute hidden bg-white shadow-lg rounded-lg'>
-              {/* ...autres options du menu... */}
-              <Link
-                to='/privacy-policy'
-                className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                Politique de confidentialité
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
