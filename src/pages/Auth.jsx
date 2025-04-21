@@ -249,7 +249,10 @@ export default function Auth() {
               <>
                 Pas de compte ?{" "}
                 <button
-                  onClick={() => setIsLogin(false)}
+                  onClick={() => {
+                    setShowEmailForm(false); // Assurez-vous de quitter le sous-formulaire
+                    setIsLogin(false); // Redirige vers la page d'inscription
+                  }}
                   className='text-[var(--primary-color)] font-semibold hover:underline'>
                   Inscrivez-vous
                 </button>
@@ -258,7 +261,10 @@ export default function Auth() {
               <>
                 Vous avez déjà un compte ?{" "}
                 <button
-                  onClick={() => setIsLogin(true)}
+                  onClick={() => {
+                    setShowEmailForm(false); // Assurez-vous de quitter le sous-formulaire
+                    setIsLogin(true); // Redirige vers la page de connexion
+                  }}
                   className='text-[var(--primary-color)] font-semibold hover:underline'>
                   Connectez-vous
                 </button>
