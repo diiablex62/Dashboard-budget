@@ -30,9 +30,12 @@ export default function Auth() {
   };
 
   return (
-    <div className='flex min-h-screen'>
+    <div className='flex min-h-screen relative'>
       {/* Section image */}
-      <div className='w-1/2 hidden md:flex items-center justify-center bg-[var(--primary-color)]'>
+      <div
+        className={`absolute inset-y-0 w-1/2 ${
+          isLogin ? "left-0" : "translate-x-full"
+        } bg-[var(--primary-color)] flex items-center justify-center transition-transform duration-500`}>
         <img
           src={isLogin ? bleuImage : orangeImage}
           alt='Illustration'
@@ -41,7 +44,10 @@ export default function Auth() {
       </div>
 
       {/* Section formulaire */}
-      <div className='w-full md:w-1/2 flex items-center justify-center bg-white'>
+      <div
+        className={`absolute inset-y-0 w-1/2 ${
+          isLogin ? "translate-x-full" : "left-0"
+        } flex items-center justify-center bg-white transition-transform duration-500`}>
         <div className='bg-white p-8 rounded-lg shadow-lg max-w-md w-full'>
           <h2 className='text-2xl font-bold text-center mb-6'>
             {isLogin ? "Content de te revoir." : "Rejoignez-nous."}
