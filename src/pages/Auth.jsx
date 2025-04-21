@@ -1,5 +1,5 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import bleuImage from "../assets/img/auth-bleu.png";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import Google from "../components/Google";
@@ -10,8 +10,11 @@ import { GithubAuthProvider, OAuthProvider } from "firebase/auth";
 
 export default function Auth() {
   const { setIsLoggedIn } = useContext(AppContext);
-  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Définir l'état initial de isLogin en fonction de location.state
+  const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
 
   const handleAuthProvider = async (provider, providerName) => {
     try {
@@ -28,6 +31,13 @@ export default function Auth() {
       toast.error(`Échec de la connexion avec ${providerName}.`);
     }
   };
+
+  useEffect(() => {
+    // Mettre à jour isLogin si location.state change
+    if (location.state?.isLogin !== undefined) {
+      setIsLogin(location.state.isLogin);
+    }
+  }, [location.state]);
 
   return (
     <div className='flex min-h-screen relative'>
@@ -49,6 +59,26 @@ export default function Auth() {
           isLogin ? "translate-x-full" : "left-0"
         } flex items-center justify-center bg-white transition-transform duration-500`}>
         <div className='bg-white p-8 rounded-lg shadow-lg max-w-md w-full'>
+          {/* Bouton retour au dashboard */}
+          <button
+            onClick={() => navigate("/")}
+            className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              className='h-4 w-4 mr-2'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              strokeWidth={2}>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M15 19l-7-7 7-7'
+              />
+            </svg>
+            Retour au dashboard
+          </button>
+
           <h2 className='text-2xl font-bold text-center mb-6'>
             {isLogin ? "Content de te revoir." : "Rejoignez-nous."}
           </h2>
