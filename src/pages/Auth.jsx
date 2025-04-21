@@ -6,10 +6,11 @@ import { AppContext } from "../context/AppContext";
 import { toast } from "react-toastify";
 import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
 import {
-  GithubAuthProvider,
-  OAuthProvider,
-  FacebookAuthProvider,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
 } from "firebase/auth";
+import { GithubAuthProvider } from "firebase/auth";
 
 export default function Auth() {
   const { setIsLoggedIn, primaryColor } = useContext(AppContext);
@@ -24,6 +25,7 @@ export default function Auth() {
   useEffect(() => {
     if (!primaryColor) return;
 
+    console.log("Applying primary color:", primaryColor);
     document.documentElement.style.setProperty("--primary-color", primaryColor);
     const hoverColor = generateHoverColor(primaryColor);
     document.documentElement.style.setProperty(
@@ -33,6 +35,7 @@ export default function Auth() {
   }, [primaryColor]);
 
   const generateHoverColor = (color) => {
+    console.log("Generating hover color for:", color);
     const hexToHSL = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16) / 255;
       const g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -88,9 +91,11 @@ export default function Auth() {
   };
 
   const handleAuthProvider = async (provider, providerName) => {
+    console.log(`Attempting to sign in with ${providerName}`);
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log("Sign-in successful:", user);
       localStorage.setItem(
         "user",
         JSON.stringify({ email: user.email, displayName: user.displayName })
@@ -99,16 +104,65 @@ export default function Auth() {
       setIsLoggedIn(true);
       navigate("/");
     } catch (error) {
+      console.error(`Error during ${providerName} sign-in:`, error);
       toast.error(`Échec de la connexion avec ${providerName}.`);
     }
   };
 
-  const handleEmailSubmit = (e) => {
-    e.preventDefault();
-    // Logique pour gérer la soumission de l'email
-    toast.success("Un lien magique a été envoyé à votre adresse e-mail !");
-    setShowEmailForm(false); // Fermer le sous-formulaire après soumission
+  const handleEmailLinkAuth = async () => {
+    console.log("Sending sign-in link to email:", email);
+    try {
+      const actionCodeSettings = {
+        url: "https://budget-e4f90.firebaseapp.com",
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      console.log("Sign-in link sent successfully");
+      toast.success(
+        "Un lien de connexion a été envoyé à votre adresse e-mail !"
+      );
+      window.localStorage.setItem("emailForSignIn", email);
+      setShowEmailForm(false);
+    } catch (error) {
+      console.error("Error sending sign-in link:", error);
+      toast.error("Échec de l'envoi du lien de connexion. Veuillez réessayer.");
+    }
   };
+
+  useEffect(() => {
+    const finalizeEmailLinkAuth = async () => {
+      console.log("Checking if the current URL is a sign-in link...");
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+        let email = window.localStorage.getItem("emailForSignIn");
+        if (!email) {
+          email = window.prompt(
+            "Veuillez fournir votre e-mail pour confirmation"
+          );
+        }
+        try {
+          console.log("Finalizing sign-in with email:", email);
+          const result = await signInWithEmailLink(
+            auth,
+            email,
+            window.location.href
+          );
+          console.log("Sign-in finalized successfully:", result.user);
+          window.localStorage.removeItem("emailForSignIn");
+          toast.success(
+            `Bienvenue ${result.user.displayName || "utilisateur"} !`
+          );
+          setIsLoggedIn(true);
+          navigate("/");
+        } catch (error) {
+          console.error("Error finalizing sign-in:", error);
+          toast.error("Échec de la connexion. Veuillez réessayer.");
+        }
+      }
+    };
+
+    finalizeEmailLinkAuth();
+  }, [navigate, setIsLoggedIn]);
 
   return (
     <div className='flex min-h-screen relative'>
@@ -198,18 +252,6 @@ export default function Auth() {
                 Connectez-vous avec GitHub
               </button>
               <button
-                onClick={() => {
-                  toast.error("Facebook n'est pas accessible en localhost.");
-                }}
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg'
-                  alt='Facebook'
-                  className='w-5 h-5 mr-2'
-                />
-                Connectez-vous avec Facebook
-              </button>
-              <button
                 onClick={() => setShowEmailForm(true)} // Afficher le sous-formulaire
                 className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
                 <img
@@ -221,13 +263,18 @@ export default function Auth() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleEmailSubmit} className='space-y-4'>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEmailLinkAuth(); // Utilisez la méthode pour envoyer le lien
+              }}
+              className='space-y-4'>
               <h3 className='text-lg font-semibold text-center'>
                 Connectez-vous avec votre e-mail
               </h3>
               <p className='text-sm text-center text-gray-600'>
-                Saisissez l'adresse e-mail associée à votre compte et nous vous
-                enverrons un lien magique dans votre boîte de réception.
+                Saisissez votre adresse e-mail et nous vous enverrons un lien de
+                connexion.
               </p>
               <input
                 type='email'
@@ -240,7 +287,7 @@ export default function Auth() {
               <button
                 type='submit'
                 className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300'>
-                Continuer
+                Envoyer le lien de connexion
               </button>
             </form>
           )}
