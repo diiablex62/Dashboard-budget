@@ -151,8 +151,11 @@ export default function Auth() {
               Retour au dashboard
             </a>
           ) : (
-            <a
-              onClick={() => setShowEmailForm(false)}
+            <button
+              onClick={(e) => {
+                e.preventDefault(); // Empêche l'actualisation de la page
+                setShowEmailForm(false); // Revenir à l'étape de choix de connexion
+              }}
               className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
@@ -168,7 +171,7 @@ export default function Auth() {
                 />
               </svg>
               Changer le mode de connexion
-            </a>
+            </button>
           )}
 
           <h2 className='text-2xl font-bold text-center mb-6'>
@@ -205,18 +208,6 @@ export default function Auth() {
                   className='w-5 h-5 mr-2'
                 />
                 Connectez-vous avec Facebook
-              </button>
-              <button
-                onClick={() =>
-                  handleAuthProvider(new OAuthProvider("apple.com"), "Apple")
-                }
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'
-                  alt='Apple'
-                  className='w-5 h-5 mr-2'
-                />
-                Connectez-vous avec Apple
               </button>
               <button
                 onClick={() => setShowEmailForm(true)} // Afficher le sous-formulaire
@@ -285,16 +276,6 @@ export default function Auth() {
             </Link>
             .
           </p>
-          <div className='relative'>
-            <div className='dropdown-menu absolute hidden bg-white shadow-lg rounded-lg'>
-              {/* ...autres options du menu... */}
-              <Link
-                to='/privacy-policy'
-                className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                Politique de confidentialité
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
