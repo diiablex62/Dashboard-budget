@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import bleuImage from "../assets/img/auth-bleu.png";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import Google from "../components/Google";
 import { AppContext } from "../context/AppContext";
@@ -9,19 +8,84 @@ import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
 import {
   GithubAuthProvider,
   OAuthProvider,
-  TwitterAuthProvider,
   FacebookAuthProvider,
 } from "firebase/auth";
 
 export default function Auth() {
-  const { setIsLoggedIn } = useContext(AppContext);
+  const { setIsLoggedIn, primaryColor } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Définir l'état initial de isLogin en fonction de location.state
   const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
-  const [showEmailForm, setShowEmailForm] = useState(false); // État pour afficher le sous-formulaire
-  const [email, setEmail] = useState(""); // État pour stocker l'email
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [email, setEmail] = useState("");
+
+  // Appliquez immédiatement la couleur primaire au DOM avant le rendu
+  useEffect(() => {
+    if (!primaryColor) return;
+
+    document.documentElement.style.setProperty("--primary-color", primaryColor);
+    const hoverColor = generateHoverColor(primaryColor);
+    document.documentElement.style.setProperty(
+      "--primary-hover-color",
+      hoverColor
+    );
+  }, [primaryColor]);
+
+  const generateHoverColor = (color) => {
+    const hexToHSL = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+      const max = Math.max(r, g, b),
+        min = Math.min(r, g, b);
+      const l = (max + min) / 2;
+      const s =
+        max === min
+          ? 0
+          : l > 0.5
+          ? (max - min) / (2 - max - min)
+          : (max - min) / (max + min);
+      const h =
+        max === min
+          ? 0
+          : max === r
+          ? (g - b) / (max - min) + (g < b ? 6 : 0)
+          : max === g
+          ? (b - r) / (max - min) + 2
+          : (r - g) / (max - min) + 4;
+      return { h: h * 60, s: s * 100, l: l * 100 };
+    };
+
+    const hslToHex = ({ h, s, l }) => {
+      const c = (1 - Math.abs((2 * l) / 100 - 1)) * (s / 100);
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = l / 100 - c / 2;
+      const [r, g, b] =
+        h < 60
+          ? [c, x, 0]
+          : h < 120
+          ? [x, c, 0]
+          : h < 180
+          ? [0, c, x]
+          : h < 240
+          ? [0, x, c]
+          : h < 300
+          ? [x, 0, c]
+          : [c, 0, x];
+      return `#${[r, g, b]
+        .map((v) =>
+          Math.round((v + m) * 255)
+            .toString(16)
+            .padStart(2, "0")
+        )
+        .join("")}`;
+    };
+
+    const hsl = hexToHSL(color);
+    hsl.l = Math.max(10, Math.min(90, hsl.l - 15));
+    return hslToHex(hsl);
+  };
 
   const handleAuthProvider = async (provider, providerName) => {
     try {
@@ -35,24 +99,7 @@ export default function Auth() {
       setIsLoggedIn(true);
       navigate("/");
     } catch (error) {
-      console.error(`Erreur lors de la connexion avec ${providerName}:`, error);
-
-      if (error.code === "auth/internal-error") {
-        // Vérifiez si les cookies tiers sont désactivés
-        if (!navigator.cookieEnabled) {
-          toast.error(
-            `Les cookies tiers sont désactivés dans votre navigateur. Veuillez les activer pour utiliser ${providerName}.`
-          );
-        } else {
-          toast.error(
-            `Échec de la connexion avec ${providerName}. Assurez-vous que les cookies tiers sont activés.`
-          );
-        }
-      } else {
-        toast.error(
-          `Échec de la connexion avec ${providerName}. Vérifiez votre configuration.`
-        );
-      }
+      toast.error(`Échec de la connexion avec ${providerName}.`);
     }
   };
 
@@ -63,13 +110,6 @@ export default function Auth() {
     setShowEmailForm(false); // Fermer le sous-formulaire après soumission
   };
 
-  useEffect(() => {
-    // Mettre à jour isLogin si location.state change
-    if (location.state?.isLogin !== undefined) {
-      setIsLogin(location.state.isLogin);
-    }
-  }, [location.state]);
-
   return (
     <div className='flex min-h-screen relative'>
       {/* Section image */}
@@ -78,7 +118,7 @@ export default function Auth() {
           isLogin ? "left-0" : "translate-x-full"
         } bg-[var(--primary-color)] flex items-center justify-center transition-transform duration-500`}>
         <img
-          src={isLogin ? bleuImage : orangeImage}
+          src={orangeImage}
           alt='Illustration'
           className='w-full h-screen object-cover'
         />
@@ -112,7 +152,7 @@ export default function Auth() {
             </a>
           ) : (
             <a
-              onClick={() => setShowEmailForm(false)} // Revenir à la liste des options
+              onClick={() => setShowEmailForm(false)}
               className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
@@ -219,7 +259,7 @@ export default function Auth() {
                 Pas de compte ?{" "}
                 <button
                   onClick={() => setIsLogin(false)}
-                  className='text-green-600 font-semibold hover:underline'>
+                  className='text-[var(--primary-color)] font-semibold hover:underline'>
                   Inscrivez-vous
                 </button>
               </>
@@ -228,7 +268,7 @@ export default function Auth() {
                 Vous avez déjà un compte ?{" "}
                 <button
                   onClick={() => setIsLogin(true)}
-                  className='text-green-600 font-semibold hover:underline'>
+                  className='text-[var(--primary-color)] font-semibold hover:underline'>
                   Connectez-vous
                 </button>
               </>
