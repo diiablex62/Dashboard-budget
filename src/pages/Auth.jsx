@@ -112,8 +112,12 @@ export default function Auth() {
   const handleEmailLinkAuth = async () => {
     console.log("Sending sign-in link to email:", email);
     try {
+      // Détectez l'environnement et définissez l'URL de redirection
       const actionCodeSettings = {
-        url: "https://budget-e4f90.firebaseapp.com",
+        url:
+          window.location.hostname === "localhost"
+            ? "http://localhost:5173" // Utilisez localhost avec le port 5173
+            : "https://budget-e4f90.firebaseapp.com", // URL pour production
         handleCodeInApp: true,
       };
 
@@ -126,7 +130,15 @@ export default function Auth() {
       setShowEmailForm(false);
     } catch (error) {
       console.error("Error sending sign-in link:", error);
-      toast.error("Échec de l'envoi du lien de connexion. Veuillez réessayer.");
+      if (error.code === "auth/quota-exceeded") {
+        toast.error(
+          "Vous avez atteint la limite quotidienne d'envoi de liens de connexion. Veuillez réessayer demain."
+        );
+      } else {
+        toast.error(
+          "Échec de l'envoi du lien de connexion. Veuillez réessayer."
+        );
+      }
     }
   };
 
@@ -134,33 +146,50 @@ export default function Auth() {
     const finalizeEmailLinkAuth = async () => {
       console.log("Checking if the current URL is a sign-in link...");
       if (isSignInWithEmailLink(auth, window.location.href)) {
+        console.log("The current URL is a valid sign-in link.");
         let email = window.localStorage.getItem("emailForSignIn");
+        console.log("Retrieved email from localStorage:", email);
+
         if (!email) {
           email = window.prompt(
             "Veuillez fournir votre e-mail pour confirmation"
           );
+          console.log("Email provided by user:", email);
         }
+
+        if (!email) {
+          console.error("No email provided. Cannot finalize sign-in.");
+          toast.error("Échec de la connexion. Aucune adresse e-mail fournie.");
+          return;
+        }
+
         try {
-          console.log("Finalizing sign-in with email:", email);
+          console.log("Attempting to sign in with email link...");
           const result = await signInWithEmailLink(
             auth,
             email,
             window.location.href
           );
           console.log("Sign-in finalized successfully:", result.user);
+
+          // Supprimez l'e-mail stocké après une connexion réussie
           window.localStorage.removeItem("emailForSignIn");
+
+          // Affichez un message de succès et mettez à jour l'état
           toast.success(
             `Bienvenue ${result.user.displayName || "utilisateur"} !`
           );
-          setIsLoggedIn(true);
-          navigate("/");
+          setIsLoggedIn(true); // Mettez à jour l'état de connexion
+          console.log("User is now logged in. Redirecting to dashboard...");
+          navigate("/"); // Redirigez vers le tableau de bord
         } catch (error) {
           console.error("Error finalizing sign-in:", error);
           toast.error("Échec de la connexion. Veuillez réessayer.");
         }
+      } else {
+        console.log("The current URL is not a valid sign-in link.");
       }
     };
-
     finalizeEmailLinkAuth();
   }, [navigate, setIsLoggedIn]);
 
@@ -177,7 +206,6 @@ export default function Auth() {
           className='w-full h-screen object-cover'
         />
       </div>
-
       {/* Section formulaire */}
       <div
         className={`absolute inset-y-0 w-1/2 ${
@@ -227,7 +255,6 @@ export default function Auth() {
               Changer le mode de connexion
             </button>
           )}
-
           <h2 className='text-2xl font-bold text-center mb-6'>
             {isLogin ? "Content de te revoir." : "Rejoignez-nous."}
           </h2>
