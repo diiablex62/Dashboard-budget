@@ -3,9 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --primary-color: #007bff; /* Couleur par défaut (bleu) */
-  --primary-hover-color: #0056b3; /* Teinte différente pour le hover */
+  --primary-color: #007bff; 
+  --primary-hover-color: #0056b3; 
 }
 
 .bg-primary {

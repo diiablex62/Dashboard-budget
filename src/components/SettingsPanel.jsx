@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { AppContext } from "../context/AppContext";
+import { ThemeContext } from "../context/ThemeContext"; // Importez ThemeContext
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
+  const { isDarkMode, toggleDarkMode } = useContext(ThemeContext); // Utilisez ThemeContext
   const [isVisible, setIsVisible] = useState(false);
-  const [isToggleOn, setIsToggleOn] = useState(false); // État pour le toggle
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -144,21 +145,19 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
             ))}
           </div>
         </div>
-        {/* Ajout du toggle */}
+        {/* Ajout du toggle pour le mode sombre */}
         <div className='mt-6'>
-          <h3 className='text-sm font-bold text-gray-800'>
-            Mode sombre
-          </h3>
+          <h3 className='text-sm font-bold text-gray-800'>Mode sombre</h3>
           <div className='flex items-center justify-between mt-2'>
             <span className='text-gray-600'>Activer le mode sombre ?</span>
             <button
-              onClick={() => setIsToggleOn((prev) => !prev)}
+              onClick={toggleDarkMode}
               className={`w-11 h-6 rounded-full flex items-center ${
-                isToggleOn ? "bg-blue-600" : "bg-gray-200"
+                isDarkMode ? "bg-blue-600" : "bg-gray-200"
               } transition-colors duration-300`}>
               <span
                 className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
-                  isToggleOn ? "translate-x-5" : "translate-x-1"
+                  isDarkMode ? "translate-x-5" : "translate-x-1"
                 }`}></span>
             </button>
           </div>

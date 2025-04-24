@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
+import { ThemeContext } from "../context/ThemeContext"; // Importez ThemeContext
 import { useNavigate } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
 import Google from "./Google"; // Importez le logo Google
@@ -15,6 +16,7 @@ export default function Navbar() {
     isLoggedIn,
     setIsLoggedIn,
   } = useContext(AppContext);
+
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

@@ -5,13 +5,16 @@ import "./styles/tailwind.css";
 import App from "./App";
 
 import { AppProvider } from "./context/AppContext";
+import { ThemeProvider } from "./context/ThemeContext"; // Importez le ThemeProvider
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AppProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AppProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );
