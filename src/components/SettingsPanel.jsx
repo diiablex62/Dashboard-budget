@@ -144,6 +144,15 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
             ))}
           </div>
         </div>
+        {/* dark mode */}
+        <div className='mt-6'>
+          <h3 className='text-sm font-bold text-gray-800'>
+            Mode sombre
+          </h3>
+          <div className='flex items-center space-x-2 mt-2'>
+           
+          </div>
+        </div>
       </div>
     </div>
   );
