@@ -4,7 +4,8 @@ import { AppContext } from "../context/AppContext";
 export default function SettingsPanel({ setIsSettingsOpen }) {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const [isVisible, setIsVisible] = useState(false);
-  const panelRef = useRef(null); // Référence pour détecter les clics en dehors
+  const [isToggleOn, setIsToggleOn] = useState(false); // État pour le toggle
+  const panelRef = useRef(null);
 
   useEffect(() => {
     const savedColor = localStorage.getItem("primaryColor");
@@ -13,7 +14,6 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
     applyColorToDocument(colorToApply);
     setIsVisible(true);
 
-    // Gestionnaire de clic pour fermer le panneau
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
         closePanel();
@@ -144,13 +144,23 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
             ))}
           </div>
         </div>
-        {/* dark mode */}
+        {/* Ajout du toggle */}
         <div className='mt-6'>
           <h3 className='text-sm font-bold text-gray-800'>
             Mode sombre
           </h3>
-          <div className='flex items-center space-x-2 mt-2'>
-           
+          <div className='flex items-center justify-between mt-2'>
+            <span className='text-gray-600'>Activer le mode sombre ?</span>
+            <button
+              onClick={() => setIsToggleOn((prev) => !prev)}
+              className={`w-11 h-6 rounded-full flex items-center ${
+                isToggleOn ? "bg-blue-600" : "bg-gray-200"
+              } transition-colors duration-300`}>
+              <span
+                className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-300 ${
+                  isToggleOn ? "translate-x-5" : "translate-x-1"
+                }`}></span>
+            </button>
           </div>
         </div>
       </div>

@@ -10,7 +10,6 @@ createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AppProvider>
       <BrowserRouter>
-        {" "}
         <App />
       </BrowserRouter>
     </AppProvider>

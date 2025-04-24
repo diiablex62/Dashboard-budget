@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
-import Card from "../components/Card"; 
+import Card from "../components/Card";
 
 export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
@@ -37,7 +37,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className='p-6'>
+    <div className='p-6 bg-white'>
       <h1 className='text-2xl font-bold mb-4'>Tableau de bord</h1>
       <div className='grid grid-cols-3 gap-4'>
         <Card

@@ -46,7 +46,9 @@ export default function Navbar() {
   return (
     <div
       className={`w-full p-4 flex items-center justify-between ${
-        isNavbarFixed ? "fixed top-0 left-0 bg-white shadow-md z-50" : ""
+        isNavbarFixed
+          ? "fixed top-0 left-0 shadow-md z-50 bg-white"
+          : "bg-white"
       }`}>
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
