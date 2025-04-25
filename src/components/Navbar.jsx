@@ -45,13 +45,15 @@ export default function Navbar() {
 
   return (
     <div className='w-full p-4 flex items-center justify-between bg-white dark:bg-black dark:text-gray-200'>
-      <div className='flex items-center space-x-2 text-gray-600'>
+      <div className='flex items-center space-x-2 text-gray-600 dark:text-white'>
         <AiOutlineHome
-          className='text-xl cursor-pointer'
+          className='text-xl cursor-pointer dark:text-white'
           onClick={() => navigate("/")}
         />
-        <span>/</span>
-        <span className='text-lg font-medium text-gray-800'>{activeTitle}</span>
+        <span className='dark:text-white'>/</span>
+        <span className='text-lg font-medium text-gray-800 dark:text-white'>
+          {activeTitle}
+        </span>
       </div>
       {isLoggedIn && (
         <div className='flex items-center space-x-4'>
@@ -61,11 +63,11 @@ export default function Navbar() {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               placeholder='Rechercher...'
-              className='w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] text-gray-800 placeholder-gray-400'
+              className='w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] text-gray-800 placeholder-gray-400 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400'
             />
             <svg
               xmlns='http://www.w3.org/2000/svg'
-              className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5'
+              className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white h-5 w-5'
               fill='none'
               viewBox='0 0 24 24'
               stroke='currentColor'
@@ -86,32 +88,32 @@ export default function Navbar() {
                 : "?"}
             </div>
             {isDropdownOpen && (
-              <div className='absolute right-0 mt-2 bg-white shadow-lg rounded-lg py-2 w-64 border border-gray-200'>
-                <div className='px-4 py-3 border-b border-gray-200'>
+              <div className='absolute right-0 mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 w-64 border border-gray-200 dark:border-gray-700'>
+                <div className='px-4 py-3 border-b border-gray-200 dark:border-gray-700'>
                   <div className='flex items-center space-x-3'>
-                    <div className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 text-lg font-bold'>
+                    <div className='w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-white text-lg font-bold'>
                       {user?.displayName
                         ? user.displayName.charAt(0).toUpperCase()
                         : "?"}
                     </div>
                     <div>
-                      <p className='text-sm font-semibold text-gray-800'>
+                      <p className='text-sm font-semibold text-gray-800 dark:text-white'>
                         {user?.displayName || "Utilisateur"}
                       </p>
-                      <p className='text-xs text-gray-500'>
+                      <p className='text-xs text-gray-500 dark:text-gray-400'>
                         {user?.email || "Email inconnu"}
                       </p>
                     </div>
                   </div>
                 </div>
-                <ul className='text-sm text-gray-800'>
+                <ul className='text-sm text-gray-800 dark:text-white'>
                   <li
-                    className='px-4 py-2 hover:bg-gray-100 cursor-pointer'
+                    className='px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
                     onClick={() => navigate("/profile")}>
                     Mon profil
                   </li>
                   <li
-                    className='px-4 py-2 hover:bg-gray-100 cursor-pointer'
+                    className='px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
                     onClick={() => {
                       setIsDropdownOpen(false);
                       setIsSettingsOpen(true);
@@ -119,9 +121,9 @@ export default function Navbar() {
                     Paramètres
                   </li>
                 </ul>
-                <hr className='my-1' />
+                <hr className='my-1 dark:border-gray-700' />
                 <div
-                  className='px-4 py-2 text-sm text-red-500 hover:bg-gray-100 cursor-pointer'
+                  className='px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
                   onClick={() => {
                     setIsDropdownOpen(false);
                     localStorage.removeItem("user");
@@ -134,7 +136,7 @@ export default function Navbar() {
             )}
           </div>
           <AiOutlineBell
-            className='text-gray-500 text-2xl cursor-pointer'
+            className='text-gray-500 dark:text-white text-2xl cursor-pointer'
             title='Notifications'
           />
         </div>

@@ -112,25 +112,27 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
 
   return (
     <div
-      className={`fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50 transform transition-transform duration-500 ${
+      className={`fixed top-0 right-0 w-80 h-full bg-white dark:bg-black shadow-lg z-50 transform transition-transform duration-500 ${
         isVisible ? "translate-x-0" : "translate-x-full"
       }`}
       ref={panelRef}>
       <div className='p-4 flex items-center justify-between border-b'>
-        <h2 className='text-xl font-bold'>Paramètres</h2>
+        <h2 className='text-xl font-bold text-gray-800 dark:text-white'>
+          Paramètres
+        </h2>
         <button
-          className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800'
+          className='text-gray-500 text-4xl cursor-pointer hover:text-gray-800 dark:hover:text-gray-200'
           onClick={closePanel}>
           &times;
         </button>
       </div>
       <div className='p-4'>
-        <p className='text-gray-500'>
-          Ici vous pouvez personnaliser votre barre latérale et votre barre de
-          navigation.
+        <p className='text-gray-500 dark:text-gray-400'>
+          Ici vous pouvez personnaliser votre barre latérale et activer le mode
+          sombre.
         </p>
         <div className='mt-6'>
-          <h3 className='text-sm font-bold text-gray-800'>
+          <h3 className='text-sm font-bold text-gray-800 dark:text-white'>
             Couleurs de la barre latérale
           </h3>
           <div className='flex items-center space-x-2 mt-2'>
@@ -146,9 +148,13 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
           </div>
         </div>
         <div className='mt-6'>
-          <h3 className='text-sm font-bold text-gray-800'>Mode sombre</h3>
+          <h3 className='text-sm font-bold text-gray-800 dark:text-white'>
+            Mode sombre
+          </h3>
           <div className='flex items-center justify-between mt-2'>
-            <span className='text-gray-600'>Activer le mode sombre ?</span>
+            <span className='text-gray-600 dark:text-gray-400'>
+              Activer le mode sombre ?
+            </span>
             <button
               onClick={toggleDarkMode}
               className={`w-11 h-6 rounded-full flex items-center ${
