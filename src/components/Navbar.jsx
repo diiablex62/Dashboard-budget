@@ -44,7 +44,7 @@ export default function Navbar() {
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
   return (
-    <div className='w-full p-4 flex items-center justify-between bg-white'>
+    <div className='w-full p-4 flex items-center justify-between bg-white dark:bg-black dark:text-gray-200'>
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
           className='text-xl cursor-pointer'
