@@ -18,10 +18,9 @@ export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Définir l'état initial de isLogin en fonction de location.state
   const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
-  const [showEmailForm, setShowEmailForm] = useState(false); // État pour afficher le sous-formulaire
-  const [email, setEmail] = useState(""); // État pour stocker l'email
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [email, setEmail] = useState("");
 
   const handleAuthProvider = async (provider, providerName) => {
     try {
@@ -38,7 +37,6 @@ export default function Auth() {
       console.error(`Erreur lors de la connexion avec ${providerName}:`, error);
 
       if (error.code === "auth/internal-error") {
-        // Vérifiez si les cookies tiers sont désactivés
         if (!navigator.cookieEnabled) {
           toast.error(
             `Les cookies tiers sont désactivés dans votre navigateur. Veuillez les activer pour utiliser ${providerName}.`
@@ -58,13 +56,11 @@ export default function Auth() {
 
   const handleEmailSubmit = (e) => {
     e.preventDefault();
-    // Logique pour gérer la soumission de l'email
     toast.success("Un lien magique a été envoyé à votre adresse e-mail !");
-    setShowEmailForm(false); // Fermer le sous-formulaire après soumission
+    setShowEmailForm(false);
   };
 
   useEffect(() => {
-    // Mettre à jour isLogin si location.state change
     if (location.state?.isLogin !== undefined) {
       setIsLogin(location.state.isLogin);
     }
@@ -72,7 +68,6 @@ export default function Auth() {
 
   return (
     <div className='flex min-h-screen relative'>
-      {/* Section image */}
       <div
         className={`absolute inset-y-0 w-1/2 ${
           isLogin ? "left-0" : "translate-x-full"
@@ -83,54 +78,29 @@ export default function Auth() {
           className='w-full h-screen object-cover'
         />
       </div>
-
-      {/* Section formulaire */}
       <div
         className={`absolute inset-y-0 w-1/2 ${
           isLogin ? "translate-x-full" : "left-0"
         } flex items-center justify-center bg-white transition-transform duration-500`}>
         <div className='bg-white p-8 rounded-lg shadow-lg max-w-md w-full'>
-          {/* Lien conditionnel pour le dashboard ou changer le mode de connexion */}
-          {!showEmailForm ? (
-            <a
-              href='/'
-              className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-4 w-4 mr-2'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-                strokeWidth={2}>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M15 19l-7-7 7-7'
-                />
-              </svg>
-              Retour au dashboard
-            </a>
-          ) : (
-            <a
-              onClick={() => setShowEmailForm(false)} // Revenir à la liste des options
-              className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-4 w-4 mr-2'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-                strokeWidth={2}>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M15 19l-7-7 7-7'
-                />
-              </svg>
-              Changer le mode de connexion
-            </a>
-          )}
-
+          <a
+            href='/'
+            className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              className='h-4 w-4 mr-2'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              strokeWidth={2}>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M15 19l-7-7 7-7'
+              />
+            </svg>
+            Retour au dashboard
+          </a>
           <h2 className='text-2xl font-bold text-center mb-6'>
             {isLogin ? "Content de te revoir." : "Rejoignez-nous."}
           </h2>
@@ -159,7 +129,7 @@ export default function Auth() {
                   const facebookProvider = new FacebookAuthProvider();
                   facebookProvider.setCustomParameters({
                     redirect_uri:
-                      "https://budget-e4f90.firebaseapp.com/__/auth/handler", // URL de redirection
+                      "https://budget-e4f90.firebaseapp.com/__/auth/handler",
                   });
                   handleAuthProvider(facebookProvider, "Facebook");
                 }}
@@ -184,7 +154,7 @@ export default function Auth() {
                 Connectez-vous avec Apple
               </button>
               <button
-                onClick={() => setShowEmailForm(true)} // Afficher le sous-formulaire
+                onClick={() => setShowEmailForm(true)}
                 className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
                 <img
                   src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Mail_%28iOS%29.svg'

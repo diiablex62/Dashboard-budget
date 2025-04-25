@@ -15,7 +15,6 @@ export default function Dashboard() {
         const data = querySnapshot.docs.map((doc) => doc.data());
         setTransactions(data);
 
-        // Calculez les totaux
         const income = data
           .filter((t) => t.type === "income")
           .reduce((sum, t) => sum + t.amount, 0);
@@ -37,7 +36,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className='p-6 bg-white'>
+    <div className='p-6 bg-white text-gray-800  dark:bg-black dark:text-gray-200'>
       <h1 className='text-2xl font-bold mb-4'>Tableau de bord</h1>
       <div className='grid grid-cols-3 gap-4'>
         <Card

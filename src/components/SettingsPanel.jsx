@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { AppContext } from "../context/AppContext";
-import { ThemeContext } from "../context/ThemeContext"; // Importez ThemeContext
+import { ThemeContext } from "../context/ThemeContext";
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
-  const { isDarkMode, toggleDarkMode } = useContext(ThemeContext); // Utilisez ThemeContext
+  const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const [isVisible, setIsVisible] = useState(false);
   const panelRef = useRef(null);
 
@@ -33,12 +33,12 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
   };
 
   const colors = [
-    "#000000", // Black
-    "#007BFF", // Blue
-    "#FF6347", // Orange
-    "#008000", // Green
-    "#FFA500", // Orange
-    "#FF0000", // Red
+    "#000000",
+    "#007BFF",
+    "#FF6347",
+    "#008000",
+    "#FFA500",
+    "#FF0000",
   ];
 
   const handleColorChange = (color) => {
@@ -145,7 +145,6 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
             ))}
           </div>
         </div>
-        {/* Ajout du toggle pour le mode sombre */}
         <div className='mt-6'>
           <h3 className='text-sm font-bold text-gray-800'>Mode sombre</h3>
           <div className='flex items-center justify-between mt-2'>

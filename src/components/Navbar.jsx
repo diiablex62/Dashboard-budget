@@ -1,11 +1,11 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
-import { ThemeContext } from "../context/ThemeContext"; // Importez ThemeContext
+import { ThemeContext } from "../context/ThemeContext"; 
 import { useNavigate } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
-import Google from "./Google"; // Importez le logo Google
-import GitHub from "./GitHub"; // Importez le nouveau logo GitHub
+import Google from "./Google";
+import GitHub from "./GitHub"; 
 
 export default function Navbar() {
   const {
@@ -17,20 +17,19 @@ export default function Navbar() {
     setIsLoggedIn,
   } = useContext(AppContext);
 
+  const { theme, toggleTheme } = useContext(ThemeContext); 
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null); // Stocke les informations de l'utilisateur
-  const dropdownRef = useRef(null); // Référence pour détecter les clics en dehors
+  const [user, setUser] = useState(null); 
+  const dropdownRef = useRef(null); 
 
   useEffect(() => {
-    // Récupérez les informations de l'utilisateur depuis le localStorage
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) {
       setUser(storedUser);
     }
 
-    // Gestionnaire de clic pour fermer le dropdown
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -131,9 +130,9 @@ export default function Navbar() {
                   className='px-4 py-2 text-sm text-red-500 hover:bg-gray-100 cursor-pointer'
                   onClick={() => {
                     setIsDropdownOpen(false);
-                    localStorage.removeItem("user"); // Supprimez les informations de l'utilisateur
-                    setIsLoggedIn(false); // Mettez à jour l'état de connexion
-                    navigate("/"); // Redirigez vers le tableau de bord
+                    localStorage.removeItem("user"); 
+                    setIsLoggedIn(false); 
+                    navigate("/"); 
                   }}>
                   Se déconnecter
                 </div>
