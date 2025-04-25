@@ -1,28 +1,27 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
-import { ThemeContext } from "../context/ThemeContext"; 
+import { ThemeContext } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
 import Google from "./Google";
-import GitHub from "./GitHub"; 
+import GitHub from "./GitHub";
 
 export default function Navbar() {
   const {
     activeTitle,
-    isNavbarFixed,
     isSettingsOpen,
     setIsSettingsOpen,
     isLoggedIn,
     setIsLoggedIn,
   } = useContext(AppContext);
 
-  const { theme, toggleTheme } = useContext(ThemeContext); 
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null); 
-  const dropdownRef = useRef(null); 
+  const [user, setUser] = useState(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -45,12 +44,7 @@ export default function Navbar() {
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
   return (
-    <div
-      className={`w-full p-4 flex items-center justify-between ${
-        isNavbarFixed
-          ? "fixed top-0 left-0 shadow-md z-50 bg-white"
-          : "bg-white"
-      }`}>
+    <div className='w-full p-4 flex items-center justify-between bg-white'>
       <div className='flex items-center space-x-2 text-gray-600'>
         <AiOutlineHome
           className='text-xl cursor-pointer'
@@ -130,9 +124,9 @@ export default function Navbar() {
                   className='px-4 py-2 text-sm text-red-500 hover:bg-gray-100 cursor-pointer'
                   onClick={() => {
                     setIsDropdownOpen(false);
-                    localStorage.removeItem("user"); 
-                    setIsLoggedIn(false); 
-                    navigate("/"); 
+                    localStorage.removeItem("user");
+                    setIsLoggedIn(false);
+                    navigate("/");
                   }}>
                   Se déconnecter
                 </div>
