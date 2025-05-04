@@ -79,7 +79,7 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineFileText className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Onglet 3</span>
+              <span className='text-lg font-medium'>Paiements récurrents</span>
             </NavLink>
           </li>
           <li>
@@ -93,7 +93,7 @@ export default function Sidebar() {
                 }`
               }>
               <FaMapMarkedAlt className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Onglet 4</span>
+              <span className='text-lg font-medium'>Paiements en X fois</span>
             </NavLink>
           </li>
           <li>
