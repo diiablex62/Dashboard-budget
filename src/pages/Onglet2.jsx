@@ -36,7 +36,9 @@ export default function Onglet2() {
   const [showModal, setShowModal] = useState(false);
 
   const [selectedMois, setSelectedMois] = useState(getCurrentMonthYear().mois);
-  const [selectedAnnee, setSelectedAnnee] = useState(getCurrentMonthYear().year);
+  const [selectedAnnee, setSelectedAnnee] = useState(
+    getCurrentMonthYear().year
+  );
 
   const libelleRef = useRef(null);
   const montantRef = useRef(null);
@@ -143,29 +145,27 @@ export default function Onglet2() {
         {/* Sélecteur de mois avec flèches centré sous le titre */}
         <div className='flex items-center justify-center gap-2 mb-8'>
           <button
-            type="button"
-            className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            type='button'
+            className='px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
             onClick={handlePrevMonth}
-            title="Mois précédent"
-          >
+            title='Mois précédent'>
             &lt;
           </button>
           <div className='text-xl font-bold dark:text-white min-w-[160px] text-center'>
             {selectedMois} {selectedAnnee}
           </div>
           <button
-            type="button"
-            className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            type='button'
+            className='px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
             onClick={handleNextMonth}
-            title="Mois suivant"
-          >
+            title='Mois suivant'>
             &gt;
           </button>
         </div>
 
         {/* Tableau Revenus calendrier */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-2 dark:text-white">Revenus</h2>
+        <div className='mb-8'>
+          <h2 className='text-xl font-bold mb-2 dark:text-white'>Revenus</h2>
           <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
             <thead>
               <tr>
@@ -203,8 +203,8 @@ export default function Onglet2() {
         </div>
 
         {/* Tableau Dépenses calendrier */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-2 dark:text-white">Dépenses</h2>
+        <div className='mb-8'>
+          <h2 className='text-xl font-bold mb-2 dark:text-white'>Dépenses</h2>
           <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
             <thead>
               <tr>
