@@ -4,8 +4,8 @@ export const BudgetContext = createContext();
 
 export function BudgetProvider({ children }) {
   const [paiements, setPaiements] = useState([]);
-
-  // Ajoutez ici d'autres variables globales de budget si besoin
+  const [recurringDepenses, setRecurringDepenses] = useState([]);
+  const [recurringRevenus, setRecurringRevenus] = useState([]);
 
   const addPaiement = (paiement) => {
     setPaiements((prev) => [...prev, paiement]);
@@ -15,13 +15,24 @@ export function BudgetProvider({ children }) {
     setPaiements((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  const addRecurringDepense = (depense) => {
+    setRecurringDepenses((prev) => [...prev, depense]);
+  };
+
+  const addRecurringRevenu = (revenu) => {
+    setRecurringRevenus((prev) => [...prev, revenu]);
+  };
+
   return (
     <BudgetContext.Provider
       value={{
         paiements,
         addPaiement,
         removePaiement,
-        // Ajoutez ici d'autres setters/getters globaux
+        recurringDepenses,
+        addRecurringDepense,
+        recurringRevenus,
+        addRecurringRevenu,
       }}>
       {children}
     </BudgetContext.Provider>

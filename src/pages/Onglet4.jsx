@@ -299,10 +299,10 @@ export default function Onglet4() {
                   Nombre de mensualités
                 </th>
                 <th className='py-2 px-4 border-b text-left whitespace-nowrap'>
-                  Début du paiement
+                  Début
                 </th>
                 <th className='py-2 px-4 border-b text-left whitespace-nowrap'>
-                  Fin de paiement
+                  Fin
                 </th>
               </tr>
             </thead>
