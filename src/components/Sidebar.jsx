@@ -65,7 +65,7 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineTable className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Onglet 2</span>
+              <span className='text-lg font-medium'>Calendrier</span>
             </NavLink>
           </li>
           <li>

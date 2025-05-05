@@ -124,7 +124,7 @@ export default function Onglet4() {
           <button
             className='bg-[var(--primary-color)] text-white rounded py-2 px-4 font-semibold hover:bg-[var(--primary-hover-color)] transition'
             onClick={handleOpenModal}>
-            Ajouter une dépense récurrente
+            Ajouter un paiement en X fois
           </button>
         </div>
 

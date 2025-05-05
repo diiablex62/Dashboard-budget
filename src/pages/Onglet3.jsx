@@ -90,14 +90,14 @@ export default function Onglet3() {
             Paiements récurrents
           </h1>
           <button
-            className='bg-red-600 text-white rounded py-2 px-4 font-semibold hover:bg-red-700 transition'
-            onClick={() => handleOpenModal("depense")}>
-            Ajouter dépense récurrente
-          </button>
-          <button
             className='bg-green-600 text-white rounded py-2 px-4 font-semibold hover:bg-green-700 transition'
             onClick={() => handleOpenModal("revenu")}>
             Ajouter revenu récurrent
+          </button>
+          <button
+            className='bg-red-600 text-white rounded py-2 px-4 font-semibold hover:bg-red-700 transition'
+            onClick={() => handleOpenModal("depense")}>
+            Ajouter dépense récurrente
           </button>
         </div>
 
@@ -183,47 +183,6 @@ export default function Onglet3() {
           </div>
         )}
 
-        {/* Tableau Dépenses récurrentes */}
-        <div className='w-full mt-8'>
-          <h2 className='text-xl font-bold mb-2 dark:text-white'>
-            Dépenses récurrentes
-          </h2>
-          <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
-            <thead>
-              <tr>
-                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
-                  Libellé
-                </th>
-                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
-                  Montant (€)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {recurringDepenses && recurringDepenses.length > 0 ? (
-                recurringDepenses.map((d, idx) => (
-                  <tr key={idx} className='whitespace-nowrap'>
-                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
-                      {d.libelle}
-                    </td>
-                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
-                      {d.montant.toFixed(2)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={2}
-                    className='text-gray-500 dark:text-gray-300 text-center py-8'>
-                    Aucune dépense récurrente ajoutée pour le moment.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
         {/* Tableau Revenus récurrents */}
         <div className='w-full mt-8'>
           <h2 className='text-xl font-bold mb-2 dark:text-white'>
@@ -258,6 +217,47 @@ export default function Onglet3() {
                     colSpan={2}
                     className='text-gray-500 dark:text-gray-300 text-center py-8'>
                     Aucun revenu récurrent ajouté pour le moment.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Tableau Dépenses récurrentes */}
+        <div className='w-full mt-8'>
+          <h2 className='text-xl font-bold mb-2 dark:text-white'>
+            Dépenses récurrentes
+          </h2>
+          <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
+            <thead>
+              <tr>
+                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
+                  Libellé
+                </th>
+                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
+                  Montant (€)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {recurringDepenses && recurringDepenses.length > 0 ? (
+                recurringDepenses.map((d, idx) => (
+                  <tr key={idx} className='whitespace-nowrap'>
+                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
+                      {d.libelle}
+                    </td>
+                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
+                      {d.montant.toFixed(2)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={2}
+                    className='text-gray-500 dark:text-gray-300 text-center py-8'>
+                    Aucune dépense récurrente ajoutée pour le moment.
                   </td>
                 </tr>
               )}
