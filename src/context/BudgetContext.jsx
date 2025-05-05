@@ -7,6 +7,10 @@ export function BudgetProvider({ children }) {
   const [recurringDepenses, setRecurringDepenses] = useState([]);
   const [recurringRevenus, setRecurringRevenus] = useState([]);
 
+  // Ajout pour le calendrier :
+  const [calendarDepenses, setCalendarDepenses] = useState([]);
+  const [calendarRevenus, setCalendarRevenus] = useState([]);
+
   const addPaiement = (paiement) => {
     setPaiements((prev) => [...prev, paiement]);
   };
@@ -23,6 +27,16 @@ export function BudgetProvider({ children }) {
     setRecurringRevenus((prev) => [...prev, revenu]);
   };
 
+  // Ajoute une dépense au calendrier
+  const addCalendarDepense = (depense) => {
+    setCalendarDepenses((prev) => [...prev, depense]);
+  };
+
+  // Ajoute un revenu au calendrier
+  const addCalendarRevenu = (revenu) => {
+    setCalendarRevenus((prev) => [...prev, revenu]);
+  };
+
   return (
     <BudgetContext.Provider
       value={{
@@ -33,6 +47,11 @@ export function BudgetProvider({ children }) {
         addRecurringDepense,
         recurringRevenus,
         addRecurringRevenu,
+        // Ajout pour le calendrier :
+        calendarDepenses,
+        addCalendarDepense,
+        calendarRevenus,
+        addCalendarRevenu,
       }}>
       {children}
     </BudgetContext.Provider>
