@@ -6,14 +6,17 @@ import App from "./App";
 
 import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext"; // Importez le ThemeProvider
+import { BudgetProvider } from "./context/BudgetContext";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
       <AppProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <BudgetProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </BudgetProvider>
       </AppProvider>
     </ThemeProvider>
   </React.StrictMode>
