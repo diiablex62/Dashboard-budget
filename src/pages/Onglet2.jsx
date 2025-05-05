@@ -35,27 +35,54 @@ export default function Onglet2() {
   const [montant, setMontant] = useState("");
   const [showModal, setShowModal] = useState(false);
 
+  const [selectedMois, setSelectedMois] = useState(getCurrentMonthYear().mois);
+  const [selectedAnnee, setSelectedAnnee] = useState(getCurrentMonthYear().year);
+
   const libelleRef = useRef(null);
   const montantRef = useRef(null);
 
-  const current = getCurrentMonthYear();
+  // Navigation mois
+  const getSelectedMonthIndex = () => MONTHS.indexOf(selectedMois);
+  const handlePrevMonth = () => {
+    let idx = getSelectedMonthIndex();
+    let year = selectedAnnee;
+    if (idx === 0) {
+      idx = 11;
+      year = year - 1;
+    } else {
+      idx = idx - 1;
+    }
+    setSelectedMois(MONTHS[idx]);
+    setSelectedAnnee(year);
+  };
+  const handleNextMonth = () => {
+    let idx = getSelectedMonthIndex();
+    let year = selectedAnnee;
+    if (idx === 11) {
+      idx = 0;
+      year = year + 1;
+    } else {
+      idx = idx + 1;
+    }
+    setSelectedMois(MONTHS[idx]);
+    setSelectedAnnee(year);
+  };
 
-  const resetForm = () => {
+  // Modal
+  const handleOpenModal = (type) => {
+    setModalType(type);
+    setShowModal(true);
     setStep(0);
     setLibelle("");
     setMontant("");
   };
 
-  const handleOpenModal = (type) => {
-    resetForm();
-    setModalType(type);
-    setShowModal(true);
-  };
-
   const handleCloseModal = () => {
     setShowModal(false);
     setModalType(null);
-    resetForm();
+    setStep(0);
+    setLibelle("");
+    setMontant("");
   };
 
   useEffect(() => {
@@ -71,26 +98,36 @@ export default function Onglet2() {
 
   const handleAddCalendar = (e) => {
     e.preventDefault();
+    if (!libelle || !montant) return;
     const data = {
       libelle,
-      montant: parseFloat(montant),
-      mois: current.mois,
-      annee: current.year,
+      montant: Number(montant),
+      mois: selectedMois,
+      annee: selectedAnnee,
     };
     if (modalType === "depense") {
-      addCalendarDepense(data);
+      addCalendarDepense && addCalendarDepense(data);
     } else if (modalType === "revenu") {
-      addCalendarRevenu(data);
+      addCalendarRevenu && addCalendarRevenu(data);
     }
     handleCloseModal();
   };
 
+  // Filtres pour affichage
+  const revenus = calendarRevenus.filter(
+    (r) => r.mois === selectedMois && r.annee === selectedAnnee
+  );
+  const depenses = calendarDepenses.filter(
+    (d) => d.mois === selectedMois && d.annee === selectedAnnee
+  );
+
   return (
     <div className='p-6 bg-white dark:bg-black dark:text-white'>
       <div className='w-full p-0'>
+        {/* Titre aligné à gauche comme les autres onglets */}
         <div className='flex items-center gap-4 mb-6'>
           <h1 className='text-3xl font-bold flex-1 dark:text-white'>
-            Calendrier - {current.mois} {current.year}
+            Calendrier
           </h1>
           <button
             className='bg-green-600 text-white rounded py-2 px-4 font-semibold hover:bg-green-700 transition'
@@ -102,6 +139,106 @@ export default function Onglet2() {
             onClick={() => handleOpenModal("depense")}>
             Ajouter dépense
           </button>
+        </div>
+        {/* Sélecteur de mois avec flèches centré sous le titre */}
+        <div className='flex items-center justify-center gap-2 mb-8'>
+          <button
+            type="button"
+            className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            onClick={handlePrevMonth}
+            title="Mois précédent"
+          >
+            &lt;
+          </button>
+          <div className='text-xl font-bold dark:text-white min-w-[160px] text-center'>
+            {selectedMois} {selectedAnnee}
+          </div>
+          <button
+            type="button"
+            className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            onClick={handleNextMonth}
+            title="Mois suivant"
+          >
+            &gt;
+          </button>
+        </div>
+
+        {/* Tableau Revenus calendrier */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-2 dark:text-white">Revenus</h2>
+          <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
+            <thead>
+              <tr>
+                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
+                  Libellé
+                </th>
+                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
+                  Montant (€)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {revenus.length > 0 ? (
+                revenus.map((r, idx) => (
+                  <tr key={idx} className='whitespace-nowrap'>
+                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
+                      {r.libelle}
+                    </td>
+                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
+                      {r.montant.toFixed(2)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={2}
+                    className='text-gray-500 dark:text-gray-300 text-center py-8'>
+                    Aucun revenu pour ce mois.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Tableau Dépenses calendrier */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-2 dark:text-white">Dépenses</h2>
+          <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
+            <thead>
+              <tr>
+                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
+                  Libellé
+                </th>
+                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
+                  Montant (€)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {depenses.length > 0 ? (
+                depenses.map((d, idx) => (
+                  <tr key={idx} className='whitespace-nowrap'>
+                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
+                      {d.libelle}
+                    </td>
+                    <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
+                      {d.montant.toFixed(2)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={2}
+                    className='text-gray-500 dark:text-gray-300 text-center py-8'>
+                    Aucune dépense pour ce mois.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Modal */}
@@ -138,7 +275,7 @@ export default function Onglet2() {
                     <span className='font-semibold dark:text-white'>
                       Mois :
                     </span>{" "}
-                    {current.mois} {current.year}
+                    {selectedMois} {selectedAnnee}
                   </div>
                 </div>
                 {step === 0 && (
@@ -191,96 +328,6 @@ export default function Onglet2() {
             </div>
           </div>
         )}
-
-        {/* Tableau Revenus */}
-        <div className='w-full mt-8'>
-          <h2 className='text-xl font-bold mb-2 dark:text-white'>
-            Revenus ({current.mois} {current.year})
-          </h2>
-          <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
-            <thead>
-              <tr>
-                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
-                  Libellé
-                </th>
-                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
-                  Montant (€)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {calendarRevenus && calendarRevenus.length > 0 ? (
-                calendarRevenus
-                  .filter(
-                    (r) => r.mois === current.mois && r.annee === current.year
-                  )
-                  .map((r, idx) => (
-                    <tr key={idx} className='whitespace-nowrap'>
-                      <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
-                        {r.libelle}
-                      </td>
-                      <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
-                        {r.montant.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={2}
-                    className='text-gray-500 dark:text-gray-300 text-center py-8'>
-                    Aucun revenu pour ce mois.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Tableau Dépenses */}
-        <div className='w-full mt-8'>
-          <h2 className='text-xl font-bold mb-2 dark:text-white'>
-            Dépenses ({current.mois} {current.year})
-          </h2>
-          <table className='w-full bg-white dark:bg-black rounded shadow table-fixed'>
-            <thead>
-              <tr>
-                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
-                  Libellé
-                </th>
-                <th className='py-2 px-4 border-b text-left whitespace-nowrap dark:text-white'>
-                  Montant (€)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {calendarDepenses && calendarDepenses.length > 0 ? (
-                calendarDepenses
-                  .filter(
-                    (d) => d.mois === current.mois && d.annee === current.year
-                  )
-                  .map((d, idx) => (
-                    <tr key={idx} className='whitespace-nowrap'>
-                      <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
-                        {d.libelle}
-                      </td>
-                      <td className='py-2 px-4 border-b whitespace-nowrap dark:text-white'>
-                        {d.montant.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={2}
-                    className='text-gray-500 dark:text-gray-300 text-center py-8'>
-                    Aucune dépense pour ce mois.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );
