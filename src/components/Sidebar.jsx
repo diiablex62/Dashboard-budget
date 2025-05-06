@@ -42,7 +42,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/onglet1'
+              to='/profil'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -51,12 +51,12 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineUser className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Onglet 1</span>
+              <span className='text-lg font-medium'>Profil</span>
             </NavLink>
           </li>
           <li>
             <NavLink
-              to='/onglet2'
+              to='/calendrier'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -70,7 +70,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/onglet3'
+              to='/paiements-recurrents'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -84,7 +84,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/onglet4'
+              to='/paiements-xfois'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -98,7 +98,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/onglet5'
+              to='/notifications'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -112,7 +112,7 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
-      {!isLoggedIn && ( 
+      {!isLoggedIn && (
         <div className='p-4 border-t border-gray-200'>
           <button
             className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'

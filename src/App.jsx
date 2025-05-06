@@ -1,24 +1,15 @@
 import React, { useContext, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import "./styles/tailwind.css";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import { AppContext } from "./context/AppContext";
-import Dashboard from "./pages/Dashboard";
-import Onglet1 from "./pages/Onglet1";
-import Onglet2 from "./pages/Onglet2";
-import PaiementRecurrent from "./pages/PaiementRecurrent";
-import PaiementXfois from "./pages/PaiementXfois";
-import Notifications from "./pages/Notifications";
-import Auth from "./pages/Auth";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import UserDataDeletion from "./pages/UserDataDeletion";
-import Terms from "./pages/Terms";
+import AppRoutes from "../routes/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
-  const { primaryColor, setPrimaryColor, isLoggedIn } = useContext(AppContext);
+  const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const location = useLocation();
 
   const isolatedRoutes = ["/auth"];
@@ -31,8 +22,8 @@ export default function App() {
         ? savedColor
         : primaryColor;
 
-    setPrimaryColor(validPrimaryColor); // Met à jour le contexte
-  }, []); // Exécute une seule fois au chargement
+    setPrimaryColor(validPrimaryColor);
+  }, []);
 
   return (
     <div className='flex bg-gray-50'>
@@ -43,50 +34,7 @@ export default function App() {
         }`}>
         {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
         <div className={isIsolatedRoute ? "w-full" : "p-6"}>
-          <Routes>
-            <Route
-              path='/'
-              element={<Dashboard primaryColor={primaryColor} />}
-            />
-            <Route
-              path='/auth'
-              element={<Auth primaryColor={primaryColor} />}
-            />
-            <Route
-              path='/onglet1'
-              element={<Onglet1 primaryColor={primaryColor} />}
-            />
-            <Route
-              path='/onglet2'
-              element={<Onglet2 primaryColor={primaryColor} />}
-            />
-            <Route
-              path='/onglet3'
-              element={<PaiementRecurrent primaryColor={primaryColor} />}
-            />
-            <Route
-              path='/onglet4'
-              element={<PaiementXfois primaryColor={primaryColor} />}
-            />
-            <Route
-              path='/onglet5'
-              element={<Notifications primaryColor={primaryColor} />}
-            />
-            <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-            <Route path='/privacy' element={<PrivacyPolicy />} />
-            <Route path='/user-data-deletion' element={<UserDataDeletion />} />
-            <Route path='/terms' element={<Terms />} />
-            <Route
-              path='*'
-              element={
-                <div className='flex items-center justify-center h-screen'>
-                  <h1 className='text-2xl font-bold text-red-500'>
-                    Page non trouvée
-                  </h1>
-                </div>
-              }
-            />
-          </Routes>
+          <AppRoutes />
         </div>
       </div>
       <ToastContainer />

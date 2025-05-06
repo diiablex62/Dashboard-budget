@@ -21,7 +21,7 @@ function getCurrentMonthYear() {
   return { mois: MONTHS[now.getMonth()], year: now.getFullYear() };
 }
 
-export default function Onglet2() {
+export default function Calendrier() {
   const {
     calendarDepenses = [],
     calendarRevenus = [],
@@ -29,7 +29,7 @@ export default function Onglet2() {
     addCalendarRevenu,
   } = useContext(BudgetContext);
 
-  const [modalType, setModalType] = useState(null); // "depense" | "revenu" | null
+  const [modalType, setModalType] = useState(null); 
   const [step, setStep] = useState(0);
   const [libelle, setLibelle] = useState("");
   const [montant, setMontant] = useState("");

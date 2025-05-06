@@ -1,24 +1,32 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../src/pages/Dashboard";
 import Onglet1 from "../src/pages/Onglet1";
-import Onglet2 from "../src/pages/Onglet2";
+import Calendrier from "../src/pages/Calendrier";
 import PaiementRecurrent from "../src/pages/PaiementRecurrent";
 import PaiementXfois from "../src/pages/PaiementXfois";
 import Notifications from "../src/pages/Notifications";
 import Auth from "../src/pages/Auth";
+import PrivacyPolicy from "../src/pages/PrivacyPolicy";
+import UserDataDeletion from "../src/pages/UserDataDeletion";
+import Terms from "../src/pages/Terms";
 
+// Utilise des URLs explicites pour chaque page
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path='/' element={<Dashboard />} />
-      <Route path='/login' element={<Auth />} />
-      <Route path='/register' element={<Auth />} />
-      <Route path='/onglet1' element={<Onglet1 />} />
-      <Route path='/onglet2' element={<Onglet2 />} />
-      <Route path='/onglet3' element={<PaiementRecurrent />} />
-      <Route path='/onglet4' element={<PaiementXfois />} />
-      <Route path='/onglet5' element={<Notifications />} />
+      <Route path='/profil' element={<Onglet1 />} />
+      <Route path='/calendrier' element={<Calendrier />} />
+      <Route path='/paiements-recurrents' element={<PaiementRecurrent />} />
+      <Route path='/paiements-xfois' element={<PaiementXfois />} />
+      <Route path='/notifications' element={<Notifications />} />
+      <Route path='/auth' element={<Auth />} />
+      <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+      <Route path='/privacy' element={<PrivacyPolicy />} />
+      <Route path='/user-data-deletion' element={<UserDataDeletion />} />
+      <Route path='/terms' element={<Terms />} />
+      <Route path='*' element={<Navigate to='/' replace />} />
     </Routes>
   );
 }
