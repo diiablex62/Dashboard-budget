@@ -7,9 +7,9 @@ import { AppContext } from "./context/AppContext";
 import Dashboard from "./pages/Dashboard";
 import Onglet1 from "./pages/Onglet1";
 import Onglet2 from "./pages/Onglet2";
-import Onglet3 from "./pages/Onglet3";
-import Onglet4 from "./pages/Onglet4";
-import Onglet5 from "./pages/Onglet5";
+import PaiementRecurrent from "./pages/PaiementRecurrent";
+import PaiementXfois from "./pages/PaiementXfois";
+import Notifications from "./pages/Notifications";
 import Auth from "./pages/Auth";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import UserDataDeletion from "./pages/UserDataDeletion";
@@ -62,15 +62,15 @@ export default function App() {
             />
             <Route
               path='/onglet3'
-              element={<Onglet3 primaryColor={primaryColor} />}
+              element={<PaiementRecurrent primaryColor={primaryColor} />}
             />
             <Route
               path='/onglet4'
-              element={<Onglet4 primaryColor={primaryColor} />}
+              element={<PaiementXfois primaryColor={primaryColor} />}
             />
             <Route
               path='/onglet5'
-              element={<Onglet5 primaryColor={primaryColor} />}
+              element={<Notifications primaryColor={primaryColor} />}
             />
             <Route path='/privacy-policy' element={<PrivacyPolicy />} />
             <Route path='/privacy' element={<PrivacyPolicy />} />

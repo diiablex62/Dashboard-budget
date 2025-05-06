@@ -107,12 +107,12 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineBell className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Onglet 5</span>
+              <span className='text-lg font-medium'>Notifications</span>
             </NavLink>
           </li>
         </ul>
       </nav>
-      {!isLoggedIn && ( // Affiche les boutons uniquement si l'utilisateur n'est pas connecté
+      {!isLoggedIn && ( 
         <div className='p-4 border-t border-gray-200'>
           <button
             className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'
