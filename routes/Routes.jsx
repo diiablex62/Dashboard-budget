@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../src/pages/Dashboard";
 import Profil from "../src/pages/Profil";
-import Calendrier from "../src/pages/Calendrier";
+import Agenda from "../src/pages/Agenda";
 import PaiementRecurrent from "../src/pages/PaiementRecurrent";
 import PaiementXfois from "../src/pages/PaiementXfois";
 import Notifications from "../src/pages/Notifications";
@@ -18,7 +18,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path='/' element={<Dashboard />} />
       <Route path='/profil' element={<Profil />} />
-      <Route path='/agenda' element={<Calendrier />} />
+      <Route path='/agenda' element={<Agenda />} />
       <Route path='/paiements-recurrents' element={<PaiementRecurrent />} />
       <Route path='/paiements-echelonnes' element={<PaiementXfois />} />
       <Route path='/notifications' element={<Notifications />} />
