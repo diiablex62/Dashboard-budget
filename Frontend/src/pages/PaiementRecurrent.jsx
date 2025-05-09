@@ -437,6 +437,7 @@ export default function PaiementRecurrent() {
                 </div>
               )}
             </div>
+            {/* Les boutons Modifier/Supprimer ont été retirés ici */}
           </div>
         </div>
         {/* Liste */}
