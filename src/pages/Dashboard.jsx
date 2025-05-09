@@ -13,7 +13,7 @@ export default function Dashboard() {
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
         {/* Total dépensé */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
             <span className='text-sm text-gray-500'>Total dépensé</span>
             <span className='bg-blue-100 text-blue-600 rounded px-2 py-1 text-xs font-bold'>
@@ -26,7 +26,7 @@ export default function Dashboard() {
           </div>
         </div>
         {/* Paiements récurrents */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
             <span className='text-sm text-gray-500'>Paiements récurrents</span>
             <AiOutlineCalendar className='text-purple-400 text-xl' />
@@ -40,7 +40,7 @@ export default function Dashboard() {
           </button>
         </div>
         {/* Paiements en plusieurs fois */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
             <span className='text-sm text-gray-500'>
               Paiements en plusieurs fois
@@ -56,7 +56,7 @@ export default function Dashboard() {
           </button>
         </div>
         {/* Économies */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
             <span className='text-sm text-gray-500'>Économies</span>
             <AiOutlineRise className='text-orange-400 text-xl' />
@@ -71,14 +71,14 @@ export default function Dashboard() {
       {/* Graphiques */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
         {/* Dépenses mensuelles */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col min-h-[220px]'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col min-h-[220px]'>
           <span className='font-semibold mb-2'>Dépenses mensuelles</span>
           <div className='flex-1 flex items-center justify-center text-gray-400'>
             Graphique de dépenses mensuelles
           </div>
         </div>
         {/* Répartition du budget */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col min-h-[220px]'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col min-h-[220px]'>
           <span className='font-semibold mb-2'>Répartition du budget</span>
           <div className='flex-1 flex items-center justify-center text-gray-400'>
             Graphique camembert
@@ -89,7 +89,7 @@ export default function Dashboard() {
       {/* Listes du bas */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         {/* Paiements récurrents récents */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <span className='font-semibold mb-4'>
             Paiements récurrents récents
           </span>
@@ -118,7 +118,7 @@ export default function Dashboard() {
           </button>
         </div>
         {/* Paiements en plusieurs fois récents */}
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <span className='font-semibold mb-4'>
             Paiements en plusieurs fois
           </span>

@@ -42,20 +42,6 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/profil'
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive
-                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlineUser className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Profil</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
               to='/agenda'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${

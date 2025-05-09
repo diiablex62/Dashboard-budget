@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
 import { ThemeContext } from "../context/ThemeContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
 import Google from "./Google";
 import GitHub from "./GitHub";
@@ -18,6 +18,7 @@ export default function Navbar() {
 
   const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -108,8 +109,15 @@ export default function Navbar() {
                 </div>
                 <ul className='text-sm text-gray-800 dark:text-white'>
                   <li
-                    className='px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
-                    onClick={() => navigate("/profile")}>
+                    className={`px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer ${
+                      location.pathname === "/profil"
+                        ? "bg-gray-100 dark:bg-gray-700 font-bold"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      navigate("/profil");
+                    }}>
                     Mon profil
                   </li>
                   <li

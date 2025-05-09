@@ -38,16 +38,15 @@ export default function PaiementRecurrent() {
   const totalDepenses = totalMensuel;
 
   return (
-    <div className='bg-[#f7f9fb] min-h-screen p-8'>
-      <div className='flex items-center justify-between mb-6'>
-        <h1 className='text-2xl font-bold'>PAIEMENTS RECURRENTS</h1>
-        <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition'>
+    <div className=' min-h-screen p-8'>
+      <div className='flex items-center justify-end mb-6'>
+        <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'>
           <span className='text-xl'>+</span> Ajouter un paiement récurrent
         </button>
       </div>
       {/* Totaux */}
       <div className='flex flex-col md:flex-row gap-6 mb-8'>
-        <div className='flex-1 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
+        <div className='flex-1 bg-white border rounded-xl flex items-center gap-4 px-6 py-2'>
           <div className='bg-blue-100 rounded-full p-3'>
             <AiOutlineCalendar className='text-2xl text-blue-500' />
           </div>
