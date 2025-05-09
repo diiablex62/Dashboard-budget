@@ -72,7 +72,8 @@ export default function Dashboard() {
             {totalRecurrents.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>
-            -1.4% depuis le mois dernier
+            {paiementsRecurrents.length}{" "}
+            {paiementsRecurrents.length === 1 ? "élément" : "éléments"}
           </div>
           <button
             className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'
