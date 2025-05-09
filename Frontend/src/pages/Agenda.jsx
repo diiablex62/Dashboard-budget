@@ -89,89 +89,83 @@ export default function Agenda() {
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-6'>
-      <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 w-full max-w-xl'>
-        <div className='mb-6'>
-          <div className='text-2xl font-semibold text-gray-800 mb-1'>
-            Agenda mensuel
+      <div className='flex flex-col md:flex-row gap-8 w-full max-w-5xl mx-auto'>
+        {/* Partie gauche : Agenda */}
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 w-full md:w-2/3'>
+          <div className='mb-6'>
+            <div className='text-2xl font-semibold text-gray-800 mb-1'>
+              Agenda mensuel
+            </div>
           </div>
-          <div className='text-gray-500 text-sm'>Planifiez vos paiements</div>
+          <div className='flex justify-end mb-4'>
+            <div className='flex items-center border rounded-lg px-4 py-2 text-gray-700 bg-white font-medium text-lg'>
+              <AiOutlineCalendar className='mr-2' />
+              {MONTHS[month]} {year}
+            </div>
+          </div>
+          <div className='mb-6'>
+            <div className='grid grid-cols-7 text-center mb-2 text-gray-500 font-medium'>
+              {DAYS.map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
+            <div className='grid grid-cols-7 gap-1'>
+              {matrix.map((week, i) =>
+                week.map((day, j) => {
+                  const isSelected =
+                    day &&
+                    day === selected.day &&
+                    month === selected.month &&
+                    year === selected.year;
+                  // Points pour certains jours
+                  const hasDot =
+                    [1, 12, 15, 20, 25].includes(day) &&
+                    month === 4 &&
+                    year === 2025;
+                  return (
+                    <div
+                      key={i + "-" + j}
+                      className={`aspect-square flex flex-col items-center justify-center cursor-pointer rounded-lg
+                        ${isSelected ? "bg-teal-100" : ""}
+                        ${day ? "hover:bg-gray-100" : ""}
+                        transition`}
+                      onClick={() => handleSelect(day)}>
+                      <span
+                        className={`text-base font-semibold ${
+                          isSelected ? "text-gray-700" : "text-gray-800"
+                        }`}>
+                        {day ? day : ""}
+                      </span>
+                      {hasDot && (
+                        <span className='w-2 h-2 rounded-full bg-teal-400 mt-1'></span>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        
         </div>
-        <div className='flex justify-end mb-4'>
-          <div className='flex items-center border rounded-lg px-4 py-2 text-gray-700 bg-white font-medium text-lg'>
-            <AiOutlineCalendar className='mr-2' />
-            {MONTHS[month]} {year}
-          </div>
-        </div>
-        <div className='mb-6'>
-          <div className='grid grid-cols-7 text-center mb-2 text-gray-500 font-medium'>
-            {DAYS.map((d) => (
-              <div key={d}>{d}</div>
-            ))}
-          </div>
-          <div className='grid grid-cols-7 gap-1'>
-            {matrix.map((week, i) =>
-              week.map((day, j) => {
-                const isSelected =
-                  day &&
-                  day === selected.day &&
-                  month === selected.month &&
-                  year === selected.year;
-                // Points pour certains jours
-                const hasDot =
-                  [1, 12, 15, 20, 25].includes(day) &&
-                  month === 4 &&
-                  year === 2025;
-                return (
-                  <div
-                    key={i + "-" + j}
-                    className={`aspect-square flex flex-col items-center justify-center cursor-pointer rounded-lg
-                      ${isSelected ? "bg-teal-100" : ""}
-                      ${day ? "hover:bg-gray-100" : ""}
-                      transition`}
-                    onClick={() => handleSelect(day)}>
-                    <span
-                      className={`text-base font-semibold ${
-                        isSelected ? "text-gray-700" : "text-gray-800"
-                      }`}>
-                      {day ? day : ""}
-                    </span>
-                    {hasDot && (
-                      <span className='w-2 h-2 rounded-full bg-teal-400 mt-1'></span>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-        <div className='flex items-center justify-between mt-8 mb-2'>
-          <div className='text-gray-700 font-medium'>
-            Evenements du {String(selected.day).padStart(2, "0")}/
+        {/* Partie droite : Liste des événements */}
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 w-full md:w-1/3 flex flex-col'>
+          <div className='text-lg font-semibold mb-4 text-gray-800'>
+            Événements du {String(selected.day).padStart(2, "0")}/
             {String(selected.month + 1).padStart(2, "0")}/{selected.year}
           </div>
-          <button
-            className='flex items-center bg-teal-500 hover:bg-teal-600 text-white font-semibold px-5 py-2 rounded-lg transition'
-            onClick={() =>
-              isLoggedIn
-                ? /* ouvrir la modale ou logique d'ajout */
-                  null
-                : navigate("/auth", { state: { isLogin: true } })
-            }>
-            <span className='mr-2 text-xl'>＋</span> Ajouter
-          </button>
-        </div>
-        <div className='py-8 text-center'>
-          {events.length === 0 ? (
-            <span className='text-gray-400 text-lg'>
-              Aucun événement pour cette date
-            </span>
-          ) : (
-            events.map((ev, idx) => (
-              <div key={idx} className='text-gray-700'>
-                {ev}
-              </div>
-            ))
-          )}
+          <div className='flex-1 flex flex-col justify-center'>
+            {events.length === 0 ? (
+              <span className='text-gray-400 text-lg text-center'>
+                Aucun événement pour cette date
+              </span>
+            ) : (
+              events.map((ev, idx) => (
+                <div key={idx} className='text-gray-700 mb-2 text-base'>
+                  {ev}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
