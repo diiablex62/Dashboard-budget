@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { AiOutlineCalendar } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
 const MONTHS = [
   "janvier",
@@ -53,6 +55,9 @@ export default function Agenda() {
   const [month, setMonth] = useState(4); // 0-based, 4 = mai
   const [year, setYear] = useState(2025);
   const [selected, setSelected] = useState({ day: 7, month: 4, year: 2025 });
+
+  const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AppContext);
 
   const matrix = getMonthMatrix(year, month);
 
@@ -144,7 +149,14 @@ export default function Agenda() {
             Evenements du {String(selected.day).padStart(2, "0")}/
             {String(selected.month + 1).padStart(2, "0")}/{selected.year}
           </div>
-          <button className='flex items-center bg-teal-500 hover:bg-teal-600 text-white font-semibold px-5 py-2 rounded-lg transition'>
+          <button
+            className='flex items-center bg-teal-500 hover:bg-teal-600 text-white font-semibold px-5 py-2 rounded-lg transition'
+            onClick={() =>
+              isLoggedIn
+                ? /* ouvrir la modale ou logique d'ajout */
+                  null
+                : navigate("/auth", { state: { isLogin: true } })
+            }>
             <span className='mr-2 text-xl'>＋</span> Ajouter
           </button>
         </div>

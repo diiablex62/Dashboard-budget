@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { AiOutlineCalendar } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext";
 
 const paiements = [
   {
@@ -36,17 +38,26 @@ export default function PaiementRecurrent() {
   const totalMensuel = paiements.reduce((acc, p) => acc + p.montant, 0);
   const totalAnnuel = totalMensuel * 12;
   const totalDepenses = totalMensuel;
+  const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AppContext);
 
   return (
     <div className=' min-h-screen p-8'>
       <div className='flex items-center justify-end mb-6'>
-        <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'>
+        <button
+          className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'
+          onClick={() =>
+            isLoggedIn
+              ? /* ouvrir la modale ou logique d'ajout */
+                null
+              : navigate("/auth", { state: { isLogin: true } })
+          }>
           <span className='text-xl'>+</span> Ajouter un paiement récurrent
         </button>
       </div>
       {/* Totaux */}
       <div className='flex flex-col md:flex-row gap-6 mb-8'>
-        <div className='flex-1 bg-white border rounded-xl flex items-center gap-4 px-6 py-2'>
+        <div className='flex-1 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
           <div className='bg-blue-100 rounded-full p-3'>
             <AiOutlineCalendar className='text-2xl text-blue-500' />
           </div>

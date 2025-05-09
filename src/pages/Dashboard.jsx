@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AiOutlineDashboard,
   AiOutlineCalendar,
@@ -6,8 +7,12 @@ import {
   AiOutlineRise,
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
+import { AppContext } from "../context/AppContext";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AppContext);
+
   return (
     <div className='p-6 bg-[#f8fafc] min-h-screen'>
       {/* Cartes du haut */}
@@ -35,7 +40,13 @@ export default function Dashboard() {
           <div className='text-xs text-gray-400'>
             -1.4% depuis le mois dernier
           </div>
-          <button className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'>
+          <button
+            className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'
+            onClick={() =>
+              isLoggedIn
+                ? navigate("/paiements-recurrents")
+                : navigate("/auth", { state: { isLogin: true } })
+            }>
             Gerer →
           </button>
         </div>
@@ -51,7 +62,13 @@ export default function Dashboard() {
           <div className='text-xs text-gray-400'>
             +5.7% depuis le mois dernier
           </div>
-          <button className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'>
+          <button
+            className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'
+            onClick={() =>
+              isLoggedIn
+                ? navigate("/paiements-echelonnes")
+                : navigate("/auth", { state: { isLogin: true } })
+            }>
             Gerer →
           </button>
         </div>
@@ -113,7 +130,9 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'>
+          <button
+            className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'
+            onClick={() => navigate("/paiements-recurrents")}>
             Voir tous les paiements récurrents
           </button>
         </div>
@@ -121,6 +140,7 @@ export default function Dashboard() {
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col'>
           <span className='font-semibold mb-4'>
             Paiements en plusieurs fois
+            <button onClick={() => navigate("/paiements-echelonnes")}></button>
           </span>
           <div className='space-y-3 mb-4'>
             {[1, 2, 3].map((i) => (
@@ -140,8 +160,10 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'>
-            Voir tous les paiements en plusieurs fois
+          <button
+            className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'
+            onClick={() => navigate("/paiements-echelonnes")}>
+            Voir tous les paiements échelonnés
           </button>
         </div>
       </div>

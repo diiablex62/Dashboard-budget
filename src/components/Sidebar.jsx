@@ -18,7 +18,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`w-72 h-screen ${
+      className={`w-72 h-screen fixed top-0 left-0 z-30 ${
         sidebarType === "transparent" ? "bg-transparent" : "bg-white"
       } text-gray-800 flex flex-col shadow-md ${isNavbarFixed ? "mt-16" : ""}`}>
       <h2 className='text-3xl font-bold p-8 border-b border-gray-200'>
@@ -82,7 +82,7 @@ export default function Sidebar() {
               <span className='text-lg font-medium'>Paiements échelonnés</span>
             </NavLink>
           </li>
-          <li>
+          {/* <li>
             <NavLink
               to='/notifications'
               className={({ isActive }) =>
@@ -95,7 +95,7 @@ export default function Sidebar() {
               <AiOutlineBell className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Notifications</span>
             </NavLink>
-          </li>
+          </li> */}
         </ul>
       </nav>
       {!isLoggedIn && (

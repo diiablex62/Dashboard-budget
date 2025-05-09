@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import { AiOutlinePlus, AiOutlineDollarCircle } from "react-icons/ai";
+import { AppContext } from "../context/AppContext";
 
 const echelonnes = [
   {
@@ -44,6 +45,7 @@ export default function PaiementEchelonne() {
   const totalRevenus = 0;
   const totalDepenses = 0;
   const barColor = "#00b96b";
+  const { isLoggedIn } = useContext(AppContext);
 
   return (
     <div className='min-h-screen p-8'>
@@ -53,7 +55,14 @@ export default function PaiementEchelonne() {
             Paiements échelonnés
           </h1>
         </div>
-        <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'>
+        <button
+          className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'
+          onClick={() =>
+            isLoggedIn
+              ? /* ouvrir la modale ou logique d'ajout */
+                null
+              : navigate("/auth", { state: { isLogin: true } })
+          }>
           <AiOutlinePlus className='text-xl' /> Ajouter un paiement échelonné
         </button>
       </div>

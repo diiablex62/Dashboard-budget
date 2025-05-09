@@ -26,12 +26,9 @@ export default function App() {
   }, []);
 
   return (
-    <div className='flex bg-gray-50'>
-      {!isIsolatedRoute && <Sidebar primaryColor={primaryColor} />}
-      <div
-        className={`flex-1 relative ${
-          isIsolatedRoute ? "flex items-center justify-center" : ""
-        }`}>
+    <div>
+      <Sidebar primaryColor={primaryColor} />
+      <div className='ml-72'>
         {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
         <div className={isIsolatedRoute ? "w-full" : "p-6"}>
           <AppRoutes />
