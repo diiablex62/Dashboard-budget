@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../src/pages/Dashboard";
-import Onglet1 from "../src/pages/Onglet1";
+import Profil from "../src/pages/Profil";
 import Calendrier from "../src/pages/Calendrier";
 import PaiementRecurrent from "../src/pages/PaiementRecurrent";
 import PaiementXfois from "../src/pages/PaiementXfois";
@@ -11,12 +11,13 @@ import PrivacyPolicy from "../src/pages/PrivacyPolicy";
 import UserDataDeletion from "../src/pages/UserDataDeletion";
 import Terms from "../src/pages/Terms";
 
+
 // Utilise des URLs explicites pour chaque page
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path='/' element={<Dashboard />} />
-      <Route path='/profil' element={<Onglet1 />} />
+      <Route path='/profil' element={<Profil />} />
       <Route path='/agenda' element={<Calendrier />} />
       <Route path='/paiements-recurrents' element={<PaiementRecurrent />} />
       <Route path='/paiements-echelonnes' element={<PaiementXfois />} />
