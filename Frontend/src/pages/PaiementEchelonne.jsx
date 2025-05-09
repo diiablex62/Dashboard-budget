@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef, useEffect } from "react";
+import React, { useContext, useState, useRef, useEffect, useMemo } from "react";
 import { AiOutlinePlus, AiOutlineDollarCircle } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
@@ -56,7 +56,6 @@ const echelonnes = [
 
 export default function PaiementEchelonne() {
   const totalRevenus = 0;
-  const totalDepenses = 0;
   const barColor = "#00b96b";
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
@@ -127,6 +126,26 @@ export default function PaiementEchelonne() {
   useEffect(() => {
     fetchPaiements();
   }, []);
+
+  // Total Dépenses échelonnées (uniquement la somme des mensualités du mois courant)
+  const totalDepenses = useMemo(() => {
+    if (!paiements.length) return 0;
+    // On ne garde que les paiements dont le mois courant est dans la période d'échelonnement
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    return paiements.reduce((acc, p) => {
+      if (!p.debutMois || !p.mensualites || !p.montant) return acc;
+      const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+      const debut = new Date(startYear, startMonth - 1);
+      const fin = new Date(startYear, startMonth - 1 + Number(p.mensualites) - 1);
+      const nowDate = new Date(currentYear, currentMonth - 1);
+      if (nowDate >= debut && nowDate <= fin) {
+        return acc + Number(p.montant) / Number(p.mensualites);
+      }
+      return acc;
+    }, 0);
+  }, [paiements]);
 
   // Ajout ou modification du paiement échelonné
   const handleAddOrEditPaiement = async (e) => {
