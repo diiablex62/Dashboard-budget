@@ -11,6 +11,11 @@ import {
   AiOutlineSetting,
 } from "react-icons/ai";
 import { FaMapMarkedAlt } from "react-icons/fa";
+import {
+  HiArrowDownCircle,
+  HiArrowUpCircle,
+  HiArrowsRightLeft,
+} from "react-icons/hi2";
 
 export default function Sidebar() {
   const { sidebarType, isNavbarFixed, isLoggedIn } = useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
@@ -86,9 +91,10 @@ export default function Sidebar() {
               <span className='text-lg font-medium'>Paiements échelonnés</span>
             </NavLink>
           </li>
-          {/* <li>
+          <li>
             <NavLink
-              to='/notifications'
+              to='/depenses-revenus'
+              onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -96,10 +102,13 @@ export default function Sidebar() {
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineBell className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Notifications</span>
+              <HiArrowsRightLeft
+                className='mr-6 text-2xl text-[var(--primary-color)]'
+                style={{ width: 24, height: 24 }}
+              />
+              <span className='text-lg font-medium'>Dépenses & Revenus</span>
             </NavLink>
-          </li> */}
+          </li>
         </ul>
       </nav>
       {!isLoggedIn && (

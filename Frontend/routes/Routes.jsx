@@ -10,6 +10,7 @@ import Auth from "../src/pages/Auth";
 import PrivacyPolicy from "../src/pages/PrivacyPolicy";
 import UserDataDeletion from "../src/pages/UserDataDeletion";
 import Terms from "../src/pages/Terms";
+import DepensesRevenus from "../src/pages/DepensesRevenus";
 
 // Utilise des URLs explicites pour chaque page
 export default function AppRoutes() {
@@ -27,6 +28,7 @@ export default function AppRoutes() {
       <Route path='/user-data-deletion' element={<UserDataDeletion />} />
       <Route path='/terms' element={<Terms />} />
       <Route path='*' element={<Navigate to='/' replace />} />
+      <Route path='/depenses-revenus' element={<DepensesRevenus />} />
     </Routes>
   );
 }

@@ -89,9 +89,9 @@ export default function Agenda() {
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-6'>
-      <div className='flex flex-col md:flex-row gap-8 w-full max-w-5xl mx-auto'>
+      <div className='flex flex-col md:flex-row gap-8 w-full mx-auto'>
         {/* Partie gauche : Agenda */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 w-full md:w-2/3'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 flex-1 min-w-0 md:w-1/2 w-full'>
           <div className='mb-6'>
             <div className='text-2xl font-semibold text-gray-800 mb-1'>
               Agenda mensuel
@@ -145,10 +145,9 @@ export default function Agenda() {
               )}
             </div>
           </div>
-        
         </div>
         {/* Partie droite : Liste des événements */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 w-full md:w-1/3 flex flex-col'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 flex-1 min-w-0 md:w-1/2 w-full flex flex-col'>
           <div className='text-lg font-semibold mb-4 text-gray-800'>
             Événements du {String(selected.day).padStart(2, "0")}/
             {String(selected.month + 1).padStart(2, "0")}/{selected.year}
