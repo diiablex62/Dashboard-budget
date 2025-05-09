@@ -71,21 +71,7 @@ export default function PaiementEchelonne() {
         </div>
         {/* Totaux */}
         <div className='flex flex-col gap-4 md:flex-row md:gap-8 mb-8'>
-          <div className='flex-1 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
-            <div className='bg-blue-100 rounded-full p-3'>
-              <AiOutlineDollarCircle className='text-2xl text-blue-500' />
-            </div>
-            <div>
-              <div className='text-gray-500 text-sm font-medium'>
-                Total Revenus
-              </div>
-              <div
-                className='text-xl font-semibold'
-                style={{ color: "#00b96b" }}>
-                {totalRevenus.toFixed(2)}€
-              </div>
-            </div>
-          </div>
+       
           <div className='flex-1 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
             <div className='bg-green-100 rounded-full p-3'>
               <AiOutlineDollarCircle className='text-2xl text-green-500' />
