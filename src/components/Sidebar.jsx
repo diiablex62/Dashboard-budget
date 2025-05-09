@@ -29,6 +29,7 @@ export default function Sidebar() {
           <li>
             <NavLink
               to='/'
+              onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -43,6 +44,7 @@ export default function Sidebar() {
           <li>
             <NavLink
               to='/agenda'
+              onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -57,6 +59,7 @@ export default function Sidebar() {
           <li>
             <NavLink
               to='/paiements-recurrents'
+              onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -71,6 +74,7 @@ export default function Sidebar() {
           <li>
             <NavLink
               to='/paiements-echelonnes'
+              onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive

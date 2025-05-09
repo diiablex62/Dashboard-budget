@@ -27,12 +27,10 @@ export default function App() {
 
   return (
     <div>
-      <Sidebar primaryColor={primaryColor} />
-      <div className='ml-72'>
+      {!isIsolatedRoute && <Sidebar primaryColor={primaryColor} />}
+      <div className={isIsolatedRoute ? "" : "ml-72"}>
         {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
-        <div className={isIsolatedRoute ? "w-full" : "p-6"}>
-          <AppRoutes />
-        </div>
+        <AppRoutes />
       </div>
       <ToastContainer />
     </div>

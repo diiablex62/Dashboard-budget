@@ -88,7 +88,7 @@ export default function Agenda() {
   const events = fakeEvents[selectedDateStr] || [];
 
   return (
-    <div className='min-h-screen flex items-start justify-start p-6'>
+    <div className='bg-[#f8fafc] min-h-screen p-6'>
       <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 w-full max-w-xl'>
         <div className='mb-6'>
           <div className='text-2xl font-semibold text-gray-800 mb-1'>
