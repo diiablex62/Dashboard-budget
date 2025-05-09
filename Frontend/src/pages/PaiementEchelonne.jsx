@@ -1,4 +1,11 @@
-import React, { useContext, useState, useRef, useEffect, useMemo } from "react";
+import React, {
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { AiOutlinePlus, AiOutlineDollarCircle } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
@@ -109,7 +116,7 @@ export default function PaiementEchelonne() {
   };
 
   // Charger les paiements depuis Firestore
-  const fetchPaiements = async () => {
+  const fetchPaiements = useCallback(async () => {
     try {
       const snapshot = await getDocs(collection(db, "xfois"));
       setPaiements(
@@ -121,11 +128,11 @@ export default function PaiementEchelonne() {
     } catch (err) {
       console.error("Erreur Firestore fetch xfois:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPaiements();
-  }, []);
+  }, [fetchPaiements]);
 
   // Total Dépenses échelonnées (uniquement la somme des mensualités du mois courant)
   const totalDepenses = useMemo(() => {
@@ -138,7 +145,10 @@ export default function PaiementEchelonne() {
       if (!p.debutMois || !p.mensualites || !p.montant) return acc;
       const [startYear, startMonth] = p.debutMois.split("-").map(Number);
       const debut = new Date(startYear, startMonth - 1);
-      const fin = new Date(startYear, startMonth - 1 + Number(p.mensualites) - 1);
+      const fin = new Date(
+        startYear,
+        startMonth - 1 + Number(p.mensualites) - 1
+      );
       const nowDate = new Date(currentYear, currentMonth - 1);
       if (nowDate >= debut && nowDate <= fin) {
         return acc + Number(p.montant) / Number(p.mensualites);
@@ -294,6 +304,33 @@ export default function PaiementEchelonne() {
     });
   };
 
+  // Optimisation : calcul du pourcentage payé avec useMemo pour chaque paiement
+  const paiementsAvecPourcentage = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    return paiements.map((item) => {
+      if (!item.debutMois || !item.mensualites)
+        return { ...item, mensualitesPayees: 1, percentPaye: 0 };
+      const [startYear, startMonth] = item.debutMois.split("-").map(Number);
+      const debut = new Date(startYear, startMonth - 1);
+      const nowDate = new Date(currentYear, currentMonth - 1);
+      // Calcul du nombre de mensualités déjà passées (1 si on commence ce mois)
+      let mensualitesPayees = Math.max(
+        1,
+        Math.min(
+          item.mensualites,
+          (currentYear - startYear) * 12 + (currentMonth - startMonth) + 1
+        )
+      );
+      const percentPaye =
+        item.mensualites && item.mensualites > 0
+          ? (mensualitesPayees / item.mensualites) * 100
+          : 0;
+      return { ...item, mensualitesPayees, percentPaye };
+    });
+  }, [paiements]);
+
   return (
     <div className='bg-[#f8fafc] min-h-screen'>
       {/* Toast notification identique à la connexion */}
@@ -349,115 +386,103 @@ export default function PaiementEchelonne() {
         </div>
         {/* Liste : 2 cartes par ligne, toute la largeur */}
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-6 w-full'>
-          {paiements.map((item, idx) => {
-            // Calcul du pourcentage payé selon le nombre de mensualités faites
-            // On suppose que la mensualité courante est 1 (à adapter si tu as le suivi réel)
-            const mensualitesPayees = 1; // à remplacer par la vraie valeur si tu la stockes
-            const percentPaye =
-              item.mensualites && item.mensualites > 0
-                ? (mensualitesPayees / item.mensualites) * 100
-                : 0;
-            return (
-              <div
-                key={item.id || idx}
-                className='bg-white border border-[#ececec] rounded-xl shadow-sm p-6 flex flex-col relative'>
-                <div className='flex items-center justify-between mb-2'>
-                  <div className='flex items-center gap-3'>
-                    <div
-                      className='rounded-full p-2'
-                      style={{
-                        background:
-                          "linear-gradient(90deg, #f7fafd 60%, #fff 100%)",
-                      }}>
-                      <AiOutlineDollarCircle
-                        className='text-2xl'
-                        style={{ color: "#00b6e6" }}
-                      />
-                    </div>
-                    <span className='font-semibold text-[#222]'>
-                      {item.nom.charAt(0).toUpperCase() + item.nom.slice(1)}
-                    </span>
-                  </div>
-                  <div className='text-[#222] font-bold text-xl'>
-                    {(item.montant / item.mensualites).toFixed(2)}
-                    <span className='text-base font-normal'>€/mois</span>
-                  </div>
-                </div>
-                <div className='flex items-center justify-between mb-1'>
-                  <div className='font-medium' style={{ color: barColor }}>
-                    Mensualité {mensualitesPayees}/{item.mensualites}
-                  </div>
-                </div>
-                <div className='w-full h-2 bg-[#f0f2f5] rounded mb-2 overflow-hidden'>
+          {paiementsAvecPourcentage.map((item, idx) => (
+            <div
+              key={item.id || idx}
+              className='bg-white border border-[#ececec] rounded-xl shadow-sm p-6 flex flex-col relative'>
+              <div className='flex items-center justify-between mb-2'>
+                <div className='flex items-center gap-3'>
                   <div
-                    className='h-2 rounded transition-all duration-500'
+                    className='rounded-full p-2'
                     style={{
-                      width: `${percentPaye}%`,
-                      background: barColor,
-                    }}></div>
-                </div>
-                <div className='text-[#a0aec0] text-sm'>
-                  Reste à payer:{" "}
+                      background:
+                        "linear-gradient(90deg, #f7fafd 60%, #fff 100%)",
+                    }}>
+                    <AiOutlineDollarCircle
+                      className='text-2xl'
+                      style={{ color: "#00b6e6" }}
+                    />
+                  </div>
                   <span className='font-semibold text-[#222]'>
-                    {item.montant
-                      .toFixed(2)
-                      .replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
-                    €
+                    {item.nom.charAt(0).toUpperCase() + item.nom.slice(1)}
                   </span>
                 </div>
-                <div className='text-xs text-gray-400 mt-1'>
-                  {(() => {
-                    if (!item.debutMois || !item.mensualites) return "";
-                    // Parse début
-                    const [year, month] = item.debutMois.split("-");
-                    const debutDate = new Date(Number(year), Number(month) - 1);
-                    // Calcule la date de fin
-                    const finDate = new Date(
-                      Number(year),
-                      Number(month) - 1 + Number(item.mensualites) - 1
-                    );
-                    // Mois en lettres
-                    const moisLettres = [
-                      "Janvier",
-                      "Février",
-                      "Mars",
-                      "Avril",
-                      "Mai",
-                      "Juin",
-                      "Juillet",
-                      "Août",
-                      "Septembre",
-                      "Octobre",
-                      "Novembre",
-                      "Décembre",
-                    ];
-                    const debutStr = `${
-                      moisLettres[debutDate.getMonth()]
-                    } ${debutDate.getFullYear()}`;
-                    const finStr = `${
-                      moisLettres[finDate.getMonth()]
-                    } ${finDate.getFullYear()}`;
-                    return `Début: ${debutStr} - fin ${finStr}`;
-                  })()}
-                </div>
-                {/* Boutons action en bas à droite */}
-                <div className='flex justify-end gap-2 mt-4'>
-                  <button
-                    className='p-2 rounded hover:bg-blue-50'
-                    title='Modifier'
-                    onClick={() => handleEdit(idx)}>
-                    <FiEdit className='inline text-xl text-blue-600' />
-                  </button>
-                  <button
-                    className='p-2 rounded hover:bg-red-50'
-                    title='Supprimer'
-                    onClick={() => handleDelete(idx)}>
-                    <FiTrash className='inline text-xl text-red-500' />
-                  </button>
+                <div className='text-[#222] font-bold text-xl'>
+                  {(item.montant / item.mensualites).toFixed(2)}
+                  <span className='text-base font-normal'>€/mois</span>
                 </div>
               </div>
-            );
-          })}
+              <div className='flex items-center justify-between mb-1'>
+                <div className='font-medium' style={{ color: barColor }}>
+                  Mensualité {item.mensualitesPayees}/{item.mensualites}
+                </div>
+              </div>
+              <div className='w-full h-2 bg-[#f0f2f5] rounded mb-2 overflow-hidden'>
+                <div
+                  className='h-2 rounded transition-all duration-500'
+                  style={{
+                    width: `${item.percentPaye}%`,
+                    background: barColor,
+                  }}></div>
+              </div>
+              <div className='text-[#a0aec0] text-sm'>
+                Reste à payer:{" "}
+                <span className='font-semibold text-[#222]'>
+                  {item.montant
+                    .toFixed(2)
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
+                  €
+                </span>
+              </div>
+              <div className='text-xs text-gray-400 mt-1'>
+                {(() => {
+                  if (!item.debutMois || !item.mensualites) return "";
+                  const [year, month] = item.debutMois.split("-");
+                  const debutDate = new Date(Number(year), Number(month) - 1);
+                  const finDate = new Date(
+                    Number(year),
+                    Number(month) - 1 + Number(item.mensualites) - 1
+                  );
+                  const moisLettres = [
+                    "Janvier",
+                    "Février",
+                    "Mars",
+                    "Avril",
+                    "Mai",
+                    "Juin",
+                    "Juillet",
+                    "Août",
+                    "Septembre",
+                    "Octobre",
+                    "Novembre",
+                    "Décembre",
+                  ];
+                  const debutStr = `${
+                    moisLettres[debutDate.getMonth()]
+                  } ${debutDate.getFullYear()}`;
+                  const finStr = `${
+                    moisLettres[finDate.getMonth()]
+                  } ${finDate.getFullYear()}`;
+                  return `Début: ${debutStr} - fin ${finStr}`;
+                })()}
+              </div>
+              {/* Boutons action en bas à droite */}
+              <div className='flex justify-end gap-2 mt-4'>
+                <button
+                  className='p-2 rounded hover:bg-blue-50'
+                  title='Modifier'
+                  onClick={() => handleEdit(idx)}>
+                  <FiEdit className='inline text-xl text-blue-600' />
+                </button>
+                <button
+                  className='p-2 rounded hover:bg-red-50'
+                  title='Supprimer'
+                  onClick={() => handleDelete(idx)}>
+                  <FiTrash className='inline text-xl text-red-500' />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
         {showModal && (
           <div
