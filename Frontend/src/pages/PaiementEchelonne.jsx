@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   deleteDoc,
   doc,
+  updateDoc, // AJOUT
 } from "firebase/firestore";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import Toast from "../components/Toast"; // Assure-toi que ce composant existe et est identique à celui utilisé pour la connexion
@@ -59,13 +60,19 @@ export default function PaiementEchelonne() {
   const barColor = "#00b96b";
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
+  // Valeur par défaut pour débutMois : mois actuel au format "YYYY-MM"
+  const currentMonth = new Date();
+  const defaultDebutMois = `${currentMonth.getFullYear()}-${String(
+    currentMonth.getMonth() + 1
+  ).padStart(2, "0")}`;
+
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [newPaiement, setNewPaiement] = useState({
     nom: "",
     montant: "",
     mensualites: "",
-    debutMois: "",
+    debutMois: defaultDebutMois,
   });
   const [paiements, setPaiements] = useState([]);
   const nomInputRef = useRef(null);
@@ -82,6 +89,7 @@ export default function PaiementEchelonne() {
   });
   const [lastDeleted, setLastDeleted] = useState(null);
   const [deleteTimeout, setDeleteTimeout] = useState(null);
+  const [editIndex, setEditIndex] = useState(null);
 
   useEffect(() => {
     if (showModal && step === 1 && nomInputRef.current)
@@ -120,29 +128,55 @@ export default function PaiementEchelonne() {
     fetchPaiements();
   }, []);
 
-  // Ajout du paiement échelonné
-  const handleAddPaiement = async () => {
+  // Ajout ou modification du paiement échelonné
+  const handleAddOrEditPaiement = async (e) => {
+    if (e) e.preventDefault();
     try {
-      await addDoc(collection(db, "xfois"), {
-        nom: newPaiement.nom,
-        montant: parseFloat(newPaiement.montant),
-        mensualites: parseInt(newPaiement.mensualites, 10),
-        debutMois: newPaiement.debutMois,
-        createdAt: serverTimestamp(),
-      });
+      if (editIndex !== null && paiements[editIndex]) {
+        // MODIFICATION
+        const paiementId = paiements[editIndex].id;
+        await updateDoc(doc(db, "xfois", paiementId), {
+          nom: newPaiement.nom,
+          montant: parseFloat(newPaiement.montant),
+          mensualites: parseInt(newPaiement.mensualites, 10),
+          debutMois: newPaiement.debutMois,
+        });
+      } else {
+        // AJOUT
+        await addDoc(collection(db, "xfois"), {
+          nom: newPaiement.nom,
+          montant: parseFloat(newPaiement.montant),
+          mensualites: parseInt(newPaiement.mensualites, 10),
+          debutMois: newPaiement.debutMois,
+          createdAt: serverTimestamp(),
+        });
+      }
       await fetchPaiements();
       setShowModal(false);
       setStep(1);
-      setNewPaiement({ nom: "", montant: "", mensualites: "", debutMois: "" });
+      setNewPaiement({
+        nom: "",
+        montant: "",
+        mensualites: "",
+        debutMois: defaultDebutMois,
+      });
+      setEditIndex(null);
     } catch (err) {
-      console.error("Erreur Firestore add xfois:", err);
+      console.error("Erreur Firestore add/update xfois:", err);
     }
   };
 
   // Ajoute ces handlers pour l'exemple (à adapter selon ta logique)
   const handleEdit = (idx) => {
-    // TODO: ouvrir la modale en mode édition pour l'élément idx
-    alert("Fonction modifier à implémenter");
+    setEditIndex(idx);
+    setNewPaiement({
+      nom: paiements[idx].nom,
+      montant: paiements[idx].montant.toString(),
+      mensualites: paiements[idx].mensualites.toString(),
+      debutMois: paiements[idx].debutMois,
+    });
+    setShowModal(true);
+    setStep(1);
   };
   const handleDelete = async (idx) => {
     const paiement = paiements[idx];
@@ -208,23 +242,38 @@ export default function PaiementEchelonne() {
 
   // Spinner SVG
   const Spinner = () => (
-    <svg className="animate-spin h-5 w-5 text-blue-600 mr-2" viewBox="0 0 24 24">
+    <svg
+      className='animate-spin h-5 w-5 text-blue-600 mr-2'
+      viewBox='0 0 24 24'>
       <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-        fill="none"
+        className='opacity-25'
+        cx='12'
+        cy='12'
+        r='10'
+        stroke='currentColor'
+        strokeWidth='4'
+        fill='none'
       />
       <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        className='opacity-75'
+        fill='currentColor'
+        d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
       />
     </svg>
   );
+
+  // Quand on ouvre la modale pour ajouter, on remet le mois actuel par défaut
+  const handleOpenModal = () => {
+    setShowModal(true);
+    setStep(1);
+    setEditIndex(null);
+    setNewPaiement({
+      nom: "",
+      montant: "",
+      mensualites: "",
+      debutMois: defaultDebutMois,
+    });
+  };
 
   return (
     <div className='bg-[#f8fafc] min-h-screen'>
@@ -255,13 +304,142 @@ export default function PaiementEchelonne() {
             className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'
             onClick={() =>
               isLoggedIn
-                ? setShowModal(true)
+                ? handleOpenModal()
                 : navigate("/auth", { state: { isLogin: true } })
             }>
             <AiOutlinePlus className='text-xl' /> Ajouter un paiement échelonné
           </button>
         </div>
-        {/* Modal */}
+        {/* Totaux */}
+        <div className='w-full flex flex-col md:flex-row md:gap-8 mb-8'>
+          <div className='w-full md:w-1/4 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6 mb-4 md:mb-0'>
+            <div className='bg-green-100 rounded-full p-3'>
+              <AiOutlineDollarCircle className='text-2xl text-green-500' />
+            </div>
+            <div>
+              <div className='text-gray-500 text-sm font-medium'>
+                Total Dépenses
+              </div>
+              <div
+                className='text-xl font-semibold'
+                style={{ color: "#00b96b" }}>
+                {totalDepenses.toFixed(2)}€
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Liste : 2 cartes par ligne, toute la largeur */}
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-6 w-full'>
+          {paiements.map((item, idx) => {
+            // Calcul du pourcentage payé selon le nombre de mensualités faites
+            // On suppose que la mensualité courante est 1 (à adapter si tu as le suivi réel)
+            const mensualitesPayees = 1; // à remplacer par la vraie valeur si tu la stockes
+            const percentPaye =
+              item.mensualites && item.mensualites > 0
+                ? (mensualitesPayees / item.mensualites) * 100
+                : 0;
+            return (
+              <div
+                key={item.id || idx}
+                className='bg-white border border-[#ececec] rounded-xl shadow-sm p-6 flex flex-col relative'>
+                <div className='flex items-center justify-between mb-2'>
+                  <div className='flex items-center gap-3'>
+                    <div
+                      className='rounded-full p-2'
+                      style={{
+                        background:
+                          "linear-gradient(90deg, #f7fafd 60%, #fff 100%)",
+                      }}>
+                      <AiOutlineDollarCircle
+                        className='text-2xl'
+                        style={{ color: "#00b6e6" }}
+                      />
+                    </div>
+                    <span className='font-semibold text-[#222]'>
+                      {item.nom.charAt(0).toUpperCase() + item.nom.slice(1)}
+                    </span>
+                  </div>
+                  <div className='text-[#222] font-bold text-xl'>
+                    {(item.montant / item.mensualites).toFixed(2)}
+                    <span className='text-base font-normal'>€/mois</span>
+                  </div>
+                </div>
+                <div className='flex items-center justify-between mb-1'>
+                  <div className='font-medium' style={{ color: barColor }}>
+                    Mensualité {mensualitesPayees}/{item.mensualites}
+                  </div>
+                </div>
+                <div className='w-full h-2 bg-[#f0f2f5] rounded mb-2 overflow-hidden'>
+                  <div
+                    className='h-2 rounded transition-all duration-500'
+                    style={{
+                      width: `${percentPaye}%`,
+                      background: barColor,
+                    }}></div>
+                </div>
+                <div className='text-[#a0aec0] text-sm'>
+                  Reste à payer:{" "}
+                  <span className='font-semibold text-[#222]'>
+                    {item.montant
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
+                    €
+                  </span>
+                </div>
+                <div className='text-xs text-gray-400 mt-1'>
+                  {(() => {
+                    if (!item.debutMois || !item.mensualites) return "";
+                    // Parse début
+                    const [year, month] = item.debutMois.split("-");
+                    const debutDate = new Date(Number(year), Number(month) - 1);
+                    // Calcule la date de fin
+                    const finDate = new Date(
+                      Number(year),
+                      Number(month) - 1 + Number(item.mensualites) - 1
+                    );
+                    // Mois en lettres
+                    const moisLettres = [
+                      "Janvier",
+                      "Février",
+                      "Mars",
+                      "Avril",
+                      "Mai",
+                      "Juin",
+                      "Juillet",
+                      "Août",
+                      "Septembre",
+                      "Octobre",
+                      "Novembre",
+                      "Décembre",
+                    ];
+                    const debutStr = `${
+                      moisLettres[debutDate.getMonth()]
+                    } ${debutDate.getFullYear()}`;
+                    const finStr = `${
+                      moisLettres[finDate.getMonth()]
+                    } ${finDate.getFullYear()}`;
+                    return `Début: ${debutStr} - fin ${finStr}`;
+                  })()}
+                </div>
+                {/* Boutons action en bas à droite */}
+                <div className='flex justify-end gap-2 mt-4'>
+                  <button
+                    className='p-2 rounded hover:bg-blue-50'
+                    title='Modifier'
+                    onClick={() => handleEdit(idx)}>
+                    <FiEdit className='inline text-xl text-blue-600' />
+                  </button>
+                  <button
+                    className='p-2 rounded hover:bg-red-50'
+                    title='Supprimer'
+                    onClick={() => handleDelete(idx)}>
+                    <FiTrash className='inline text-xl text-red-500' />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
         {showModal && (
           <div
             className='fixed inset-0 z-50 flex items-center justify-center'
@@ -276,14 +454,16 @@ export default function PaiementEchelonne() {
                     nom: "",
                     montant: "",
                     mensualites: "",
-                    debutMois: "",
+                    debutMois: defaultDebutMois,
                   });
+                  setEditIndex(null);
                 }}
                 aria-label='Fermer'>
                 ✕
               </button>
               <div className='mb-6 text-lg font-semibold'>
-                Ajouter un paiement échelonné
+                {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
+                échelonné
               </div>
               {/* Récapitulatif dynamique */}
               <div className='mb-4'>
@@ -330,7 +510,7 @@ export default function PaiementEchelonne() {
                   />
                   <div className='flex justify-end'>
                     <button
-                      className='bg-blue-600 text-white px-4 py-2 rounded'
+                      className='bg-green-600 text-white px-4 py-2 rounded'
                       disabled={!newPaiement.nom}
                       onClick={handleNext}>
                       Suivant
@@ -362,7 +542,14 @@ export default function PaiementEchelonne() {
                     <button className='text-gray-600' onClick={handlePrev}>
                       Précédent
                     </button>
+                    <button
+                      className='bg-green-600 text-white px-4 py-2 rounded'
+                      disabled={!newPaiement.montant}
+                      onClick={handleNext}>
+                      Valider
+                    </button>
                   </div>
+                  {/* Supprimé l'affichage du montant saisi */}
                 </div>
               )}
               {step === 3 && (
@@ -389,6 +576,12 @@ export default function PaiementEchelonne() {
                     <button className='text-gray-600' onClick={handlePrev}>
                       Précédent
                     </button>
+                    <button
+                      className='bg-green-600 text-white px-4 py-2 rounded'
+                      disabled={!newPaiement.mensualites}
+                      onClick={handleNext}>
+                      Valider
+                    </button>
                   </div>
                 </div>
               )}
@@ -406,7 +599,7 @@ export default function PaiementEchelonne() {
                     ref={debutMoisInputRef}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && newPaiement.debutMois)
-                        handleAddPaiement();
+                        handleAddOrEditPaiement();
                     }}
                   />
                   <div className='flex justify-between'>
@@ -421,8 +614,8 @@ export default function PaiementEchelonne() {
                         !newPaiement.mensualites ||
                         !newPaiement.debutMois
                       }
-                      onClick={handleAddPaiement}>
-                      Ajouter
+                      onClick={handleAddOrEditPaiement}>
+                      {editIndex !== null ? "Modifier" : "Ajouter"}
                     </button>
                   </div>
                 </div>
@@ -430,126 +623,6 @@ export default function PaiementEchelonne() {
             </div>
           </div>
         )}
-        {/* Totaux */}
-        <div className='flex flex-col gap-4 md:flex-row md:gap-8 mb-8'>
-          <div className='flex-1 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
-            <div className='bg-green-100 rounded-full p-3'>
-              <AiOutlineDollarCircle className='text-2xl text-green-500' />
-            </div>
-            <div>
-              <div className='text-gray-500 text-sm font-medium'>
-                Total Dépenses
-              </div>
-              <div
-                className='text-xl font-semibold'
-                style={{ color: "#00b96b" }}>
-                {totalDepenses.toFixed(2)}€
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Liste */}
-        <div className='w-full max-w-2xl'>
-          {/* Affichage des paiements Firestore */}
-          {paiements.map((item, idx) => (
-            <div
-              key={item.id || idx}
-              className='bg-white border border-[#ececec] rounded-xl shadow-sm p-6 mb-6 flex flex-col relative'>
-              <div className='flex items-center justify-between mb-2'>
-                <div className='flex items-center gap-3'>
-                  <div
-                    className='rounded-full p-2'
-                    style={{
-                      background:
-                        "linear-gradient(90deg, #f7fafd 60%, #fff 100%)",
-                    }}>
-                    <AiOutlineDollarCircle
-                      className='text-2xl'
-                      style={{ color: "#00b6e6" }}
-                    />
-                  </div>
-                  <span className='font-semibold text-[#222]'>
-                    {item.nom.charAt(0).toUpperCase() + item.nom.slice(1)}
-                  </span>
-                </div>
-                <div className='text-[#222] font-medium text-sm opacity-70'>
-                  {(item.montant / item.mensualites).toFixed(2)}€/mois
-                </div>
-              </div>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='font-medium' style={{ color: barColor }}>
-                  Mensualité {/* Affiche la mensualité courante si besoin */}
-                  1/{item.mensualites}
-                </div>
-                {/* Pourcentage payé non calculé ici */}
-              </div>
-              <div className='w-full h-2 bg-[#f0f2f5] rounded mb-2'>
-                <div
-                  className='h-2 rounded'
-                  style={{
-                    width: `0%`,
-                    background: barColor,
-                  }}></div>
-              </div>
-              <div className='text-[#a0aec0] text-sm'>
-                Reste à payer:{" "}
-                <span className='font-semibold text-[#222]'>
-                  {item.montant.toFixed(2)}€
-                </span>
-              </div>
-              <div className='text-xs text-gray-400 mt-1'>
-                {(() => {
-                  if (!item.debutMois || !item.mensualites) return "";
-                  // Parse début
-                  const [year, month] = item.debutMois.split("-");
-                  const debutDate = new Date(Number(year), Number(month) - 1);
-                  // Calcule la date de fin
-                  const finDate = new Date(
-                    Number(year),
-                    Number(month) - 1 + Number(item.mensualites) - 1
-                  );
-                  // Mois en lettres
-                  const moisLettres = [
-                    "Janvier",
-                    "Février",
-                    "Mars",
-                    "Avril",
-                    "Mai",
-                    "Juin",
-                    "Juillet",
-                    "Août",
-                    "Septembre",
-                    "Octobre",
-                    "Novembre",
-                    "Décembre",
-                  ];
-                  const debutStr = `${
-                    moisLettres[debutDate.getMonth()]
-                  } ${debutDate.getFullYear()}`;
-                  const finStr = `${
-                    moisLettres[finDate.getMonth()]
-                  } ${finDate.getFullYear()}`;
-                  return `Début: ${debutStr} - fin ${finStr}`;
-                })()}
-              </div>
-              {/* Boutons action en bas à droite */}
-              <div className='flex justify-end gap-2 mt-4'>
-                <button
-                  className='flex items-center gap-1 px-3 py-1 rounded text-blue-600 hover:bg-blue-50 text-sm font-medium'
-                  title='Modifier'
-                  onClick={() => handleEdit(idx)}>
-                  <FiEdit className='inline' /> Modifier
-                </button>
-                <button
-                  className='flex items-center gap-1 px-3 py-1 rounded text-red-500 hover:bg-red-50 text-sm font-medium'
-                  title='Supprimer'
-                  onClick={() => handleDelete(idx)}>
-                  <FiTrash className='inline' /> Supprimer
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
