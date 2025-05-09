@@ -45,12 +45,16 @@ export default function PaiementRecurrent() {
   });
 
   const montantInputRef = useRef(null);
+  const nomInputRef = useRef(null); // Ajout du ref pour le champ nom
 
   useEffect(() => {
+    if (showModal && step === 1 && nomInputRef.current) {
+      nomInputRef.current.focus();
+    }
     if (step === 3 && montantInputRef.current) {
       montantInputRef.current.focus();
     }
-  }, [step]);
+  }, [showModal, step]);
 
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
@@ -186,6 +190,7 @@ export default function PaiementRecurrent() {
                     onChange={handleChange}
                     className='w-full border rounded px-3 py-2 mb-4'
                     placeholder='Ex: Netflix'
+                    ref={nomInputRef}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && newPaiement.nom) handleNext();
                     }}
