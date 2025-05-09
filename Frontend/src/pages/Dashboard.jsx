@@ -101,6 +101,12 @@ export default function Dashboard() {
     fetchAll();
   }, []);
 
+  // Fonction utilitaire pour scroller en haut avant navigation
+  const scrollToTopAndNavigate = (url) => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    navigate(url);
+  };
+
   // Optimisation : useMemo pour éviter les recalculs inutiles
   const dataCategories = useMemo(() => {
     return [...new Set(paiementsRecurrents.map((p) => p.categorie))]
@@ -164,7 +170,7 @@ export default function Dashboard() {
             {paiementsRecurrents.length === 1 ? "élément" : "éléments"}
           </div>
           <button
-            className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'
+            className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition cursor-pointer'
             onClick={() =>
               isLoggedIn
                 ? navigate("/paiements-recurrents")
@@ -189,7 +195,7 @@ export default function Dashboard() {
             {paiementsEchelonnes.length === 1 ? "élément" : "éléments"}
           </div>
           <button
-            className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'
+            className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition cursor-pointer'
             onClick={() =>
               isLoggedIn
                 ? navigate("/paiements-echelonnes")
@@ -237,7 +243,8 @@ export default function Dashboard() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
+                  {/* Tooltip custom : rien n'est affiché au survol */}
+                  <Tooltip content={null} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -292,8 +299,8 @@ export default function Dashboard() {
             )}
           </div>
           <button
-            className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'
-            onClick={() => navigate("/paiements-recurrents")}>
+            className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition cursor-pointer'
+            onClick={() => scrollToTopAndNavigate("/paiements-recurrents")}>
             Voir tous les paiements récurrents
           </button>
         </div>
@@ -335,8 +342,8 @@ export default function Dashboard() {
             )}
           </div>
           <button
-            className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'
-            onClick={() => navigate("/paiements-echelonnes")}>
+            className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition cursor-pointer'
+            onClick={() => scrollToTopAndNavigate("/paiements-echelonnes")}>
             Voir tous les paiements échelonnés
           </button>
         </div>

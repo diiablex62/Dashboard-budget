@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useCallback,
+  useTransition,
 } from "react";
 import { AiOutlinePlus, AiOutlineDollarCircle } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
@@ -97,6 +98,8 @@ export default function PaiementEchelonne() {
   const [deleteTimeout, setDeleteTimeout] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
 
+  const [isPending, startTransition] = useTransition();
+
   useEffect(() => {
     if (showModal && step === 1 && nomInputRef.current)
       nomInputRef.current.focus();
@@ -119,12 +122,11 @@ export default function PaiementEchelonne() {
   const fetchPaiements = useCallback(async () => {
     try {
       const snapshot = await getDocs(collection(db, "xfois"));
-      setPaiements(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-      );
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      startTransition(() => setPaiements(data));
     } catch (err) {
       console.error("Erreur Firestore fetch xfois:", err);
     }
@@ -135,12 +137,25 @@ export default function PaiementEchelonne() {
   }, [fetchPaiements]);
 
   // Total Dépenses échelonnées (uniquement la somme des mensualités du mois courant)
+  const [currentPeriod, setCurrentPeriod] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}`;
+  });
+
+  useEffect(() => {
+    // Met à jour la période si le mois change (utile si la page reste ouverte longtemps)
+    const interval = setInterval(() => {
+      const now = new Date();
+      const period = `${now.getFullYear()}-${now.getMonth() + 1}`;
+      setCurrentPeriod(period);
+    }, 1000 * 60 * 60); // vérifie chaque heure
+    return () => clearInterval(interval);
+  }, []);
+
   const totalDepenses = useMemo(() => {
     if (!paiements.length) return 0;
-    // On ne garde que les paiements dont le mois courant est dans la période d'échelonnement
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
+    const [year, month] = currentPeriod.split("-").map(Number);
+    const nowDate = new Date(year, month - 1);
     return paiements.reduce((acc, p) => {
       if (!p.debutMois || !p.mensualites || !p.montant) return acc;
       const [startYear, startMonth] = p.debutMois.split("-").map(Number);
@@ -149,13 +164,12 @@ export default function PaiementEchelonne() {
         startYear,
         startMonth - 1 + Number(p.mensualites) - 1
       );
-      const nowDate = new Date(currentYear, currentMonth - 1);
       if (nowDate >= debut && nowDate <= fin) {
         return acc + Number(p.montant) / Number(p.mensualites);
       }
       return acc;
     }, 0);
-  }, [paiements]);
+  }, [paiements, currentPeriod]);
 
   // Ajout ou modification du paiement échelonné
   const handleAddOrEditPaiement = async (e) => {
@@ -378,7 +392,7 @@ export default function PaiementEchelonne() {
               </div>
               <div
                 className='text-xl font-semibold'
-                style={{ color: "#00b96b" }}>
+               >
                 {totalDepenses.toFixed(2)}€
               </div>
             </div>
@@ -668,6 +682,13 @@ export default function PaiementEchelonne() {
           </div>
         )}
       </div>
+      {isPending && (
+        <div className='fixed top-0 left-0 w-full flex justify-center z-50'>
+          <div className='bg-blue-100 text-blue-700 px-4 py-2 rounded shadow mt-4'>
+            Chargement des paiements...
+          </div>
+        </div>
+      )}
     </div>
   );
 }
