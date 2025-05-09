@@ -10,6 +10,14 @@ import { FaCalendarAlt } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
 import { db } from "../firebaseConfig";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -39,6 +47,31 @@ export default function Dashboard() {
     };
     fetchRecurrents();
   }, []);
+
+  // Prépare les données pour le graphique des récurrents
+  const dataCategories = [
+    ...new Set(paiementsRecurrents.map((p) => p.categorie)),
+  ]
+    .map((cat) => ({
+      name: cat,
+      value: paiementsRecurrents
+        .filter((p) => p.categorie === cat)
+        .reduce((acc, p) => acc + (p.montant || 0), 0),
+    }))
+    .filter((d) => d.value > 0);
+
+  const COLORS = [
+    "#6366f1",
+    "#22d3ee",
+    "#f59e42",
+    "#f43f5e",
+    "#10b981",
+    "#a78bfa",
+    "#fbbf24",
+    "#3b82f6",
+    "#ef4444",
+    "#64748b",
+  ];
 
   // Les 3 derniers paiements récurrents (du plus ancien au plus récent)
   const derniersPaiements = [...paiementsRecurrents]
@@ -125,8 +158,36 @@ export default function Dashboard() {
         {/* Dépenses mensuelles */}
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col min-h-[220px]'>
           <span className='font-semibold mb-2'>Dépenses mensuelles</span>
-          <div className='flex-1 flex items-center justify-center text-gray-400'>
-            Graphique de dépenses mensuelles
+          <div className='flex-1 flex items-center justify-center'>
+            {dataCategories.length > 0 ? (
+              <ResponsiveContainer width='100%' height={220}>
+                <PieChart>
+                  <Pie
+                    data={dataCategories}
+                    dataKey='value'
+                    nameKey='name'
+                    cx='50%'
+                    cy='50%'
+                    outerRadius={70}
+                    innerRadius={40}
+                    fill='#8884d8'
+                    label={({ name }) => name}>
+                    {dataCategories.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <span className='text-gray-400'>
+                Aucune dépense récurrente ce mois-ci
+              </span>
+            )}
           </div>
         </div>
         {/* Répartition du budget */}
