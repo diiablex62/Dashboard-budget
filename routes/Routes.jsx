@@ -17,9 +17,9 @@ export default function AppRoutes() {
     <Routes>
       <Route path='/' element={<Dashboard />} />
       <Route path='/profil' element={<Onglet1 />} />
-      <Route path='/calendrier' element={<Calendrier />} />
+      <Route path='/agenda' element={<Calendrier />} />
       <Route path='/paiements-recurrents' element={<PaiementRecurrent />} />
-      <Route path='/paiements-xfois' element={<PaiementXfois />} />
+      <Route path='/paiements-echelonnes' element={<PaiementXfois />} />
       <Route path='/notifications' element={<Notifications />} />
       <Route path='/auth' element={<Auth />} />
       <Route path='/privacy-policy' element={<PrivacyPolicy />} />

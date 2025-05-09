@@ -56,7 +56,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/calendrier'
+              to='/agenda'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -65,7 +65,7 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineTable className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Calendrier</span>
+              <span className='text-lg font-medium'>Agenda</span>
             </NavLink>
           </li>
           <li>
@@ -84,7 +84,7 @@ export default function Sidebar() {
           </li>
           <li>
             <NavLink
-              to='/paiements-xfois'
+              to='/paiements-echelonnes'
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
@@ -93,7 +93,7 @@ export default function Sidebar() {
                 }`
               }>
               <FaMapMarkedAlt className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Paiements en X fois</span>
+              <span className='text-lg font-medium'>Paiements échelonnés</span>
             </NavLink>
           </li>
           <li>

@@ -120,11 +120,11 @@ export default function Onglet4() {
     <div className='p-6'>
       <div className='w-full p-0'>
         <div className='flex items-center justify-between mb-6'>
-          <h1 className='text-3xl font-bold'>Paiements en X fois</h1>
+          <h1 className='text-3xl font-bold'>Paiements échelonnés</h1>
           <button
             className='bg-[var(--primary-color)] text-white rounded py-2 px-4 font-semibold hover:bg-[var(--primary-hover-color)] transition'
             onClick={handleOpenModal}>
-            Ajouter un paiement en X fois
+            Ajouter un paiement échelonné
           </button>
         </div>
 
@@ -333,7 +333,7 @@ export default function Onglet4() {
           </table>
           {paiements.length === 0 && (
             <div className='text-gray-500 text-center py-8'>
-              Aucun paiement récurrent ajouté pour le moment.
+              Aucun paiement échelonné ajouté pour le moment.
             </div>
           )}
         </div>

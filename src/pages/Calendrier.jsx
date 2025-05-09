@@ -29,7 +29,7 @@ export default function Calendrier() {
     addCalendarRevenu,
   } = useContext(BudgetContext);
 
-  const [modalType, setModalType] = useState(null); 
+  const [modalType, setModalType] = useState(null);
   const [step, setStep] = useState(0);
   const [libelle, setLibelle] = useState("");
   const [montant, setMontant] = useState("");
@@ -128,9 +128,7 @@ export default function Calendrier() {
       <div className='w-full p-0'>
         {/* Titre aligné à gauche comme les autres onglets */}
         <div className='flex items-center gap-4 mb-6'>
-          <h1 className='text-3xl font-bold flex-1 dark:text-white'>
-            Calendrier
-          </h1>
+          <h1 className='text-3xl font-bold flex-1 dark:text-white'>Agenda</h1>
           <button
             className='bg-green-600 text-white rounded py-2 px-4 font-semibold hover:bg-green-700 transition'
             onClick={() => handleOpenModal("revenu")}>
