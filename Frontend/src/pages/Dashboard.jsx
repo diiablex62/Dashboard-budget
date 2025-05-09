@@ -9,7 +9,14 @@ import {
 import { FaCalendarAlt } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
 import { db } from "../firebaseConfig";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  where,
+} from "firebase/firestore";
 import {
   PieChart,
   Pie,
@@ -23,29 +30,71 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
 
-  // Nouvel état pour les paiements récurrents Firestore
+  // Paiements récurrents
   const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
   const [totalRecurrents, setTotalRecurrents] = useState(0);
 
+  // Paiements échelonnés
+  const [paiementsEchelonnes, setPaiementsEchelonnes] = useState([]);
+  const [totalEchelonnes, setTotalEchelonnes] = useState(0);
+
   useEffect(() => {
+    // Paiements récurrents
     const fetchRecurrents = async () => {
       try {
-        // Récupère tous les paiements récurrents
         const snapshot = await getDocs(collection(db, "recurrent"));
         const paiements = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setPaiementsRecurrents(paiements);
-
-        // Calcule le total
         const total = paiements.reduce((acc, p) => acc + (p.montant || 0), 0);
         setTotalRecurrents(total);
       } catch (err) {
         console.error("Erreur Firestore fetch recurrent:", err);
       }
     };
+
+    // Paiements échelonnés
+    const fetchEchelonnes = async () => {
+      try {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        const echelonnesSnap = await getDocs(collection(db, "xfois"));
+        const echelonnes = echelonnesSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Filtrer les paiements dont le mois courant est dans la période d'échelonnement
+        const echelonnesDuMois = echelonnes.filter((p) => {
+          if (!p.debutMois || !p.mensualites) return false;
+          const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+          const debut = new Date(startYear, startMonth - 1);
+          const fin = new Date(
+            startYear,
+            startMonth - 1 + Number(p.mensualites) - 1
+          );
+          const nowDate = new Date(currentYear, currentMonth - 1);
+          return nowDate >= debut && nowDate <= fin;
+        });
+
+        setPaiementsEchelonnes(echelonnesDuMois);
+
+        // Total du mois = somme des mensualités du mois courant
+        const total = echelonnesDuMois.reduce((acc, p) => {
+          if (!p.montant || !p.mensualites) return acc;
+          return acc + Number(p.montant) / Number(p.mensualites);
+        }, 0);
+        setTotalEchelonnes(total);
+      } catch (err) {
+        console.error("Erreur Firestore fetch xfois:", err);
+      }
+    };
+
     fetchRecurrents();
+    fetchEchelonnes();
   }, []);
 
   // Prépare les données pour le graphique des récurrents
@@ -75,6 +124,11 @@ export default function Dashboard() {
 
   // Les 3 derniers paiements récurrents (du plus ancien au plus récent)
   const derniersPaiements = [...paiementsRecurrents]
+    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
+    .slice(-3);
+
+  // Les 3 derniers paiements échelonnés du mois courant (du plus ancien au plus récent)
+  const derniersEchelonnes = [...paiementsEchelonnes]
     .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
     .slice(-3);
 
@@ -126,9 +180,12 @@ export default function Dashboard() {
             </span>
             <AiOutlineCreditCard className='text-green-400 text-xl' />
           </div>
-          <div className='text-2xl font-bold mb-1'>985.65€</div>
+          <div className='text-2xl font-bold mb-1'>
+            {totalEchelonnes.toFixed(2)}€
+          </div>
           <div className='text-xs text-gray-400'>
-            +5.7% depuis le mois dernier
+            {paiementsEchelonnes.length}{" "}
+            {paiementsEchelonnes.length === 1 ? "élément" : "éléments"}
           </div>
           <button
             className='mt-3 border rounded-lg py-1 text-sm font-medium hover:bg-gray-50 transition'
@@ -246,22 +303,35 @@ export default function Dashboard() {
             <button onClick={() => navigate("/paiements-echelonnes")}></button>
           </span>
           <div className='space-y-3 mb-4'>
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3'>
-                <div className='flex items-center'>
-                  <div className='bg-green-100 text-green-500 rounded-full p-2 mr-3'>
-                    <FaCalendarAlt className='text-xl' />
+            {derniersEchelonnes.length > 0 ? (
+              derniersEchelonnes.map((p, i) => (
+                <div
+                  key={p.id || i}
+                  className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3'>
+                  <div className='flex items-center'>
+                    <div className='bg-green-100 text-green-500 rounded-full p-2 mr-3'>
+                      <AiOutlineCreditCard className='text-xl' />
+                    </div>
+                    <div>
+                      <div className='font-medium'>
+                        {p.nom.charAt(0).toUpperCase() + p.nom.slice(1)}
+                      </div>
+                      <div className='text-xs text-gray-400'>
+                        {/* Affiche la mensualité courante sur le total */}
+                        1/{p.mensualites} paiements
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className='font-medium'>iPhone 13</div>
-                    <div className='text-xs text-gray-400'>3/12 paiements</div>
+                  <div className='font-bold'>
+                    {(Number(p.montant) / Number(p.mensualites)).toFixed(2)}€
                   </div>
                 </div>
-                <div className='font-bold'>83,25€</div>
+              ))
+            ) : (
+              <div className='text-gray-400 text-center text-sm italic'>
+                Aucun paiement échelonné ce mois-ci
               </div>
-            ))}
+            )}
           </div>
           <button
             className='border rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition'
