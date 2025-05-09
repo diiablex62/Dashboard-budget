@@ -11,6 +11,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { db } from "../firebaseConfig";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 const CATEGORIES = [
   "Maison",
@@ -63,12 +73,39 @@ export default function PaiementRecurrent() {
     setNewPaiement({ ...newPaiement, [e.target.name]: e.target.value });
   };
 
+  // Charger les paiements depuis Firestore au chargement et après chaque ajout/suppression/modification
+  const fetchPaiements = async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "recurrent"));
+      setPaiements(
+        snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      );
+    } catch (err) {
+      console.error("Erreur Firestore fetch:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPaiements();
+  }, []);
+
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
 
-  // Supprimer un paiement
-  const handleDelete = (idx) => {
-    setPaiements(paiements.filter((_, i) => i !== idx));
+  // Supprimer un paiement (Firestore)
+  const handleDelete = async (idx) => {
+    try {
+      const paiement = paiements[idx];
+      if (paiement && paiement.id) {
+        await deleteDoc(doc(db, "recurrent", paiement.id));
+        await fetchPaiements(); // Recharge la liste après suppression
+      }
+    } catch (err) {
+      console.error("Erreur Firestore delete:", err);
+    }
   };
 
   // Commencer la modification
@@ -83,25 +120,46 @@ export default function PaiementRecurrent() {
     setStep(1);
   };
 
-  // Ajouter ou modifier un paiement
-  const handleAddOrEditPaiement = () => {
-    if (editIndex !== null) {
-      const updated = [...paiements];
-      updated[editIndex] = {
-        ...newPaiement,
-        montant: parseFloat(newPaiement.montant),
-      };
-      setPaiements(updated);
+  // Ajouter ou modifier un paiement (Firestore)
+  const handleAddOrEditPaiement = async () => {
+    try {
+      if (editIndex !== null && paiements[editIndex]) {
+        // Modification
+        const paiementId = paiements[editIndex].id;
+        await updateDoc(doc(db, "recurrent", paiementId), {
+          nom: newPaiement.nom,
+          categorie: newPaiement.categorie,
+          montant: parseFloat(newPaiement.montant),
+        });
+      } else {
+        // Ajout
+        console.log("Ajout paiement Firestore :", newPaiement);
+        await addDoc(collection(db, "recurrent"), {
+          nom: newPaiement.nom,
+          categorie: newPaiement.categorie,
+          montant: parseFloat(newPaiement.montant),
+          createdAt: serverTimestamp(),
+        });
+        // Ajoute une notification en BDD
+        await addDoc(collection(db, "notifications"), {
+          type: "recurrent",
+          title: "Nouveau paiement récurrent",
+          desc: `Ajout de ${
+            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
+          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+      await fetchPaiements(); // Recharge la liste après ajout/modif
+      setShowModal(false);
+      setStep(1);
+      setNewPaiement({ nom: "", categorie: "", montant: "" });
       setEditIndex(null);
-    } else {
-      setPaiements([
-        ...paiements,
-        { ...newPaiement, montant: parseFloat(newPaiement.montant) },
-      ]);
+    } catch (err) {
+      console.error("Erreur Firestore add/update:", err);
     }
-    setShowModal(false);
-    setStep(1);
-    setNewPaiement({ nom: "", categorie: "", montant: "" });
   };
 
   // Fonction pour regrouper les montants par catégorie

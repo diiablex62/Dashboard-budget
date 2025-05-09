@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineDashboard,
@@ -8,21 +8,42 @@ import {
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
-import { BudgetContext } from "../context/BudgetContext";
+import { db } from "../firebaseConfig";
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
-  const { paiements = [] } = useContext(BudgetContext);
 
-  // Calcul du total des paiements récurrents
-  const totalPaiementsRecurrents =
-    paiements.length > 0
-      ? paiements.reduce((acc, p) => acc + (p.montant || 0), 0)
-      : 0;
+  // Nouvel état pour les paiements récurrents Firestore
+  const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
+  const [totalRecurrents, setTotalRecurrents] = useState(0);
 
-  // Les 3 derniers paiements récurrents (du plus récent au plus ancien)
-  const derniersPaiements = [...paiements].slice(-3).reverse();
+  useEffect(() => {
+    const fetchRecurrents = async () => {
+      try {
+        // Récupère tous les paiements récurrents
+        const snapshot = await getDocs(collection(db, "recurrent"));
+        const paiements = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPaiementsRecurrents(paiements);
+
+        // Calcule le total
+        const total = paiements.reduce((acc, p) => acc + (p.montant || 0), 0);
+        setTotalRecurrents(total);
+      } catch (err) {
+        console.error("Erreur Firestore fetch recurrent:", err);
+      }
+    };
+    fetchRecurrents();
+  }, []);
+
+  // Les 3 derniers paiements récurrents (du plus ancien au plus récent)
+  const derniersPaiements = [...paiementsRecurrents]
+    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
+    .slice(-3);
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-6'>
@@ -48,7 +69,7 @@ export default function Dashboard() {
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
           <div className='text-2xl font-bold mb-1'>
-            {totalPaiementsRecurrents.toFixed(2)}€
+            {totalRecurrents.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>
             -1.4% depuis le mois dernier
@@ -127,7 +148,7 @@ export default function Dashboard() {
             {derniersPaiements.length > 0 ? (
               derniersPaiements.map((p, i) => (
                 <div
-                  key={i}
+                  key={p.id || i}
                   className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3'>
                   <div className='flex items-center'>
                     <div className='bg-blue-100 text-blue-500 rounded-full p-2 mr-3'>
@@ -140,7 +161,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className='font-bold'>
-                    {p.montant ? p.montant.toFixed(2) : "0.00"}€
+                    {p.montant ? Number(p.montant).toFixed(2) : "0.00"}€
                   </div>
                 </div>
               ))

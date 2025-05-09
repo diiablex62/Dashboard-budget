@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
 import Google from "./Google";
 import GitHub from "./GitHub";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
@@ -54,9 +55,6 @@ export default function Navbar() {
   };
   const activeTitle = TITLES[location.pathname] || "Dashboard";
 
-  // Ajoute ici la logique pour savoir s'il y a des notifications non lues
-  const hasNotifications = isLoggedIn ? true : false; // Point rouge seulement si connecté et notifications
-
   return (
     <div className='w-full p-4 flex items-center justify-between bg-white dark:bg-black dark:text-gray-200'>
       <div className='flex items-center space-x-2 text-gray-600 dark:text-white'>
@@ -93,14 +91,9 @@ export default function Navbar() {
           </svg>
         </div>
         <div className='relative'>
-          <AiOutlineBell
-            className='text-gray-500 dark:text-white text-2xl cursor-pointer'
-            title='Notifications'
-            onClick={() => navigate("/notifications")}
-          />
-          {hasNotifications && (
-            <span className='absolute top-0 right-0 block w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-white dark:border-black'></span>
-          )}
+          <div onClick={() => navigate("/notifications")}>
+            <NotificationBell />
+          </div>
         </div>
         {isLoggedIn && (
           <div className='relative' ref={dropdownRef}>

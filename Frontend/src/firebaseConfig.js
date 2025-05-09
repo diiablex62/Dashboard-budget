@@ -21,4 +21,4 @@ const db = getFirestore(app); // Firestore pour la base de données
 const auth = getAuth(app); // Authentification
 const googleProvider = new GoogleAuthProvider(); // Fournisseur Google pour l'authentification
 
-export { db, auth, googleProvider, signInWithPopup };
+export { db, auth, googleProvider, signInWithPopup, firebaseConfig };
