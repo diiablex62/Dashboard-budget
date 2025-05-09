@@ -21,6 +21,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import Toast from "../components/Toast";
 
 const CATEGORIES = [
   "Maison",
@@ -95,18 +96,77 @@ export default function PaiementRecurrent() {
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
 
-  // Supprimer un paiement (Firestore)
-  const handleDelete = async (idx) => {
-    try {
-      const paiement = paiements[idx];
-      if (paiement && paiement.id) {
-        await deleteDoc(doc(db, "recurrent", paiement.id));
-        await fetchPaiements(); // Recharge la liste après suppression
-      }
-    } catch (err) {
-      console.error("Erreur Firestore delete:", err);
-    }
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "success",
+    undo: false,
+    loading: false,
+    timeoutId: null,
+  });
+  const [lastDeleted, setLastDeleted] = useState(null);
+  const [deleteTimeout, setDeleteTimeout] = useState(null);
+
+  const clearToast = () => {
+    setToast((t) => {
+      if (t.timeoutId) clearTimeout(t.timeoutId);
+      return { ...t, open: false, timeoutId: null };
+    });
   };
+
+  // Supprimer un paiement (avec toast et annulation)
+  const handleDelete = async (idx) => {
+    const paiement = paiements[idx];
+    if (!paiement || !paiement.id) return;
+    clearToast();
+    setToast({
+      open: true,
+      message: "Suppression en cours...",
+      type: "error",
+      undo: true,
+      loading: true,
+      timeoutId: null,
+    });
+    setLastDeleted({ ...paiement, idx });
+    // Timer d'annulation
+    const timeout = setTimeout(async () => {
+      await deleteDoc(doc(db, "recurrent", paiement.id));
+      setPaiements((prev) => prev.filter((_, i) => i !== idx));
+      setToast({
+        open: true,
+        message: "Suppression effectuée.",
+        type: "success",
+        undo: false,
+        loading: false,
+        timeoutId: setTimeout(() => clearToast(), 5000),
+      });
+      setDeleteTimeout(null);
+      setLastDeleted(null);
+    }, 5000);
+    setDeleteTimeout(timeout);
+  };
+
+  const handleUndo = () => {
+    if (deleteTimeout) clearTimeout(deleteTimeout);
+    setDeleteTimeout(null);
+    setToast({
+      open: true,
+      message: "Suppression annulée.",
+      type: "success",
+      undo: false,
+      loading: false,
+      timeoutId: setTimeout(() => clearToast(), 3000),
+    });
+    setLastDeleted(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toast && toast.timeoutId) clearTimeout(toast.timeoutId);
+      if (deleteTimeout) clearTimeout(deleteTimeout);
+    };
+    // eslint-disable-next-line
+  }, [toast, deleteTimeout]);
 
   // Commencer la modification
   const handleEdit = (idx) => {
@@ -185,6 +245,21 @@ export default function PaiementRecurrent() {
 
   return (
     <div className='bg-[#f8fafc] min-h-screen'>
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={clearToast}
+        loading={toast.loading}
+        action={
+          toast.undo
+            ? {
+                label: "Annuler",
+                onClick: handleUndo,
+              }
+            : undefined
+        }
+      />
       <div className='p-8'>
         <div className='flex items-center justify-end mb-6'>
           <button

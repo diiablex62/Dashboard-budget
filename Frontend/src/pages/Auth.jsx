@@ -11,6 +11,7 @@ import {
   signInWithEmailLink,
 } from "firebase/auth";
 import { GithubAuthProvider } from "firebase/auth";
+import Toast from "../components/Toast";
 
 export default function Auth() {
   const { setIsLoggedIn, primaryColor } = useContext(AppContext);
@@ -20,6 +21,13 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "success",
+    loading: false,
+    timeoutId: null,
+  });
 
   // Appliquez immédiatement la couleur primaire au DOM avant le rendu
   useEffect(() => {
@@ -91,21 +99,42 @@ export default function Auth() {
   };
 
   const handleAuthProvider = async (provider, providerName) => {
-    console.log(`Attempting to sign in with ${providerName}`);
+    setToast({
+      open: true,
+      message: `Connexion en cours avec ${providerName}...`,
+      type: "loading",
+      loading: true,
+      timeoutId: null,
+    });
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      console.log("Sign-in successful:", user);
       localStorage.setItem(
         "user",
         JSON.stringify({ email: user.email, displayName: user.displayName })
       );
-      toast.success(`Bienvenue ${user.displayName} !`);
+      // Affiche le toast "Bienvenue" avec chargement puis succès
+      if (toast.timeoutId) clearTimeout(toast.timeoutId);
+      setToast({
+        open: true,
+        message: `Bienvenue ${user.displayName || "utilisateur"} !`,
+        type: "success",
+        loading: false,
+        timeoutId: null,
+      });
+      setTimeout(() => setToast((t) => ({ ...t, open: false })), 3000);
       setIsLoggedIn(true);
       navigate("/");
     } catch (error) {
+      setToast({
+        open: true,
+        message: `Échec de la connexion avec ${providerName}.`,
+        type: "error",
+        loading: false,
+        timeoutId: null,
+      });
+      setTimeout(() => setToast((t) => ({ ...t, open: false })), 4000);
       console.error(`Error during ${providerName} sign-in:`, error);
-      toast.error(`Échec de la connexion avec ${providerName}.`);
     }
   };
 
@@ -195,6 +224,13 @@ export default function Auth() {
 
   return (
     <div className='flex min-h-screen relative'>
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        loading={toast.loading}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
       {/* Section image */}
       <div
         className={`absolute inset-y-0 w-1/2 ${

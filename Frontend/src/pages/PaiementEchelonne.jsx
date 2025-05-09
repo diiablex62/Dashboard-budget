@@ -8,8 +8,11 @@ import {
   addDoc,
   getDocs,
   serverTimestamp,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import { FiEdit, FiTrash } from "react-icons/fi";
+import Toast from "../components/Toast"; // Assure-toi que ce composant existe et est identique à celui utilisé pour la connexion
 
 const echelonnes = [
   {
@@ -69,6 +72,16 @@ export default function PaiementEchelonne() {
   const montantInputRef = useRef(null);
   const mensualitesInputRef = useRef(null);
   const debutMoisInputRef = useRef(null);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "success",
+    undo: false,
+    loading: false,
+    timeoutId: null,
+  });
+  const [lastDeleted, setLastDeleted] = useState(null);
+  const [deleteTimeout, setDeleteTimeout] = useState(null);
 
   useEffect(() => {
     if (showModal && step === 1 && nomInputRef.current)
@@ -132,12 +145,105 @@ export default function PaiementEchelonne() {
     alert("Fonction modifier à implémenter");
   };
   const handleDelete = async (idx) => {
-    // TODO: suppression Firestore pour l'élément idx
-    alert("Fonction supprimer à implémenter");
+    const paiement = paiements[idx];
+    if (!paiement || !paiement.id) return;
+    clearToast();
+    setToast({
+      open: true,
+      message: "Suppression en cours...",
+      type: "error", // fond rouge
+      undo: true,
+      loading: true,
+      timeoutId: null,
+    });
+    setLastDeleted({ ...paiement, idx });
+    // Lance le timer d'annulation
+    const timeout = setTimeout(async () => {
+      await deleteDoc(doc(db, "xfois", paiement.id));
+      setPaiements((prev) => prev.filter((_, i) => i !== idx));
+      setToast({
+        open: true,
+        message: "Suppression effectuée.",
+        type: "success",
+        undo: false,
+        loading: false,
+        timeoutId: setTimeout(() => clearToast(), 5000),
+      });
+      setDeleteTimeout(null);
+      setLastDeleted(null);
+    }, 5000);
+    setDeleteTimeout(timeout);
   };
+
+  const handleUndo = () => {
+    // Annule la suppression
+    if (deleteTimeout) clearTimeout(deleteTimeout);
+    setDeleteTimeout(null);
+    setToast({
+      open: true,
+      message: "Suppression annulée.",
+      type: "success",
+      undo: false,
+      loading: false,
+      timeoutId: setTimeout(() => clearToast(), 3000),
+    });
+    setLastDeleted(null);
+  };
+
+  const clearToast = () => {
+    setToast((t) => {
+      if (t.timeoutId) clearTimeout(t.timeoutId);
+      return { ...t, open: false, timeoutId: null };
+    });
+  };
+
+  // Nettoyage du toast si on quitte la page ou démonte le composant
+  useEffect(() => {
+    return () => {
+      if (toast && toast.timeoutId) clearTimeout(toast.timeoutId);
+      if (deleteTimeout) clearTimeout(deleteTimeout);
+    };
+    // eslint-disable-next-line
+  }, [toast, deleteTimeout]);
+
+  // Spinner SVG
+  const Spinner = () => (
+    <svg className="animate-spin h-5 w-5 text-blue-600 mr-2" viewBox="0 0 24 24">
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+        fill="none"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      />
+    </svg>
+  );
 
   return (
     <div className='bg-[#f8fafc] min-h-screen'>
+      {/* Toast notification identique à la connexion */}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={clearToast}
+        loading={toast.loading}
+        action={
+          toast.undo
+            ? {
+                label: "Annuler",
+                onClick: handleUndo,
+              }
+            : undefined
+        }
+      />
       <div className='p-8'>
         <div className='flex items-center justify-between mb-6'>
           <div>
