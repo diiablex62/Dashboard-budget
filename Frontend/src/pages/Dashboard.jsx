@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineDashboard,
@@ -26,6 +26,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Définir COLORS en dehors du composant pour éviter l'erreur de portée
+const COLORS = [
+  "#6366f1",
+  "#22d3ee",
+  "#f59e42",
+  "#f43f5e",
+  "#10b981",
+  "#a78bfa",
+  "#fbbf24",
+  "#3b82f6",
+  "#ef4444",
+  "#64748b",
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
@@ -39,35 +53,29 @@ export default function Dashboard() {
   const [totalEchelonnes, setTotalEchelonnes] = useState(0);
 
   useEffect(() => {
-    // Paiements récurrents
-    const fetchRecurrents = async () => {
+    const fetchAll = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "recurrent"));
-        const paiements = snapshot.docs.map((doc) => ({
+        const [recurrentsSnap, echelonnesSnap] = await Promise.all([
+          getDocs(collection(db, "recurrent")),
+          getDocs(collection(db, "xfois")),
+        ]);
+        // Paiements récurrents
+        const paiements = recurrentsSnap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setPaiementsRecurrents(paiements);
-        const total = paiements.reduce((acc, p) => acc + (p.montant || 0), 0);
-        setTotalRecurrents(total);
-      } catch (err) {
-        console.error("Erreur Firestore fetch recurrent:", err);
-      }
-    };
-
-    // Paiements échelonnés
-    const fetchEchelonnes = async () => {
-      try {
+        setTotalRecurrents(
+          paiements.reduce((acc, p) => acc + (p.montant || 0), 0)
+        );
+        // Paiements échelonnés
         const now = new Date();
         const currentMonth = now.getMonth() + 1;
         const currentYear = now.getFullYear();
-        const echelonnesSnap = await getDocs(collection(db, "xfois"));
         const echelonnes = echelonnesSnap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-
-        // Filtrer les paiements dont le mois courant est dans la période d'échelonnement
         const echelonnesDuMois = echelonnes.filter((p) => {
           if (!p.debutMois || !p.mensualites) return false;
           const [startYear, startMonth] = p.debutMois.split("-").map(Number);
@@ -79,58 +87,51 @@ export default function Dashboard() {
           const nowDate = new Date(currentYear, currentMonth - 1);
           return nowDate >= debut && nowDate <= fin;
         });
-
         setPaiementsEchelonnes(echelonnesDuMois);
-
-        // Total du mois = somme des mensualités du mois courant
-        const total = echelonnesDuMois.reduce((acc, p) => {
-          if (!p.montant || !p.mensualites) return acc;
-          return acc + Number(p.montant) / Number(p.mensualites);
-        }, 0);
-        setTotalEchelonnes(total);
+        setTotalEchelonnes(
+          echelonnesDuMois.reduce((acc, p) => {
+            if (!p.montant || !p.mensualites) return acc;
+            return acc + Number(p.montant) / Number(p.mensualites);
+          }, 0)
+        );
       } catch (err) {
-        console.error("Erreur Firestore fetch xfois:", err);
+        console.error("Erreur Firestore fetch:", err);
       }
     };
-
-    fetchRecurrents();
-    fetchEchelonnes();
+    fetchAll();
   }, []);
 
-  // Prépare les données pour le graphique des récurrents
-  const dataCategories = [
-    ...new Set(paiementsRecurrents.map((p) => p.categorie)),
-  ]
-    .map((cat) => ({
-      name: cat,
-      value: paiementsRecurrents
-        .filter((p) => p.categorie === cat)
-        .reduce((acc, p) => acc + (p.montant || 0), 0),
-    }))
-    .filter((d) => d.value > 0);
+  // Optimisation : useMemo pour éviter les recalculs inutiles
+  const dataCategories = useMemo(() => {
+    return [...new Set(paiementsRecurrents.map((p) => p.categorie))]
+      .map((cat) => ({
+        name: cat,
+        value: paiementsRecurrents
+          .filter((p) => p.categorie === cat)
+          .reduce((acc, p) => acc + (p.montant || 0), 0),
+      }))
+      .filter((d) => d.value > 0);
+  }, [paiementsRecurrents]);
 
-  const COLORS = [
-    "#6366f1",
-    "#22d3ee",
-    "#f59e42",
-    "#f43f5e",
-    "#10b981",
-    "#a78bfa",
-    "#fbbf24",
-    "#3b82f6",
-    "#ef4444",
-    "#64748b",
-  ];
+  const derniersPaiements = useMemo(
+    () =>
+      [...paiementsRecurrents]
+        .sort(
+          (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+        )
+        .slice(-3),
+    [paiementsRecurrents]
+  );
 
-  // Les 3 derniers paiements récurrents (du plus ancien au plus récent)
-  const derniersPaiements = [...paiementsRecurrents]
-    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
-    .slice(-3);
-
-  // Les 3 derniers paiements échelonnés du mois courant (du plus ancien au plus récent)
-  const derniersEchelonnes = [...paiementsEchelonnes]
-    .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))
-    .slice(-3);
+  const derniersEchelonnes = useMemo(
+    () =>
+      [...paiementsEchelonnes]
+        .sort(
+          (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+        )
+        .slice(-3),
+    [paiementsEchelonnes]
+  );
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-6'>
