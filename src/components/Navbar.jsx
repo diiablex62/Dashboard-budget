@@ -8,13 +8,8 @@ import Google from "./Google";
 import GitHub from "./GitHub";
 
 export default function Navbar() {
-  const {
-    activeTitle,
-    isSettingsOpen,
-    setIsSettingsOpen,
-    isLoggedIn,
-    setIsLoggedIn,
-  } = useContext(AppContext);
+  const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
+    useContext(AppContext);
 
   const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
@@ -43,6 +38,22 @@ export default function Navbar() {
   }, []);
 
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
+
+  // Map des titres par route
+  const TITLES = {
+    "/": "Dashboard",
+    "/profil": "Profil",
+    "/agenda": "Agenda",
+    "/paiements-recurrents": "Paiements récurrents",
+    "/paiements-echelonnes": "Paiements échelonnés",
+    "/notifications": "Notifications",
+    "/auth": "Authentification",
+    "/privacy-policy": "Politique de confidentialité",
+    "/privacy": "Politique de confidentialité",
+    "/user-data-deletion": "Suppression des données",
+    "/terms": "Conditions d'utilisation",
+  };
+  const activeTitle = TITLES[location.pathname] || "Dashboard";
 
   return (
     <div className='w-full p-4 flex items-center justify-between bg-white dark:bg-black dark:text-gray-200'>
