@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { AiOutlineCalendar } from "react-icons/ai";
+import { FiEdit, FiTrash } from "react-icons/fi"; // Ajout des icônes
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
@@ -122,11 +123,15 @@ export default function PaiementRecurrent() {
                     <td className='py-3 px-2'>{p.frequence}</td>
                     <td className='py-3 px-2'>{p.prochaine}</td>
                     <td className='py-3 px-2'>
-                      <button className='text-blue-700 font-medium hover:underline mr-4'>
-                        Modifier
+                      <button
+                        className='text-blue-700 font-medium hover:underline mr-4'
+                        title='Modifier'>
+                        <FiEdit className='inline text-lg' />
                       </button>
-                      <button className='text-red-500 font-medium hover:underline'>
-                        Supprimer
+                      <button
+                        className='text-red-500 font-medium hover:underline'
+                        title='Supprimer'>
+                        <FiTrash className='inline text-lg' />
                       </button>
                     </td>
                   </tr>
