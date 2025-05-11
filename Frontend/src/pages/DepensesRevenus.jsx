@@ -149,7 +149,7 @@ export default function DepensesRevenus() {
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
           <div>
             <h1 className='text-3xl font-bold text-[#222] dark:text-white mb-1'>
-              Revenus et Dépenses
+              Dépenses & Revenus
             </h1>
             <div className='text-gray-500 dark:text-gray-400 text-base'>
               Gérez vos revenus et dépenses mensuels.

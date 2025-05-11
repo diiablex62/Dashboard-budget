@@ -2,20 +2,9 @@ import React, { useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "../styles/tailwind.css";
 import { AppContext } from "../context/AppContext";
-import {
-  AiOutlineDashboard,
-  AiOutlineUser,
-  AiOutlineTable,
-  AiOutlineFileText,
-  AiOutlineBell,
-  AiOutlineSetting,
-} from "react-icons/ai";
-import { FaMapMarkedAlt } from "react-icons/fa";
-import {
-  HiArrowDownCircle,
-  HiArrowUpCircle,
-  HiArrowsRightLeft,
-} from "react-icons/hi2";
+import { AiOutlineCalendar, AiOutlineCreditCard } from "react-icons/ai";
+import { MdSpaceDashboard, MdAutorenew } from "react-icons/md";
+import { HiArrowsRightLeft } from "react-icons/hi2";
 
 export default function Sidebar() {
   const { sidebarType, isNavbarFixed, isLoggedIn } = useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
@@ -35,6 +24,7 @@ export default function Sidebar() {
       </h2>
       <nav className='flex-1'>
         <ul className='space-y-4'>
+          {/* Dashboard */}
           <li>
             <NavLink
               to='/'
@@ -46,61 +36,17 @@ export default function Sidebar() {
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineDashboard className='mr-6 text-2xl text-[var(--primary-color)]' />
+              <MdSpaceDashboard className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Dashboard</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink
-              to='/agenda'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlineTable className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Agenda</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to='/paiements-recurrents'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlineFileText className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Paiements récurrents</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to='/paiements-echelonnes'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <FaMapMarkedAlt className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Paiements échelonnés</span>
-            </NavLink>
-          </li>
+          {/* Dépenses & Revenus */}
           <li>
             <NavLink
               to='/depenses-revenus'
               onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer ${
+                `flex items-center p-4 rounded-lg cursor-pointer transition ${
                   isActive
                     ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"
@@ -111,6 +57,54 @@ export default function Sidebar() {
                 style={{ width: 24, height: 24 }}
               />
               <span className='text-lg font-medium'>Dépenses & Revenus</span>
+            </NavLink>
+          </li>
+          {/* Paiements récurrents */}
+          <li>
+            <NavLink
+              to='/paiements-recurrents'
+              onClick={() => window.scrollTo(0, 0)}
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer transition ${
+                  isActive
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
+                }`
+              }>
+              <MdAutorenew className='mr-6 text-2xl text-[var(--primary-color)]' />
+              <span className='text-lg font-medium'>Paiements récurrents</span>
+            </NavLink>
+          </li>
+          {/* Paiements échelonnés */}
+          <li>
+            <NavLink
+              to='/paiements-echelonnes'
+              onClick={() => window.scrollTo(0, 0)}
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer transition ${
+                  isActive
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
+                }`
+              }>
+              <AiOutlineCreditCard className='mr-6 text-2xl text-[var(--primary-color)]' />
+              <span className='text-lg font-medium'>Paiements échelonnés</span>
+            </NavLink>
+          </li>
+          {/* Agenda */}
+          <li>
+            <NavLink
+              to='/agenda'
+              onClick={() => window.scrollTo(0, 0)}
+              className={({ isActive }) =>
+                `flex items-center p-4 rounded-lg cursor-pointer transition ${
+                  isActive
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
+                    : "hover:text-[var(--primary-color)]"
+                }`
+              }>
+              <AiOutlineCalendar className='mr-6 text-2xl text-[var(--primary-color)]' />
+              <span className='text-lg font-medium'>Agenda</span>
             </NavLink>
           </li>
         </ul>

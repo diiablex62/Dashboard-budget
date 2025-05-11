@@ -80,11 +80,11 @@ export default function Notifications() {
   };
 
   return (
-    <div className='min-h-screen bg-[#f5f6fa] flex items-start justify-center p-8'>
+    <div className='min-h-screen bg-[#f5f6fa] dark:bg-black flex items-start justify-center p-8'>
       <div className='w-full max-w-3xl'>
-        <div className='bg-white rounded-2xl shadow border border-[#ececec]'>
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800'>
           {notifications.length === 0 && (
-            <div className='text-gray-400 text-center text-sm italic py-8'>
+            <div className='text-gray-400 dark:text-gray-500 text-center text-sm italic py-8'>
               Aucune notification
             </div>
           )}
@@ -93,7 +93,7 @@ export default function Notifications() {
               key={notif.id || idx}
               className={`flex items-start gap-4 px-6 py-6 ${
                 idx !== notifications.length - 1
-                  ? "border-b border-[#e6eaf1]"
+                  ? "border-b border-[#e6eaf1] dark:border-gray-800"
                   : ""
               }`}
               onMouseEnter={() => setHoveredId(notif.id)}
@@ -103,17 +103,19 @@ export default function Notifications() {
               }}
               style={{ cursor: !notif.read ? "pointer" : "default" }}>
               <div
-                className={`flex-shrink-0 bg-[#eaf1ff] rounded-full w-12 h-12 flex items-center justify-center`}>
+                className={`flex-shrink-0 bg-[#eaf1ff] dark:bg-gray-900 rounded-full w-12 h-12 flex items-center justify-center`}>
                 {getNotifIcon(notif)}
               </div>
               <div className='flex-1'>
-                <div className='font-semibold text-[#222] mb-1'>
+                <div className='font-semibold text-[#222] dark:text-white mb-1'>
                   {notif.title}
                 </div>
-                <div className='text-[#7b849b] text-base'>{notif.desc}</div>
+                <div className='text-[#7b849b] dark:text-gray-400 text-base'>
+                  {notif.desc}
+                </div>
               </div>
               <div className='flex flex-col items-end mt-1'>
-                <div className='text-[#b0b8c9] text-sm whitespace-nowrap'>
+                <div className='text-[#b0b8c9] dark:text-gray-500 text-sm whitespace-nowrap'>
                   {formatNotifDate(notif.date)}
                 </div>
                 {!notif.read && hoveredId === notif.id && (
@@ -130,7 +132,7 @@ export default function Notifications() {
           {notifications.length > 0 && (
             <div className='flex justify-center py-4'>
               <button
-                className='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition'
+                className='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 dark:hover:bg-red-700 transition'
                 onClick={handleDeleteAll}>
                 Tout supprimer
               </button>

@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
+import { FiSun, FiMoon } from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
 import { ThemeContext } from "../context/ThemeContext";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -12,7 +13,7 @@ export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
     useContext(AppContext);
 
-  const { theme, toggleTheme } = useContext(ThemeContext);
+  const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [searchText, setSearchText] = useState("");
@@ -46,6 +47,7 @@ export default function Navbar() {
     "/agenda": "Agenda",
     "/paiements-recurrents": "Paiements récurrents",
     "/paiements-echelonnes": "Paiements échelonnés",
+    "/depenses-revenus": "Dépenses & Revenus",
     "/notifications": "Notifications",
     "/auth": "Authentification",
     "/privacy-policy": "Politique de confidentialité",
@@ -90,6 +92,16 @@ export default function Navbar() {
             />
           </svg>
         </div>
+        <button
+          onClick={toggleDarkMode}
+          className='flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 transition'
+          title={isDarkMode ? "Passer en mode clair" : "Passer en mode sombre"}>
+          {isDarkMode ? (
+            <FiSun className='text-xl text-yellow-400' />
+          ) : (
+            <FiMoon className='text-xl text-gray-600' />
+          )}
+        </button>
         <div className='relative'>
           <div onClick={() => navigate("/notifications")}>
             <NotificationBell />
