@@ -1,35 +1,355 @@
-import React from "react";
-import { HiArrowDownCircle, HiArrowUpCircle } from "react-icons/hi2";
+import React, { useState } from "react";
+import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+
+// Couleurs et icônes pour correspondre à l'image
+const MONTHS = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+
+// Fake data pour l'exemple visuel
+const fakeDepenses = [
+  {
+    nom: "Courses Supermarché",
+    montant: -120,
+    date: "2025-05-02",
+    categorie: "Alimentation",
+    icon: "€",
+  },
+  {
+    nom: "Loyer Appartement",
+    montant: -850,
+    date: "2025-05-01",
+    categorie: "Logement",
+    icon: "€",
+  },
+  {
+    nom: "Restaurant avec Amis",
+    montant: -45,
+    date: "2025-05-14",
+    categorie: "Loisirs",
+    icon: "€",
+  },
+  {
+    nom: "Vêtements",
+    montant: -90,
+    date: "2025-05-17",
+    categorie: "Shopping",
+    icon: "€",
+  },
+  {
+    nom: "Facture Électricité",
+    montant: -75,
+    date: "2025-05-10",
+    categorie: "Factures",
+    icon: "€",
+  },
+  {
+    nom: "Abonnement Transport",
+    montant: -65,
+    date: "2025-05-05",
+    categorie: "Transport",
+    icon: "€",
+  },
+  {
+    nom: "Pharmacie",
+    montant: -32,
+    date: "2025-05-08",
+    categorie: "Santé",
+    icon: "€",
+  },
+];
+
+const fakeRevenus = [
+  {
+    nom: "Salaire",
+    montant: 3500,
+    date: "2025-05-01",
+    categorie: "Travail",
+    icon: "€",
+  },
+  {
+    nom: "Vente occasion",
+    montant: 300,
+    date: "2025-05-10",
+    categorie: "Autre",
+    icon: "€",
+  },
+];
+
+function getMonthYear(date) {
+  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
 
 export default function DepensesRevenus() {
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 4, 1)); // Mai 2025
+  const [tab, setTab] = useState("depenses"); // "revenus" ou "depenses"
+
+  // Filtres sur le mois sélectionné
+  const revenus = fakeRevenus.filter(
+    (r) =>
+      new Date(r.date).getMonth() === selectedDate.getMonth() &&
+      new Date(r.date).getFullYear() === selectedDate.getFullYear()
+  );
+  const depenses = fakeDepenses.filter(
+    (d) =>
+      new Date(d.date).getMonth() === selectedDate.getMonth() &&
+      new Date(d.date).getFullYear() === selectedDate.getFullYear()
+  );
+
+  const totalRevenus = revenus.reduce((acc, r) => acc + (r.montant || 0), 0);
+  const totalDepenses = depenses.reduce(
+    (acc, d) => acc + Math.abs(d.montant || 0),
+    0
+  );
+  const solde = totalRevenus - totalDepenses;
+
+  const handlePrevMonth = () => {
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    });
+  };
+  const handleNextMonth = () => {
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      return d;
+    });
+  };
+
+  const showEmpty =
+    tab === "revenus" ? revenus.length === 0 : depenses.length === 0;
+
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8'>
-      <div className='max-w-3xl mx-auto bg-white rounded-2xl shadow border border-[#ececec] p-8'>
-        <div className='flex items-center gap-3 mb-4'>
-          <HiArrowDownCircle className='text-red-500' size={24} />
-          <HiArrowUpCircle className='text-green-500' size={24} />
-          <h1 className='text-2xl font-bold text-[#222]'>Dépenses & Revenus</h1>
+      <div className='max-w-6xl mx-auto'>
+        {/* Header */}
+        <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
+          <div>
+            <h1 className='text-3xl font-bold text-[#222] mb-1'>
+              Revenus et Dépenses
+            </h1>
+            <div className='text-gray-500 text-base'>
+              Gérez vos revenus et dépenses mensuels.
+            </div>
+          </div>
+          {/* Sélecteur mois/année style image */}
+          <div className='flex items-center mt-4 md:mt-0'>
+            <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent'>
+              <button
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition'
+                onClick={handlePrevMonth}
+                aria-label='Mois précédent'
+                type='button'
+                style={{ lineHeight: 1 }}>
+                <AiOutlineArrowLeft />
+              </button>
+              <span className='font-semibold text-lg px-4 select-none text-[#222]'>
+                {getMonthYear(selectedDate)}
+              </span>
+              <button
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition'
+                onClick={handleNextMonth}
+                aria-label='Mois suivant'
+                type='button'
+                style={{ lineHeight: 1 }}>
+                <AiOutlineArrowRight />
+              </button>
+            </div>
+          </div>
         </div>
-        <p className='text-gray-600 mb-6'>
-          Ajoutez ici vos dépenses et revenus manuels pour compléter votre
-          budget prévisionnel.
-        </p>
-        {/* À compléter : formulaire d'ajout, liste, etc. */}
-        <div className='text-gray-400 italic text-center py-12'>
-          Fonctionnalité à venir : saisie manuelle des mouvements financiers.
+        {/* Indicateurs */}
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-4'>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
+            <span className='text-green-500 text-2xl'>↓</span>
+            <div>
+              <div className='text-sm font-semibold text-green-600'>
+                Total Revenus
+              </div>
+              <div className='text-2xl font-bold text-[#222]'>
+                {totalRevenus.toFixed(2)} €
+              </div>
+            </div>
+          </div>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
+            <span className='text-red-500 text-2xl'>↑</span>
+            <div>
+              <div className='text-sm font-semibold text-red-600'>
+                Total Dépenses
+              </div>
+              <div className='text-2xl font-bold text-[#222]'>
+                {totalDepenses.toFixed(2)} €
+              </div>
+            </div>
+          </div>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
+            <span className='text-2xl text-gray-700 font-bold'>€</span>
+            <div>
+              <div className='text-sm font-semibold text-gray-600'>Solde</div>
+              <div
+                className={`text-2xl font-bold ${
+                  solde >= 0 ? "text-green-600" : "text-red-600"
+                }`}>
+                {solde.toFixed(2)} €
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Switch revenus/dépenses style image */}
+        <div className='flex justify-center mt-6 mb-2'>
+          <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1'>
+            <button
+              className={`flex-1 py-3 rounded-lg font-semibold text-lg transition text-center
+                ${
+                  tab === "revenus"
+                    ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
+                    : "bg-transparent text-[#7b849b] font-normal"
+                }
+              `}
+              style={{
+                background: tab === "revenus" ? "#fff" : "transparent",
+                color: tab === "revenus" ? "#111827" : "#7b849b",
+                boxShadow:
+                  tab === "revenus" ? "0 2px 8px 0 rgba(16,30,54,.04)" : "none",
+                border: tab === "revenus" ? "1.5px solid #e5eaf1" : "none",
+                zIndex: tab === "revenus" ? 1 : 0,
+              }}
+              onClick={() => setTab("revenus")}
+              type='button'>
+              Revenus
+            </button>
+            <button
+              className={`flex-1 py-3 rounded-lg font-semibold text-lg transition text-center
+                ${
+                  tab === "depenses"
+                    ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
+                    : "bg-transparent text-[#7b849b] font-normal"
+                }
+              `}
+              style={{
+                background: tab === "depenses" ? "#fff" : "transparent",
+                color: tab === "depenses" ? "#111827" : "#7b849b",
+                boxShadow:
+                  tab === "depenses"
+                    ? "0 2px 8px 0 rgba(16,30,54,.04)"
+                    : "none",
+                border: tab === "depenses" ? "1.5px solid #e5eaf1" : "none",
+                zIndex: tab === "depenses" ? 1 : 0,
+              }}
+              onClick={() => setTab("depenses")}
+              type='button'>
+              Dépenses
+            </button>
+          </div>
+        </div>
+        {/* Liste revenus/dépenses */}
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+          {tab === "revenus" ? (
+            <>
+              <div className='text-2xl font-bold mb-1'>Revenus du mois</div>
+              <div className='text-gray-500 mb-6'>
+                Liste de tous vos revenus pour {getMonthYear(selectedDate)}
+              </div>
+              {showEmpty ? (
+                <div className='flex flex-col items-center justify-center bg-[#f8fafc] rounded-lg px-6 py-12'>
+                  <span className='text-gray-400 text-lg mb-4'>
+                    Aucun revenu pour ce mois
+                  </span>
+                  <button className='border px-5 py-2 rounded-lg font-semibold text-[var(--primary-color)] hover:bg-gray-50 transition cursor-pointer'>
+                    Ajouter un revenu
+                  </button>
+                </div>
+              ) : (
+                <div className='grid md:grid-cols-2 gap-4'>
+                  {revenus.map((r, idx) => (
+                    <div
+                      key={idx}
+                      className='flex items-center justify-between bg-[#f8fafc] rounded-lg px-6 py-5 border border-[#ececec]'>
+                      <div>
+                        <div className='flex items-center gap-2 mb-1'>
+                          <span className='text-2xl text-green-600'>
+                            {r.icon}
+                          </span>
+                          <span className='font-semibold text-[#222]'>
+                            {r.nom}
+                          </span>
+                        </div>
+                        <div className='text-xs text-gray-500'>
+                          {formatDate(r.date)} • {r.categorie}
+                        </div>
+                      </div>
+                      <div className='font-bold text-green-600 text-lg'>
+                        {r.montant.toFixed(2)} €
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className='text-2xl font-bold mb-1'>Dépenses du mois</div>
+              <div className='text-gray-500 mb-6'>
+                Liste de toutes vos dépenses pour {getMonthYear(selectedDate)}
+              </div>
+              {showEmpty ? (
+                <div className='flex flex-col items-center justify-center bg-[#f8fafc] rounded-lg px-6 py-12'>
+                  <span className='text-gray-400 text-lg mb-4'>
+                    Aucune dépense pour ce mois
+                  </span>
+                  <button className='border px-5 py-2 rounded-lg font-semibold text-[var(--primary-color)] hover:bg-gray-50 transition cursor-pointer'>
+                    Ajouter une dépense
+                  </button>
+                </div>
+              ) : (
+                <div className='grid md:grid-cols-2 gap-4'>
+                  {depenses.map((d, idx) => (
+                    <div
+                      key={idx}
+                      className='flex items-center justify-between bg-[#f8fafc] rounded-lg px-6 py-5 border border-[#ececec]'>
+                      <div>
+                        <div className='flex items-center gap-2 mb-1'>
+                          <span className='text-2xl text-[#222]'>{d.icon}</span>
+                          <span className='font-semibold text-[#222]'>
+                            {d.nom}
+                          </span>
+                        </div>
+                        <div className='text-xs text-gray-500'>
+                          {formatDate(d.date)} • {d.categorie}
+                        </div>
+                      </div>
+                      <div className='font-bold text-red-500 text-lg'>
+                        {d.montant.toFixed(2)} €
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
-// Vérifie que tu as bien ajouté la route dans ton routeur (ex: App.jsx ou Routes.jsx)
-// Exemple avec react-router-dom v6+ :
-
-// import DepensesRevenus from "./pages/DepensesRevenus";
-// ...dans le composant Routes ou App...
-// <Route path="/depenses-revenus" element={<DepensesRevenus />} />
-
-// Si tu vois le Dashboard, c'est probablement parce que la route "/depenses-revenus" n'est pas déclarée
-// ou qu'elle pointe vers le mauvais composant dans ton routeur principal.
-// Corrige la déclaration de la route pour pointer vers DepensesRevenus.
