@@ -105,7 +105,7 @@ export default function Navbar() {
                 : "?"}
             </div>
             {isDropdownOpen && (
-              <div className='absolute right-0 mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 w-64 border border-gray-200 dark:border-gray-700'>
+              <div className='absolute right-0 mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 w-64 border border-gray-200 dark:border-gray-700 z-50'>
                 <div className='px-4 py-3 border-b border-gray-200 dark:border-gray-700'>
                   <div className='flex items-center space-x-3'>
                     <div className='w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-white text-lg font-bold'>

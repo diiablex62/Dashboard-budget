@@ -24,9 +24,13 @@ export default function Sidebar() {
   return (
     <div
       className={`w-72 h-screen fixed top-0 left-0 z-30 ${
-        sidebarType === "transparent" ? "bg-transparent" : "bg-white"
-      } text-gray-800 flex flex-col shadow-md ${isNavbarFixed ? "mt-16" : ""}`}>
-      <h2 className='text-3xl font-bold p-8 border-b border-gray-200'>
+        sidebarType === "transparent"
+          ? "bg-transparent"
+          : "bg-white dark:bg-black"
+      } text-gray-800 dark:text-white flex flex-col shadow-md ${
+        isNavbarFixed ? "mt-16" : ""
+      }`}>
+      <h2 className='text-3xl font-bold p-8 border-b border-gray-200 dark:border-gray-800'>
         Gestion de budget
       </h2>
       <nav className='flex-1'>
@@ -36,7 +40,7 @@ export default function Sidebar() {
               to='/'
               onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer ${
+                `flex items-center p-4 rounded-lg cursor-pointer transition ${
                   isActive
                     ? "bg-gray-100 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"

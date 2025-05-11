@@ -366,7 +366,7 @@ export default function PaiementEchelonne() {
           {paiementsAvecPourcentage.map((item, idx) => (
             <div
               key={item.id || idx}
-              className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl shadow-sm p-6 flex flex-col relative'>
+              className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl shadow-sm p-6 flex flex-col relative z-10'>
               <div className='flex items-center justify-between mb-2'>
                 <div className='flex items-center gap-3'>
                   <div
@@ -465,7 +465,7 @@ export default function PaiementEchelonne() {
         {/* Modal */}
         {showModal && (
           <div
-            className='fixed inset-0 z-50 flex items-center justify-center'
+            className='fixed inset-0 z-[9999] flex items-center justify-center'
             style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
             <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
               <button
