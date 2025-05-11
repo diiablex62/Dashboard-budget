@@ -193,6 +193,17 @@ export default function PaiementEchelonne() {
           debutMois: newPaiement.debutMois,
           createdAt: serverTimestamp(),
         });
+        // Notification ajout paiement échelonné
+        await addDoc(collection(db, "notifications"), {
+          type: "echelonne",
+          title: "Nouveau paiement échelonné",
+          desc: `Ajout de ${
+            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
+          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       }
       await fetchPaiements();
       setShowModal(false);
@@ -232,6 +243,10 @@ export default function PaiementEchelonne() {
       undo: true,
       loading: true,
       timeoutId: null,
+      action: {
+        label: "Annuler",
+        onClick: handleUndo,
+      },
     });
     setLastDeleted({ ...paiement, idx });
     // Lance le timer d'annulation
@@ -248,6 +263,17 @@ export default function PaiementEchelonne() {
       });
       setDeleteTimeout(null);
       setLastDeleted(null);
+      // Notification suppression paiement échelonné
+      await addDoc(collection(db, "notifications"), {
+        type: "echelonne",
+        title: "Paiement échelonné supprimé",
+        desc: `Suppression de ${
+          paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
+        } (${parseFloat(paiement.montant).toFixed(2)}€)`,
+        date: new Date().toLocaleDateString("fr-FR"),
+        read: false,
+        createdAt: serverTimestamp(),
+      });
     }, 5000);
     setDeleteTimeout(timeout);
   };
@@ -347,6 +373,14 @@ export default function PaiementEchelonne() {
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={clearToast}
+        loading={toast.loading}
+        action={toast.action}
+      />
       <div className='flex flex-col gap-6'>
         {/* En-tête */}
         <div className='flex items-center justify-between'>

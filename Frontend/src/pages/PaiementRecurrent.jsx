@@ -103,6 +103,7 @@ export default function PaiementRecurrent() {
     undo: false,
     loading: false,
     timeoutId: null,
+    action: null,
   });
   const [lastDeleted, setLastDeleted] = useState(null);
   const [deleteTimeout, setDeleteTimeout] = useState(null);
@@ -112,38 +113,6 @@ export default function PaiementRecurrent() {
       if (t.timeoutId) clearTimeout(t.timeoutId);
       return { ...t, open: false, timeoutId: null };
     });
-  };
-
-  // Supprimer un paiement (avec toast et annulation)
-  const handleDelete = async (idx) => {
-    const paiement = paiements[idx];
-    if (!paiement || !paiement.id) return;
-    clearToast();
-    setToast({
-      open: true,
-      message: "Suppression en cours...",
-      type: "error",
-      undo: true,
-      loading: true,
-      timeoutId: null,
-    });
-    setLastDeleted({ ...paiement, idx });
-    // Timer d'annulation
-    const timeout = setTimeout(async () => {
-      await deleteDoc(doc(db, "recurrent", paiement.id));
-      setPaiements((prev) => prev.filter((_, i) => i !== idx));
-      setToast({
-        open: true,
-        message: "Suppression effectuée.",
-        type: "success",
-        undo: false,
-        loading: false,
-        timeoutId: setTimeout(() => clearToast(), 5000),
-      });
-      setDeleteTimeout(null);
-      setLastDeleted(null);
-    }, 5000);
-    setDeleteTimeout(timeout);
   };
 
   const handleUndo = () => {
@@ -160,6 +129,53 @@ export default function PaiementRecurrent() {
     setLastDeleted(null);
   };
 
+  // Remplace handleDelete par une version avec délai et toast
+  const handleDelete = async (idx) => {
+    const paiement = paiements[idx];
+    if (!paiement || !paiement.id) return;
+    clearToast();
+    setToast({
+      open: true,
+      message: "Suppression en cours...",
+      type: "error",
+      undo: true,
+      loading: true,
+      timeoutId: null,
+      action: {
+        label: "Annuler",
+        onClick: handleUndo,
+      },
+    });
+    setLastDeleted({ ...paiement, idx });
+    const timeout = setTimeout(async () => {
+      await deleteDoc(doc(db, "recurrent", paiement.id));
+      setPaiements((prev) => prev.filter((_, i) => i !== idx));
+      setToast({
+        open: true,
+        message: "Suppression effectuée.",
+        type: "success",
+        undo: false,
+        loading: false,
+        timeoutId: setTimeout(() => clearToast(), 5000),
+      });
+      setDeleteTimeout(null);
+      setLastDeleted(null);
+      // Notification suppression paiement récurrent
+      await addDoc(collection(db, "notifications"), {
+        type: "recurrent",
+        title: "Paiement récurrent supprimé",
+        desc: `Suppression de ${
+          paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
+        } (${parseFloat(paiement.montant).toFixed(2)}€)`,
+        date: new Date().toLocaleDateString("fr-FR"),
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+    }, 5000);
+    setDeleteTimeout(timeout);
+  };
+
+  // Nettoyage du toast si on quitte la page ou démonte le composant
   useEffect(() => {
     return () => {
       if (toast && toast.timeoutId) clearTimeout(toast.timeoutId);
@@ -245,6 +261,14 @@ export default function PaiementRecurrent() {
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={clearToast}
+        loading={toast.loading}
+        action={toast.action}
+      />
       <div className='flex flex-col gap-6'>
         {/* En-tête */}
         <div className='flex items-center justify-between'>
