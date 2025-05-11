@@ -88,23 +88,23 @@ export default function Agenda() {
   const events = fakeEvents[selectedDateStr] || [];
 
   return (
-    <div className='bg-[#f8fafc] min-h-screen p-6'>
+    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
       <div className='flex flex-col md:flex-row gap-8 w-full mx-auto'>
         {/* Partie gauche : Agenda */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 flex-1 min-w-0 md:w-1/2 w-full'>
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 flex-1 min-w-0 md:w-1/2 w-full'>
           <div className='mb-6'>
-            <div className='text-2xl font-semibold text-gray-800 mb-1'>
+            <div className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
               Agenda mensuel
             </div>
           </div>
           <div className='flex justify-end mb-4'>
-            <div className='flex items-center border rounded-lg px-4 py-2 text-gray-700 bg-white font-medium text-lg'>
+            <div className='flex items-center border dark:border-gray-800 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-black font-medium text-lg'>
               <AiOutlineCalendar className='mr-2' />
               {MONTHS[month]} {year}
             </div>
           </div>
           <div className='mb-6'>
-            <div className='grid grid-cols-7 text-center mb-2 text-gray-500 font-medium'>
+            <div className='grid grid-cols-7 text-center mb-2 text-gray-500 dark:text-gray-400 font-medium'>
               {DAYS.map((d) => (
                 <div key={d}>{d}</div>
               ))}
@@ -126,18 +126,20 @@ export default function Agenda() {
                     <div
                       key={i + "-" + j}
                       className={`aspect-square flex flex-col items-center justify-center cursor-pointer rounded-lg
-                        ${isSelected ? "bg-teal-100" : ""}
-                        ${day ? "hover:bg-gray-100" : ""}
+                        ${isSelected ? "bg-teal-100 dark:bg-teal-900" : ""}
+                        ${day ? "hover:bg-gray-100 dark:hover:bg-gray-900" : ""}
                         transition`}
                       onClick={() => handleSelect(day)}>
                       <span
                         className={`text-base font-semibold ${
-                          isSelected ? "text-gray-700" : "text-gray-800"
+                          isSelected
+                            ? "text-gray-700 dark:text-white"
+                            : "text-gray-800 dark:text-gray-200"
                         }`}>
                         {day ? day : ""}
                       </span>
                       {hasDot && (
-                        <span className='w-2 h-2 rounded-full bg-teal-400 mt-1'></span>
+                        <span className='w-2 h-2 rounded-full bg-teal-400 dark:bg-teal-500 mt-1'></span>
                       )}
                     </div>
                   );
@@ -147,19 +149,21 @@ export default function Agenda() {
           </div>
         </div>
         {/* Partie droite : Liste des événements */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 flex-1 min-w-0 md:w-1/2 w-full flex flex-col'>
-          <div className='text-lg font-semibold mb-4 text-gray-800'>
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 flex-1 min-w-0 md:w-1/2 w-full flex flex-col'>
+          <div className='text-lg font-semibold mb-4 text-gray-800 dark:text-white'>
             Événements du {String(selected.day).padStart(2, "0")}/
             {String(selected.month + 1).padStart(2, "0")}/{selected.year}
           </div>
           <div className='flex-1 flex flex-col justify-center'>
             {events.length === 0 ? (
-              <span className='text-gray-400 text-lg text-center'>
+              <span className='text-gray-400 dark:text-gray-500 text-lg text-center'>
                 Aucun événement pour cette date
               </span>
             ) : (
               events.map((ev, idx) => (
-                <div key={idx} className='text-gray-700 mb-2 text-base'>
+                <div
+                  key={idx}
+                  className='text-gray-700 dark:text-gray-300 mb-2 text-base'>
                   {ev}
                 </div>
               ))

@@ -244,42 +244,29 @@ export default function PaiementRecurrent() {
   ];
 
   return (
-    <div className='bg-[#f8fafc] min-h-screen'>
-      <Toast
-        open={toast.open}
-        message={toast.message}
-        type={toast.type}
-        onClose={clearToast}
-        loading={toast.loading}
-        action={
-          toast.undo
-            ? {
-                label: "Annuler",
-                onClick: handleUndo,
-              }
-            : undefined
-        }
-      />
-      <div className='p-8'>
-        <div className='flex items-center justify-end mb-6'>
+    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
+      <div className='flex flex-col gap-6'>
+        {/* En-tête */}
+        <div className='flex items-center justify-between'>
+          <div className='text-2xl font-semibold text-gray-800 dark:text-white'>
+            Paiements récurrents
+          </div>
           <button
-            className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'
-            onClick={() =>
-              isLoggedIn
-                ? setShowModal(true)
-                : navigate("/auth", { state: { isLogin: true } })
-            }>
-            <span className='text-xl'>+</span> Ajouter un paiement récurrent
+            className='bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition'
+            onClick={() => setShowModal(true)}>
+            <AiOutlineCalendar className='inline mr-2' />
+            Ajouter
           </button>
         </div>
+
         {/* Modal */}
         {showModal && (
           <div
             className='fixed inset-0 z-50 flex items-center justify-center'
             style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-            <div className='bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+            <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
               <button
-                className='absolute top-2 right-2 text-gray-400 hover:text-gray-700'
+                className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 onClick={() => {
                   setShowModal(false);
                   setStep(1);
@@ -288,11 +275,11 @@ export default function PaiementRecurrent() {
                 aria-label='Fermer'>
                 ✕
               </button>
-              <div className='mb-6 text-lg font-semibold'>
+              <div className='mb-6 text-lg font-semibold dark:text-white'>
                 Ajouter un paiement récurrent
               </div>
               {/* Récapitulatif dynamique */}
-              <div className='mb-4'>
+              <div className='mb-4 dark:text-gray-300'>
                 {newPaiement.nom && (
                   <div>
                     <span className='font-medium'>Libellé :</span>{" "}
@@ -313,15 +300,18 @@ export default function PaiementRecurrent() {
                   </div>
                 )}
               </div>
+              {/* Étapes */}
               {step === 1 && (
                 <div>
-                  <label className='block mb-2 font-medium'>Libellé</label>
+                  <label className='block mb-2 font-medium dark:text-white'>
+                    Nom du paiement
+                  </label>
                   <input
                     type='text'
                     name='nom'
                     value={newPaiement.nom}
                     onChange={handleChange}
-                    className='w-full border rounded px-3 py-2 mb-4'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                     placeholder='Ex: Netflix'
                     ref={nomInputRef}
                     onKeyDown={(e) => {
@@ -340,48 +330,47 @@ export default function PaiementRecurrent() {
               )}
               {step === 2 && (
                 <div>
-                  <label className='block mb-2 font-medium'>Catégorie</label>
-                  <div className='grid grid-cols-2 gap-2 mb-4'>
+                  <label className='block mb-2 font-medium dark:text-white'>
+                    Catégorie
+                  </label>
+                  <select
+                    name='categorie'
+                    value={newPaiement.categorie}
+                    onChange={handleChange}
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
+                    <option value=''>Sélectionner une catégorie</option>
                     {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat}
-                        type='button'
-                        className={`border rounded px-3 py-2 text-left ${
-                          newPaiement.categorie === cat
-                            ? "bg-blue-100 border-blue-400"
-                            : "hover:bg-gray-100"
-                        }`}
-                        onClick={() => {
-                          setNewPaiement({ ...newPaiement, categorie: cat });
-                          setStep(3);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            setNewPaiement({ ...newPaiement, categorie: cat });
-                            setStep(3);
-                          }
-                        }}
-                        tabIndex={0}>
+                      <option key={cat} value={cat}>
                         {cat}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                   <div className='flex justify-between'>
-                    <button className='text-gray-600' onClick={handlePrev}>
+                    <button
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
                       Précédent
+                    </button>
+                    <button
+                      className='bg-green-600 text-white px-4 py-2 rounded'
+                      disabled={!newPaiement.categorie}
+                      onClick={handleNext}>
+                      Suivant
                     </button>
                   </div>
                 </div>
               )}
               {step === 3 && (
                 <div>
-                  <label className='block mb-2 font-medium'>Montant (€)</label>
+                  <label className='block mb-2 font-medium dark:text-white'>
+                    Montant (€)
+                  </label>
                   <input
                     type='number'
                     name='montant'
                     value={newPaiement.montant}
                     onChange={handleChange}
-                    className='w-full border rounded px-3 py-2 mb-4'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                     min='0'
                     step='0.01'
                     placeholder='Ex: 14.99'
@@ -392,7 +381,9 @@ export default function PaiementRecurrent() {
                     }}
                   />
                   <div className='flex justify-between'>
-                    <button className='text-gray-600' onClick={handlePrev}>
+                    <button
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
                       Précédent
                     </button>
                     <button
@@ -411,40 +402,40 @@ export default function PaiementRecurrent() {
         <div className='flex flex-col md:flex-row gap-6 mb-8'>
           {/* Colonne gauche : Totaux mensuel et annuel */}
           <div className='flex-1 flex flex-col gap-4'>
-            <div className='bg-white border border-[#ececec] rounded-xl flex flex-col items-start gap-2 p-6'>
+            <div className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl flex flex-col items-start gap-2 p-6'>
               <div className='flex items-center gap-4'>
-                <div className='bg-blue-100 rounded-full p-3'>
-                  <AiOutlineCalendar className='text-2xl text-blue-500' />
+                <div className='bg-blue-100 dark:bg-blue-900 rounded-full p-3'>
+                  <AiOutlineCalendar className='text-2xl text-blue-500 dark:text-blue-400' />
                 </div>
-                <div className='text-gray-500 text-sm font-medium'>
+                <div className='text-gray-500 dark:text-gray-400 text-sm font-medium'>
                   Total mensuel
                 </div>
               </div>
-              <div className='text-2xl text-[#222]'>
+              <div className='text-2xl text-[#222] dark:text-white'>
                 {totalMensuel.toFixed(2)}€
               </div>
             </div>
-            <div className='bg-white border border-[#ececec] rounded-xl flex flex-col items-start gap-2 p-6'>
+            <div className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl flex flex-col items-start gap-2 p-6'>
               <div className='flex items-center gap-4'>
-                <div className='bg-green-100 rounded-full p-3'>
-                  <AiOutlineCalendar className='text-2xl text-green-500' />
+                <div className='bg-green-100 dark:bg-green-900 rounded-full p-3'>
+                  <AiOutlineCalendar className='text-2xl text-green-500 dark:text-green-400' />
                 </div>
-                <div className='text-gray-500 text-sm font-medium'>
+                <div className='text-gray-500 dark:text-gray-400 text-sm font-medium'>
                   Total annuel
                 </div>
               </div>
-              <div className='text-2xl text-[#222]'>
+              <div className='text-2xl text-[#222] dark:text-white'>
                 {totalAnnuel.toFixed(2)}€
               </div>
             </div>
           </div>
-          {/* Colonne droite : Dépenses par catégorie (graphique à venir) */}
-          <div className='flex-1 bg-white border border-[#ececec] rounded-xl flex flex-col items-center justify-center p-6'>
+          {/* Colonne droite : Dépenses par catégorie */}
+          <div className='flex-1 bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl flex flex-col items-center justify-center p-6'>
             <div className='flex items-center mb-2'>
-              <div className='bg-orange-100 rounded-full p-3 mr-2'>
-                <AiOutlineCalendar className='text-2xl text-orange-500' />
+              <div className='bg-orange-100 dark:bg-orange-900 rounded-full p-3 mr-2'>
+                <AiOutlineCalendar className='text-2xl text-orange-500 dark:text-orange-400' />
               </div>
-              <div className='text-gray-500 text-sm font-medium'>
+              <div className='text-gray-500 dark:text-gray-400 text-sm font-medium'>
                 Dépenses par catégorie
               </div>
             </div>
@@ -477,53 +468,28 @@ export default function PaiementRecurrent() {
                         />
                       ))}
                     </Pie>
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (
-                          active &&
-                          payload &&
-                          payload.length &&
-                          typeof payload[0].percent === "number"
-                        ) {
-                          const percent = payload[0].percent * 100;
-                          return (
-                            <div
-                              style={{
-                                background: "#fff",
-                                border: "1px solid #ddd",
-                                padding: "6px 12px",
-                                borderRadius: 6,
-                                fontSize: 14,
-                                color: "#222",
-                              }}>
-                              {isNaN(percent) ? "0%" : `${percent.toFixed(1)}%`}
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
+                    <Tooltip />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className='text-gray-400 text-center text-sm italic'>
-                  (Aucune donnée)
-                </div>
+                <span className='text-gray-400 dark:text-gray-500'>
+                  Aucune dépense récurrente
+                </span>
               )}
             </div>
-            {/* Les boutons Modifier/Supprimer ont été retirés ici */}
           </div>
         </div>
-        {/* Liste */}
-        <div className='bg-white border border-[#ececec] rounded-xl p-8'>
-          <div className='text-lg font-semibold mb-6'>
+
+        {/* Liste des paiements */}
+        <div className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl p-8'>
+          <div className='text-lg font-semibold mb-6 dark:text-white'>
             Abonnements et prélèvements
           </div>
           <div className='overflow-x-auto'>
             <table className='min-w-full text-left'>
               <thead>
-                <tr className='text-gray-500 font-medium text-sm'>
+                <tr className='text-gray-500 dark:text-gray-400 font-medium text-sm'>
                   <th className='py-3 px-2'>Nom</th>
                   <th className='py-3 px-2'>Catégorie</th>
                   <th className='py-3 px-2'>Montant</th>
@@ -532,21 +498,27 @@ export default function PaiementRecurrent() {
               </thead>
               <tbody>
                 {paiements.map((p, idx) => (
-                  <tr key={idx} className='border-t border-[#ececec]'>
-                    <td className='py-3 px-2'>
+                  <tr
+                    key={idx}
+                    className='border-t border-[#ececec] dark:border-gray-800'>
+                    <td className='py-3 px-2 dark:text-white'>
                       {p.nom.charAt(0).toUpperCase() + p.nom.slice(1)}
                     </td>
-                    <td className='py-3 px-2'>{p.categorie}</td>
-                    <td className='py-3 px-2'>{p.montant.toFixed(2)}€</td>
+                    <td className='py-3 px-2 dark:text-gray-300'>
+                      {p.categorie}
+                    </td>
+                    <td className='py-3 px-2 dark:text-white'>
+                      {p.montant.toFixed(2)}€
+                    </td>
                     <td className='py-3 px-2'>
                       <button
-                        className='text-blue-700 font-medium hover:underline mr-4'
+                        className='text-blue-700 dark:text-blue-400 font-medium hover:underline mr-4'
                         title='Modifier'
                         onClick={() => handleEdit(idx)}>
                         <FiEdit className='inline text-lg' />
                       </button>
                       <button
-                        className='text-red-500 font-medium hover:underline'
+                        className='text-red-500 dark:text-red-400 font-medium hover:underline'
                         title='Supprimer'
                         onClick={() => handleDelete(idx)}>
                         <FiTrash className='inline text-lg' />

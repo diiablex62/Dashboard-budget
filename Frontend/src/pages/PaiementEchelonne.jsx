@@ -346,62 +346,27 @@ export default function PaiementEchelonne() {
   }, [paiements]);
 
   return (
-    <div className='bg-[#f8fafc] min-h-screen'>
-      {/* Toast notification identique à la connexion */}
-      <Toast
-        open={toast.open}
-        message={toast.message}
-        type={toast.type}
-        onClose={clearToast}
-        loading={toast.loading}
-        action={
-          toast.undo
-            ? {
-                label: "Annuler",
-                onClick: handleUndo,
-              }
-            : undefined
-        }
-      />
-      <div className='p-8'>
-        <div className='flex items-center justify-between mb-6'>
-          <div>
-            <h1 className='text-2xl font-bold text-[#222]'>
-              Paiements échelonnés
-            </h1>
+    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
+      <div className='flex flex-col gap-6'>
+        {/* En-tête */}
+        <div className='flex items-center justify-between'>
+          <div className='text-2xl font-semibold text-gray-800 dark:text-white'>
+            Paiements échelonnés
           </div>
           <button
-            className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition h-12 min-w-[240px] text-base justify-center'
-            onClick={() =>
-              isLoggedIn
-                ? handleOpenModal()
-                : navigate("/auth", { state: { isLogin: true } })
-            }>
-            <AiOutlinePlus className='text-xl' /> Ajouter un paiement échelonné
+            className='bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition'
+            onClick={() => setShowModal(true)}>
+            <AiOutlinePlus className='inline mr-2' />
+            Ajouter
           </button>
         </div>
-        {/* Totaux */}
-        <div className='w-full flex flex-col md:flex-row md:gap-8 mb-8'>
-          <div className='w-full md:w-1/4 bg-white border border-[#ececec] rounded-xl flex flex-col items-start gap-2 p-6 mb-4 md:mb-0'>
-            <div className='flex items-center gap-4'>
-              <div className='bg-green-100 rounded-full p-3'>
-                <AiOutlineDollarCircle className='text-2xl text-green-500' />
-              </div>
-              <div className='text-gray-500 text-sm font-medium'>
-                Total Dépenses
-              </div>
-            </div>
-            <div className='text-2xl text-[#222]'>
-              {totalDepenses.toFixed(2)}€
-            </div>
-          </div>
-        </div>
+
         {/* Liste : 2 cartes par ligne, toute la largeur */}
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-6 w-full'>
           {paiementsAvecPourcentage.map((item, idx) => (
             <div
               key={item.id || idx}
-              className='bg-white border border-[#ececec] rounded-xl shadow-sm p-6 flex flex-col relative'>
+              className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl shadow-sm p-6 flex flex-col relative'>
               <div className='flex items-center justify-between mb-2'>
                 <div className='flex items-center gap-3'>
                   <div
@@ -415,21 +380,23 @@ export default function PaiementEchelonne() {
                       style={{ color: "#00b6e6" }}
                     />
                   </div>
-                  <span className='font-semibold text-[#222]'>
+                  <span className='font-semibold text-[#222] dark:text-white'>
                     {item.nom.charAt(0).toUpperCase() + item.nom.slice(1)}
                   </span>
                 </div>
-                <div className='text-[#222] font-bold text-xl'>
+                <div className='text-[#222] dark:text-white font-bold text-xl'>
                   {(item.montant / item.mensualites).toFixed(2)}
                   <span className='text-base font-normal'>€/mois</span>
                 </div>
               </div>
               <div className='flex items-center justify-between mb-1'>
-                <div className='font-medium' style={{ color: barColor }}>
+                <div
+                  className='font-medium dark:text-gray-300'
+                  style={{ color: barColor }}>
                   Mensualité {item.mensualitesPayees}/{item.mensualites}
                 </div>
               </div>
-              <div className='w-full h-2 bg-[#f0f2f5] rounded mb-2 overflow-hidden'>
+              <div className='w-full h-2 bg-[#f0f2f5] dark:bg-gray-800 rounded mb-2 overflow-hidden'>
                 <div
                   className='h-2 rounded transition-all duration-500'
                   style={{
@@ -437,16 +404,16 @@ export default function PaiementEchelonne() {
                     background: barColor,
                   }}></div>
               </div>
-              <div className='text-[#a0aec0] text-sm'>
+              <div className='text-sm text-gray-500 dark:text-gray-400'>
                 Reste à payer:{" "}
-                <span className='font-semibold text-[#222]'>
+                <span className='font-semibold text-[#222] dark:text-white'>
                   {item.montant
                     .toFixed(2)
                     .replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
                   €
                 </span>
               </div>
-              <div className='text-xs text-gray-400 mt-1'>
+              <div className='text-xs text-gray-400 dark:text-gray-500 mt-1'>
                 {(() => {
                   if (!item.debutMois || !item.mensualites) return "";
                   const [year, month] = item.debutMois.split("-");
@@ -479,30 +446,30 @@ export default function PaiementEchelonne() {
                 })()}
               </div>
               {/* Boutons action en bas à droite */}
-              <div className='flex justify-end gap-2 mt-4'>
+              <div className='absolute top-4 right-4 flex gap-2'>
                 <button
-                  className='p-2 rounded hover:bg-blue-50'
-                  title='Modifier'
+                  className='text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'
                   onClick={() => handleEdit(idx)}>
-                  <FiEdit className='inline text-xl text-blue-600' />
+                  <FiEdit className='text-lg' />
                 </button>
                 <button
-                  className='p-2 rounded hover:bg-red-50'
-                  title='Supprimer'
+                  className='text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300'
                   onClick={() => handleDelete(idx)}>
-                  <FiTrash className='inline text-xl text-red-500' />
+                  <FiTrash className='text-lg' />
                 </button>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Modal */}
         {showModal && (
           <div
             className='fixed inset-0 z-50 flex items-center justify-center'
             style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-            <div className='bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+            <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
               <button
-                className='absolute top-2 right-2 text-gray-400 hover:text-gray-700'
+                className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 onClick={() => {
                   setShowModal(false);
                   setStep(1);
@@ -517,12 +484,12 @@ export default function PaiementEchelonne() {
                 aria-label='Fermer'>
                 ✕
               </button>
-              <div className='mb-6 text-lg font-semibold'>
+              <div className='mb-6 text-lg font-semibold dark:text-white'>
                 {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
                 échelonné
               </div>
               {/* Récapitulatif dynamique */}
-              <div className='mb-4'>
+              <div className='mb-4 dark:text-gray-300'>
                 {newPaiement.nom && (
                   <div>
                     <span className='font-medium'>Libellé :</span>{" "}
@@ -544,21 +511,24 @@ export default function PaiementEchelonne() {
                 )}
                 {step > 3 && newPaiement.debutMois && (
                   <div>
-                    <span className='font-medium'>Début de mois :</span>{" "}
+                    <span className='font-medium'>Début :</span>{" "}
                     {newPaiement.debutMois}
                   </div>
                 )}
               </div>
+              {/* Étapes */}
               {step === 1 && (
                 <div>
-                  <label className='block mb-2 font-medium'>Libellé</label>
+                  <label className='block mb-2 font-medium dark:text-white'>
+                    Nom du paiement
+                  </label>
                   <input
                     type='text'
                     name='nom'
                     value={newPaiement.nom}
                     onChange={handleChange}
-                    className='w-full border rounded px-3 py-2 mb-4'
-                    placeholder='Ex: Smartphone Samsung'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                    placeholder='Ex: Smartphone'
                     ref={nomInputRef}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && newPaiement.nom) handleNext();
@@ -576,7 +546,7 @@ export default function PaiementEchelonne() {
               )}
               {step === 2 && (
                 <div>
-                  <label className='block mb-2 font-medium'>
+                  <label className='block mb-2 font-medium dark:text-white'>
                     Montant total (€)
                   </label>
                   <input
@@ -584,10 +554,10 @@ export default function PaiementEchelonne() {
                     name='montant'
                     value={newPaiement.montant}
                     onChange={handleChange}
-                    className='w-full border rounded px-3 py-2 mb-4'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                     min='0'
                     step='0.01'
-                    placeholder='Ex: 899.99'
+                    placeholder='Ex: 999.99'
                     ref={montantInputRef}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && newPaiement.montant)
@@ -595,22 +565,23 @@ export default function PaiementEchelonne() {
                     }}
                   />
                   <div className='flex justify-between'>
-                    <button className='text-gray-600' onClick={handlePrev}>
+                    <button
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
                       Précédent
                     </button>
                     <button
                       className='bg-green-600 text-white px-4 py-2 rounded'
                       disabled={!newPaiement.montant}
                       onClick={handleNext}>
-                      Valider
+                      Suivant
                     </button>
                   </div>
-                  {/* Supprimé l'affichage du montant saisi */}
                 </div>
               )}
               {step === 3 && (
                 <div>
-                  <label className='block mb-2 font-medium'>
+                  <label className='block mb-2 font-medium dark:text-white'>
                     Nombre de mensualités
                   </label>
                   <input
@@ -618,9 +589,9 @@ export default function PaiementEchelonne() {
                     name='mensualites'
                     value={newPaiement.mensualites}
                     onChange={handleChange}
-                    className='w-full border rounded px-3 py-2 mb-4'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                     min='1'
-                    step='1'
+                    max='48'
                     placeholder='Ex: 12'
                     ref={mensualitesInputRef}
                     onKeyDown={(e) => {
@@ -629,21 +600,23 @@ export default function PaiementEchelonne() {
                     }}
                   />
                   <div className='flex justify-between'>
-                    <button className='text-gray-600' onClick={handlePrev}>
+                    <button
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
                       Précédent
                     </button>
                     <button
                       className='bg-green-600 text-white px-4 py-2 rounded'
                       disabled={!newPaiement.mensualites}
                       onClick={handleNext}>
-                      Valider
+                      Suivant
                     </button>
                   </div>
                 </div>
               )}
               {step === 4 && (
                 <div>
-                  <label className='block mb-2 font-medium'>
+                  <label className='block mb-2 font-medium dark:text-white'>
                     Début de mois
                   </label>
                   <input
@@ -651,7 +624,7 @@ export default function PaiementEchelonne() {
                     name='debutMois'
                     value={newPaiement.debutMois}
                     onChange={handleChange}
-                    className='w-full border rounded px-3 py-2 mb-4'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                     ref={debutMoisInputRef}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && newPaiement.debutMois)
@@ -659,7 +632,9 @@ export default function PaiementEchelonne() {
                     }}
                   />
                   <div className='flex justify-between'>
-                    <button className='text-gray-600' onClick={handlePrev}>
+                    <button
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
                       Précédent
                     </button>
                     <button
@@ -682,7 +657,7 @@ export default function PaiementEchelonne() {
       </div>
       {isPending && (
         <div className='fixed top-0 left-0 w-full flex justify-center z-50'>
-          <div className='bg-blue-100 text-blue-700 px-4 py-2 rounded shadow mt-4'>
+          <div className='bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-4 py-2 rounded shadow mt-4'>
             Chargement des paiements...
           </div>
         </div>
