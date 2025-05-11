@@ -267,7 +267,12 @@ export default function DepensesRevenus() {
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
           {tab === "revenus" ? (
             <>
-              <div className='text-2xl font-bold mb-1'>Revenus du mois</div>
+              <div className='flex items-center justify-between mb-1'>
+                <div className='text-2xl font-bold'>Revenus du mois</div>
+                <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
+                  Ajouter un revenu
+                </button>
+              </div>
               <div className='text-gray-500 mb-6'>
                 Liste de tous vos revenus pour {getMonthYear(selectedDate)}
               </div>
@@ -276,7 +281,7 @@ export default function DepensesRevenus() {
                   <span className='text-gray-400 text-lg mb-4'>
                     Aucun revenu pour ce mois
                   </span>
-                  <button className='border px-5 py-2 rounded-lg font-semibold text-[var(--primary-color)] hover:bg-gray-50 transition cursor-pointer'>
+                  <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
                     Ajouter un revenu
                   </button>
                 </div>
@@ -309,7 +314,12 @@ export default function DepensesRevenus() {
             </>
           ) : (
             <>
-              <div className='text-2xl font-bold mb-1'>Dépenses du mois</div>
+              <div className='flex items-center justify-between mb-1'>
+                <div className='text-2xl font-bold'>Dépenses du mois</div>
+                <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
+                  Ajouter une dépense
+                </button>
+              </div>
               <div className='text-gray-500 mb-6'>
                 Liste de toutes vos dépenses pour {getMonthYear(selectedDate)}
               </div>
@@ -318,7 +328,7 @@ export default function DepensesRevenus() {
                   <span className='text-gray-400 text-lg mb-4'>
                     Aucune dépense pour ce mois
                   </span>
-                  <button className='border px-5 py-2 rounded-lg font-semibold text-[var(--primary-color)] hover:bg-gray-50 transition cursor-pointer'>
+                  <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
                     Ajouter une dépense
                   </button>
                 </div>
