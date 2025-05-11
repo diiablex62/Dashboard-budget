@@ -184,6 +184,17 @@ export default function PaiementEchelonne() {
           mensualites: parseInt(newPaiement.mensualites, 10),
           debutMois: newPaiement.debutMois,
         });
+        // Notification modification paiement échelonné
+        await addDoc(collection(db, "notifications"), {
+          type: "echelonne",
+          title: "Paiement échelonné modifié",
+          desc: `Modification de ${
+            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
+          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       } else {
         // AJOUT
         await addDoc(collection(db, "xfois"), {

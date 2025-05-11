@@ -207,6 +207,17 @@ export default function PaiementRecurrent() {
           categorie: newPaiement.categorie,
           montant: parseFloat(newPaiement.montant),
         });
+        // Notification modification paiement récurrent
+        await addDoc(collection(db, "notifications"), {
+          type: "recurrent",
+          title: "Paiement récurrent modifié",
+          desc: `Modification de ${
+            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
+          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       } else {
         // Ajout
         console.log("Ajout paiement Firestore :", newPaiement);
