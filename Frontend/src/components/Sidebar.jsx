@@ -42,7 +42,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer transition ${
                   isActive
-                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
@@ -57,7 +57,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
-                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
@@ -72,7 +72,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
-                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
@@ -87,7 +87,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
-                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
@@ -102,7 +102,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer ${
                   isActive
-                    ? "bg-gray-100 text-[var(--primary-color)] font-bold"
+                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
