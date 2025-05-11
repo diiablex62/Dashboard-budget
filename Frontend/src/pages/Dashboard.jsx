@@ -151,7 +151,7 @@ export default function Dashboard() {
               1
             </span>
           </div>
-          <div className='text-2xl font-bold mb-1'>2,456.78€</div>
+          <div className='text-2xl mb-1 text-[#222]'>2,456.78€</div>
           <div className='text-xs text-gray-400'>
             +3.2% depuis le mois dernier
           </div>
@@ -162,7 +162,7 @@ export default function Dashboard() {
             <span className='text-sm text-gray-500'>Paiements récurrents</span>
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
-          <div className='text-2xl font-bold mb-1'>
+          <div className='text-2xl mb-1 text-[#222]'>
             {totalRecurrents.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>
@@ -187,7 +187,7 @@ export default function Dashboard() {
             </span>
             <AiOutlineCreditCard className='text-green-400 text-xl' />
           </div>
-          <div className='text-2xl font-bold mb-1'>
+          <div className='text-2xl mb-1 text-[#222]'>
             {totalEchelonnes.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>
@@ -210,7 +210,7 @@ export default function Dashboard() {
             <span className='text-sm text-gray-500'>Économies</span>
             <AiOutlineRise className='text-orange-400 text-xl' />
           </div>
-          <div className='text-2xl font-bold mb-1'>1,258.44€</div>
+          <div className='text-2xl mb-1 text-[#222]'>1,258.44€</div>
           <div className='text-xs text-gray-400'>
             +2.5% depuis le mois dernier
           </div>

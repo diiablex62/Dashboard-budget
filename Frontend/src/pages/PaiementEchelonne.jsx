@@ -382,19 +382,17 @@ export default function PaiementEchelonne() {
         </div>
         {/* Totaux */}
         <div className='w-full flex flex-col md:flex-row md:gap-8 mb-8'>
-          <div className='w-full md:w-1/4 bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6 mb-4 md:mb-0'>
-            <div className='bg-green-100 rounded-full p-3'>
-              <AiOutlineDollarCircle className='text-2xl text-green-500' />
-            </div>
-            <div>
+          <div className='w-full md:w-1/4 bg-white border border-[#ececec] rounded-xl flex flex-col items-start gap-2 p-6 mb-4 md:mb-0'>
+            <div className='flex items-center gap-4'>
+              <div className='bg-green-100 rounded-full p-3'>
+                <AiOutlineDollarCircle className='text-2xl text-green-500' />
+              </div>
               <div className='text-gray-500 text-sm font-medium'>
                 Total Dépenses
               </div>
-              <div
-                className='text-xl font-semibold'
-               >
-                {totalDepenses.toFixed(2)}€
-              </div>
+            </div>
+            <div className='text-2xl text-[#222]'>
+              {totalDepenses.toFixed(2)}€
             </div>
           </div>
         </div>

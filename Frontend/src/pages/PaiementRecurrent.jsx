@@ -411,30 +411,30 @@ export default function PaiementRecurrent() {
         <div className='flex flex-col md:flex-row gap-6 mb-8'>
           {/* Colonne gauche : Totaux mensuel et annuel */}
           <div className='flex-1 flex flex-col gap-4'>
-            <div className='bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
-              <div className='bg-blue-100 rounded-full p-3'>
-                <AiOutlineCalendar className='text-2xl text-blue-500' />
-              </div>
-              <div>
+            <div className='bg-white border border-[#ececec] rounded-xl flex flex-col items-start gap-2 p-6'>
+              <div className='flex items-center gap-4'>
+                <div className='bg-blue-100 rounded-full p-3'>
+                  <AiOutlineCalendar className='text-2xl text-blue-500' />
+                </div>
                 <div className='text-gray-500 text-sm font-medium'>
                   Total mensuel
                 </div>
-                <div className='text-xl font-semibold'>
-                  {totalMensuel.toFixed(2)}€
-                </div>
+              </div>
+              <div className='text-2xl text-[#222]'>
+                {totalMensuel.toFixed(2)}€
               </div>
             </div>
-            <div className='bg-white border border-[#ececec] rounded-xl flex items-center gap-4 p-6'>
-              <div className='bg-green-100 rounded-full p-3'>
-                <AiOutlineCalendar className='text-2xl text-green-500' />
-              </div>
-              <div>
+            <div className='bg-white border border-[#ececec] rounded-xl flex flex-col items-start gap-2 p-6'>
+              <div className='flex items-center gap-4'>
+                <div className='bg-green-100 rounded-full p-3'>
+                  <AiOutlineCalendar className='text-2xl text-green-500' />
+                </div>
                 <div className='text-gray-500 text-sm font-medium'>
                   Total annuel
                 </div>
-                <div className='text-xl font-semibold'>
-                  {totalAnnuel.toFixed(2)}€
-                </div>
+              </div>
+              <div className='text-2xl text-[#222]'>
+                {totalAnnuel.toFixed(2)}€
               </div>
             </div>
           </div>

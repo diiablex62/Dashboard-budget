@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 
 // Couleurs et icônes pour correspondre à l'image
 const MONTHS = [
@@ -181,38 +182,37 @@ export default function DepensesRevenus() {
         </div>
         {/* Indicateurs */}
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-4'>
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
-            <span className='text-green-500 text-2xl'>↓</span>
-            <div>
-              <div className='text-sm font-semibold text-green-600'>
-                Total Revenus
-              </div>
-              <div className='text-2xl font-bold text-[#222]'>
-                {totalRevenus.toFixed(2)} €
-              </div>
+          {/* Total Revenus */}
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-green-600 mb-2'>
+              <FaArrowDown className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Total Revenus</span>
+            </div>
+            <div className='text-2xl text-[#222]'>
+              {totalRevenus.toFixed(2)} €
             </div>
           </div>
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
-            <span className='text-red-500 text-2xl'>↑</span>
-            <div>
-              <div className='text-sm font-semibold text-red-600'>
-                Total Dépenses
-              </div>
-              <div className='text-2xl font-bold text-[#222]'>
-                {totalDepenses.toFixed(2)} €
-              </div>
+          {/* Total Dépenses */}
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-red-600 mb-2'>
+              <FaArrowUp className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Total Dépenses</span>
+            </div>
+            <div className='text-2xl text-[#222]'>
+              {totalDepenses.toFixed(2)} €
             </div>
           </div>
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
-            <span className='text-2xl text-gray-700 font-bold'>€</span>
-            <div>
-              <div className='text-sm font-semibold text-gray-600'>Solde</div>
-              <div
-                className={`text-2xl font-bold ${
-                  solde >= 0 ? "text-green-600" : "text-red-600"
-                }`}>
-                {solde.toFixed(2)} €
-              </div>
+          {/* Solde */}
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center mb-2'>
+              <span className='text-2xl text-gray-700 font-bold mr-2'>€</span>
+              <span className='text-sm font-semibold text-gray-600'>Solde</span>
+            </div>
+            <div
+              className={`text-2xl ${
+                solde >= 0 ? "text-green-600" : "text-red-600"
+              }`}>
+              {solde.toFixed(2)} €
             </div>
           </div>
         </div>
