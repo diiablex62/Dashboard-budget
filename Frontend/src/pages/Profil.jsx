@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import Toast from "../components/Toast";
+import { FaSearch } from "react-icons/fa";
 
 export default function Profil() {
   const { user } = useAuth();
@@ -13,10 +14,13 @@ export default function Profil() {
     telephone: "",
     adresse: "",
   });
-  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -25,8 +29,8 @@ export default function Profil() {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) {
             setUserData(userDoc.data());
+            setSearchQuery(userDoc.data().adresse || "");
           } else {
-            // Créer un document utilisateur par défaut
             const defaultData = {
               prenom: user.displayName?.split(" ")[0] || "",
               nom: user.displayName?.split(" ")[1] || "",
@@ -36,6 +40,7 @@ export default function Profil() {
             };
             await setDoc(doc(db, "users", user.uid), defaultData);
             setUserData(defaultData);
+            setSearchQuery(defaultData.adresse || "");
           }
         } catch (error) {
           console.error("Erreur lors de la récupération des données:", error);
@@ -49,12 +54,54 @@ export default function Profil() {
     fetchUserData();
   }, [user]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const searchAddress = async (query) => {
+    if (query.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+          query
+        )}&limit=5`
+      );
+      const data = await response.json();
+      setAddressSuggestions(data.features || []);
+    } catch (error) {
+      console.error("Erreur lors de la recherche d'adresse:", error);
+    }
+  };
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    searchAddress(value);
+    setShowSuggestions(true);
+    setHasChanges(true);
+  };
+
+  const handleAddressSelect = (address) => {
     setUserData((prev) => ({
       ...prev,
-      [name]: value,
+      adresse: address.properties.label,
     }));
+    setSearchQuery(address.properties.label);
+    setShowSuggestions(false);
+    setHasChanges(true);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "adresse") {
+      handleAddressChange(e);
+    } else {
+      setUserData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+      setHasChanges(true);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -63,7 +110,7 @@ export default function Profil() {
       await setDoc(doc(db, "users", user.uid), userData);
       setToastMessage("Profil mis à jour avec succès");
       setShowToast(true);
-      setIsEditing(false);
+      setHasChanges(false);
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
       setToastMessage("Erreur lors de la mise à jour du profil");
@@ -107,11 +154,13 @@ export default function Profil() {
             <h2 className='text-lg font-semibold dark:text-white'>
               Informations personnelles
             </h2>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className='text-[var(--primary-color)] hover:text-[var(--primary-hover-color)]'>
-              {isEditing ? "Annuler" : "Modifier"}
-            </button>
+            {hasChanges && (
+              <button
+                onClick={handleSubmit}
+                className='bg-[var(--primary-color)] text-white px-6 py-2 rounded-lg font-medium hover:bg-[var(--primary-hover-color)] transition'>
+                Sauvegarder
+              </button>
+            )}
           </div>
           <form onSubmit={handleSubmit} className='space-y-6'>
             <div className='flex gap-4'>
@@ -124,8 +173,7 @@ export default function Profil() {
                   name='prenom'
                   value={userData.prenom}
                   onChange={handleChange}
-                  disabled={!isEditing}
-                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 dark:disabled:bg-gray-800'
+                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
                 />
               </div>
               <div className='flex-1'>
@@ -137,8 +185,7 @@ export default function Profil() {
                   name='nom'
                   value={userData.nom}
                   onChange={handleChange}
-                  disabled={!isEditing}
-                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 dark:disabled:bg-gray-800'
+                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
                 />
               </div>
             </div>
@@ -151,8 +198,7 @@ export default function Profil() {
                 name='email'
                 value={userData.email}
                 onChange={handleChange}
-                disabled={!isEditing}
-                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 dark:disabled:bg-gray-800'
+                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
               />
             </div>
             <div>
@@ -164,30 +210,38 @@ export default function Profil() {
                 name='telephone'
                 value={userData.telephone}
                 onChange={handleChange}
-                disabled={!isEditing}
-                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 dark:disabled:bg-gray-800'
+                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
               />
             </div>
-            <div>
+            <div className='relative'>
               <label className='block text-sm font-medium mb-1 dark:text-white'>
                 Adresse
               </label>
-              <input
-                type='text'
-                name='adresse'
-                value={userData.adresse}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100 dark:disabled:bg-gray-800'
-              />
+              <div className='relative'>
+                <input
+                  type='text'
+                  name='adresse'
+                  value={searchQuery}
+                  onChange={handleChange}
+                  placeholder='Commencez à taper une adresse...'
+                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
+                />
+                <FaSearch className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+              </div>
+              {showSuggestions && addressSuggestions.length > 0 && (
+                <div className='absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto'>
+                  {addressSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type='button'
+                      onClick={() => handleAddressSelect(suggestion)}
+                      className='w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-700 dark:text-gray-300'>
+                      {suggestion.properties.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            {isEditing && (
-              <button
-                type='submit'
-                className='bg-gray-900 text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800 transition'>
-                Sauvegarder les modifications
-              </button>
-            )}
           </form>
         </div>
       </div>
