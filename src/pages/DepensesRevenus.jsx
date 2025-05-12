@@ -250,7 +250,15 @@ function RevenuModal({
                 type='number'
                 name='montant'
                 value={form.montant}
-                onChange={handleChange}
+                onChange={(e) => {
+                  // Vérifier que la valeur est positive
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value > 0) {
+                    handleChange(e);
+                  } else if (e.target.value === "") {
+                    handleChange(e);
+                  }
+                }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                 min='0.01'
                 step='0.01'
@@ -510,7 +518,15 @@ function DepenseModal({
                 type='number'
                 name='montant'
                 value={form.montant}
-                onChange={handleChange}
+                onChange={(e) => {
+                  // Vérifier que la valeur est positive
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value > 0) {
+                    handleChange(e);
+                  } else if (e.target.value === "") {
+                    handleChange(e);
+                  }
+                }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                 min='0.01'
                 step='0.01'
@@ -1232,7 +1248,7 @@ export default function DepensesRevenus() {
         {/* Header */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
           <div>
-            <h1 className='text-3xl font-bold text-[#222] dark:text-white mb-1'>
+            <h1 className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
               Dépenses & Revenus
             </h1>
             <div className='text-gray-500 dark:text-gray-400 text-base'>
@@ -1530,7 +1546,15 @@ export default function DepensesRevenus() {
                   type='number'
                   name='montant'
                   value={newTransaction.montant}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    // Vérifier que la valeur est positive
+                    const value = parseFloat(e.target.value);
+                    if (!isNaN(value) && value > 0) {
+                      handleChange(e);
+                    } else if (e.target.value === "") {
+                      handleChange(e);
+                    }
+                  }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                   min='0.01'
                   step='0.01'
