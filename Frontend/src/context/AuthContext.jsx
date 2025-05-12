@@ -8,6 +8,7 @@ import {
   browserLocalPersistence,
   GoogleAuthProvider,
   signInWithPopup,
+  updateProfile,
 } from "firebase/auth";
 
 const AuthContext = createContext();
@@ -87,6 +88,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    if (auth.currentUser && typeof auth.currentUser.reload === "function") {
+      await auth.currentUser.reload();
+      setUser({ ...auth.currentUser });
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   if (loading) {
     return (
       <div className='flex items-center justify-center min-h-screen'>
@@ -97,7 +112,15 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, loginWithGoogle, logout }}>
+      value={{
+        user,
+        setUser,
+        refreshUser,
+        loading,
+        login,
+        loginWithGoogle,
+        logout,
+      }}>
       {children}
     </AuthContext.Provider>
   );

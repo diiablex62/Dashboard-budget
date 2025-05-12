@@ -6,13 +6,14 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Toast from "../components/Toast";
 import { FaSearch, FaCamera } from "react-icons/fa";
 import { updateProfile } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 const CLOUDINARY_CLOUD_NAME = "dulclkp2k";
 const CLOUDINARY_UPLOAD_PRESET = "ml_default";
 const CLOUDINARY_API_KEY = import.meta.env.VITE_CLOUDINARY_API_KEY;
 
 export default function Profil() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [userData, setUserData] = useState({
     prenom: "",
     nom: "",
@@ -31,6 +32,17 @@ export default function Profil() {
   const [isHovering, setIsHovering] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Ajoute un effet pour synchroniser userData.photoURL dès que user.photoURL change (Navbar à Profil)
+  useEffect(() => {
+    if (user && user.photoURL && user.photoURL !== userData.photoURL) {
+      setUserData((prev) => ({
+        ...prev,
+        photoURL: user.photoURL,
+      }));
+    }
+    // eslint-disable-next-line
+  }, [user?.photoURL]);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) {
@@ -39,10 +51,16 @@ export default function Profil() {
       }
 
       try {
+        // Utilise toujours auth.currentUser pour la photo la plus à jour
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-          setUserData(userDoc.data());
-          setSearchQuery(userDoc.data().adresse || "");
+          const data = userDoc.data();
+          setUserData({
+            ...data,
+            // Prend la photo la plus récente (Firebase Auth > Firestore)
+            photoURL: auth.currentUser?.photoURL || data.photoURL || "",
+          });
+          setSearchQuery(data.adresse || "");
         } else {
           const defaultData = {
             prenom: user.displayName?.split(" ")[0] || "",
@@ -50,7 +68,7 @@ export default function Profil() {
             email: user.email || "",
             telephone: "",
             adresse: "",
-            photoURL: user.photoURL || "",
+            photoURL: auth.currentUser?.photoURL || user.photoURL || "",
           };
           await setDoc(doc(db, "users", user.uid), defaultData);
           setUserData(defaultData);
@@ -70,7 +88,7 @@ export default function Profil() {
     };
 
     fetchUserData();
-  }, [user]);
+  }, [user, user?.photoURL]);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -114,20 +132,28 @@ export default function Profil() {
 
       const photoURL = data.secure_url;
 
-      // Mise à jour du profil Firebase Auth (pour la Navbar)
-      if (user && typeof updateProfile === "function") {
-        await updateProfile(user, { photoURL });
-        // Force le rafraîchissement du user pour la Navbar
-        if (typeof user.reload === "function") {
-          await user.reload();
+      // Utilise l'objet natif Firebase Auth pour updateProfile
+      const firebaseUser = auth.currentUser;
+
+      if (firebaseUser && typeof updateProfile === "function") {
+        await updateProfile(firebaseUser, { photoURL });
+        if (typeof refreshUser === "function") {
+          await refreshUser(); // Met à jour le contexte et donc la navbar
         }
       }
 
       // Mise à jour des données utilisateur dans Firestore (la BDD)
       const updatedData = { ...userData, photoURL };
-      await setDoc(doc(db, "users", user.uid), updatedData);
+      await setDoc(doc(db, "users", firebaseUser.uid), updatedData);
 
-      setUserData(updatedData);
+      // Mets à jour l'état local avec la photo la plus récente (Firebase Auth)
+      setUserData((prev) => ({
+        ...prev,
+        photoURL: firebaseUser.photoURL || photoURL,
+      }));
+
+      // Ajout : retire le hover après upload réussi
+      setIsHovering(false);
 
       setToastMessage("Photo de profil mise à jour avec succès");
       setShowToast(true);

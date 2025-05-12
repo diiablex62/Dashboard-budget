@@ -286,17 +286,12 @@ export default function DepensesRevenus() {
           </div>
         </div>
         {/* Liste revenus/dépenses */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
           {tab === "revenus" ? (
             <>
               <div className='flex items-center justify-between mb-1'>
-                <div className='text-2xl font-bold dark:text-white'>
-                  Revenus du mois
-                </div>
-                <button
-                  className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
-                  onClick={() => setShowModal(true)}>
-                  <AiOutlinePlus className='inline mr-2' />
+                <div className='text-2xl font-bold'>Revenus du mois</div>
+                <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
                   Ajouter un revenu
                 </button>
               </div>
@@ -345,13 +340,8 @@ export default function DepensesRevenus() {
           ) : (
             <>
               <div className='flex items-center justify-between mb-1'>
-                <div className='text-2xl font-bold dark:text-white'>
-                  Dépenses du mois
-                </div>
-                <button
-                  className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
-                  onClick={() => setShowModal(true)}>
-                  <AiOutlinePlus className='inline mr-2' />
+                <div className='text-2xl font-bold'>Dépenses du mois</div>
+                <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
                   Ajouter une dépense
                 </button>
               </div>
