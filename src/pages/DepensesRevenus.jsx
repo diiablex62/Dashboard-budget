@@ -13,6 +13,8 @@ import {
   serverTimestamp,
   query,
   orderBy,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 import Toast from "../components/Toast";
 
@@ -67,7 +69,7 @@ function RevenuModal({
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
     nom: revenu.nom || "",
-    montant: revenu.montant ? revenu.montant.toString() : "",
+    montant: revenu.montant ? revenu.montant.toString() : "0",
     categorie: revenu.categorie || "",
     date: revenu.date || new Date().toISOString().split("T")[0],
   });
@@ -83,7 +85,7 @@ function RevenuModal({
     e.preventDefault();
 
     // Vérifier si tous les champs requis sont remplis
-    if (!form.nom || !form.categorie || !form.montant || !form.date) {
+    if (!form.nom || !form.categorie || form.montant === "" || !form.date) {
       console.error("Formulaire incomplet", form);
       return;
     }
@@ -283,7 +285,7 @@ function DepenseModal({
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
     nom: depense.nom || "",
-    montant: depense.montant ? Math.abs(depense.montant).toString() : "",
+    montant: depense.montant ? Math.abs(depense.montant).toString() : "0",
     date: depense.date || new Date().toISOString().split("T")[0],
     categorie: depense.categorie || "",
   });
@@ -299,7 +301,7 @@ function DepenseModal({
     e.preventDefault();
 
     // Vérifier si tous les champs requis sont remplis
-    if (!form.nom || !form.categorie || !form.montant || !form.date) {
+    if (!form.nom || !form.categorie || form.montant === "" || !form.date) {
       console.error("Formulaire incomplet", form);
       return;
     }
@@ -496,8 +498,8 @@ export default function DepensesRevenus() {
   const [step, setStep] = useState(1);
   const [newTransaction, setNewTransaction] = useState({
     nom: "",
-    montant: "",
-    date: "",
+    montant: "0",
+    date: new Date().toISOString().split("T")[0],
     categorie: "",
   });
   const [depenses, setDepenses] = useState([]);
@@ -512,6 +514,11 @@ export default function DepensesRevenus() {
     loading: false,
     timeoutId: null,
   });
+
+  // État pour l'édition de transaction
+  const [editTransaction, setEditTransaction] = useState(null);
+  const [lastDeleted, setLastDeleted] = useState(null);
+  const [deleteTimeout, setDeleteTimeout] = useState(null);
 
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
@@ -649,8 +656,8 @@ export default function DepensesRevenus() {
       setStep(1);
       setNewTransaction({
         nom: "",
-        montant: "",
-        date: "",
+        montant: "0",
+        date: new Date().toISOString().split("T")[0],
         categorie: "",
       });
     } catch (err) {
@@ -907,6 +914,110 @@ export default function DepensesRevenus() {
     }
   };
 
+  // Fonction pour gérer le nettoyage du toast
+  const clearToast = () => {
+    setToast((t) => {
+      if (t.timeoutId) clearTimeout(t.timeoutId);
+      return { ...t, open: false, timeoutId: null };
+    });
+  };
+
+  // Fonction pour annuler la suppression
+  const handleUndo = () => {
+    if (deleteTimeout) clearTimeout(deleteTimeout);
+    setDeleteTimeout(null);
+    setToast({
+      open: true,
+      message: "Suppression annulée.",
+      type: "success",
+      undo: false,
+      loading: false,
+      timeoutId: setTimeout(() => clearToast(), 3000),
+    });
+    setLastDeleted(null);
+  };
+
+  // Fonction pour modifier une transaction
+  const handleEdit = (transaction) => {
+    if (transaction.montant >= 0) {
+      setEditTransaction(transaction);
+      setShowRevenuModal(true);
+    } else {
+      setEditTransaction({
+        ...transaction,
+        montant: Math.abs(transaction.montant),
+      });
+      setShowDepenseModal(true);
+    }
+  };
+
+  // Fonction pour supprimer une transaction avec délai et toast
+  const handleDelete = async (transaction) => {
+    if (!transaction || !transaction.id) return;
+    const collectionName = transaction.montant >= 0 ? "revenu" : "depense";
+    clearToast();
+    setToast({
+      open: true,
+      message: "Suppression en cours...",
+      type: "error",
+      undo: true,
+      loading: true,
+      timeoutId: null,
+      action: {
+        label: "Annuler",
+        onClick: handleUndo,
+      },
+    });
+    setLastDeleted(transaction);
+    const timeout = setTimeout(async () => {
+      try {
+        await deleteDoc(doc(db, collectionName, transaction.id));
+
+        // Mettre à jour l'état local
+        if (collectionName === "revenu") {
+          setRevenus(revenus.filter((r) => r.id !== transaction.id));
+        } else {
+          setDepenses(depenses.filter((d) => d.id !== transaction.id));
+        }
+
+        // Toast de succès
+        setToast({
+          open: true,
+          message: "Suppression effectuée.",
+          type: "success",
+          undo: false,
+          loading: false,
+          timeoutId: setTimeout(() => clearToast(), 5000),
+        });
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error);
+        setToast({
+          open: true,
+          message: "Erreur lors de la suppression",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(() => clearToast(), 5000),
+        });
+      }
+      setDeleteTimeout(null);
+      setLastDeleted(null);
+    }, 5000);
+    setDeleteTimeout(timeout);
+  };
+
+  // Nettoyage des timeouts
+  useEffect(() => {
+    return () => {
+      if (toast && toast.timeoutId) clearTimeout(toast.timeoutId);
+      if (deleteTimeout) clearTimeout(deleteTimeout);
+    };
+    // eslint-disable-next-line
+  }, [toast, deleteTimeout]);
+
+  // Supprimer l'avertissement de lint pour lastDeleted
+  // eslint-disable-next-line no-unused-vars
+  const { lastDeleted: _, ...rest } = { lastDeleted };
+
   // Fonctions de rendu des cartes de transaction
   const renderTransaction = (transaction) => {
     const montant = transaction.montant;
@@ -914,29 +1025,72 @@ export default function DepensesRevenus() {
       montant >= 0
         ? `+${Number(montant).toFixed(2)} €`
         : `${Number(montant).toFixed(2)} €`;
-    const montantColor = montant >= 0 ? "text-green-600" : "text-red-600";
+    const montantColor =
+      montant >= 0
+        ? "text-green-600 dark:text-green-400"
+        : "text-red-600 dark:text-red-400";
     const dateFormatted = formatDate(transaction.date);
 
     return (
       <div
         key={transaction.id}
-        className='bg-white rounded-lg shadow border border-gray-100 p-4 flex flex-col'>
+        className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center'>
-            <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3'>
-              <span className='text-gray-600'>€</span>
+            <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
+              <span className='text-gray-600 dark:text-gray-300'>€</span>
             </div>
             <div>
-              <div className='font-semibold'>
+              <div className='font-semibold dark:text-white'>
                 {transaction.nom.charAt(0).toUpperCase() +
                   transaction.nom.slice(1)}
               </div>
-              <div className='text-xs text-gray-500'>
+              <div className='text-xs text-gray-500 dark:text-gray-400'>
                 {dateFormatted} • {transaction.categorie}
               </div>
             </div>
           </div>
-          <div className={`font-bold ${montantColor}`}>{montantText}</div>
+          <div className='flex flex-col items-end'>
+            <div className={`font-bold ${montantColor}`}>{montantText}</div>
+            <div className='flex mt-2'>
+              <button
+                onClick={() => handleEdit(transaction)}
+                className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 mr-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
+                aria-label='Modifier'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  strokeWidth={1.5}
+                  stroke='currentColor'
+                  className='w-4 h-4'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10'
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={() => handleDelete(transaction)}
+                className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
+                aria-label='Supprimer'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  strokeWidth={1.5}
+                  stroke='currentColor'
+                  className='w-4 h-4'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0'
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1059,11 +1213,13 @@ export default function DepensesRevenus() {
         </div>
         {/* Contenu revenus/dépenses */}
         {tab === "depenses" && (
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
             <div className='flex items-center justify-between mb-6'>
               <div>
-                <div className='text-2xl font-bold'>Dépenses du mois</div>
-                <div className='text-sm text-gray-500 mt-1'>
+                <div className='text-2xl font-bold text-[#222] dark:text-white'>
+                  Dépenses du mois
+                </div>
+                <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   Liste de toutes vos dépenses pour {moisEnCours}
                 </div>
               </div>
@@ -1087,7 +1243,7 @@ export default function DepensesRevenus() {
             )}
 
             {depensesFiltres.length === 0 ? (
-              <div className='bg-[#f7fafd] rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
+              <div className='bg-[#f7fafd] dark:bg-gray-900 rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
                 <div className='text-gray-400 text-center text-sm italic mb-4'>
                   Aucune dépense pour ce mois
                 </div>
@@ -1100,20 +1256,26 @@ export default function DepensesRevenus() {
 
             {showDepenseModal && (
               <DepenseModal
-                onClose={() => setShowDepenseModal(false)}
+                onClose={() => {
+                  setShowDepenseModal(false);
+                  setEditTransaction(null);
+                }}
                 onSave={handleAddDepense}
                 categories={categories}
+                depense={editTransaction || {}}
               />
             )}
           </div>
         )}
 
         {tab === "revenus" && (
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
             <div className='flex items-center justify-between mb-6'>
               <div>
-                <div className='text-2xl font-bold'>Revenus du mois</div>
-                <div className='text-sm text-gray-500 mt-1'>
+                <div className='text-2xl font-bold text-[#222] dark:text-white'>
+                  Revenus du mois
+                </div>
+                <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   Liste de tous vos revenus pour {moisEnCours}
                 </div>
               </div>
@@ -1137,7 +1299,7 @@ export default function DepensesRevenus() {
             )}
 
             {revenusFiltres.length === 0 ? (
-              <div className='bg-[#f7fafd] rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
+              <div className='bg-[#f7fafd] dark:bg-gray-900 rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
                 <div className='text-gray-400 text-center text-sm italic mb-4'>
                   Aucun revenu pour ce mois
                 </div>
@@ -1150,9 +1312,13 @@ export default function DepensesRevenus() {
 
             {showRevenuModal && (
               <RevenuModal
-                onClose={() => setShowRevenuModal(false)}
+                onClose={() => {
+                  setShowRevenuModal(false);
+                  setEditTransaction(null);
+                }}
                 onSave={handleAddRevenu}
                 categories={categories}
+                revenu={editTransaction || {}}
               />
             )}
           </div>
@@ -1172,8 +1338,8 @@ export default function DepensesRevenus() {
                 setStep(1);
                 setNewTransaction({
                   nom: "",
-                  montant: "",
-                  date: "",
+                  montant: "0",
+                  date: new Date().toISOString().split("T")[0],
                   categorie: "",
                 });
               }}

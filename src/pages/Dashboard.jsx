@@ -113,7 +113,7 @@ export default function Dashboard() {
     navigate(url);
   };
 
-  // Optimisation : useMemo pour éviter les recalculs inutiles
+  // Optimisation: useMemo pour éviter les recalculs inutiles
   const dataCategories = useMemo(() => {
     return [...new Set(paiementsRecurrents.map((p) => p.categorie))]
       .map((cat) => ({
@@ -195,7 +195,7 @@ export default function Dashboard() {
         <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
             <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Paiements en plusieurs fois
+              Paiements échelonnés
             </span>
             <AiOutlineCreditCard className='text-green-400 dark:text-green-500 text-xl' />
           </div>
