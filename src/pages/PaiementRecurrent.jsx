@@ -376,7 +376,13 @@ export default function PaiementRecurrent() {
                   <select
                     name='categorie'
                     value={newPaiement.categorie}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e);
+                      if (e.target.value) {
+                        // Passe automatiquement à l'étape suivante après sélection
+                        setTimeout(() => handleNext(), 100);
+                      }
+                    }}
                     className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
                     <option value=''>Sélectionner une catégorie</option>
                     {CATEGORIES.map((cat) => (
