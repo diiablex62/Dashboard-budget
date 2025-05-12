@@ -58,6 +58,8 @@ export default function DepensesRevenus() {
   });
   const [depenses, setDepenses] = useState([]);
   const [revenus, setRevenus] = useState([]);
+  const [showDepenseModal, setShowDepenseModal] = useState(false);
+  const [showRevenuModal, setShowRevenuModal] = useState(false);
 
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
@@ -176,6 +178,11 @@ export default function DepensesRevenus() {
       ? revenusFiltres.length === 0
       : depensesFiltres.length === 0;
 
+  const moisEnCours = new Date().toLocaleDateString("fr-FR", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
       <div className='max-w-6xl mx-auto'>
@@ -286,118 +293,112 @@ export default function DepensesRevenus() {
           </div>
         </div>
         {/* Liste revenus/dépenses */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
-          {tab === "revenus" ? (
-            <>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='text-2xl font-bold'>Revenus du mois</div>
-                <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
-                  Ajouter un revenu
-                </button>
-              </div>
-              <div className='text-gray-500 dark:text-gray-400 mb-6'>
-                Liste de tous vos revenus pour {getMonthYear(selectedDate)}
-              </div>
-              {showEmpty ? (
-                <div className='flex flex-col items-center justify-center bg-[#f8fafc] dark:bg-black rounded-lg px-6 py-12'>
-                  <span className='text-gray-400 dark:text-gray-500 text-lg mb-4'>
-                    Aucun revenu pour ce mois
-                  </span>
-                  <button
-                    className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
-                    onClick={() => setShowModal(true)}>
-                    <AiOutlinePlus className='inline mr-2' />
-                    Ajouter un revenu
-                  </button>
-                </div>
-              ) : (
-                <div className='grid md:grid-cols-2 gap-4'>
-                  {revenusFiltres.map((r, idx) => (
-                    <div
-                      key={idx}
-                      className='flex items-center justify-between bg-[#f8fafc] dark:bg-black rounded-lg px-6 py-5 border border-[#ececec] dark:border-gray-800'>
-                      <div>
-                        <div className='flex items-center gap-2 mb-1'>
-                          <span className='text-2xl text-green-600 dark:text-green-400'>
-                            {r.icon}
-                          </span>
-                          <span className='font-semibold text-[#222] dark:text-white'>
-                            {r.nom}
-                          </span>
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          {formatDate(r.date)} • {r.categorie}
-                        </div>
-                      </div>
-                      <div className='font-bold text-green-600 dark:text-green-400 text-lg'>
-                        {r.montant.toFixed(2)} €
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className='flex items-center justify-between mb-1'>
+        {tab === "depenses" && (
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+            <div className='flex items-center justify-between mb-1'>
+              <div>
                 <div className='text-2xl font-bold'>Dépenses du mois</div>
-                <button className='bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
-                  Ajouter une dépense
+                <div className='text-sm text-gray-500 mt-1'>
+                  Liste de toutes vos dépenses pour {moisEnCours}
+                </div>
+              </div>
+            </div>
+            {depenses.length === 0 ? (
+              <div className='bg-[#f7fafd] rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
+                <div className='text-gray-400 text-center text-sm italic mb-4'>
+                  Aucune dépense pour ce mois
+                </div>
+                <button
+                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => setShowDepenseModal(true)}
+                >
+                  <span className="text-lg font-bold">+</span>
+                  <span>Ajouter une dépense</span>
                 </button>
               </div>
-              <div className='text-gray-500 dark:text-gray-400 mb-6'>
-                Liste de toutes vos dépenses pour {getMonthYear(selectedDate)}
+            ) : (
+              // ...tableau/liste des dépenses...
+              <div className='overflow-x-auto mt-6'>
+                <table className='min-w-full text-left'>
+                  <thead>
+                    <tr className='text-gray-500 dark:text-gray-400 font-medium text-sm'>
+                      <th className='py-3 px-2'>Nom</th>
+                      <th className='py-3 px-2'>Catégorie</th>
+                      <th className='py-3 px-2'>Montant</th>
+                      <th className='py-3 px-2'>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {depenses.map((dep, idx) => (
+                      <tr
+                        key={dep.id || idx}
+                        className='border-t border-[#ececec] dark:border-gray-800'>
+                        <td className='py-3 px-2 dark:text-white'>
+                          {dep.nom.charAt(0).toUpperCase() + dep.nom.slice(1)}
+                        </td>
+                        <td className='py-3 px-2 dark:text-gray-300'>
+                          {dep.categorie}
+                        </td>
+                        <td className='py-3 px-2 dark:text-white'>
+                          {Number(dep.montant).toFixed(2)}€
+                        </td>
+                        <td className='py-3 px-2'>
+                          {/* Ajoute ici tes boutons d'action si besoin */}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              {showEmpty ? (
-                <div className='flex flex-col items-center justify-center bg-[#f8fafc] dark:bg-black rounded-lg px-6 py-12'>
-                  <span className='text-gray-400 dark:text-gray-500 text-lg mb-4'>
-                    Aucune dépense pour ce mois
-                  </span>
-                  <button
-                    className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
-                    onClick={() => setShowModal(true)}>
-                    <AiOutlinePlus className='inline mr-2' />
-                    Ajouter une dépense
-                  </button>
+            )}
+            {showDepenseModal && (
+              <DepenseModal
+                onClose={() => setShowDepenseModal(false)}
+                onSave={handleAddDepense}
+                // ...props nécessaires...
+              />
+            )}
+          </div>
+        )}
+        {tab === "revenus" && (
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+            <div className='flex items-center justify-between mb-1'>
+              <div>
+                <div className='text-2xl font-bold'>Revenus du mois</div>
+                <div className='text-sm text-gray-500 mt-1'>
+                  Liste de tous vos revenus pour {moisEnCours}
                 </div>
-              ) : (
-                <div className='grid md:grid-cols-2 gap-4'>
-                  {depensesFiltres.map((d, idx) => (
-                    <div
-                      key={idx}
-                      className='flex items-center justify-between bg-[#f8fafc] dark:bg-black rounded-lg px-6 py-5 border border-[#ececec] dark:border-gray-800'>
-                      <div>
-                        <div className='flex items-center gap-2 mb-1'>
-                          <span className='text-2xl text-[#222] dark:text-white'>
-                            {d.icon}
-                          </span>
-                          <span className='font-semibold text-[#222] dark:text-white'>
-                            {d.nom}
-                          </span>
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          {formatDate(d.date)} • {d.categorie}
-                        </div>
-                      </div>
-                      <div className='font-bold text-red-500 dark:text-red-400 text-lg'>
-                        {d.montant.toFixed(2)} €
-                      </div>
-                    </div>
-                  ))}
+              </div>
+            </div>
+            {revenus.length === 0 ? (
+              <div className='bg-[#f7fafd] rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
+                <div className='text-gray-400 text-center text-sm italic mb-4'>
+                  Aucun revenu pour ce mois
                 </div>
-              )}
-            </>
-          )}
-        </div>
+                <button
+                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => setShowRevenuModal(true)}
+                >
+                  <span className="text-lg font-bold">+</span>
+                  <span>Ajouter un revenu</span>
+                </button>
+              </div>
+            ) : (
+              // ...tableau/liste des revenus...
+              <div className='overflow-x-auto mt-6'>
+                {/* ...table des revenus... */}
+              </div>
+            )}
+            {showRevenuModal && (
+              <RevenuModal
+                onClose={() => setShowRevenuModal(false)}
+                onSave={handleAddRevenu}
+                // ...props nécessaires...
+              />
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Bouton Ajouter */}
-      <button
-        className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
-        onClick={() => setShowModal(true)}>
-        <AiOutlinePlus className='inline mr-2' />
-        Ajouter {tab === "depenses" ? "une dépense" : "un revenu"}
-      </button>
 
       {/* Modal */}
       {showModal && (
