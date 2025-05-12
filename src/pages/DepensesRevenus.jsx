@@ -69,10 +69,12 @@ function RevenuModal({
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
     nom: revenu.nom || "",
-    montant: revenu.montant ? revenu.montant.toString() : "0",
+    montant: revenu.montant ? revenu.montant.toString() : "",
     categorie: revenu.categorie || "",
     date: revenu.date || new Date().toISOString().split("T")[0],
   });
+  const montantInputRef = useRef(null);
+  const dateInputRef = useRef(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -81,19 +83,37 @@ function RevenuModal({
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
 
+  // Focus sur les champs après changement d'étape
+  useEffect(() => {
+    if (step === 3 && montantInputRef.current) {
+      setTimeout(() => {
+        montantInputRef.current.focus();
+      }, 100);
+    } else if (step === 4 && dateInputRef.current) {
+      setTimeout(() => {
+        dateInputRef.current.focus();
+      }, 100);
+    }
+  }, [step]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     // Vérifier si tous les champs requis sont remplis
-    if (!form.nom || !form.categorie || form.montant === "" || !form.date) {
-      console.error("Formulaire incomplet", form);
+    if (!form.nom) {
+      console.error("Nom manquant", form);
       return;
     }
 
-    // S'assurer que le montant est un nombre valide
+    if (!form.categorie) {
+      console.error("Catégorie manquante", form);
+      return;
+    }
+
+    // S'assurer que le montant est un nombre valide et non nul
     const montant = parseFloat(form.montant);
-    if (isNaN(montant)) {
-      console.error("Montant invalide", form.montant);
+    if (isNaN(montant) || montant === 0) {
+      console.error("Montant invalide ou nul", form.montant);
       return;
     }
 
@@ -158,6 +178,9 @@ function RevenuModal({
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                 placeholder='Ex: Salaire'
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.nom) handleNext();
+                }}
               />
               <div className='flex justify-end'>
                 <button
@@ -180,11 +203,20 @@ function RevenuModal({
                 value={form.categorie}
                 onChange={(e) => {
                   handleChange(e);
-                  if (e.target.value) {
+                  // Passage automatique après sélection d'une catégorie (mais pas sur la valeur vide)
+                  if (e.target.value && e.target.value !== "") {
                     setTimeout(() => handleNext(), 100);
                   }
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.categorie) {
+                    e.preventDefault();
+                    handleNext();
+                  }
+                }}>
+                {/* Première option vide avec message */}
                 <option value=''>Sélectionner une catégorie</option>
                 {categories.map((cat, index) => (
                   <option key={index} value={cat}>
@@ -220,9 +252,14 @@ function RevenuModal({
                 value={form.montant}
                 onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                min='0'
+                min='0.01'
                 step='0.01'
                 placeholder='Ex: 2000'
+                ref={montantInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && parseFloat(form.montant) > 0)
+                    handleNext();
+                }}
               />
               <div className='flex justify-between'>
                 <button
@@ -252,6 +289,13 @@ function RevenuModal({
                 value={form.date}
                 onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                ref={dateInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.date) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
               />
               <div className='flex justify-between'>
                 <button
@@ -285,10 +329,12 @@ function DepenseModal({
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
     nom: depense.nom || "",
-    montant: depense.montant ? Math.abs(depense.montant).toString() : "0",
+    montant: depense.montant ? Math.abs(depense.montant).toString() : "",
     date: depense.date || new Date().toISOString().split("T")[0],
     categorie: depense.categorie || "",
   });
+  const montantInputRef = useRef(null);
+  const dateInputRef = useRef(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -297,19 +343,37 @@ function DepenseModal({
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
 
+  // Focus sur les champs après changement d'étape
+  useEffect(() => {
+    if (step === 3 && montantInputRef.current) {
+      setTimeout(() => {
+        montantInputRef.current.focus();
+      }, 100);
+    } else if (step === 4 && dateInputRef.current) {
+      setTimeout(() => {
+        dateInputRef.current.focus();
+      }, 100);
+    }
+  }, [step]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     // Vérifier si tous les champs requis sont remplis
-    if (!form.nom || !form.categorie || form.montant === "" || !form.date) {
-      console.error("Formulaire incomplet", form);
+    if (!form.nom) {
+      console.error("Nom manquant", form);
       return;
     }
 
-    // S'assurer que le montant est un nombre valide
+    if (!form.categorie) {
+      console.error("Catégorie manquante", form);
+      return;
+    }
+
+    // S'assurer que le montant est un nombre valide et non nul
     const montant = parseFloat(form.montant);
-    if (isNaN(montant)) {
-      console.error("Montant invalide", form.montant);
+    if (isNaN(montant) || montant === 0) {
+      console.error("Montant invalide ou nul", form.montant);
       return;
     }
 
@@ -374,6 +438,9 @@ function DepenseModal({
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                 placeholder='Ex: Courses'
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.nom) handleNext();
+                }}
               />
               <div className='flex justify-end'>
                 <button
@@ -396,11 +463,20 @@ function DepenseModal({
                 value={form.categorie}
                 onChange={(e) => {
                   handleChange(e);
-                  if (e.target.value) {
+                  // Passage automatique après sélection d'une catégorie (mais pas sur la valeur vide)
+                  if (e.target.value && e.target.value !== "") {
                     setTimeout(() => handleNext(), 100);
                   }
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.categorie) {
+                    e.preventDefault();
+                    handleNext();
+                  }
+                }}>
+                {/* Première option vide avec message */}
                 <option value=''>Sélectionner une catégorie</option>
                 {categories.map((cat, index) => (
                   <option key={index} value={cat}>
@@ -436,9 +512,14 @@ function DepenseModal({
                 value={form.montant}
                 onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                min='0'
+                min='0.01'
                 step='0.01'
                 placeholder='Ex: 99.99'
+                ref={montantInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && parseFloat(form.montant) > 0)
+                    handleNext();
+                }}
               />
               <div className='flex justify-between'>
                 <button
@@ -468,6 +549,13 @@ function DepenseModal({
                 value={form.date}
                 onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                ref={dateInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && form.date) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
               />
               <div className='flex justify-between'>
                 <button
@@ -498,7 +586,7 @@ export default function DepensesRevenus() {
   const [step, setStep] = useState(1);
   const [newTransaction, setNewTransaction] = useState({
     nom: "",
-    montant: "0",
+    montant: "",
     date: new Date().toISOString().split("T")[0],
     categorie: "",
   });
@@ -656,7 +744,7 @@ export default function DepensesRevenus() {
       setStep(1);
       setNewTransaction({
         nom: "",
-        montant: "0",
+        montant: "",
         date: new Date().toISOString().split("T")[0],
         categorie: "",
       });
@@ -707,7 +795,8 @@ export default function DepensesRevenus() {
       ? revenusFiltres.length === 0
       : depensesFiltres.length === 0;
 
-  const moisEnCours = new Date().toLocaleDateString("fr-FR", {
+  // Obtenir le mois et l'année correctement depuis la date sélectionnée
+  const moisSelectionne = selectedDate.toLocaleDateString("fr-FR", {
     month: "long",
     year: "numeric",
   });
@@ -718,12 +807,11 @@ export default function DepensesRevenus() {
       console.log("Ajout dépense Firestore :", depense);
 
       // Vérification des données
-      if (!depense.nom || !depense.categorie) {
-        console.error("Données dépense incomplètes", depense);
+      if (!depense.nom) {
+        console.error("Nom dépense manquant", depense);
         setToast({
           open: true,
-          message:
-            "Erreur: données incomplètes. Veuillez remplir tous les champs.",
+          message: "Erreur: nom manquant. Veuillez saisir un nom.",
           type: "error",
           loading: false,
           timeoutId: setTimeout(
@@ -734,13 +822,30 @@ export default function DepensesRevenus() {
         return;
       }
 
-      // Vérifier que le montant est un nombre valide
-      const montant = parseFloat(depense.montant);
-      if (isNaN(montant)) {
-        console.error("Montant invalide", depense.montant);
+      if (!depense.categorie) {
+        console.error("Catégorie dépense manquante", depense);
         setToast({
           open: true,
-          message: "Erreur: montant invalide. Veuillez saisir un nombre.",
+          message:
+            "Erreur: catégorie manquante. Veuillez sélectionner une catégorie.",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(
+            () => setToast((t) => ({ ...t, open: false })),
+            5000
+          ),
+        });
+        return;
+      }
+
+      // Vérifier que le montant est un nombre valide et non nul
+      const montant = parseFloat(depense.montant);
+      if (isNaN(montant) || montant === 0) {
+        console.error("Montant invalide ou nul", depense.montant);
+        setToast({
+          open: true,
+          message:
+            "Erreur: montant invalide ou nul. Veuillez saisir un montant supérieur à 0.",
           type: "error",
           loading: false,
           timeoutId: setTimeout(
@@ -764,7 +869,7 @@ export default function DepensesRevenus() {
       // Simplification - juste essayer d'ajouter le document avec montant validé
       await addDoc(collection(db, "depense"), {
         nom: depense.nom.trim(),
-        montant: montant, // Utiliser la valeur validée
+        montant: -Math.abs(montant), // Utiliser la valeur validée
         date: depense.date || new Date().toISOString().split("T")[0],
         categorie: depense.categorie.trim(),
         createdAt: serverTimestamp(),
@@ -819,12 +924,11 @@ export default function DepensesRevenus() {
       console.log("Ajout revenu Firestore :", revenu);
 
       // Vérification des données
-      if (!revenu.nom || !revenu.categorie) {
-        console.error("Données revenu incomplètes", revenu);
+      if (!revenu.nom) {
+        console.error("Nom revenu manquant", revenu);
         setToast({
           open: true,
-          message:
-            "Erreur: données incomplètes. Veuillez remplir tous les champs.",
+          message: "Erreur: nom manquant. Veuillez saisir un nom.",
           type: "error",
           loading: false,
           timeoutId: setTimeout(
@@ -835,13 +939,30 @@ export default function DepensesRevenus() {
         return;
       }
 
-      // Vérifier que le montant est un nombre valide
-      const montant = parseFloat(revenu.montant);
-      if (isNaN(montant)) {
-        console.error("Montant invalide", revenu.montant);
+      if (!revenu.categorie) {
+        console.error("Catégorie revenu manquante", revenu);
         setToast({
           open: true,
-          message: "Erreur: montant invalide. Veuillez saisir un nombre.",
+          message:
+            "Erreur: catégorie manquante. Veuillez sélectionner une catégorie.",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(
+            () => setToast((t) => ({ ...t, open: false })),
+            5000
+          ),
+        });
+        return;
+      }
+
+      // Vérifier que le montant est un nombre valide et non nul
+      const montant = parseFloat(revenu.montant);
+      if (isNaN(montant) || montant === 0) {
+        console.error("Montant invalide ou nul", revenu.montant);
+        setToast({
+          open: true,
+          message:
+            "Erreur: montant invalide ou nul. Veuillez saisir un montant supérieur à 0.",
           type: "error",
           loading: false,
           timeoutId: setTimeout(
@@ -1104,6 +1225,7 @@ export default function DepensesRevenus() {
         type={toast.type}
         loading={toast.loading}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
+        action={toast.action}
       />
 
       <div className='max-w-6xl mx-auto'>
@@ -1220,15 +1342,18 @@ export default function DepensesRevenus() {
                   Dépenses du mois
                 </div>
                 <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Liste de toutes vos dépenses pour {moisEnCours}
+                  Liste de toutes vos dépenses pour {moisSelectionne}
                 </div>
               </div>
-              <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                onClick={() => setShowDepenseModal(true)}>
-                <span className='text-lg font-bold'>+</span>
-                <span>Ajouter</span>
-              </button>
+              {/* Afficher le bouton uniquement s'il y a des dépenses */}
+              {depensesFiltres.length > 0 && (
+                <button
+                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => setShowDepenseModal(true)}>
+                  <span className='text-lg font-bold'>+</span>
+                  <span>Ajouter</span>
+                </button>
+              )}
             </div>
 
             {showEmpty && (
@@ -1242,13 +1367,7 @@ export default function DepensesRevenus() {
               </div>
             )}
 
-            {depensesFiltres.length === 0 ? (
-              <div className='bg-[#f7fafd] dark:bg-gray-900 rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
-                <div className='text-gray-400 text-center text-sm italic mb-4'>
-                  Aucune dépense pour ce mois
-                </div>
-              </div>
-            ) : (
+            {depensesFiltres.length === 0 ? null : (
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {depensesFiltres.map(renderTransaction)}
               </div>
@@ -1276,15 +1395,18 @@ export default function DepensesRevenus() {
                   Revenus du mois
                 </div>
                 <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Liste de tous vos revenus pour {moisEnCours}
+                  Liste de tous vos revenus pour {moisSelectionne}
                 </div>
               </div>
-              <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                onClick={() => setShowRevenuModal(true)}>
-                <span className='text-lg font-bold'>+</span>
-                <span>Ajouter</span>
-              </button>
+              {/* Afficher le bouton uniquement s'il y a des revenus */}
+              {revenusFiltres.length > 0 && (
+                <button
+                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => setShowRevenuModal(true)}>
+                  <span className='text-lg font-bold'>+</span>
+                  <span>Ajouter</span>
+                </button>
+              )}
             </div>
 
             {showEmpty && (
@@ -1298,13 +1420,7 @@ export default function DepensesRevenus() {
               </div>
             )}
 
-            {revenusFiltres.length === 0 ? (
-              <div className='bg-[#f7fafd] dark:bg-gray-900 rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
-                <div className='text-gray-400 text-center text-sm italic mb-4'>
-                  Aucun revenu pour ce mois
-                </div>
-              </div>
-            ) : (
+            {revenusFiltres.length === 0 ? null : (
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {revenusFiltres.map(renderTransaction)}
               </div>
@@ -1338,7 +1454,7 @@ export default function DepensesRevenus() {
                 setStep(1);
                 setNewTransaction({
                   nom: "",
-                  montant: "0",
+                  montant: "",
                   date: new Date().toISOString().split("T")[0],
                   categorie: "",
                 });
@@ -1416,12 +1532,15 @@ export default function DepensesRevenus() {
                   value={newTransaction.montant}
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  min='0'
+                  min='0.01'
                   step='0.01'
                   placeholder='Ex: 99.99'
                   ref={montantInputRef}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && newTransaction.montant)
+                    if (
+                      e.key === "Enter" &&
+                      parseFloat(newTransaction.montant) > 0
+                    )
                       handleNext();
                   }}
                 />
@@ -1481,12 +1600,14 @@ export default function DepensesRevenus() {
                   value={newTransaction.categorie}
                   onChange={(e) => {
                     handleChange(e);
-                    if (e.target.value) {
-                      setTimeout(() => handleAddTransaction(), 100);
+                    // Passage automatique après sélection d'une catégorie (mais pas la valeur vide)
+                    if (e.target.value && e.target.value !== "") {
+                      setTimeout(() => handleAddTransaction(), 300);
                     }
                   }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  ref={categorieInputRef}>
+                  ref={categorieInputRef}
+                  autoFocus>
                   <option value=''>Sélectionner une catégorie</option>
                   {categories.map((cat, index) => (
                     <option key={index} value={cat}>
