@@ -3,6 +3,7 @@ import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
 import { ThemeContext } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import SettingsPanel from "./SettingsPanel";
 import Google from "./Google";
@@ -12,21 +13,15 @@ import NotificationBell from "./NotificationBell";
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
     useContext(AppContext);
-
+  const { user, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
-      setUser(storedUser);
-    }
-
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -38,6 +33,16 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsLoggedIn(false);
+      navigate("/auth");
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+    }
+  };
 
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
@@ -94,16 +99,18 @@ export default function Navbar() {
         </div>
         <button
           onClick={toggleDarkMode}
-          className='flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 transition'
+          className='flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer'
           title={isDarkMode ? "Passer en mode clair" : "Passer en mode sombre"}>
           {isDarkMode ? (
-            <FiSun className='text-xl text-yellow-400' />
+            <FiSun className='text-xl text-yellow-400 cursor-pointer' />
           ) : (
-            <FiMoon className='text-xl text-gray-600' />
+            <FiMoon className='text-xl text-gray-600 cursor-pointer' />
           )}
         </button>
         <div className='relative'>
-          <div onClick={() => navigate("/notifications")}>
+          <div
+            onClick={() => navigate("/notifications")}
+            className='cursor-pointer'>
             <NotificationBell />
           </div>
         </div>
@@ -135,39 +142,27 @@ export default function Navbar() {
                     </div>
                   </div>
                 </div>
-                <ul className='text-sm text-gray-800 dark:text-white'>
-                  <li
-                    className={`px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer ${
-                      location.pathname === "/profil"
-                        ? "bg-gray-100 dark:bg-gray-700 font-bold"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      navigate("/profil");
-                    }}>
-                    Mon profil
-                  </li>
-                  <li
-                    className='px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      setIsSettingsOpen(true);
-                    }}>
-                    Paramètres
-                  </li>
-                </ul>
-                <hr className='my-1 dark:border-gray-700' />
-                <div
-                  className='px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
+                <button
                   onClick={() => {
+                    navigate("/profil");
                     setIsDropdownOpen(false);
-                    localStorage.removeItem("user");
-                    setIsLoggedIn(false);
-                    navigate("/");
-                  }}>
+                  }}
+                  className='w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                  Profil
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSettingsOpen(true);
+                    setIsDropdownOpen(false);
+                  }}
+                  className='w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
+                  Paramètres
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className='w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
                   Se déconnecter
-                </div>
+                </button>
               </div>
             )}
           </div>

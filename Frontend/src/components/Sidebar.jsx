@@ -1,24 +1,26 @@
-import React, { useContext } from "react";
+import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "../styles/tailwind.css";
-import { AppContext } from "../context/AppContext";
-import { AiOutlineCalendar, AiOutlineCreditCard } from "react-icons/ai";
-import { MdSpaceDashboard, MdAutorenew } from "react-icons/md";
-import { HiArrowsRightLeft } from "react-icons/hi2";
+import { useAuth } from "../context/AuthContext";
+import {
+  AiOutlineHome,
+  AiOutlinePieChart,
+  AiOutlineCalendar,
+  AiOutlineSetting,
+} from "react-icons/ai";
+import { MdAutorenew } from "react-icons/md";
 
 export default function Sidebar() {
-  const { sidebarType, isNavbarFixed, isLoggedIn } = useContext(AppContext); // Récupérez isLoggedIn depuis le contexte
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Ne rien afficher pendant le chargement
+  if (loading) {
+    return null;
+  }
+
   return (
-    <div
-      className={`w-72 h-screen fixed top-0 left-0 z-30 ${
-        sidebarType === "transparent"
-          ? "bg-transparent"
-          : "bg-white dark:bg-black"
-      } text-gray-800 dark:text-white flex flex-col shadow-md ${
-        isNavbarFixed ? "mt-16" : ""
-      }`}>
+    <div className='w-72 h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md'>
       <h2 className='text-3xl font-bold p-8 border-b border-gray-200 dark:border-gray-800'>
         Gestion de budget
       </h2>
@@ -36,7 +38,7 @@ export default function Sidebar() {
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <MdSpaceDashboard className='mr-6 text-2xl text-[var(--primary-color)]' />
+              <AiOutlineHome className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Dashboard</span>
             </NavLink>
           </li>
@@ -52,10 +54,7 @@ export default function Sidebar() {
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <HiArrowsRightLeft
-                className='mr-6 text-2xl text-[var(--primary-color)]'
-                style={{ width: 24, height: 24 }}
-              />
+              <AiOutlinePieChart className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Dépenses & Revenus</span>
             </NavLink>
           </li>
@@ -87,7 +86,7 @@ export default function Sidebar() {
                     : "hover:text-[var(--primary-color)]"
                 }`
               }>
-              <AiOutlineCreditCard className='mr-6 text-2xl text-[var(--primary-color)]' />
+              <AiOutlineSetting className='mr-6 text-2xl text-[var(--primary-color)]' />
               <span className='text-lg font-medium'>Paiements échelonnés</span>
             </NavLink>
           </li>
@@ -109,7 +108,7 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
-      {!isLoggedIn && (
+      {!user && (
         <div className='p-4 border-t border-gray-200'>
           <button
             className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'

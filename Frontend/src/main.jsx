@@ -5,19 +5,22 @@ import "./styles/tailwind.css";
 import App from "./App";
 
 import { AppProvider } from "./context/AppContext";
-import { ThemeProvider } from "./context/ThemeContext"; // Importez le ThemeProvider
+import { ThemeProvider } from "./context/ThemeContext"; 
 import { BudgetProvider } from "./context/BudgetContext";
+import { AuthProvider } from "./context/AuthContext";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
-      <AppProvider>
-        <BudgetProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </BudgetProvider>
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <BudgetProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </BudgetProvider>
+        </AppProvider>
+      </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

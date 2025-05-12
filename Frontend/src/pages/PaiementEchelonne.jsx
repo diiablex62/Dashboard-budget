@@ -491,14 +491,14 @@ export default function PaiementEchelonne() {
                 })()}
               </div>
               {/* Boutons action en bas à droite */}
-              <div className='absolute top-4 right-4 flex gap-2'>
+              <div className='flex gap-2 mt-4 justify-end'>
                 <button
-                  className='text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'
+                  className='text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer'
                   onClick={() => handleEdit(idx)}>
                   <FiEdit className='text-lg' />
                 </button>
                 <button
-                  className='text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300'
+                  className='text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 cursor-pointer'
                   onClick={() => handleDelete(idx)}>
                   <FiTrash className='text-lg' />
                 </button>

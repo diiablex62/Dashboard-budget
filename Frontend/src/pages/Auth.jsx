@@ -3,24 +3,23 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import Google from "../components/Google";
 import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
-import {
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
-} from "firebase/auth";
+import { auth, googleProvider } from "../firebaseConfig";
+import { signInWithPopup } from "firebase/auth";
 import { GithubAuthProvider } from "firebase/auth";
 import Toast from "../components/Toast";
 
 export default function Auth() {
   const { setIsLoggedIn, primaryColor } = useContext(AppContext);
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -106,25 +105,24 @@ export default function Auth() {
       loading: true,
       timeoutId: null,
     });
+
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ email: user.email, displayName: user.displayName })
-      );
-      // Affiche le toast "Bienvenue" avec chargement puis succès
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
-        message: `Bienvenue ${user.displayName || "utilisateur"} !`,
-        type: "success",
-        loading: false,
-        timeoutId: null,
-      });
-      setTimeout(() => setToast((t) => ({ ...t, open: false })), 3000);
-      setIsLoggedIn(true);
-      navigate("/");
+      const result = await loginWithGoogle();
+      if (result.success) {
+        if (toast.timeoutId) clearTimeout(toast.timeoutId);
+        setToast({
+          open: true,
+          message: `Bienvenue ${result.user?.displayName || "utilisateur"} !`,
+          type: "success",
+          loading: false,
+          timeoutId: null,
+        });
+        setTimeout(() => setToast((t) => ({ ...t, open: false })), 3000);
+        setIsLoggedIn(true);
+        navigate("/");
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       setToast({
         open: true,
@@ -138,89 +136,44 @@ export default function Auth() {
     }
   };
 
-  const handleEmailLinkAuth = async () => {
-    console.log("Sending sign-in link to email:", email);
-    try {
-      // Détectez l'environnement et définissez l'URL de redirection
-      const actionCodeSettings = {
-        url:
-          window.location.hostname === "localhost"
-            ? "http://localhost:5173" // Utilisez localhost avec le port 5173
-            : "https://budget-e4f90.firebaseapp.com", // URL pour production
-        handleCodeInApp: true,
-      };
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setToast({
+      open: true,
+      message: "Connexion en cours...",
+      type: "loading",
+      loading: true,
+      timeoutId: null,
+    });
 
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      console.log("Sign-in link sent successfully");
-      toast.success(
-        "Un lien de connexion a été envoyé à votre adresse e-mail !"
-      );
-      window.localStorage.setItem("emailForSignIn", email);
-      setShowEmailForm(false);
-    } catch (error) {
-      console.error("Error sending sign-in link:", error);
-      if (error.code === "auth/quota-exceeded") {
-        toast.error(
-          "Vous avez atteint la limite quotidienne d'envoi de liens de connexion. Veuillez réessayer demain."
-        );
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        if (toast.timeoutId) clearTimeout(toast.timeoutId);
+        setToast({
+          open: true,
+          message: "Connexion réussie !",
+          type: "success",
+          loading: false,
+          timeoutId: null,
+        });
+        setTimeout(() => setToast((t) => ({ ...t, open: false })), 3000);
+        setIsLoggedIn(true);
+        navigate("/");
       } else {
-        toast.error(
-          "Échec de l'envoi du lien de connexion. Veuillez réessayer."
-        );
+        throw new Error(result.error);
       }
+    } catch (error) {
+      setToast({
+        open: true,
+        message: "Échec de la connexion. Vérifiez vos identifiants.",
+        type: "error",
+        loading: false,
+        timeoutId: null,
+      });
+      setTimeout(() => setToast((t) => ({ ...t, open: false })), 4000);
     }
   };
-
-  useEffect(() => {
-    const finalizeEmailLinkAuth = async () => {
-      console.log("Checking if the current URL is a sign-in link...");
-      if (isSignInWithEmailLink(auth, window.location.href)) {
-        console.log("The current URL is a valid sign-in link.");
-        let email = window.localStorage.getItem("emailForSignIn");
-        console.log("Retrieved email from localStorage:", email);
-
-        if (!email) {
-          email = window.prompt(
-            "Veuillez fournir votre e-mail pour confirmation"
-          );
-          console.log("Email provided by user:", email);
-        }
-
-        if (!email) {
-          console.error("No email provided. Cannot finalize sign-in.");
-          toast.error("Échec de la connexion. Aucune adresse e-mail fournie.");
-          return;
-        }
-
-        try {
-          console.log("Attempting to sign in with email link...");
-          const result = await signInWithEmailLink(
-            auth,
-            email,
-            window.location.href
-          );
-          console.log("Sign-in finalized successfully:", result.user);
-
-          // Supprimez l'e-mail stocké après une connexion réussie
-          window.localStorage.removeItem("emailForSignIn");
-
-          // Affichez un message de succès et mettez à jour l'état
-          toast.success(
-            `Bienvenue ${result.user.displayName || "utilisateur"} !`
-          );
-          setIsLoggedIn(true); // Mettez à jour l'état de connexion
-          console.log("User is now logged in. Redirecting to dashboard...");
-          navigate("/"); // Redirigez vers le tableau de bord
-        } catch (error) {
-          console.error("Error finalizing sign-in:", error);
-          toast.error("Échec de la connexion. Veuillez réessayer.");
-        }
-      } else {
-        console.log("The current URL is not a valid sign-in link.");
-      }
-    };
-    finalizeEmailLinkAuth();
-  }, [navigate, setIsLoggedIn]);
 
   return (
     <div className='flex min-h-screen relative'>
@@ -315,7 +268,7 @@ export default function Auth() {
                 Connectez-vous avec GitHub
               </button>
               <button
-                onClick={() => setShowEmailForm(true)} // Afficher le sous-formulaire
+                onClick={() => setShowEmailForm(true)}
                 className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
                 <img
                   src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Mail_%28iOS%29.svg'
@@ -326,19 +279,10 @@ export default function Auth() {
               </button>
             </div>
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleEmailLinkAuth(); // Utilisez la méthode pour envoyer le lien
-              }}
-              className='space-y-4'>
+            <form onSubmit={handleEmailLogin} className='space-y-4'>
               <h3 className='text-lg font-semibold text-center'>
                 Connectez-vous avec votre e-mail
               </h3>
-              <p className='text-sm text-center text-gray-600'>
-                Saisissez votre adresse e-mail et nous vous enverrons un lien de
-                connexion.
-              </p>
               <input
                 type='email'
                 value={email}
@@ -347,10 +291,18 @@ export default function Auth() {
                 required
                 className='w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]'
               />
+              <input
+                type='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder='Votre mot de passe'
+                required
+                className='w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]'
+              />
               <button
                 type='submit'
                 className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300'>
-                Envoyer le lien de connexion
+                Se connecter
               </button>
             </form>
           )}
@@ -360,8 +312,8 @@ export default function Auth() {
                 Pas de compte ?{" "}
                 <button
                   onClick={() => {
-                    setShowEmailForm(false); // Assurez-vous de quitter le sous-formulaire
-                    setIsLogin(false); // Redirige vers la page d'inscription
+                    setShowEmailForm(false);
+                    setIsLogin(false);
                   }}
                   className='text-[var(--primary-color)] font-semibold hover:underline'>
                   Inscrivez-vous
@@ -372,8 +324,8 @@ export default function Auth() {
                 Vous avez déjà un compte ?{" "}
                 <button
                   onClick={() => {
-                    setShowEmailForm(false); // Assurez-vous de quitter le sous-formulaire
-                    setIsLogin(true); // Redirige vers la page de connexion
+                    setShowEmailForm(false);
+                    setIsLogin(true);
                   }}
                   className='text-[var(--primary-color)] font-semibold hover:underline'>
                   Connectez-vous

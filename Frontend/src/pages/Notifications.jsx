@@ -132,7 +132,7 @@ export default function Notifications() {
           {notifications.length > 0 && (
             <div className='flex justify-center py-4'>
               <button
-                className='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 dark:hover:bg-red-700 transition'
+                className='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 dark:hover:bg-red-700 transition cursor-pointer'
                 onClick={handleDeleteAll}>
                 Tout supprimer
               </button>

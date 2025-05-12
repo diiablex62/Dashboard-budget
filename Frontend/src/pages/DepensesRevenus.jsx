@@ -1,6 +1,20 @@
-import React, { useState } from "react";
-import { AiOutlineArrowLeft, AiOutlineArrowRight } from "react-icons/ai";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
+  AiOutlinePlus,
+} from "react-icons/ai";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
+import { db } from "../firebaseConfig";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import Toast from "../components/Toast";
 
 // Couleurs et icônes pour correspondre à l'image
 const MONTHS = [
@@ -18,76 +32,6 @@ const MONTHS = [
   "Décembre",
 ];
 
-// Fake data pour l'exemple visuel
-const fakeDepenses = [
-  {
-    nom: "Courses Supermarché",
-    montant: -120,
-    date: "2025-05-02",
-    categorie: "Alimentation",
-    icon: "€",
-  },
-  {
-    nom: "Loyer Appartement",
-    montant: -850,
-    date: "2025-05-01",
-    categorie: "Logement",
-    icon: "€",
-  },
-  {
-    nom: "Restaurant avec Amis",
-    montant: -45,
-    date: "2025-05-14",
-    categorie: "Loisirs",
-    icon: "€",
-  },
-  {
-    nom: "Vêtements",
-    montant: -90,
-    date: "2025-05-17",
-    categorie: "Shopping",
-    icon: "€",
-  },
-  {
-    nom: "Facture Électricité",
-    montant: -75,
-    date: "2025-05-10",
-    categorie: "Factures",
-    icon: "€",
-  },
-  {
-    nom: "Abonnement Transport",
-    montant: -65,
-    date: "2025-05-05",
-    categorie: "Transport",
-    icon: "€",
-  },
-  {
-    nom: "Pharmacie",
-    montant: -32,
-    date: "2025-05-08",
-    categorie: "Santé",
-    icon: "€",
-  },
-];
-
-const fakeRevenus = [
-  {
-    nom: "Salaire",
-    montant: 3500,
-    date: "2025-05-01",
-    categorie: "Travail",
-    icon: "€",
-  },
-  {
-    nom: "Vente occasion",
-    montant: 300,
-    date: "2025-05-10",
-    categorie: "Autre",
-    icon: "€",
-  },
-];
-
 function getMonthYear(date) {
   return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 }
@@ -102,23 +46,111 @@ function formatDate(dateStr) {
 }
 
 export default function DepensesRevenus() {
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 4, 1)); // Mai 2025
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [tab, setTab] = useState("depenses"); // "revenus" ou "depenses"
+  const [showModal, setShowModal] = useState(false);
+  const [step, setStep] = useState(1);
+  const [newTransaction, setNewTransaction] = useState({
+    nom: "",
+    montant: "",
+    date: "",
+    categorie: "",
+  });
+  const [depenses, setDepenses] = useState([]);
+  const [revenus, setRevenus] = useState([]);
+
+  const nomInputRef = useRef(null);
+  const montantInputRef = useRef(null);
+  const dateInputRef = useRef(null);
+  const categorieInputRef = useRef(null);
+
+  // Chargement des données Firestore
+  useEffect(() => {
+    const fetchData = async () => {
+      // Dépenses
+      const depenseSnap = await getDocs(
+        query(collection(db, "depense"), orderBy("date", "desc"))
+      );
+      setDepenses(
+        depenseSnap.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+          icon: "€",
+        }))
+      );
+      // Revenus
+      const revenuSnap = await getDocs(
+        query(collection(db, "revenu"), orderBy("date", "desc"))
+      );
+      setRevenus(
+        revenuSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id, icon: "€" }))
+      );
+    };
+    fetchData();
+  }, [showModal]); // recharge après ajout
+
+  useEffect(() => {
+    if (showModal && step === 1 && nomInputRef.current)
+      nomInputRef.current.focus();
+    if (showModal && step === 2 && montantInputRef.current)
+      montantInputRef.current.focus();
+    if (showModal && step === 3 && dateInputRef.current)
+      dateInputRef.current.focus();
+    if (showModal && step === 4 && categorieInputRef.current)
+      categorieInputRef.current.focus();
+  }, [showModal, step]);
+
+  const handleNext = () => setStep((s) => s + 1);
+  const handlePrev = () => setStep((s) => s - 1);
+
+  const handleChange = (e) => {
+    setNewTransaction({ ...newTransaction, [e.target.name]: e.target.value });
+  };
+
+  const handleAddTransaction = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      const collectionName = tab === "depenses" ? "depense" : "revenu";
+      await addDoc(collection(db, collectionName), {
+        nom: newTransaction.nom,
+        montant:
+          tab === "depenses"
+            ? -parseFloat(newTransaction.montant)
+            : parseFloat(newTransaction.montant),
+        date: newTransaction.date,
+        categorie: newTransaction.categorie,
+        createdAt: serverTimestamp(),
+      });
+      setShowModal(false);
+      setStep(1);
+      setNewTransaction({
+        nom: "",
+        montant: "",
+        date: "",
+        categorie: "",
+      });
+    } catch (err) {
+      console.error("Erreur Firestore add:", err);
+    }
+  };
 
   // Filtres sur le mois sélectionné
-  const revenus = fakeRevenus.filter(
+  const revenusFiltres = revenus.filter(
     (r) =>
       new Date(r.date).getMonth() === selectedDate.getMonth() &&
       new Date(r.date).getFullYear() === selectedDate.getFullYear()
   );
-  const depenses = fakeDepenses.filter(
+  const depensesFiltres = depenses.filter(
     (d) =>
       new Date(d.date).getMonth() === selectedDate.getMonth() &&
       new Date(d.date).getFullYear() === selectedDate.getFullYear()
   );
 
-  const totalRevenus = revenus.reduce((acc, r) => acc + (r.montant || 0), 0);
-  const totalDepenses = depenses.reduce(
+  const totalRevenus = revenusFiltres.reduce(
+    (acc, r) => acc + (r.montant || 0),
+    0
+  );
+  const totalDepenses = depensesFiltres.reduce(
     (acc, d) => acc + Math.abs(d.montant || 0),
     0
   );
@@ -140,7 +172,9 @@ export default function DepensesRevenus() {
   };
 
   const showEmpty =
-    tab === "revenus" ? revenus.length === 0 : depenses.length === 0;
+    tab === "revenus"
+      ? revenusFiltres.length === 0
+      : depensesFiltres.length === 0;
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
@@ -259,7 +293,10 @@ export default function DepensesRevenus() {
                 <div className='text-2xl font-bold dark:text-white'>
                   Revenus du mois
                 </div>
-                <button className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'>
+                <button
+                  className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => setShowModal(true)}>
+                  <AiOutlinePlus className='inline mr-2' />
                   Ajouter un revenu
                 </button>
               </div>
@@ -271,13 +308,16 @@ export default function DepensesRevenus() {
                   <span className='text-gray-400 dark:text-gray-500 text-lg mb-4'>
                     Aucun revenu pour ce mois
                   </span>
-                  <button className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'>
+                  <button
+                    className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
+                    onClick={() => setShowModal(true)}>
+                    <AiOutlinePlus className='inline mr-2' />
                     Ajouter un revenu
                   </button>
                 </div>
               ) : (
                 <div className='grid md:grid-cols-2 gap-4'>
-                  {revenus.map((r, idx) => (
+                  {revenusFiltres.map((r, idx) => (
                     <div
                       key={idx}
                       className='flex items-center justify-between bg-[#f8fafc] dark:bg-black rounded-lg px-6 py-5 border border-[#ececec] dark:border-gray-800'>
@@ -308,7 +348,10 @@ export default function DepensesRevenus() {
                 <div className='text-2xl font-bold dark:text-white'>
                   Dépenses du mois
                 </div>
-                <button className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'>
+                <button
+                  className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => setShowModal(true)}>
+                  <AiOutlinePlus className='inline mr-2' />
                   Ajouter une dépense
                 </button>
               </div>
@@ -320,13 +363,16 @@ export default function DepensesRevenus() {
                   <span className='text-gray-400 dark:text-gray-500 text-lg mb-4'>
                     Aucune dépense pour ce mois
                   </span>
-                  <button className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'>
+                  <button
+                    className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
+                    onClick={() => setShowModal(true)}>
+                    <AiOutlinePlus className='inline mr-2' />
                     Ajouter une dépense
                   </button>
                 </div>
               ) : (
                 <div className='grid md:grid-cols-2 gap-4'>
-                  {depenses.map((d, idx) => (
+                  {depensesFiltres.map((d, idx) => (
                     <div
                       key={idx}
                       className='flex items-center justify-between bg-[#f8fafc] dark:bg-black rounded-lg px-6 py-5 border border-[#ececec] dark:border-gray-800'>
@@ -354,6 +400,204 @@ export default function DepensesRevenus() {
           )}
         </div>
       </div>
+
+      {/* Bouton Ajouter */}
+      <button
+        className='bg-gray-900 dark:bg-gray-900 text-white font-semibold px-6 py-2 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-800 transition cursor-pointer'
+        onClick={() => setShowModal(true)}>
+        <AiOutlinePlus className='inline mr-2' />
+        Ajouter {tab === "depenses" ? "une dépense" : "un revenu"}
+      </button>
+
+      {/* Modal */}
+      {showModal && (
+        <div
+          className='fixed inset-0 z-[9999] flex items-center justify-center'
+          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
+          <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+            <button
+              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              onClick={() => {
+                setShowModal(false);
+                setStep(1);
+                setNewTransaction({
+                  nom: "",
+                  montant: "",
+                  date: "",
+                  categorie: "",
+                });
+              }}
+              aria-label='Fermer'>
+              ✕
+            </button>
+            <div className='mb-6 text-lg font-semibold dark:text-white'>
+              Ajouter {tab === "depenses" ? "une dépense" : "un revenu"}
+            </div>
+            {/* Récapitulatif dynamique */}
+            <div className='mb-4 dark:text-gray-300'>
+              {newTransaction.nom && (
+                <div>
+                  <span className='font-medium'>Libellé :</span>{" "}
+                  {newTransaction.nom.charAt(0).toUpperCase() +
+                    newTransaction.nom.slice(1)}
+                </div>
+              )}
+              {step > 1 && newTransaction.montant && (
+                <div>
+                  <span className='font-medium'>Montant :</span>{" "}
+                  {parseFloat(newTransaction.montant).toFixed(2)} €
+                </div>
+              )}
+              {step > 2 && newTransaction.date && (
+                <div>
+                  <span className='font-medium'>Date :</span>{" "}
+                  {new Date(newTransaction.date).toLocaleDateString("fr-FR")}
+                </div>
+              )}
+              {step > 3 && newTransaction.categorie && (
+                <div>
+                  <span className='font-medium'>Catégorie :</span>{" "}
+                  {newTransaction.categorie}
+                </div>
+              )}
+            </div>
+            {/* Étapes */}
+            {step === 1 && (
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
+                  Nom de la transaction
+                </label>
+                <input
+                  type='text'
+                  name='nom'
+                  value={newTransaction.nom}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  placeholder='Ex: Courses'
+                  ref={nomInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTransaction.nom) handleNext();
+                  }}
+                />
+                <div className='flex justify-end'>
+                  <button
+                    className='bg-green-600 text-white px-4 py-2 rounded'
+                    disabled={!newTransaction.nom}
+                    onClick={handleNext}>
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
+            {step === 2 && (
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
+                  Montant (€)
+                </label>
+                <input
+                  type='number'
+                  name='montant'
+                  value={newTransaction.montant}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  min='0'
+                  step='0.01'
+                  placeholder='Ex: 99.99'
+                  ref={montantInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTransaction.montant)
+                      handleNext();
+                  }}
+                />
+                <div className='flex justify-between'>
+                  <button
+                    className='text-gray-600 dark:text-gray-400'
+                    onClick={handlePrev}>
+                    Précédent
+                  </button>
+                  <button
+                    className='bg-green-600 text-white px-4 py-2 rounded'
+                    disabled={!newTransaction.montant}
+                    onClick={handleNext}>
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
+            {step === 3 && (
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
+                  Date
+                </label>
+                <input
+                  type='date'
+                  name='date'
+                  value={newTransaction.date}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  ref={dateInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTransaction.date) handleNext();
+                  }}
+                />
+                <div className='flex justify-between'>
+                  <button
+                    className='text-gray-600 dark:text-gray-400'
+                    onClick={handlePrev}>
+                    Précédent
+                  </button>
+                  <button
+                    className='bg-green-600 text-white px-4 py-2 rounded'
+                    disabled={!newTransaction.date}
+                    onClick={handleNext}>
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
+            {step === 4 && (
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
+                  Catégorie
+                </label>
+                <select
+                  name='categorie'
+                  value={newTransaction.categorie}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  ref={categorieInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTransaction.categorie)
+                      handleAddTransaction();
+                  }}>
+                  <option value=''>Sélectionner une catégorie</option>
+                  <option value='Alimentation'>Alimentation</option>
+                  <option value='Logement'>Logement</option>
+                  <option value='Transport'>Transport</option>
+                  <option value='Loisirs'>Loisirs</option>
+                  <option value='Santé'>Santé</option>
+                  <option value='Shopping'>Shopping</option>
+                  <option value='Factures'>Factures</option>
+                  <option value='Autre'>Autre</option>
+                </select>
+                <div className='flex justify-between'>
+                  <button
+                    className='text-gray-600 dark:text-gray-400'
+                    onClick={handlePrev}>
+                    Précédent
+                  </button>
+                  <button
+                    className='bg-green-600 text-white px-4 py-2 rounded'
+                    disabled={!newTransaction.categorie}
+                    onClick={handleAddTransaction}>
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
