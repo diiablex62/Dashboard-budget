@@ -45,6 +45,302 @@ function formatDate(dateStr) {
   });
 }
 
+function RevenuModal({ onClose, onSave, revenu = {}, stepInit = 1 }) {
+  const [step, setStep] = useState(stepInit);
+  const [form, setForm] = useState({
+    nom: revenu.nom || "",
+    montant: revenu.montant ? revenu.montant.toString() : "",
+    categorie: revenu.categorie || "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleNext = () => setStep((s) => s + 1);
+  const handlePrev = () => setStep((s) => s - 1);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      ...form,
+      montant: parseFloat(form.montant),
+    });
+    onClose();
+  };
+
+  return (
+    <div className='fixed inset-0 z-[9999] flex items-center justify-center' style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
+      <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+        <button
+          className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          onClick={onClose}
+          aria-label='Fermer'>
+          ✕
+        </button>
+        <div className='mb-6 text-lg font-semibold dark:text-white'>
+          Ajouter un revenu
+        </div>
+        <form onSubmit={handleSubmit}>
+          {step === 1 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Nom du revenu
+              </label>
+              <input
+                type='text'
+                name='nom'
+                value={form.nom}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                placeholder='Ex: Salaire'
+                autoFocus
+              />
+              <div className='flex justify-end'>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.nom}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 2 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Catégorie
+              </label>
+              <input
+                type='text'
+                name='categorie'
+                value={form.categorie}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                placeholder='Ex: Travail'
+              />
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.categorie}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 3 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Montant (€)
+              </label>
+              <input
+                type='number'
+                name='montant'
+                value={form.montant}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                min='0'
+                step='0.01'
+                placeholder='Ex: 2000'
+              />
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.montant}
+                  type='submit'>
+                  Ajouter
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
+  const [step, setStep] = useState(stepInit);
+  const [form, setForm] = useState({
+    nom: depense.nom || "",
+    montant: depense.montant ? Math.abs(depense.montant).toString() : "",
+    date: depense.date || "",
+    categorie: depense.categorie || "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleNext = () => setStep((s) => s + 1);
+  const handlePrev = () => setStep((s) => s - 1);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      ...form,
+      montant: -Math.abs(parseFloat(form.montant)),
+    });
+    onClose();
+  };
+
+  return (
+    <div className='fixed inset-0 z-[9999] flex items-center justify-center' style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
+      <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+        <button
+          className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          onClick={onClose}
+          aria-label='Fermer'>
+          ✕
+        </button>
+        <div className='mb-6 text-lg font-semibold dark:text-white'>
+          Ajouter une dépense
+        </div>
+        <form onSubmit={handleSubmit}>
+          {step === 1 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Nom de la dépense
+              </label>
+              <input
+                type='text'
+                name='nom'
+                value={form.nom}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                placeholder='Ex: Courses'
+                autoFocus
+              />
+              <div className='flex justify-end'>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.nom}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 2 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Montant (€)
+              </label>
+              <input
+                type='number'
+                name='montant'
+                value={form.montant}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                min='0'
+                step='0.01'
+                placeholder='Ex: 99.99'
+              />
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.montant}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 3 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Date
+              </label>
+              <input
+                type='date'
+                name='date'
+                value={form.date}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+              />
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.date}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 4 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Catégorie
+              </label>
+              <select
+                name='categorie'
+                value={form.categorie}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+              >
+                <option value=''>Sélectionner une catégorie</option>
+                <option value='Alimentation'>Alimentation</option>
+                <option value='Logement'>Logement</option>
+                <option value='Transport'>Transport</option>
+                <option value='Loisirs'>Loisirs</option>
+                <option value='Santé'>Santé</option>
+                <option value='Shopping'>Shopping</option>
+                <option value='Factures'>Factures</option>
+                <option value='Autre'>Autre</option>
+              </select>
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.categorie}
+                  type='submit'>
+                  Ajouter
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function DepensesRevenus() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tab, setTab] = useState("depenses"); // "revenus" ou "depenses"
