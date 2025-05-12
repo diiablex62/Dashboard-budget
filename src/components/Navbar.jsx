@@ -9,6 +9,7 @@ import SettingsPanel from "./SettingsPanel";
 import Google from "./Google";
 import GitHub from "./GitHub";
 import NotificationBell from "./NotificationBell";
+import Toast from "../components/Toast";
 
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
@@ -20,6 +21,13 @@ export default function Navbar() {
   const [searchText, setSearchText] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "success",
+    loading: false,
+    timeoutId: null,
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -45,9 +53,35 @@ export default function Navbar() {
     try {
       await logout();
       setIsLoggedIn(false);
-      navigate("/auth");
+      navigate("/");
+
+      // Afficher un toast de déconnexion réussie
+      if (toast.timeoutId) clearTimeout(toast.timeoutId);
+      setToast({
+        open: true,
+        message: "Vous avez été déconnecté avec succès",
+        type: "success",
+        loading: false,
+        timeoutId: setTimeout(
+          () => setToast((t) => ({ ...t, open: false })),
+          3000
+        ),
+      });
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
+
+      // Afficher un toast d'erreur
+      if (toast.timeoutId) clearTimeout(toast.timeoutId);
+      setToast({
+        open: true,
+        message: "Erreur lors de la déconnexion",
+        type: "error",
+        loading: false,
+        timeoutId: setTimeout(
+          () => setToast((t) => ({ ...t, open: false })),
+          3000
+        ),
+      });
     }
   };
 
@@ -71,6 +105,14 @@ export default function Navbar() {
 
   return (
     <div className='w-full p-4 flex items-center justify-between bg-white dark:bg-black dark:text-gray-200'>
+      {/* Toast de déconnexion */}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        loading={toast.loading}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
       <div className='flex items-center space-x-2 text-gray-600 dark:text-white'>
         <AiOutlineHome
           className='text-xl cursor-pointer dark:text-white'
