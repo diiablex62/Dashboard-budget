@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { AiOutlinePlus, AiOutlineDollarCircle } from "react-icons/ai";
 import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebaseConfig";
 import {
@@ -67,6 +68,7 @@ export default function PaiementEchelonne() {
   const barColor = "#00b96b";
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
+  const { user } = useAuth();
   // Valeur par défaut pour débutMois : mois actuel au format "YYYY-MM"
   const currentMonth = new Date();
   const defaultDebutMois = `${currentMonth.getFullYear()}-${String(
@@ -120,7 +122,7 @@ export default function PaiementEchelonne() {
 
   // Charger les paiements depuis Firestore
   const fetchPaiements = useCallback(async () => {
-    if (!isLoggedIn) return;
+    if (!user) return;
     try {
       const snapshot = await getDocs(collection(db, "xfois"));
       const data = snapshot.docs.map((doc) => ({
@@ -131,7 +133,7 @@ export default function PaiementEchelonne() {
     } catch (err) {
       console.error("Erreur Firestore fetch xfois:", err);
     }
-  }, [isLoggedIn]);
+  }, [user]);
 
   useEffect(() => {
     fetchPaiements();
@@ -174,7 +176,7 @@ export default function PaiementEchelonne() {
 
   // Ajout ou modification du paiement échelonné
   const handleAddOrEditPaiement = async (e) => {
-    if (!isLoggedIn) return;
+    if (!user) return;
     if (e) e.preventDefault();
     try {
       if (editIndex !== null && paiements[editIndex]) {
@@ -246,7 +248,7 @@ export default function PaiementEchelonne() {
     setStep(1);
   };
   const handleDelete = async (idx) => {
-    if (!isLoggedIn) return;
+    if (!user) return;
     const paiement = paiements[idx];
     if (!paiement || !paiement.id) return;
     clearToast();

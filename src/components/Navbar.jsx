@@ -121,7 +121,7 @@ export default function Navbar() {
             <NotificationBell />
           </div>
         </div>
-        {isLoggedIn && (
+        {user && (
           <div className='relative' ref={dropdownRef}>
             <div
               className='w-10 h-10 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold shadow-md overflow-hidden'

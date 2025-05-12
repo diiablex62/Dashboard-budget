@@ -8,6 +8,7 @@ import {
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
 import {
   collection,
@@ -43,6 +44,7 @@ const COLORS = [
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
+  const { user } = useAuth();
 
   // Paiements récurrents
   const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
@@ -54,7 +56,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchAll = async () => {
-      if (!isLoggedIn) return; // Ne tente pas de fetch si non connecté
+      if (!user) return; // Ne tente pas de fetch si non connecté
       try {
         const [recurrentsSnap, echelonnesSnap] = await Promise.all([
           getDocs(collection(db, "recurrent")),
@@ -97,13 +99,13 @@ export default function Dashboard() {
         );
       } catch (err) {
         // Affiche l'erreur seulement si connecté
-        if (isLoggedIn) {
+        if (user) {
           console.error("Erreur Firestore fetch:", err);
         }
       }
     };
     fetchAll();
-  }, [isLoggedIn]);
+  }, [user]);
 
   // Fonction utilitaire pour scroller en haut avant navigation
   const scrollToTopAndNavigate = (url) => {
@@ -182,7 +184,7 @@ export default function Dashboard() {
           <button
             className='mt-3 border dark:border-gray-800 rounded-lg py-1 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition cursor-pointer dark:text-white'
             onClick={() =>
-              isLoggedIn
+              user
                 ? navigate("/paiements-recurrents")
                 : navigate("/auth", { state: { isLogin: true } })
             }>
@@ -207,7 +209,7 @@ export default function Dashboard() {
           <button
             className='mt-3 border dark:border-gray-800 rounded-lg py-1 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition cursor-pointer dark:text-white'
             onClick={() =>
-              isLoggedIn
+              user
                 ? navigate("/paiements-echelonnes")
                 : navigate("/auth", { state: { isLogin: true } })
             }>

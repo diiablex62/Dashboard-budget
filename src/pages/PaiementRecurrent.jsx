@@ -3,6 +3,7 @@ import { AiOutlineCalendar } from "react-icons/ai";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import {
   PieChart,
   Pie,
@@ -45,6 +46,7 @@ export default function PaiementRecurrent() {
   const totalDepenses = totalMensuel;
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
+  const { user } = useAuth();
 
   // Gestion modal
   const [showModal, setShowModal] = useState(false);
@@ -67,6 +69,11 @@ export default function PaiementRecurrent() {
     }
   }, [showModal, step]);
 
+  useEffect(() => {
+    if (!user) return;
+    fetchPaiements();
+  }, [user]);
+
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
 
@@ -76,7 +83,7 @@ export default function PaiementRecurrent() {
 
   // Charger les paiements depuis Firestore au chargement et après chaque ajout/suppression/modification
   const fetchPaiements = async () => {
-    if (!isLoggedIn) return;
+    if (!user) return;
     try {
       const snapshot = await getDocs(collection(db, "recurrent"));
       setPaiements(
@@ -89,10 +96,6 @@ export default function PaiementRecurrent() {
       console.error("Erreur Firestore fetch:", err);
     }
   };
-
-  useEffect(() => {
-    fetchPaiements();
-  }, [isLoggedIn]);
 
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
@@ -132,7 +135,7 @@ export default function PaiementRecurrent() {
 
   // Remplace handleDelete par une version avec délai et toast
   const handleDelete = async (idx) => {
-    if (!isLoggedIn) return;
+    if (!user) return;
     const paiement = paiements[idx];
     if (!paiement || !paiement.id) return;
     clearToast();
@@ -200,7 +203,7 @@ export default function PaiementRecurrent() {
 
   // Ajouter ou modifier un paiement (Firestore)
   const handleAddOrEditPaiement = async () => {
-    if (!isLoggedIn) return;
+    if (!user) return;
     try {
       if (editIndex !== null && paiements[editIndex]) {
         // Modification

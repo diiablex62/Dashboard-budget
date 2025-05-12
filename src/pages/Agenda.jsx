@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { AiOutlineCalendar } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 const MONTHS = [
   "janvier",
@@ -58,6 +59,7 @@ export default function Agenda() {
 
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AppContext);
+  const { user } = useAuth();
 
   const matrix = getMonthMatrix(year, month);
 

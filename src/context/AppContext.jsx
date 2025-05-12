@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 export const AppContext = createContext();
 
@@ -10,11 +12,14 @@ export function AppProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Vérifiez si un utilisateur est stocké dans le localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setIsLoggedIn(true);
-    }
+    // Écouter les changements d'état d'authentification de Firebase
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
 
     // Appliquez la couleur stockée dans le localStorage
     const savedColor = localStorage.getItem("primaryColor");
@@ -22,6 +27,9 @@ export function AppProvider({ children }) {
       setPrimaryColor(savedColor);
       applyColorToDocument(savedColor);
     }
+
+    // Nettoyage de l'abonnement
+    return () => unsubscribe();
   }, []);
 
   const applyColorToDocument = (color) => {
