@@ -7,6 +7,7 @@ import { AppContext } from "./context/AppContext";
 import AppRoutes from "../routes/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
@@ -33,6 +34,7 @@ export default function App() {
         <AppRoutes />
       </div>
       <ToastContainer />
+      <Analytics />
     </div>
   );
 }

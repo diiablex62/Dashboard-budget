@@ -13,8 +13,6 @@ import {
   serverTimestamp,
   query,
   orderBy,
-  setDoc,
-  doc,
 } from "firebase/firestore";
 import Toast from "../components/Toast";
 
@@ -83,9 +81,23 @@ function RevenuModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Vérifier si tous les champs requis sont remplis
+    if (!form.nom || !form.categorie || !form.montant || !form.date) {
+      console.error("Formulaire incomplet", form);
+      return;
+    }
+
+    // S'assurer que le montant est un nombre valide
+    const montant = parseFloat(form.montant);
+    if (isNaN(montant)) {
+      console.error("Montant invalide", form.montant);
+      return;
+    }
+
     onSave({
       ...form,
-      montant: parseFloat(form.montant),
+      montant: montant,
     });
     onClose();
   };
@@ -285,9 +297,23 @@ function DepenseModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Vérifier si tous les champs requis sont remplis
+    if (!form.nom || !form.categorie || !form.montant || !form.date) {
+      console.error("Formulaire incomplet", form);
+      return;
+    }
+
+    // S'assurer que le montant est un nombre valide
+    const montant = parseFloat(form.montant);
+    if (isNaN(montant)) {
+      console.error("Montant invalide", form.montant);
+      return;
+    }
+
     onSave({
       ...form,
-      montant: -Math.abs(parseFloat(form.montant)),
+      montant: -Math.abs(montant),
     });
     onClose();
   };
@@ -314,21 +340,21 @@ function DepenseModal({
               {form.nom.charAt(0).toUpperCase() + form.nom.slice(1)}
             </div>
           )}
-          {step > 1 && form.montant && (
+          {step > 1 && form.categorie && (
+            <div>
+              <span className='font-medium'>Catégorie :</span> {form.categorie}
+            </div>
+          )}
+          {step > 2 && form.montant && (
             <div>
               <span className='font-medium'>Montant :</span>{" "}
               {parseFloat(form.montant).toFixed(2)} €
             </div>
           )}
-          {step > 2 && form.date && (
+          {step > 3 && form.date && (
             <div>
               <span className='font-medium'>Date :</span>{" "}
               {new Date(form.date).toLocaleDateString("fr-FR")}
-            </div>
-          )}
-          {step > 3 && form.categorie && (
-            <div>
-              <span className='font-medium'>Catégorie :</span> {form.categorie}
             </div>
           )}
         </div>
@@ -361,67 +387,6 @@ function DepenseModal({
           {step === 2 && (
             <div>
               <label className='block mb-2 font-medium dark:text-white'>
-                Montant (€)
-              </label>
-              <input
-                type='number'
-                name='montant'
-                value={form.montant}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                min='0'
-                step='0.01'
-                placeholder='Ex: 99.99'
-              />
-              <div className='flex justify-between'>
-                <button
-                  className='text-gray-600 dark:text-gray-400'
-                  type='button'
-                  onClick={handlePrev}>
-                  Précédent
-                </button>
-                <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
-                  disabled={!form.montant}
-                  type='button'
-                  onClick={handleNext}>
-                  Suivant
-                </button>
-              </div>
-            </div>
-          )}
-          {step === 3 && (
-            <div>
-              <label className='block mb-2 font-medium dark:text-white'>
-                Date
-              </label>
-              <input
-                type='date'
-                name='date'
-                value={form.date}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-              />
-              <div className='flex justify-between'>
-                <button
-                  className='text-gray-600 dark:text-gray-400'
-                  type='button'
-                  onClick={handlePrev}>
-                  Précédent
-                </button>
-                <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
-                  disabled={!form.date}
-                  type='button'
-                  onClick={handleNext}>
-                  Suivant
-                </button>
-              </div>
-            </div>
-          )}
-          {step === 4 && (
-            <div>
-              <label className='block mb-2 font-medium dark:text-white'>
                 Catégorie
               </label>
               <select
@@ -451,6 +416,67 @@ function DepenseModal({
                 <button
                   className='bg-gray-900 text-white px-4 py-2 rounded'
                   disabled={!form.categorie}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 3 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Montant (€)
+              </label>
+              <input
+                type='number'
+                name='montant'
+                value={form.montant}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                min='0'
+                step='0.01'
+                placeholder='Ex: 99.99'
+              />
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.montant}
+                  type='button'
+                  onClick={handleNext}>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 4 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Date
+              </label>
+              <input
+                type='date'
+                name='date'
+                value={form.date}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+              />
+              <div className='flex justify-between'>
+                <button
+                  className='text-gray-600 dark:text-gray-400'
+                  type='button'
+                  onClick={handlePrev}>
+                  Précédent
+                </button>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  disabled={!form.date}
                   type='submit'>
                   Ajouter
                 </button>
@@ -684,6 +710,40 @@ export default function DepensesRevenus() {
     try {
       console.log("Ajout dépense Firestore :", depense);
 
+      // Vérification des données
+      if (!depense.nom || !depense.categorie) {
+        console.error("Données dépense incomplètes", depense);
+        setToast({
+          open: true,
+          message:
+            "Erreur: données incomplètes. Veuillez remplir tous les champs.",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(
+            () => setToast((t) => ({ ...t, open: false })),
+            5000
+          ),
+        });
+        return;
+      }
+
+      // Vérifier que le montant est un nombre valide
+      const montant = parseFloat(depense.montant);
+      if (isNaN(montant)) {
+        console.error("Montant invalide", depense.montant);
+        setToast({
+          open: true,
+          message: "Erreur: montant invalide. Veuillez saisir un nombre.",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(
+            () => setToast((t) => ({ ...t, open: false })),
+            5000
+          ),
+        });
+        return;
+      }
+
       // Affichage du toast de chargement
       if (toast.timeoutId) clearTimeout(toast.timeoutId);
       setToast({
@@ -694,12 +754,12 @@ export default function DepensesRevenus() {
         timeoutId: null,
       });
 
-      // Simplification - juste essayer d'ajouter le document
+      // Simplification - juste essayer d'ajouter le document avec montant validé
       await addDoc(collection(db, "depense"), {
-        nom: depense.nom,
-        montant: depense.montant, // Déjà négatif depuis le DepenseModal
+        nom: depense.nom.trim(),
+        montant: montant, // Utiliser la valeur validée
         date: depense.date || new Date().toISOString().split("T")[0],
-        categorie: depense.categorie,
+        categorie: depense.categorie.trim(),
         createdAt: serverTimestamp(),
       });
 
@@ -751,6 +811,40 @@ export default function DepensesRevenus() {
     try {
       console.log("Ajout revenu Firestore :", revenu);
 
+      // Vérification des données
+      if (!revenu.nom || !revenu.categorie) {
+        console.error("Données revenu incomplètes", revenu);
+        setToast({
+          open: true,
+          message:
+            "Erreur: données incomplètes. Veuillez remplir tous les champs.",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(
+            () => setToast((t) => ({ ...t, open: false })),
+            5000
+          ),
+        });
+        return;
+      }
+
+      // Vérifier que le montant est un nombre valide
+      const montant = parseFloat(revenu.montant);
+      if (isNaN(montant)) {
+        console.error("Montant invalide", revenu.montant);
+        setToast({
+          open: true,
+          message: "Erreur: montant invalide. Veuillez saisir un nombre.",
+          type: "error",
+          loading: false,
+          timeoutId: setTimeout(
+            () => setToast((t) => ({ ...t, open: false })),
+            5000
+          ),
+        });
+        return;
+      }
+
       // Affichage du toast de chargement
       if (toast.timeoutId) clearTimeout(toast.timeoutId);
       setToast({
@@ -763,10 +857,10 @@ export default function DepensesRevenus() {
 
       // Simplification - juste essayer d'ajouter le document
       await addDoc(collection(db, "revenu"), {
-        nom: revenu.nom,
-        montant: revenu.montant,
+        nom: revenu.nom.trim(),
+        montant: montant,
         date: revenu.date || new Date().toISOString().split("T")[0],
-        categorie: revenu.categorie,
+        categorie: revenu.categorie.trim(),
         createdAt: serverTimestamp(),
       });
 
@@ -876,19 +970,17 @@ export default function DepensesRevenus() {
                 className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
                 onClick={handlePrevMonth}
                 aria-label='Mois précédent'
-                type='button'
-                style={{ lineHeight: 1 }}>
+                type='button'>
                 <AiOutlineArrowLeft />
               </button>
-              <span className='font-semibold text-lg px-4 select-none text-[#222] dark:text-white'>
+              <div className='mx-4 text-[#222] dark:text-white text-lg font-medium w-40 text-center'>
                 {getMonthYear(selectedDate)}
-              </span>
+              </div>
               <button
                 className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
                 onClick={handleNextMonth}
                 aria-label='Mois suivant'
-                type='button'
-                style={{ lineHeight: 1 }}>
+                type='button'>
                 <AiOutlineArrowRight />
               </button>
             </div>
@@ -983,6 +1075,17 @@ export default function DepensesRevenus() {
               </button>
             </div>
 
+            {showEmpty && (
+              <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
+                <p>Aucune dépense à afficher pour cette période.</p>
+                <button
+                  onClick={() => setShowDepenseModal(true)}
+                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium'>
+                  Ajouter une dépense
+                </button>
+              </div>
+            )}
+
             {depensesFiltres.length === 0 ? (
               <div className='bg-[#f7fafd] rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
                 <div className='text-gray-400 text-center text-sm italic mb-4'>
@@ -1021,6 +1124,17 @@ export default function DepensesRevenus() {
                 <span>Ajouter</span>
               </button>
             </div>
+
+            {showEmpty && (
+              <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
+                <p>Aucun revenu à afficher pour cette période.</p>
+                <button
+                  onClick={() => setShowRevenuModal(true)}
+                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium'>
+                  Ajouter un revenu
+                </button>
+              </div>
+            )}
 
             {revenusFiltres.length === 0 ? (
               <div className='bg-[#f7fafd] rounded-xl py-12 px-4 flex flex-col items-center justify-center'>
