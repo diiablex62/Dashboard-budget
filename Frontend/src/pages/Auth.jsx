@@ -32,7 +32,8 @@ export default function Auth() {
   useEffect(() => {
     if (!primaryColor) return;
 
-    console.log("Applying primary color:", primaryColor);
+    // Retirer les logs
+    // console.log("Applying primary color:", primaryColor);
     document.documentElement.style.setProperty("--primary-color", primaryColor);
     const hoverColor = generateHoverColor(primaryColor);
     document.documentElement.style.setProperty(
@@ -42,7 +43,7 @@ export default function Auth() {
   }, [primaryColor]);
 
   const generateHoverColor = (color) => {
-    console.log("Generating hover color for:", color);
+    // console.log("Generating hover color for:", color);
     const hexToHSL = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16) / 255;
       const g = parseInt(hex.slice(3, 5), 16) / 255;

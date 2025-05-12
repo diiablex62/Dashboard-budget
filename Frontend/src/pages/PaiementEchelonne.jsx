@@ -120,6 +120,7 @@ export default function PaiementEchelonne() {
 
   // Charger les paiements depuis Firestore
   const fetchPaiements = useCallback(async () => {
+    if (!isLoggedIn) return;
     try {
       const snapshot = await getDocs(collection(db, "xfois"));
       const data = snapshot.docs.map((doc) => ({
@@ -130,7 +131,7 @@ export default function PaiementEchelonne() {
     } catch (err) {
       console.error("Erreur Firestore fetch xfois:", err);
     }
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     fetchPaiements();
@@ -173,6 +174,7 @@ export default function PaiementEchelonne() {
 
   // Ajout ou modification du paiement échelonné
   const handleAddOrEditPaiement = async (e) => {
+    if (!isLoggedIn) return;
     if (e) e.preventDefault();
     try {
       if (editIndex !== null && paiements[editIndex]) {
@@ -244,6 +246,7 @@ export default function PaiementEchelonne() {
     setStep(1);
   };
   const handleDelete = async (idx) => {
+    if (!isLoggedIn) return;
     const paiement = paiements[idx];
     if (!paiement || !paiement.id) return;
     clearToast();

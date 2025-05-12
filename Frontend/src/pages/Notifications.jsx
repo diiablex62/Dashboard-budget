@@ -13,13 +13,21 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [hoveredId, setHoveredId] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
+    // Si pas connecté, ne fetch pas les notifications
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
     const fetchNotifications = async () => {
+      if (!user) return;
       const snapshot = await getDocs(collection(db, "notifications"));
       setNotifications(
         snapshot.docs.map((doc) => ({
@@ -29,10 +37,11 @@ export default function Notifications() {
       );
     };
     fetchNotifications();
-  }, []);
+  }, [user]);
 
   // Marquer comme lu (optionnel, à appeler lors de l'ouverture)
   const markAllAsRead = async () => {
+    if (!user) return;
     const unread = notifications.filter((n) => !n.read);
     for (const notif of unread) {
       await updateDoc(doc(db, "notifications", notif.id), { read: true });
@@ -42,6 +51,7 @@ export default function Notifications() {
 
   // Marquer une notification comme lue au clic
   const markAsRead = async (notifId) => {
+    if (!user) return;
     await updateDoc(doc(db, "notifications", notifId), { read: true });
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId ? { ...n, read: true } : n))
@@ -50,6 +60,7 @@ export default function Notifications() {
 
   // Supprimer toutes les notifications
   const handleDeleteAll = async () => {
+    if (!user) return;
     const snapshot = await getDocs(collection(db, "notifications"));
     const batchDeletes = snapshot.docs.map((d) =>
       deleteDoc(doc(db, "notifications", d.id))

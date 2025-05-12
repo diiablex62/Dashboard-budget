@@ -54,6 +54,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchAll = async () => {
+      if (!isLoggedIn) return; // Ne tente pas de fetch si non connecté
       try {
         const [recurrentsSnap, echelonnesSnap] = await Promise.all([
           getDocs(collection(db, "recurrent")),
@@ -95,11 +96,14 @@ export default function Dashboard() {
           }, 0)
         );
       } catch (err) {
-        console.error("Erreur Firestore fetch:", err);
+        // Affiche l'erreur seulement si connecté
+        if (isLoggedIn) {
+          console.error("Erreur Firestore fetch:", err);
+        }
       }
     };
     fetchAll();
-  }, []);
+  }, [isLoggedIn]);
 
   // Fonction utilitaire pour scroller en haut avant navigation
   const scrollToTopAndNavigate = (url) => {

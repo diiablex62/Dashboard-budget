@@ -13,7 +13,7 @@ import NotificationBell from "./NotificationBell";
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
     useContext(AppContext);
-  const { user, logout } = useAuth();
+  const { user, logout, reloadUser } = useAuth();
   const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,6 +33,13 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    // Recharge le user Firebase pour récupérer le nouveau photoURL après upload
+    if (user && typeof user.reload === "function") {
+      user.reload();
+    }
+  }, [user?.photoURL]);
 
   const handleLogout = async () => {
     try {
@@ -117,20 +124,37 @@ export default function Navbar() {
         {isLoggedIn && (
           <div className='relative' ref={dropdownRef}>
             <div
-              className='w-10 h-10 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold shadow-md'
+              className='w-10 h-10 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold shadow-md overflow-hidden'
               onClick={toggleDropdown}>
-              {user?.displayName
-                ? user.displayName.charAt(0).toUpperCase()
-                : "?"}
+              {/* Correction : on affiche la photo si user.photoURL existe ET commence par http (donc une vraie image, pas une lettre) */}
+              {user?.photoURL && user.photoURL.startsWith("http") ? (
+                <img
+                  src={user.photoURL}
+                  alt='Profil'
+                  className='w-full h-full object-cover rounded-full'
+                />
+              ) : user?.displayName ? (
+                user.displayName.charAt(0).toUpperCase()
+              ) : (
+                "?"
+              )}
             </div>
             {isDropdownOpen && (
               <div className='absolute right-0 mt-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 w-64 border border-gray-200 dark:border-gray-700 z-50'>
                 <div className='px-4 py-3 border-b border-gray-200 dark:border-gray-700'>
                   <div className='flex items-center space-x-3'>
-                    <div className='w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-white text-lg font-bold'>
-                      {user?.displayName
-                        ? user.displayName.charAt(0).toUpperCase()
-                        : "?"}
+                    <div className='w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-white text-lg font-bold overflow-hidden'>
+                      {user?.photoURL && user.photoURL.startsWith("http") ? (
+                        <img
+                          src={user.photoURL}
+                          alt='Profil'
+                          className='w-full h-full object-cover rounded-full'
+                        />
+                      ) : user?.displayName ? (
+                        user.displayName.charAt(0).toUpperCase()
+                      ) : (
+                        "?"
+                      )}
                     </div>
                     <div>
                       <p className='text-sm font-semibold text-gray-800 dark:text-white'>

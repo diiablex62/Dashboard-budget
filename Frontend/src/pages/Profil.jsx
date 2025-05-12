@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Toast from "../components/Toast";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaCamera } from "react-icons/fa";
+import { updateProfile } from "firebase/auth";
+
+const CLOUDINARY_CLOUD_NAME = "dulclkp2k";
+const CLOUDINARY_UPLOAD_PRESET = "ml_default";
+const CLOUDINARY_API_KEY = import.meta.env.VITE_CLOUDINARY_API_KEY;
 
 export default function Profil() {
   const { user } = useAuth();
@@ -13,6 +19,7 @@ export default function Profil() {
     email: "",
     telephone: "",
     adresse: "",
+    photoURL: "",
   });
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
@@ -21,38 +28,119 @@ export default function Profil() {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (user) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          if (userDoc.exists()) {
-            setUserData(userDoc.data());
-            setSearchQuery(userDoc.data().adresse || "");
-          } else {
-            const defaultData = {
-              prenom: user.displayName?.split(" ")[0] || "",
-              nom: user.displayName?.split(" ")[1] || "",
-              email: user.email || "",
-              telephone: "",
-              adresse: "",
-            };
-            await setDoc(doc(db, "users", user.uid), defaultData);
-            setUserData(defaultData);
-            setSearchQuery(defaultData.adresse || "");
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération des données:", error);
-          setToastMessage("Erreur lors de la récupération des données");
-          setShowToast(true);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());
+          setSearchQuery(userDoc.data().adresse || "");
+        } else {
+          const defaultData = {
+            prenom: user.displayName?.split(" ")[0] || "",
+            nom: user.displayName?.split(" ")[1] || "",
+            email: user.email || "",
+            telephone: "",
+            adresse: "",
+            photoURL: user.photoURL || "",
+          };
+          await setDoc(doc(db, "users", user.uid), defaultData);
+          setUserData(defaultData);
+          setSearchQuery(defaultData.adresse || "");
         }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données:", error);
+        if (error.code === "permission-denied") {
+          setToastMessage("Erreur d'autorisation. Veuillez vous reconnecter.");
+        } else {
+          setToastMessage("Erreur lors de la récupération des données");
+        }
+        setShowToast(true);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
   }, [user]);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Vérification du type de fichier
+    if (!file.type.startsWith("image/")) {
+      setToastMessage("Veuillez sélectionner une image valide");
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Upload sur Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(
+          "L'image dépasse 10 Mo, veuillez choisir une image plus petite."
+        );
+      }
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.secure_url) {
+        const msg =
+          data.error?.message || "Erreur lors de l'upload sur Cloudinary";
+        throw new Error(msg);
+      }
+
+      const photoURL = data.secure_url;
+
+      // Mise à jour du profil Firebase Auth (pour la Navbar)
+      if (user && typeof updateProfile === "function") {
+        await updateProfile(user, { photoURL });
+        // Force le rafraîchissement du user pour la Navbar
+        if (typeof user.reload === "function") {
+          await user.reload();
+        }
+      }
+
+      // Mise à jour des données utilisateur dans Firestore (la BDD)
+      const updatedData = { ...userData, photoURL };
+      await setDoc(doc(db, "users", user.uid), updatedData);
+
+      setUserData(updatedData);
+
+      setToastMessage("Photo de profil mise à jour avec succès");
+      setShowToast(true);
+    } catch (error) {
+      console.error("Erreur lors de l'upload de la photo:", error);
+      setToastMessage(
+        error.message || "Erreur lors de la mise à jour de la photo"
+      );
+      setShowToast(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const searchAddress = async (query) => {
     if (query.length < 3) {
@@ -132,11 +220,35 @@ export default function Profil() {
       <div className='flex flex-col md:flex-row gap-8'>
         {/* Carte profil */}
         <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-8 flex flex-col items-center w-full md:w-1/3'>
-          <div className='flex items-center justify-center w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-4'>
-            <span className='text-2xl font-bold text-blue-500'>
-              {userData.prenom.charAt(0)}
-              {userData.nom.charAt(0)}
-            </span>
+          <div
+            className='relative w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-4 cursor-pointer group'
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onClick={() => fileInputRef.current?.click()}>
+            {userData.photoURL ? (
+              <img
+                src={userData.photoURL}
+                alt='Photo de profil'
+                className='w-full h-full rounded-full object-cover'
+              />
+            ) : (
+              <span className='text-2xl font-bold text-blue-500 flex items-center justify-center h-full'>
+                {userData.prenom.charAt(0)}
+                {userData.nom.charAt(0)}
+              </span>
+            )}
+            {isHovering && (
+              <div className='absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center'>
+                <FaCamera className='text-white text-2xl' />
+              </div>
+            )}
+            <input
+              type='file'
+              ref={fileInputRef}
+              onChange={handlePhotoUpload}
+              accept='image/*'
+              className='hidden'
+            />
           </div>
           <div className='text-xl font-semibold mb-1 dark:text-white'>
             {userData.prenom} {userData.nom}
@@ -144,10 +256,8 @@ export default function Profil() {
           <div className='text-gray-500 dark:text-gray-400 mb-6'>
             {userData.email}
           </div>
-          <button className='w-full bg-gray-900 text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition'>
-            Modifier la photo
-          </button>
         </div>
+
         {/* Formulaire infos */}
         <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-8 flex-1'>
           <div className='flex justify-between items-center mb-6'>

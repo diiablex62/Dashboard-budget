@@ -76,6 +76,7 @@ export default function PaiementRecurrent() {
 
   // Charger les paiements depuis Firestore au chargement et après chaque ajout/suppression/modification
   const fetchPaiements = async () => {
+    if (!isLoggedIn) return;
     try {
       const snapshot = await getDocs(collection(db, "recurrent"));
       setPaiements(
@@ -91,7 +92,7 @@ export default function PaiementRecurrent() {
 
   useEffect(() => {
     fetchPaiements();
-  }, []);
+  }, [isLoggedIn]);
 
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
@@ -131,6 +132,7 @@ export default function PaiementRecurrent() {
 
   // Remplace handleDelete par une version avec délai et toast
   const handleDelete = async (idx) => {
+    if (!isLoggedIn) return;
     const paiement = paiements[idx];
     if (!paiement || !paiement.id) return;
     clearToast();
@@ -198,6 +200,7 @@ export default function PaiementRecurrent() {
 
   // Ajouter ou modifier un paiement (Firestore)
   const handleAddOrEditPaiement = async () => {
+    if (!isLoggedIn) return;
     try {
       if (editIndex !== null && paiements[editIndex]) {
         // Modification
