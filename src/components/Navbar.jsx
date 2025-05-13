@@ -69,9 +69,20 @@ export default function Navbar() {
     setShowSearchResults(true);
 
     try {
+      const searchTermLower = searchTerm.toLowerCase();
+      // Vérifier si la recherche est numérique pour chercher dans les montants
+      const searchTermNumeric = parseFloat(searchTerm.replace(",", "."));
+      const isNumericSearch = !isNaN(searchTermNumeric);
+
+      console.log(
+        `Recherche pour "${searchTerm}"${
+          isNumericSearch ? ` (valeur numérique: ${searchTermNumeric})` : ""
+        }`
+      );
+
       // Recherche dans les dépenses
       const depensesSnap = await getDocs(
-        query(collection(db, "depense"), orderBy("nom"), limit(5))
+        query(collection(db, "depense"), orderBy("nom"), limit(20))
       );
       const depenses = depensesSnap.docs
         .map((doc) => ({
@@ -80,16 +91,28 @@ export default function Navbar() {
           type: "depense",
           path: "/depenses-revenus",
         }))
-        .filter(
-          (item) =>
-            item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.categorie &&
-              item.categorie.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+        .filter((item) => {
+          const nomMatch =
+            item.nom && item.nom.toLowerCase().includes(searchTermLower);
+          const categorieMatch =
+            item.categorie &&
+            item.categorie.toLowerCase().includes(searchTermLower);
+
+          // Recherche dans les montants
+          let montantMatch = false;
+          if (isNumericSearch && item.montant !== undefined) {
+            const montantAbs = Math.abs(parseFloat(item.montant));
+            montantMatch =
+              montantAbs.toFixed(2).includes(searchTermNumeric.toString()) ||
+              montantAbs === searchTermNumeric;
+          }
+
+          return nomMatch || categorieMatch || montantMatch;
+        });
 
       // Recherche dans les revenus
       const revenusSnap = await getDocs(
-        query(collection(db, "revenu"), orderBy("nom"), limit(5))
+        query(collection(db, "revenu"), orderBy("nom"), limit(20))
       );
       const revenus = revenusSnap.docs
         .map((doc) => ({
@@ -98,16 +121,28 @@ export default function Navbar() {
           type: "revenu",
           path: "/depenses-revenus",
         }))
-        .filter(
-          (item) =>
-            item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.categorie &&
-              item.categorie.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+        .filter((item) => {
+          const nomMatch =
+            item.nom && item.nom.toLowerCase().includes(searchTermLower);
+          const categorieMatch =
+            item.categorie &&
+            item.categorie.toLowerCase().includes(searchTermLower);
+
+          // Recherche dans les montants
+          let montantMatch = false;
+          if (isNumericSearch && item.montant !== undefined) {
+            const montantAbs = Math.abs(parseFloat(item.montant));
+            montantMatch =
+              montantAbs.toFixed(2).includes(searchTermNumeric.toString()) ||
+              montantAbs === searchTermNumeric;
+          }
+
+          return nomMatch || categorieMatch || montantMatch;
+        });
 
       // Recherche dans les paiements récurrents
       const recurrentSnap = await getDocs(
-        query(collection(db, "recurrent"), orderBy("nom"), limit(5))
+        query(collection(db, "recurrent"), orderBy("nom"), limit(20))
       );
       const recurrents = recurrentSnap.docs
         .map((doc) => ({
@@ -116,15 +151,70 @@ export default function Navbar() {
           type: "paiement récurrent",
           path: "/paiements-recurrents",
         }))
-        .filter(
-          (item) =>
-            item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.categorie &&
-              item.categorie.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+        .filter((item) => {
+          const nomMatch =
+            item.nom && item.nom.toLowerCase().includes(searchTermLower);
+          const categorieMatch =
+            item.categorie &&
+            item.categorie.toLowerCase().includes(searchTermLower);
 
-      // Combiner les résultats et limiter à 10
-      const allResults = [...depenses, ...revenus, ...recurrents].slice(0, 10);
+          // Recherche dans les montants
+          let montantMatch = false;
+          if (isNumericSearch && item.montant !== undefined) {
+            const montantAbs = Math.abs(parseFloat(item.montant));
+            montantMatch =
+              montantAbs.toFixed(2).includes(searchTermNumeric.toString()) ||
+              montantAbs === searchTermNumeric;
+          }
+
+          return nomMatch || categorieMatch || montantMatch;
+        });
+
+      // Recherche dans les paiements échelonnés
+      const echelonnesSnap = await getDocs(
+        query(collection(db, "xfois"), orderBy("nom"), limit(20))
+      );
+      const echelonnes = echelonnesSnap.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          type: "paiement échelonné",
+          path: "/paiements-echelonnes",
+        }))
+        .filter((item) => {
+          const nomMatch =
+            item.nom && item.nom.toLowerCase().includes(searchTermLower);
+
+          // Recherche dans les montants
+          let montantMatch = false;
+          if (isNumericSearch && item.montant !== undefined) {
+            const montantAbs = Math.abs(parseFloat(item.montant));
+            montantMatch =
+              montantAbs.toFixed(2).includes(searchTermNumeric.toString()) ||
+              montantAbs === searchTermNumeric;
+          }
+
+          return nomMatch || montantMatch;
+        });
+
+      // Combiner les résultats et limiter à 20
+      const allResults = [
+        ...depenses,
+        ...revenus,
+        ...recurrents,
+        ...echelonnes,
+      ].slice(0, 20);
+
+      console.log(
+        `Recherche pour "${searchTerm}" a trouvé ${allResults.length} résultats`,
+        {
+          depenses: depenses.length,
+          revenus: revenus.length,
+          recurrents: recurrents.length,
+          echelonnes: echelonnes.length,
+        }
+      );
+
       setSearchResults(allResults);
     } catch (error) {
       console.error("Erreur lors de la recherche:", error);
@@ -220,11 +310,11 @@ export default function Navbar() {
 
           {/* Résultats de recherche */}
           {showSearchResults && (
-            <div className='absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 shadow-lg rounded-lg py-2 max-h-96 overflow-auto z-50 border border-gray-200 dark:border-gray-700'>
+            <div className='absolute left-0 right-0 mt-1 bg-white dark:bg-gray-800 shadow-xl rounded-lg py-2 z-50 border-2 border-gray-300 dark:border-gray-600 max-h-[80vh] overflow-y-auto overflow-x-hidden w-[150%] -ml-[25%]'>
               {isSearching ? (
-                <div className='px-4 py-3 text-sm text-gray-600 dark:text-gray-300 flex items-center'>
+                <div className='px-4 py-2 text-sm text-gray-700 dark:text-gray-200 flex items-center'>
                   <svg
-                    className='animate-spin h-4 w-4 mr-2 text-gray-500'
+                    className='animate-spin h-4 w-4 mr-2 text-gray-600'
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
                     viewBox='0 0 24 24'>
@@ -243,16 +333,16 @@ export default function Navbar() {
                   Recherche en cours...
                 </div>
               ) : searchResults.length === 0 && searchText.length >= 3 ? (
-                <div className='px-4 py-3 text-sm text-gray-600 dark:text-gray-300'>
+                <div className='px-4 py-2 text-sm text-gray-700 dark:text-gray-200'>
                   Aucun résultat trouvé pour "{searchText}"
                 </div>
               ) : searchResults.length === 0 ? (
-                <div className='px-4 py-3 text-sm text-gray-600 dark:text-gray-300'>
+                <div className='px-4 py-2 text-sm text-gray-700 dark:text-gray-200'>
                   Saisissez au moins 3 caractères pour rechercher
                 </div>
               ) : (
                 <>
-                  <div className='px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
+                  <div className='px-4 py-1 text-sm font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider bg-gray-100 dark:bg-gray-700'>
                     Résultats ({searchResults.length})
                   </div>
                   {searchResults.map((result) => (
@@ -263,14 +353,14 @@ export default function Navbar() {
                         navigate(result.path);
                         setShowSearchResults(false);
                       }}>
-                      <div className='flex items-center'>
+                      <div className='flex items-center w-full'>
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                          className={`min-w-[32px] w-8 h-8 rounded-full flex items-center justify-center mr-2 text-base font-semibold ${
                             result.type === "depense"
-                              ? "bg-red-100 text-red-600"
+                              ? "bg-red-200 text-red-700"
                               : result.type === "revenu"
-                              ? "bg-green-100 text-green-600"
-                              : "bg-blue-100 text-blue-600"
+                              ? "bg-green-200 text-green-700"
+                              : "bg-blue-200 text-blue-700"
                           }`}>
                           <span>
                             {result.type === "depense"
@@ -280,12 +370,12 @@ export default function Navbar() {
                               : "⟳"}
                           </span>
                         </div>
-                        <div>
-                          <div className='text-sm font-medium text-gray-800 dark:text-white'>
+                        <div className='flex-1 min-w-0 flex items-center'>
+                          <div className='text-sm font-medium text-gray-800 dark:text-white mr-2 max-w-[40%] truncate'>
                             {result.nom.charAt(0).toUpperCase() +
                               result.nom.slice(1)}
                           </div>
-                          <div className='text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-2'>
+                          <div className='flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 whitespace-nowrap'>
                             <span className='capitalize'>{result.type}</span>
                             {result.categorie && (
                               <>
@@ -297,10 +387,10 @@ export default function Navbar() {
                               <>
                                 <span>•</span>
                                 <span
-                                  className={`${
+                                  className={`font-semibold ${
                                     result.type === "depense"
-                                      ? "text-red-500"
-                                      : "text-green-500"
+                                      ? "text-red-600 dark:text-red-400"
+                                      : "text-green-600 dark:text-green-400"
                                   }`}>
                                   {Math.abs(result.montant).toFixed(2)} €
                                 </span>
