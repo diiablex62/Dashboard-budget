@@ -4,6 +4,7 @@ import {
   AiOutlineCalendar,
   AiOutlineCreditCard,
   AiOutlineRise,
+  AiOutlineDollarCircle,
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
@@ -49,65 +50,194 @@ export default function Dashboard() {
   const [paiementsEchelonnes, setPaiementsEchelonnes] = useState([]);
   const [totalEchelonnes, setTotalEchelonnes] = useState(0);
 
+  // Dépenses
+  const [totalDepensesMois, setTotalDepensesMois] = useState(0);
+  const [totalDepensesMoisPrecedent, setTotalDepensesMoisPrecedent] =
+    useState(0);
+
+  // Revenus
+  const [totalRevenusMois, setTotalRevenusMois] = useState(0);
+  const [totalRevenusMoisPrecedent, setTotalRevenusMoisPrecedent] = useState(0);
+
   // Données pour le graphique de répartition budget
   const [budgetData, setBudgetData] = useState([]);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      if (!user) return; // Ne tente pas de fetch si non connecté
-      try {
-        const [recurrentsSnap, echelonnesSnap] = await Promise.all([
-          getDocs(collection(db, "recurrent")),
-          getDocs(collection(db, "xfois")),
-        ]);
-        // Paiements récurrents
-        const paiements = recurrentsSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPaiementsRecurrents(paiements);
-        setTotalRecurrents(
-          paiements.reduce((acc, p) => acc + (p.montant || 0), 0)
-        );
-        // Paiements échelonnés
-        const now = new Date();
-        const currentMonth = now.getMonth() + 1;
-        const currentYear = now.getFullYear();
-        const echelonnes = echelonnesSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        const echelonnesDuMois = echelonnes.filter((p) => {
-          if (!p.debutMois || !p.mensualites) return false;
-          const [startYear, startMonth] = p.debutMois.split("-").map(Number);
-          const debut = new Date(startYear, startMonth - 1);
-          const fin = new Date(
-            startYear,
-            startMonth - 1 + Number(p.mensualites) - 1
-          );
-          const nowDate = new Date(currentYear, currentMonth - 1);
-          return nowDate >= debut && nowDate <= fin;
-        });
-        setPaiementsEchelonnes(echelonnesDuMois);
-        setTotalEchelonnes(
-          echelonnesDuMois.reduce((acc, p) => {
-            if (!p.montant || !p.mensualites) return acc;
-            return acc + Number(p.montant) / Number(p.mensualites);
-          }, 0)
-        );
+  const fetchAll = async () => {
+    if (!user) return; // Ne tente pas de fetch si non connecté
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
 
-        // Récupération des données pour le graphique de répartition du budget
-        await fetchBudgetData();
-      } catch (err) {
-        // Affiche l'erreur seulement si connecté
-        if (user) {
-          console.error("Erreur Firestore fetch:", err);
-        }
+      let previousMonth = currentMonth - 1;
+      let previousYear = currentYear;
+      if (previousMonth === 0) {
+        previousMonth = 12;
+        previousYear = currentYear - 1;
       }
-    };
 
+      // Formater les dates pour comparaison
+      const currentMonthStart = new Date(currentYear, currentMonth - 1, 1); // premier jour du mois courant
+      const currentMonthEnd = new Date(currentYear, currentMonth, 0); // dernier jour du mois courant
+
+      const previousMonthStart = new Date(previousYear, previousMonth - 1, 1); // premier jour du mois précédent
+      const previousMonthEnd = new Date(previousYear, previousMonth, 0); // dernier jour du mois précédent
+
+      // Récupération des paiements récurrents
+      const [recurrentsSnap, echelonnesSnap] = await Promise.all([
+        getDocs(collection(db, "recurrent")),
+        getDocs(collection(db, "xfois")),
+      ]);
+
+      // Traitement des paiements récurrents
+      const paiements = recurrentsSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPaiementsRecurrents(paiements);
+      setTotalRecurrents(
+        paiements.reduce((acc, p) => acc + (p.montant || 0), 0)
+      );
+
+      // Traitement des paiements échelonnés du mois courant
+      const echelonnes = echelonnesSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const echelonnesDuMois = echelonnes.filter((p) => {
+        if (!p.debutMois || !p.mensualites) return false;
+        const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+        const debut = new Date(startYear, startMonth - 1);
+        const fin = new Date(
+          startYear,
+          startMonth - 1 + Number(p.mensualites) - 1
+        );
+        const nowDate = new Date(currentYear, currentMonth - 1);
+        return nowDate >= debut && nowDate <= fin;
+      });
+      setPaiementsEchelonnes(echelonnesDuMois);
+
+      const totalEchelonne = echelonnesDuMois.reduce((acc, p) => {
+        if (!p.montant || !p.mensualites) return acc;
+        return acc + Number(p.montant) / Number(p.mensualites);
+      }, 0);
+      setTotalEchelonnes(totalEchelonne);
+
+      // Récupération des dépenses et revenus
+      const [depenseSnap, revenuSnap] = await Promise.all([
+        getDocs(collection(db, "depense")),
+        getDocs(collection(db, "revenu")),
+      ]);
+
+      const depenses = depenseSnap.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+
+      const revenus = revenuSnap.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+
+      // Filtrer les dépenses du mois actuel
+      const depensesMoisActuel = depenses.filter((d) => {
+        const depenseDate = new Date(d.date);
+        return (
+          depenseDate >= currentMonthStart && depenseDate <= currentMonthEnd
+        );
+      });
+
+      // Filtrer les dépenses du mois précédent
+      const depensesMoisPrecedent = depenses.filter((d) => {
+        const depenseDate = new Date(d.date);
+        return (
+          depenseDate >= previousMonthStart && depenseDate <= previousMonthEnd
+        );
+      });
+
+      // Filtrer les revenus du mois actuel
+      const revenusMoisActuel = revenus.filter((r) => {
+        const revenuDate = new Date(r.date);
+        return revenuDate >= currentMonthStart && revenuDate <= currentMonthEnd;
+      });
+
+      // Filtrer les revenus du mois précédent
+      const revenusMoisPrecedent = revenus.filter((r) => {
+        const revenuDate = new Date(r.date);
+        return (
+          revenuDate >= previousMonthStart && revenuDate <= previousMonthEnd
+        );
+      });
+
+      // Calculer le total des dépenses du mois actuel (valeurs négatives)
+      const totalDepensesActuel = Math.abs(
+        depensesMoisActuel.reduce(
+          (acc, d) => acc + (parseFloat(d.montant) || 0),
+          0
+        )
+      );
+
+      // Calculer le total des dépenses du mois précédent
+      const totalDepensesPrecedent = Math.abs(
+        depensesMoisPrecedent.reduce(
+          (acc, d) => acc + (parseFloat(d.montant) || 0),
+          0
+        )
+      );
+
+      // Calculer le total des revenus du mois actuel
+      const totalRevenusActuel = revenusMoisActuel.reduce(
+        (acc, r) => acc + (parseFloat(r.montant) || 0),
+        0
+      );
+
+      // Calculer le total des revenus du mois précédent
+      const totalRevenusPrecedent = revenusMoisPrecedent.reduce(
+        (acc, r) => acc + (parseFloat(r.montant) || 0),
+        0
+      );
+
+      // Calculer le total des dépenses mensuelles (dépenses + récurrents + échelonnés)
+      const totalMoisActuel =
+        totalDepensesActuel + totalRecurrents + totalEchelonne;
+      const totalMoisPrecedent =
+        totalDepensesPrecedent + totalRecurrents + totalEchelonne;
+
+      setTotalDepensesMois(totalMoisActuel);
+      setTotalDepensesMoisPrecedent(totalMoisPrecedent);
+      setTotalRevenusMois(totalRevenusActuel);
+      setTotalRevenusMoisPrecedent(totalRevenusPrecedent);
+
+      // Récupération des données pour le graphique de répartition du budget
+      await fetchBudgetData();
+    } catch (err) {
+      // Affiche l'erreur seulement si connecté
+      if (user) {
+        console.error("Erreur Firestore fetch:", err);
+      }
+    }
+  };
+
+  useEffect(() => {
     fetchAll();
   }, [user]);
+
+  // Fonction pour la mise à jour des données
+  useEffect(() => {
+    // Créer un écouteur d'événements pour les mises à jour
+    const handleDataUpdate = () => {
+      fetchAll();
+    };
+
+    // Ajouter l'écouteur d'événements
+    window.addEventListener("data-updated", handleDataUpdate);
+
+    // Nettoyer l'écouteur
+    return () => {
+      window.removeEventListener("data-updated", handleDataUpdate);
+    };
+  }, []);
 
   // Fonction pour récupérer les données de revenus et dépenses par mois
   const fetchBudgetData = async () => {
@@ -257,19 +387,52 @@ export default function Dashboard() {
         <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
             <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Total dépensé
+              Total dépensé ce mois-ci
             </span>
-            <span className='bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded px-2 py-1 text-xs font-bold'>
-              1
-            </span>
+            <AiOutlineDollarCircle className='text-blue-600 dark:text-blue-400 text-xl' />
           </div>
           <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            2,456.78€
+            {totalDepensesMois.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400 dark:text-gray-500'>
-            +3.2% depuis le mois dernier
+            {totalDepensesMois > totalDepensesMoisPrecedent ? (
+              <span className='text-red-500'>
+                +{(totalDepensesMois - totalDepensesMoisPrecedent).toFixed(2)}€
+              </span>
+            ) : (
+              <span className='text-green-500'>
+                -{(totalDepensesMoisPrecedent - totalDepensesMois).toFixed(2)}€
+              </span>
+            )}{" "}
+            par rapport au mois précédent
           </div>
         </div>
+
+        {/* Total revenus */}
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
+          <div className='flex items-center justify-between mb-2'>
+            <span className='text-sm text-gray-500 dark:text-gray-400'>
+              Total revenus ce mois-ci
+            </span>
+            <AiOutlineDollarCircle className='text-green-600 dark:text-green-400 text-xl' />
+          </div>
+          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
+            {totalRevenusMois.toFixed(2)}€
+          </div>
+          <div className='text-xs text-gray-400 dark:text-gray-500'>
+            {totalRevenusMois > totalRevenusMoisPrecedent ? (
+              <span className='text-green-500'>
+                +{(totalRevenusMois - totalRevenusMoisPrecedent).toFixed(2)}€
+              </span>
+            ) : (
+              <span className='text-red-500'>
+                -{(totalRevenusMoisPrecedent - totalRevenusMois).toFixed(2)}€
+              </span>
+            )}{" "}
+            par rapport au mois précédent
+          </div>
+        </div>
+
         {/* Paiements récurrents */}
         <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
