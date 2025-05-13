@@ -16,7 +16,7 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import Toast from "../components/Toast";
+import ToastManager from "../components/ToastManager";
 
 // Couleurs et icônes pour correspondre à l'image
 const MONTHS = [
@@ -611,18 +611,13 @@ export default function DepensesRevenus() {
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES); // État pour stocker les catégories
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    type: "success",
-    loading: false,
-    timeoutId: null,
-  });
 
-  // État pour l'édition de transaction
+  // Gestion des toasts
+  const [toasts, setToasts] = useState([]);
+
+  // Autres états existants
   const [editTransaction, setEditTransaction] = useState(null);
-  const [lastDeleted, setLastDeleted] = useState(null);
-  const [deleteTimeout, setDeleteTimeout] = useState(null);
+  const [deleteTimeout, setDeleteTimeout] = useState({});
 
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
@@ -692,31 +687,19 @@ export default function DepensesRevenus() {
         setCategories(DEFAULT_CATEGORIES);
 
         // Afficher un toast de succès
-        if (toast.timeoutId) clearTimeout(toast.timeoutId);
-        setToast({
-          open: true,
+        addToast({
           message: "Catégories initialisées avec succès",
           type: "success",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            3000
-          ),
+          duration: 3000,
         });
       } catch (err) {
         console.error("Erreur lors de l'initialisation des catégories:", err);
 
         // Toast d'erreur
-        if (toast.timeoutId) clearTimeout(toast.timeoutId);
-        setToast({
-          open: true,
+        addToast({
           message: "Erreur lors de l'initialisation des catégories",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
       }
     };
@@ -825,31 +808,21 @@ export default function DepensesRevenus() {
       // Vérification des données
       if (!depense.nom) {
         console.error("Nom dépense manquant", depense);
-        setToast({
-          open: true,
+        addToast({
           message: "Erreur: nom manquant. Veuillez saisir un nom.",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
         return;
       }
 
       if (!depense.categorie) {
         console.error("Catégorie dépense manquante", depense);
-        setToast({
-          open: true,
+        addToast({
           message:
             "Erreur: catégorie manquante. Veuillez sélectionner une catégorie.",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
         return;
       }
@@ -858,28 +831,20 @@ export default function DepensesRevenus() {
       const montant = parseFloat(depense.montant);
       if (isNaN(montant) || montant === 0) {
         console.error("Montant invalide ou nul", depense.montant);
-        setToast({
-          open: true,
+        addToast({
           message:
             "Erreur: montant invalide ou nul. Veuillez saisir un montant supérieur à 0.",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
         return;
       }
 
       // Affichage du toast de chargement
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
+      const loadingToastId = addToast({
         message: "Ajout de la dépense en cours...",
         type: "loading",
         loading: true,
-        timeoutId: null,
       });
 
       // Simplification - juste essayer d'ajouter le document avec montant validé
@@ -903,33 +868,24 @@ export default function DepensesRevenus() {
         }))
       );
 
+      // Supprimer le toast de chargement
+      removeToast(loadingToastId);
+
       // Toast de succès
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
+      addToast({
         message: "Dépense ajoutée avec succès",
         type: "success",
-        loading: false,
-        timeoutId: setTimeout(
-          () => setToast((t) => ({ ...t, open: false })),
-          3000
-        ),
+        duration: 3000,
       });
     } catch (err) {
       console.error("Erreur Firestore add dépense:", err);
 
       // Toast d'erreur
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
+      addToast({
         message:
           "Erreur lors de l'ajout de la dépense. Désactivez les bloqueurs de publicités.",
         type: "error",
-        loading: false,
-        timeoutId: setTimeout(
-          () => setToast((t) => ({ ...t, open: false })),
-          5000
-        ),
+        duration: 5000,
       });
     }
   };
@@ -942,31 +898,21 @@ export default function DepensesRevenus() {
       // Vérification des données
       if (!revenu.nom) {
         console.error("Nom revenu manquant", revenu);
-        setToast({
-          open: true,
+        addToast({
           message: "Erreur: nom manquant. Veuillez saisir un nom.",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
         return;
       }
 
       if (!revenu.categorie) {
         console.error("Catégorie revenu manquante", revenu);
-        setToast({
-          open: true,
+        addToast({
           message:
             "Erreur: catégorie manquante. Veuillez sélectionner une catégorie.",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
         return;
       }
@@ -975,28 +921,20 @@ export default function DepensesRevenus() {
       const montant = parseFloat(revenu.montant);
       if (isNaN(montant) || montant === 0) {
         console.error("Montant invalide ou nul", revenu.montant);
-        setToast({
-          open: true,
+        addToast({
           message:
             "Erreur: montant invalide ou nul. Veuillez saisir un montant supérieur à 0.",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(
-            () => setToast((t) => ({ ...t, open: false })),
-            5000
-          ),
+          duration: 5000,
         });
         return;
       }
 
       // Affichage du toast de chargement
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
+      const loadingToastId = addToast({
         message: "Ajout du revenu en cours...",
         type: "loading",
         loading: true,
-        timeoutId: null,
       });
 
       // Simplification - juste essayer d'ajouter le document
@@ -1020,58 +958,26 @@ export default function DepensesRevenus() {
         }))
       );
 
+      // Supprimer le toast de chargement
+      removeToast(loadingToastId);
+
       // Toast de succès
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
+      addToast({
         message: "Revenu ajouté avec succès",
         type: "success",
-        loading: false,
-        timeoutId: setTimeout(
-          () => setToast((t) => ({ ...t, open: false })),
-          3000
-        ),
+        duration: 3000,
       });
     } catch (err) {
       console.error("Erreur Firestore add revenu:", err);
 
       // Toast d'erreur
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-      setToast({
-        open: true,
+      addToast({
         message:
           "Erreur lors de l'ajout du revenu. Désactivez les bloqueurs de publicités.",
         type: "error",
-        loading: false,
-        timeoutId: setTimeout(
-          () => setToast((t) => ({ ...t, open: false })),
-          5000
-        ),
+        duration: 5000,
       });
     }
-  };
-
-  // Fonction pour gérer le nettoyage du toast
-  const clearToast = () => {
-    setToast((t) => {
-      if (t.timeoutId) clearTimeout(t.timeoutId);
-      return { ...t, open: false, timeoutId: null };
-    });
-  };
-
-  // Fonction pour annuler la suppression
-  const handleUndo = () => {
-    if (deleteTimeout) clearTimeout(deleteTimeout);
-    setDeleteTimeout(null);
-    setToast({
-      open: true,
-      message: "Suppression annulée.",
-      type: "success",
-      undo: false,
-      loading: false,
-      timeoutId: setTimeout(() => clearToast(), 3000),
-    });
-    setLastDeleted(null);
   };
 
   // Fonction pour modifier une transaction
@@ -1091,69 +997,196 @@ export default function DepensesRevenus() {
   // Fonction pour supprimer une transaction avec délai et toast
   const handleDelete = async (transaction) => {
     if (!transaction || !transaction.id) return;
+    console.log(`Début suppression pour transaction ${transaction.id}`);
+
     const collectionName = transaction.montant >= 0 ? "revenu" : "depense";
-    clearToast();
-    setToast({
-      open: true,
-      message: "Suppression en cours...",
+
+    // Utiliser clearAllToasts pour éviter l'erreur de linter
+    clearAllToasts();
+
+    // Créer le toast de confirmation
+    const toastId = addToast({
+      message: `Suppression de ${transaction.nom}...`,
       type: "error",
-      undo: true,
       loading: true,
-      timeoutId: null,
+      duration: 3000, // Réduire à 3 secondes pour voir les effets plus rapidement
       action: {
         label: "Annuler",
-        onClick: handleUndo,
+        onClick: () => {
+          console.log(
+            `Annulation pour transaction ${transaction.id}, toast ${toastId}`
+          );
+          if (deleteTimeout[transaction.id]) {
+            clearTimeout(deleteTimeout[transaction.id]);
+            // Supprimer l'entrée du délai pour cette transaction
+            setDeleteTimeout((prev) => {
+              const newTimeouts = { ...prev };
+              delete newTimeouts[transaction.id];
+              return newTimeouts;
+            });
+          }
+          removeToast(toastId);
+          addToast({
+            message: "Suppression annulée",
+            type: "success",
+            duration: 3000,
+          });
+        },
       },
     });
-    setLastDeleted(transaction);
-    const timeout = setTimeout(async () => {
-      try {
-        await deleteDoc(doc(db, collectionName, transaction.id));
 
-        // Mettre à jour l'état local
+    console.log(
+      `Toast créé avec ID ${toastId} pour transaction ${transaction.id}`
+    );
+
+    // Stocker le timeout par ID de transaction
+    const timeout = setTimeout(async () => {
+      console.log(
+        `Exécution du timeout pour transaction ${transaction.id}, toast ${toastId}`
+      );
+      try {
+        // Exécuter la suppression
+        await deleteDoc(doc(db, collectionName, transaction.id));
+        console.log(`Suppression réussie pour transaction ${transaction.id}`);
+
+        // Mettre à jour l'état local immédiatement
         if (collectionName === "revenu") {
-          setRevenus(revenus.filter((r) => r.id !== transaction.id));
+          setRevenus((prev) => prev.filter((r) => r.id !== transaction.id));
         } else {
-          setDepenses(depenses.filter((d) => d.id !== transaction.id));
+          setDepenses((prev) => prev.filter((d) => d.id !== transaction.id));
         }
 
-        // Toast de succès
-        setToast({
-          open: true,
-          message: "Suppression effectuée.",
+        // Forcer la suppression du toast de chargement
+        console.log(`Suppression du toast ${toastId}`);
+        removeToast(toastId);
+
+        // Afficher le toast de succès
+        addToast({
+          message: "Transaction supprimée avec succès",
           type: "success",
-          undo: false,
-          loading: false,
-          timeoutId: setTimeout(() => clearToast(), 5000),
+          duration: 3000,
         });
       } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
-        setToast({
-          open: true,
+        console.error(
+          `Erreur lors de la suppression de transaction ${transaction.id}:`,
+          error
+        );
+        removeToast(toastId);
+        addToast({
           message: "Erreur lors de la suppression",
           type: "error",
-          loading: false,
-          timeoutId: setTimeout(() => clearToast(), 5000),
+          duration: 3000,
+        });
+      } finally {
+        // Nettoyer le timeout
+        console.log(`Nettoyage du timeout pour transaction ${transaction.id}`);
+        setDeleteTimeout((prev) => {
+          const newTimeouts = { ...prev };
+          delete newTimeouts[transaction.id];
+          return newTimeouts;
         });
       }
-      setDeleteTimeout(null);
-      setLastDeleted(null);
-    }, 5000);
-    setDeleteTimeout(timeout);
+    }, 3000);
+
+    // Enregistrer le timeout
+    setDeleteTimeout((prev) => {
+      console.log(`Stockage du timeout pour transaction ${transaction.id}`);
+      return {
+        ...prev,
+        [transaction.id]: timeout,
+      };
+    });
   };
 
-  // Nettoyage des timeouts
+  // Nettoyage des timeouts lors du démontage du composant
   useEffect(() => {
     return () => {
-      if (toast && toast.timeoutId) clearTimeout(toast.timeoutId);
-      if (deleteTimeout) clearTimeout(deleteTimeout);
-    };
-    // eslint-disable-next-line
-  }, [toast, deleteTimeout]);
+      // Nettoyer tous les timeouts de toast
+      toasts.forEach((toast) => {
+        if (toast.timeoutId) {
+          console.log(
+            `Nettoyage du timeout pour toast ${toast.id} lors du démontage`
+          );
+          clearTimeout(toast.timeoutId);
+        }
+      });
 
-  // Supprimer l'avertissement de lint pour lastDeleted
-  // eslint-disable-next-line no-unused-vars
-  const { lastDeleted: _, ...rest } = { lastDeleted };
+      // Nettoyer tous les timeouts de suppression
+      if (Object.keys(deleteTimeout).length > 0) {
+        console.log(
+          `Nettoyage de ${
+            Object.keys(deleteTimeout).length
+          } timeouts de suppression lors du démontage`
+        );
+        Object.values(deleteTimeout).forEach((timeout) =>
+          clearTimeout(timeout)
+        );
+      }
+    };
+  }, [toasts, deleteTimeout]);
+
+  // Fonction pour ajouter un toast
+  const addToast = (toast) => {
+    const id = Date.now() + Math.floor(Math.random() * 1000);
+    console.log(`Création d'un toast avec ID ${id}, message: ${toast.message}`);
+
+    // Créer le nouveau toast avec ID et timestamp
+    const newToast = {
+      id,
+      ...toast,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Ajouter le toast à la liste
+    setToasts((prev) => {
+      const updated = [...prev, newToast];
+      console.log(`Nombre de toasts actifs: ${updated.length}`);
+      return updated;
+    });
+
+    // Si une durée est spécifiée, programmer la suppression automatique
+    if (toast.duration && !toast.loading) {
+      const timeoutId = setTimeout(() => {
+        console.log(
+          `Suppression automatique du toast ${id} après ${toast.duration}ms`
+        );
+        removeToast(id);
+      }, toast.duration);
+
+      // Stocker le timeoutId pour pouvoir l'annuler plus tard si nécessaire
+      newToast.timeoutId = timeoutId;
+    }
+
+    return id;
+  };
+
+  // Fonction pour supprimer un toast
+  const removeToast = (id) => {
+    if (!id) {
+      console.warn("Tentative de suppression d'un toast sans ID");
+      return;
+    }
+    console.log(`Suppression du toast avec ID ${id}`);
+
+    // Trouver le toast à supprimer pour nettoyer son timeout si existant
+    const toastToRemove = toasts.find((t) => t.id === id);
+    if (toastToRemove && toastToRemove.timeoutId) {
+      console.log(`Nettoyage du timeout pour toast ${id}`);
+      clearTimeout(toastToRemove.timeoutId);
+    }
+
+    // Filtrer les toasts pour supprimer celui avec l'ID spécifié
+    setToasts((prev) => {
+      const filtered = prev.filter((t) => t.id !== id);
+      console.log(`Après suppression: ${filtered.length} toasts restants`);
+      return filtered;
+    });
+  };
+
+  // Fonction pour supprimer tous les toasts - maintenue pour compatibilité
+  const clearAllToasts = () => {
+    setToasts([]);
+  };
 
   // Fonctions de rendu des cartes de transaction
   const renderTransaction = (transaction) => {
@@ -1171,7 +1204,7 @@ export default function DepensesRevenus() {
     return (
       <div
         key={transaction.id}
-        className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col'>
+        className={`bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200`}>
         <div className='flex items-center justify-between'>
           <div className='flex items-center'>
             <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
@@ -1191,7 +1224,10 @@ export default function DepensesRevenus() {
             <div className={`font-bold ${montantColor}`}>{montantText}</div>
             <div className='flex mt-2'>
               <button
-                onClick={() => handleEdit(transaction)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(transaction);
+                }}
                 className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 mr-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
                 aria-label='Modifier'>
                 <svg
@@ -1209,7 +1245,10 @@ export default function DepensesRevenus() {
                 </svg>
               </button>
               <button
-                onClick={() => handleDelete(transaction)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(transaction);
+                }}
                 className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
                 aria-label='Supprimer'>
                 <svg
@@ -1235,14 +1274,7 @@ export default function DepensesRevenus() {
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
-      <Toast
-        open={toast.open}
-        message={toast.message}
-        type={toast.type}
-        loading={toast.loading}
-        onClose={() => setToast((t) => ({ ...t, open: false }))}
-        action={toast.action}
-      />
+      <ToastManager toasts={toasts} onClose={removeToast} />
 
       <div className='max-w-6xl mx-auto'>
         {/* Header */}
@@ -1361,15 +1393,15 @@ export default function DepensesRevenus() {
                   Liste de toutes vos dépenses pour {moisSelectionne}
                 </div>
               </div>
-              {/* Afficher le bouton uniquement s'il y a des dépenses */}
-              {depensesFiltres.length > 0 && (
+              <div className='flex space-x-3'>
+                {/* Afficher le bouton uniquement s'il y a des dépenses */}
                 <button
                   className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
                   onClick={() => setShowDepenseModal(true)}>
                   <span className='text-lg font-bold'>+</span>
                   <span>Ajouter</span>
                 </button>
-              )}
+              </div>
             </div>
 
             {showEmpty && (
@@ -1414,15 +1446,15 @@ export default function DepensesRevenus() {
                   Liste de tous vos revenus pour {moisSelectionne}
                 </div>
               </div>
-              {/* Afficher le bouton uniquement s'il y a des revenus */}
-              {revenusFiltres.length > 0 && (
+              <div className='flex space-x-3'>
+                {/* Afficher le bouton uniquement s'il y a des revenus */}
                 <button
                   className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
                   onClick={() => setShowRevenuModal(true)}>
                   <span className='text-lg font-bold'>+</span>
                   <span>Ajouter</span>
                 </button>
-              )}
+              </div>
             </div>
 
             {showEmpty && (

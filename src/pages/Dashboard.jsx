@@ -142,17 +142,28 @@ export default function Dashboard() {
         "Déc",
       ];
 
-      // Générer les 6 derniers mois
+      // Déterminer les 6 derniers mois dans l'ordre chronologique
       const derniersMois = [];
       const maintenant = new Date();
+      const moisActuel = maintenant.getMonth(); // 0-11
+      const anneeActuelle = maintenant.getFullYear();
+
+      // Calculer les 5 mois précédents et le mois actuel (total: 6 mois)
       for (let i = 5; i >= 0; i--) {
-        const date = new Date(maintenant);
-        date.setMonth(maintenant.getMonth() - i);
-        derniersMois.unshift({
-          date: date,
-          name: MONTHS[date.getMonth()],
-          month: date.getMonth(),
-          year: date.getFullYear(),
+        let mois = moisActuel - i;
+        let annee = anneeActuelle;
+
+        // Ajuster l'année si on remonte à l'année précédente
+        if (mois < 0) {
+          mois += 12;
+          annee -= 1;
+        }
+
+        derniersMois.push({
+          date: new Date(annee, mois, 1),
+          name: `${MONTHS[mois]}${annee !== anneeActuelle ? " " + annee : ""}`,
+          month: mois,
+          year: annee,
           revenus: 0,
           depenses: 0,
         });
@@ -404,8 +415,8 @@ export default function Dashboard() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey='depenses' fill='#f43f5e' name='Dépenses' />
                 <Bar dataKey='revenus' fill='#10b981' name='Revenus' />
+                <Bar dataKey='depenses' fill='#f43f5e' name='Dépenses' />
               </BarChart>
             </ResponsiveContainer>
           </div>

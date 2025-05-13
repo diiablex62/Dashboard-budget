@@ -22,7 +22,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import Toast from "../components/Toast";
+import ToastManager from "../components/ToastManager";
 
 const CATEGORIES = [
   "Maison",
@@ -100,94 +100,72 @@ export default function PaiementRecurrent() {
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
 
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    type: "success",
-    undo: false,
-    loading: false,
-    timeoutId: null,
-    action: null,
-  });
+  // Gestion des toasts multiple avec le nouveau système
+  const [toasts, setToasts] = useState([]);
   const [lastDeleted, setLastDeleted] = useState(null);
   const [deleteTimeout, setDeleteTimeout] = useState(null);
 
-  const clearToast = () => {
-    setToast((t) => {
-      if (t.timeoutId) clearTimeout(t.timeoutId);
-      return { ...t, open: false, timeoutId: null };
-    });
+  // Ajout d'un toast avec identifiant unique et suppression automatique
+  const addToast = (toast) => {
+    const id = Date.now(); // Identifiant unique
+    const newToast = {
+      id,
+      ...toast,
+    };
+
+    setToasts((prev) => [...prev, newToast]);
+
+    // Si une durée est spécifiée et que ce n'est pas un toast de chargement,
+    // programmer sa suppression automatique
+    if (toast.duration && !toast.loading) {
+      const timeoutId = setTimeout(() => {
+        console.log(
+          `Suppression automatique du toast ${id} après ${toast.duration}ms`
+        );
+        removeToast(id);
+      }, toast.duration);
+
+      // Stocker le timeoutId pour pouvoir l'annuler plus tard si nécessaire
+      newToast.timeoutId = timeoutId;
+    }
+
+    return id;
   };
 
+  // Fonction pour supprimer un toast avec nettoyage du timeout
+  const removeToast = (id) => {
+    if (!id) {
+      console.warn("Tentative de suppression d'un toast sans ID");
+      return;
+    }
+
+    // Trouver le toast à supprimer pour nettoyer son timeout si existant
+    const toastToRemove = toasts.find((t) => t.id === id);
+    if (toastToRemove && toastToRemove.timeoutId) {
+      console.log(`Nettoyage du timeout pour toast ${id}`);
+      clearTimeout(toastToRemove.timeoutId);
+    }
+
+    // Filtrer les toasts pour supprimer celui avec l'ID spécifié
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // Fonction pour supprimer tous les toasts
+  const clearAllToasts = () => {
+    setToasts([]);
+  };
+
+  // Mise à jour de handleUndo pour le nouveau système de toast
   const handleUndo = () => {
     if (deleteTimeout) clearTimeout(deleteTimeout);
     setDeleteTimeout(null);
-    setToast({
-      open: true,
+    addToast({
       message: "Suppression annulée.",
       type: "success",
-      undo: false,
-      loading: false,
-      timeoutId: setTimeout(() => clearToast(), 3000),
+      duration: 3000,
     });
     setLastDeleted(null);
   };
-
-  // Remplace handleDelete par une version avec délai et toast
-  const handleDelete = async (idx) => {
-    if (!user) return;
-    const paiement = paiements[idx];
-    if (!paiement || !paiement.id) return;
-    clearToast();
-    setToast({
-      open: true,
-      message: "Suppression en cours...",
-      type: "error",
-      undo: true,
-      loading: true,
-      timeoutId: null,
-      action: {
-        label: "Annuler",
-        onClick: handleUndo,
-      },
-    });
-    setLastDeleted({ ...paiement, idx });
-    const timeout = setTimeout(async () => {
-      await deleteDoc(doc(db, "recurrent", paiement.id));
-      setPaiements((prev) => prev.filter((_, i) => i !== idx));
-      setToast({
-        open: true,
-        message: "Suppression effectuée.",
-        type: "success",
-        undo: false,
-        loading: false,
-        timeoutId: setTimeout(() => clearToast(), 5000),
-      });
-      setDeleteTimeout(null);
-      setLastDeleted(null);
-      // Notification suppression paiement récurrent
-      await addDoc(collection(db, "notifications"), {
-        type: "recurrent",
-        title: "Paiement récurrent supprimé",
-        desc: `Suppression de ${
-          paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
-        } (${parseFloat(paiement.montant).toFixed(2)}€)`,
-        date: new Date().toLocaleDateString("fr-FR"),
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-    }, 5000);
-    setDeleteTimeout(timeout);
-  };
-
-  // Nettoyage du toast si on quitte la page ou démonte le composant
-  useEffect(() => {
-    return () => {
-      if (toast && toast.timeoutId) clearTimeout(toast.timeoutId);
-      if (deleteTimeout) clearTimeout(deleteTimeout);
-    };
-    // eslint-disable-next-line
-  }, [toast, deleteTimeout]);
 
   // Commencer la modification
   const handleEdit = (idx) => {
@@ -204,7 +182,27 @@ export default function PaiementRecurrent() {
   // Ajouter ou modifier un paiement (Firestore)
   const handleAddOrEditPaiement = async () => {
     if (!user) return;
+
+    // Vérifications de base
+    if (!newPaiement.nom || !newPaiement.categorie || !newPaiement.montant) {
+      console.error("Données manquantes", newPaiement);
+      addToast({
+        message: "Veuillez remplir tous les champs",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
     try {
+      // Toast de chargement commun pour ajout ou modification
+      const loadingToastId = addToast({
+        message:
+          editIndex !== null ? "Modification en cours..." : "Ajout en cours...",
+        type: "loading",
+        loading: true,
+      });
+
       if (editIndex !== null && paiements[editIndex]) {
         // Modification
         const paiementId = paiements[editIndex].id;
@@ -212,7 +210,19 @@ export default function PaiementRecurrent() {
           nom: newPaiement.nom,
           categorie: newPaiement.categorie,
           montant: parseFloat(newPaiement.montant),
+          updatedAt: serverTimestamp(),
         });
+
+        // Supprimer le toast de chargement
+        removeToast(loadingToastId);
+
+        // Toast de confirmation
+        addToast({
+          message: "Paiement récurrent modifié avec succès",
+          type: "success",
+          duration: 3000,
+        });
+
         // Notification modification paiement récurrent
         await addDoc(collection(db, "notifications"), {
           type: "recurrent",
@@ -227,12 +237,24 @@ export default function PaiementRecurrent() {
       } else {
         // Ajout
         console.log("Ajout paiement Firestore :", newPaiement);
+
         await addDoc(collection(db, "recurrent"), {
           nom: newPaiement.nom,
           categorie: newPaiement.categorie,
           montant: parseFloat(newPaiement.montant),
           createdAt: serverTimestamp(),
         });
+
+        // Supprimer le toast de chargement
+        removeToast(loadingToastId);
+
+        // Toast de succès
+        addToast({
+          message: "Paiement récurrent ajouté avec succès",
+          type: "success",
+          duration: 3000,
+        });
+
         // Ajoute une notification en BDD
         await addDoc(collection(db, "notifications"), {
           type: "recurrent",
@@ -245,14 +267,106 @@ export default function PaiementRecurrent() {
           createdAt: serverTimestamp(),
         });
       }
-      await fetchPaiements(); // Recharge la liste après ajout/modif
+
+      // Recharge la liste après ajout/modif
+      await fetchPaiements();
+
+      // Réinitialiser le formulaire et fermer la modal
       setShowModal(false);
       setStep(1);
       setNewPaiement({ nom: "", categorie: "", montant: "" });
       setEditIndex(null);
     } catch (err) {
       console.error("Erreur Firestore add/update:", err);
+      addToast({
+        message: "Une erreur s'est produite",
+        type: "error",
+        duration: 5000,
+      });
     }
+  };
+
+  // Fonction pour supprimer un paiement (avec toast et délai pour annulation)
+  const handleDelete = async (idx) => {
+    const paiement = paiements[idx];
+    if (!paiement || !paiement.id) return;
+
+    // Ne pas réinitialiser les toasts existants
+    // clearAllToasts();
+
+    // Sauvegarder le paiement pour annulation éventuelle
+    setLastDeleted(paiement);
+
+    // Créer un toast avec bouton d'annulation
+    const toastId = addToast({
+      message: `Suppression de ${paiement.nom}...`,
+      type: "error",
+      duration: 5000,
+      action: {
+        label: "Annuler",
+        onClick: () => {
+          // Annuler uniquement cette suppression spécifique
+          if (deleteTimeout) {
+            clearTimeout(deleteTimeout);
+            setDeleteTimeout(null);
+          }
+          // Supprimer uniquement ce toast
+          removeToast(toastId);
+          // Toast d'annulation
+          addToast({
+            message: "Suppression annulée",
+            type: "success",
+            duration: 3000,
+          });
+          setLastDeleted(null);
+        },
+      },
+    });
+
+    // Supprimer après un délai pour permettre l'annulation
+    const timeout = setTimeout(async () => {
+      try {
+        // Suppression de Firebase
+        await deleteDoc(doc(db, "recurrent", paiement.id));
+
+        // Mettre à jour l'état local
+        await fetchPaiements();
+
+        // Supprimer uniquement ce toast
+        removeToast(toastId);
+
+        // Toast de confirmation finale
+        addToast({
+          message: "Suppression effectuée.",
+          type: "success",
+          duration: 3000,
+        });
+
+        // Notification suppression paiement récurrent
+        await addDoc(collection(db, "notifications"), {
+          type: "recurrent",
+          title: "Paiement récurrent supprimé",
+          desc: `Suppression de ${
+            paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
+          } (${parseFloat(paiement.montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error);
+        removeToast(toastId);
+        addToast({
+          message: "Erreur lors de la suppression",
+          type: "error",
+          duration: 3000,
+        });
+      } finally {
+        setDeleteTimeout(null);
+      }
+    }, 5000);
+
+    setDeleteTimeout(timeout);
   };
 
   // Fonction pour regrouper les montants par catégorie
@@ -276,175 +390,57 @@ export default function PaiementRecurrent() {
     "#64748b",
   ];
 
-  return (
-    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
-      <Toast
-        open={toast.open}
-        message={toast.message}
-        type={toast.type}
-        onClose={clearToast}
-        loading={toast.loading}
-        action={toast.action}
-      />
-      <div className='flex flex-col gap-6'>
-        {/* En-tête */}
-        <div className='flex items-center justify-between'>
-          <div className='text-2xl font-semibold text-gray-800 dark:text-white'>
-            Paiements récurrents
-          </div>
-          <button
-            className='bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition'
-            onClick={() => setShowModal(true)}>
-            Ajouter un paiement récurrent
-          </button>
-        </div>
+  // Nettoyage des timeouts lors du démontage du composant
+  useEffect(() => {
+    return () => {
+      // Nettoyer tous les timeouts de toast
+      toasts.forEach((toast) => {
+        if (toast.timeoutId) {
+          clearTimeout(toast.timeoutId);
+        }
+      });
 
-        {/* Modal */}
-        {showModal && (
-          <div
-            className='fixed inset-0 z-50 flex items-center justify-center'
-            style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-            <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
-              <button
-                className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                onClick={() => {
-                  setShowModal(false);
-                  setStep(1);
-                  setNewPaiement({ nom: "", categorie: "", montant: "" });
-                }}
-                aria-label='Fermer'>
-                ✕
-              </button>
-              <div className='mb-6 text-lg font-semibold dark:text-white'>
-                Ajouter un paiement récurrent
-              </div>
-              {/* Récapitulatif dynamique */}
-              <div className='mb-4 dark:text-gray-300'>
-                {newPaiement.nom && (
-                  <div>
-                    <span className='font-medium'>Libellé :</span>{" "}
-                    {newPaiement.nom.charAt(0).toUpperCase() +
-                      newPaiement.nom.slice(1)}
-                  </div>
-                )}
-                {step > 1 && newPaiement.categorie && (
-                  <div>
-                    <span className='font-medium'>Catégorie :</span>{" "}
-                    {newPaiement.categorie}
-                  </div>
-                )}
-                {step > 2 && newPaiement.montant && (
-                  <div>
-                    <span className='font-medium'>Montant :</span>{" "}
-                    {parseFloat(newPaiement.montant).toFixed(2)} €
-                  </div>
-                )}
-              </div>
-              {/* Étapes */}
-              {step === 1 && (
-                <div>
-                  <label className='block mb-2 font-medium dark:text-white'>
-                    Nom du paiement
-                  </label>
-                  <input
-                    type='text'
-                    name='nom'
-                    value={newPaiement.nom}
-                    onChange={handleChange}
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                    placeholder='Ex: Netflix'
-                    ref={nomInputRef}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newPaiement.nom) handleNext();
-                    }}
-                  />
-                  <div className='flex justify-end'>
-                    <button
-                      className='bg-green-600 text-white px-4 py-2 rounded'
-                      disabled={!newPaiement.nom}
-                      onClick={handleNext}>
-                      Suivant
-                    </button>
-                  </div>
-                </div>
-              )}
-              {step === 2 && (
-                <div>
-                  <label className='block mb-2 font-medium dark:text-white'>
-                    Catégorie
-                  </label>
-                  <select
-                    name='categorie'
-                    value={newPaiement.categorie}
-                    onChange={(e) => {
-                      handleChange(e);
-                      if (e.target.value) {
-                        // Passe automatiquement à l'étape suivante après sélection
-                        setTimeout(() => handleNext(), 100);
-                      }
-                    }}
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
-                    <option value=''>Sélectionner une catégorie</option>
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <div className='flex justify-between'>
-                    <button
-                      className='text-gray-600 dark:text-gray-400'
-                      onClick={handlePrev}>
-                      Précédent
-                    </button>
-                    <button
-                      className='bg-green-600 text-white px-4 py-2 rounded'
-                      disabled={!newPaiement.categorie}
-                      onClick={handleNext}>
-                      Suivant
-                    </button>
-                  </div>
-                </div>
-              )}
-              {step === 3 && (
-                <div>
-                  <label className='block mb-2 font-medium dark:text-white'>
-                    Montant (€)
-                  </label>
-                  <input
-                    type='number'
-                    name='montant'
-                    value={newPaiement.montant}
-                    onChange={handleChange}
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                    min='0'
-                    step='0.01'
-                    placeholder='Ex: 14.99'
-                    ref={montantInputRef}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newPaiement.montant)
-                        handleAddOrEditPaiement();
-                    }}
-                  />
-                  <div className='flex justify-between'>
-                    <button
-                      className='text-gray-600 dark:text-gray-400'
-                      onClick={handlePrev}>
-                      Précédent
-                    </button>
-                    <button
-                      className='bg-green-600 text-white px-4 py-2 rounded'
-                      disabled={!newPaiement.montant}
-                      onClick={handleAddOrEditPaiement}>
-                      {editIndex !== null ? "Modifier" : "Ajouter"}
-                    </button>
-                  </div>
-                </div>
-              )}
+      // Nettoyer le timeout de suppression
+      if (deleteTimeout) {
+        clearTimeout(deleteTimeout);
+      }
+    };
+  }, [toasts, deleteTimeout]);
+
+  return (
+    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
+      <ToastManager toasts={toasts} onClose={removeToast} />
+
+      <div className='max-w-6xl mx-auto'>
+        {/* En-tête et boutons d'action */}
+        <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
+          <div>
+            <h1 className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
+              Paiements Récurrents
+            </h1>
+            <div className='text-gray-500 dark:text-gray-400 text-base'>
+              Gérez vos paiements mensuels.
             </div>
           </div>
-        )}
-        {/* Totaux */}
+          <div className='flex flex-col sm:flex-row gap-2 mt-4 md:mt-0'>
+            <button
+              onClick={() => {
+                setEditIndex(null);
+                setNewPaiement({
+                  nom: "",
+                  categorie: "",
+                  montant: "",
+                });
+                setShowModal(true);
+                setStep(1);
+              }}
+              className='px-5 py-2.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-lg font-semibold flex items-center justify-center'>
+              <AiOutlineCalendar className='mr-2' /> Ajouter un paiement
+            </button>
+          </div>
+        </div>
+
+        {/* Cartes de statistiques */}
         <div className='flex flex-col md:flex-row gap-6 mb-8'>
           {/* Colonne gauche : Totaux mensuel et annuel */}
           <div className='flex-1 flex flex-col gap-4'>
@@ -461,7 +457,6 @@ export default function PaiementRecurrent() {
                 {totalMensuel.toFixed(2)}€
               </div>
             </div>
-        
           </div>
           {/* Colonne droite : Dépenses par catégorie */}
           <div className='flex-1 bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl flex flex-col items-center justify-center p-6'>
@@ -515,56 +510,233 @@ export default function PaiementRecurrent() {
           </div>
         </div>
 
-        {/* Liste des paiements */}
-        <div className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl p-8'>
-          <div className='text-lg font-semibold mb-6 dark:text-white'>
-            Abonnements et prélèvements
-          </div>
-          <div className='overflow-x-auto'>
-            <table className='min-w-full text-left'>
-              <thead>
-                <tr className='text-gray-500 dark:text-gray-400 font-medium text-sm'>
-                  <th className='py-3 px-2'>Nom</th>
-                  <th className='py-3 px-2'>Catégorie</th>
-                  <th className='py-3 px-2'>Montant</th>
-                  <th className='py-3 px-2'>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paiements.map((p, idx) => (
-                  <tr
-                    key={idx}
-                    className='border-t border-[#ececec] dark:border-gray-800'>
-                    <td className='py-3 px-2 dark:text-white'>
-                      {p.nom.charAt(0).toUpperCase() + p.nom.slice(1)}
-                    </td>
-                    <td className='py-3 px-2 dark:text-gray-300'>
-                      {p.categorie}
-                    </td>
-                    <td className='py-3 px-2 dark:text-white'>
-                      {p.montant.toFixed(2)}€
-                    </td>
-                    <td className='py-3 px-2'>
-                      <button
-                        className='text-blue-700 dark:text-blue-400 font-medium hover:underline mr-4'
-                        title='Modifier'
-                        onClick={() => handleEdit(idx)}>
-                        <FiEdit className='inline text-lg' />
-                      </button>
-                      <button
-                        className='text-red-500 dark:text-red-400 font-medium hover:underline'
-                        title='Supprimer'
-                        onClick={() => handleDelete(idx)}>
-                        <FiTrash className='inline text-lg' />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Affichage des paiements récurrents */}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
+          {paiements.length > 0 ? (
+            paiements.map((paiement, idx) => {
+              return (
+                <div
+                  key={paiement.id || idx}
+                  className={`bg-white dark:bg-black rounded-xl shadow border border-gray-100 dark:border-gray-800 p-5 flex flex-col transition-all duration-200`}>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center'>
+                      <div className='w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mr-3'>
+                        <AiOutlineCalendar className='text-indigo-600 dark:text-indigo-300 text-xl' />
+                      </div>
+                      <div>
+                        <div className='font-semibold text-[#111] dark:text-white'>
+                          {paiement.nom}
+                        </div>
+                        <div className='text-xs text-gray-500 dark:text-gray-400'>
+                          {paiement.categorie}
+                        </div>
+                      </div>
+                    </div>
+                    <div className='flex flex-col items-end'>
+                      <div className='font-bold text-green-600 dark:text-green-400'>
+                        {paiement.montant
+                          ? parseFloat(paiement.montant).toFixed(2)
+                          : "0.00"}
+                        €
+                      </div>
+                      <div className='text-xs text-gray-500 dark:text-gray-400'>
+                        par mois
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='flex justify-end mt-4 pt-2 border-t border-gray-100 dark:border-gray-800'>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(idx);
+                      }}
+                      className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 p-2'>
+                      <FiEdit />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(idx);
+                      }}
+                      className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-2'>
+                      <FiTrash />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className='col-span-3 bg-white dark:bg-black rounded-xl shadow border border-gray-100 dark:border-gray-800 p-8 flex flex-col items-center justify-center'>
+              <div className='text-lg text-gray-500 dark:text-gray-400 text-center'>
+                Vous n'avez aucun paiement récurrent.
+              </div>
+              <button
+                onClick={() => {
+                  setEditIndex(null);
+                  setNewPaiement({
+                    nom: "",
+                    categorie: "",
+                    montant: "",
+                  });
+                  setShowModal(true);
+                  setStep(1);
+                }}
+                className='mt-4 px-5 py-2.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-lg font-semibold'>
+                Ajouter votre premier paiement récurrent
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Modal d'ajout ou modification */}
+      {showModal && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-60'
+          onClick={(e) => {
+            // Ferme le modal seulement si on clique à l'extérieur du contenu
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}>
+          <div className='bg-white dark:bg-black rounded-xl shadow-lg p-8 w-full max-w-md'>
+            <h2 className='text-xl font-bold text-[#222] dark:text-white mb-6'>
+              {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
+              récurrent
+            </h2>
+
+            <div className='space-y-4'>
+              {/* Étape 1: Nom */}
+              {step === 1 && (
+                <div className='space-y-3'>
+                  <label
+                    htmlFor='nom'
+                    className='block text-gray-700 dark:text-gray-300 font-medium'>
+                    Nom du paiement
+                  </label>
+                  <input
+                    id='nom'
+                    name='nom'
+                    value={newPaiement.nom}
+                    onChange={handleChange}
+                    placeholder='Ex: Loyer, Netflix, etc.'
+                    className='w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
+                    ref={nomInputRef}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && newPaiement.nom && handleNext()
+                    }
+                  />
+                  <div className='flex justify-end'>
+                    <button
+                      onClick={handleNext}
+                      disabled={!newPaiement.nom}
+                      className={`px-5 py-2 rounded-lg font-medium ${
+                        newPaiement.nom
+                          ? "bg-[#6366f1] hover:bg-[#4f46e5] text-white"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}>
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Étape 2: Catégorie */}
+              {step === 2 && (
+                <div className='space-y-3'>
+                  <label
+                    htmlFor='categorie'
+                    className='block text-gray-700 dark:text-gray-300 font-medium'>
+                    Catégorie
+                  </label>
+                  <select
+                    id='categorie'
+                    name='categorie'
+                    value={newPaiement.categorie}
+                    onChange={(e) => {
+                      handleChange(e);
+                      // Passer automatiquement à l'étape suivante si une catégorie est sélectionnée
+                      if (e.target.value) setTimeout(() => handleNext(), 200);
+                    }}
+                    className='w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white'>
+                    <option value=''>Sélectionner une catégorie</option>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <div className='flex justify-between'>
+                    <button
+                      onClick={handlePrev}
+                      className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
+                      Retour
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      disabled={!newPaiement.categorie}
+                      className={`px-5 py-2 rounded-lg font-medium ${
+                        newPaiement.categorie
+                          ? "bg-[#6366f1] hover:bg-[#4f46e5] text-white"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}>
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Étape 3: Montant */}
+              {step === 3 && (
+                <div className='space-y-3'>
+                  <label
+                    htmlFor='montant'
+                    className='block text-gray-700 dark:text-gray-300 font-medium'>
+                    Montant (€)
+                  </label>
+                  <input
+                    id='montant'
+                    name='montant'
+                    type='number'
+                    step='0.01'
+                    min='0.01'
+                    value={newPaiement.montant}
+                    onChange={handleChange}
+                    placeholder='Ex: 49.99'
+                    className='w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
+                    ref={montantInputRef}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" &&
+                      parseFloat(newPaiement.montant) > 0 &&
+                      handleAddOrEditPaiement()
+                    }
+                  />
+                  <div className='flex justify-between'>
+                    <button
+                      onClick={handlePrev}
+                      className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
+                      Retour
+                    </button>
+                    <button
+                      onClick={handleAddOrEditPaiement}
+                      disabled={
+                        !newPaiement.montant ||
+                        parseFloat(newPaiement.montant) <= 0
+                      }
+                      className={`px-5 py-2 rounded-lg font-medium ${
+                        newPaiement.montant &&
+                        parseFloat(newPaiement.montant) > 0
+                          ? "bg-[#6366f1] hover:bg-[#4f46e5] text-white"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}>
+                      {editIndex !== null ? "Modifier" : "Ajouter"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

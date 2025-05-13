@@ -1,54 +1,27 @@
 import React from "react";
+import ToastItem from "./ToastItem";
 
+// Re-export ToastItem pour d'autres composants qui en ont besoin
+export { ToastItem };
+
+// Composant Toast pour la rétrocompatibilité
 export default function Toast({
   open,
   message,
-  type = "success", // "success" | "error" | "loading"
+  type,
+  loading,
   onClose,
   action,
-  loading = false,
 }) {
   if (!open) return null;
 
-  let color = "bg-green-600 text-white";
-  if (type === "error") color = "bg-red-600 text-white";
-  if (type === "loading") color = "bg-blue-600 text-white";
+  // Créer un objet toast compatible avec ToastItem
+  const toast = {
+    message,
+    type,
+    loading,
+    action,
+  };
 
-  return (
-    <div
-      className={`fixed top-6 right-6 z-50 min-w-[260px] max-w-xs shadow-lg rounded-lg px-5 py-4 flex items-center justify-between ${color} animate-fade-in`}
-      style={{ transition: "all 0.2s" }}
-      role='alert'>
-      <div className='flex items-center'>
-        {loading && (
-          <svg
-            className='animate-spin h-5 w-5 text-white mr-2'
-            viewBox='0 0 24 24'>
-            <circle
-              className='opacity-25'
-              cx='12'
-              cy='12'
-              r='10'
-              stroke='currentColor'
-              strokeWidth='4'
-              fill='none'
-            />
-            <path
-              className='opacity-75'
-              fill='currentColor'
-              d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-            />
-          </svg>
-        )}
-        <span className='text-base whitespace-nowrap'>{message}</span>
-      </div>
-      {action && (
-        <button
-          className='ml-3 px-3 py-1 rounded bg-white text-blue-700 font-semibold hover:bg-blue-50 transition'
-          onClick={action.onClick}>
-          Annuler
-        </button>
-      )}
-    </div>
-  );
+  return <ToastItem toast={toast} onClose={onClose} />;
 }
