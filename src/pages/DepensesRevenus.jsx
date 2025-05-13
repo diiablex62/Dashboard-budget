@@ -15,6 +15,7 @@ import {
   orderBy,
   deleteDoc,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 
 const MONTHS = [
@@ -65,6 +66,7 @@ function RevenuModal({
 }) {
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
+    id: revenu.id || null,
     nom: revenu.nom || "",
     montant: revenu.montant ? revenu.montant.toString() : "",
     categorie: revenu.categorie || "",
@@ -117,6 +119,7 @@ function RevenuModal({
     onSave({
       ...form,
       montant: montant,
+      id: form.id, // Conserver l'ID si on est en mode édition
     });
     onClose();
   };
@@ -333,6 +336,7 @@ function DepenseModal({
 }) {
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
+    id: depense.id || null,
     nom: depense.nom || "",
     montant: depense.montant ? Math.abs(depense.montant).toString() : "",
     date: depense.date || new Date().toISOString().split("T")[0],
@@ -385,6 +389,7 @@ function DepenseModal({
     onSave({
       ...form,
       montant: -Math.abs(montant),
+      id: form.id, // Conserver l'ID si on est en mode édition
     });
     onClose();
   };
@@ -834,7 +839,7 @@ export default function DepensesRevenus() {
   // Fonction pour ajouter une dépense depuis la modale
   const handleAddDepense = async (depense) => {
     try {
-      console.log("Ajout dépense Firestore :", depense);
+      console.log("Ajout/modification dépense Firestore :", depense);
 
       // Vérifications de base
       if (!depense.nom) {
@@ -854,14 +859,28 @@ export default function DepensesRevenus() {
         return;
       }
 
-      // Simplification - juste essayer d'ajouter le document avec montant validé
-      await addDoc(collection(db, "depense"), {
-        nom: depense.nom.trim(),
-        montant: -Math.abs(montant), // Utiliser la valeur validée
-        date: depense.date || new Date().toISOString().split("T")[0],
-        categorie: depense.categorie.trim(),
-        createdAt: serverTimestamp(),
-      });
+      // Vérifier s'il s'agit d'une modification ou d'un ajout
+      if (depense.id) {
+        // Modification d'une dépense existante
+        await updateDoc(doc(db, "depense", depense.id), {
+          nom: depense.nom.trim(),
+          montant: -Math.abs(montant),
+          date: depense.date || new Date().toISOString().split("T")[0],
+          categorie: depense.categorie.trim(),
+          updatedAt: serverTimestamp(),
+        });
+        console.log("Dépense modifiée avec succès:", depense.id);
+      } else {
+        // Nouvel ajout
+        await addDoc(collection(db, "depense"), {
+          nom: depense.nom.trim(),
+          montant: -Math.abs(montant), // Utiliser la valeur validée
+          date: depense.date || new Date().toISOString().split("T")[0],
+          categorie: depense.categorie.trim(),
+          createdAt: serverTimestamp(),
+        });
+        console.log("Nouvelle dépense ajoutée avec succès");
+      }
 
       // Rafraîchir les données
       const depenseSnap = await getDocs(
@@ -877,15 +896,18 @@ export default function DepensesRevenus() {
 
       // Déclencher un événement pour mettre à jour le tableau de bord
       window.dispatchEvent(new Event("data-updated"));
+
+      // Réinitialiser l'état d'édition
+      setEditTransaction(null);
     } catch (err) {
-      console.error("Erreur Firestore add dépense:", err);
+      console.error("Erreur Firestore dépense:", err);
     }
   };
 
   // Fonction pour ajouter un revenu depuis la modale
   const handleAddRevenu = async (revenu) => {
     try {
-      console.log("Ajout revenu Firestore :", revenu);
+      console.log("Ajout/modification revenu Firestore :", revenu);
 
       // Vérification des données
       if (!revenu.nom) {
@@ -905,14 +927,28 @@ export default function DepensesRevenus() {
         return;
       }
 
-      // Simplification - juste essayer d'ajouter le document
-      await addDoc(collection(db, "revenu"), {
-        nom: revenu.nom.trim(),
-        montant: montant,
-        date: revenu.date || new Date().toISOString().split("T")[0],
-        categorie: revenu.categorie.trim(),
-        createdAt: serverTimestamp(),
-      });
+      // Vérifier s'il s'agit d'une modification ou d'un ajout
+      if (revenu.id) {
+        // Modification d'un revenu existant
+        await updateDoc(doc(db, "revenu", revenu.id), {
+          nom: revenu.nom.trim(),
+          montant: montant,
+          date: revenu.date || new Date().toISOString().split("T")[0],
+          categorie: revenu.categorie.trim(),
+          updatedAt: serverTimestamp(),
+        });
+        console.log("Revenu modifié avec succès:", revenu.id);
+      } else {
+        // Nouvel ajout
+        await addDoc(collection(db, "revenu"), {
+          nom: revenu.nom.trim(),
+          montant: montant,
+          date: revenu.date || new Date().toISOString().split("T")[0],
+          categorie: revenu.categorie.trim(),
+          createdAt: serverTimestamp(),
+        });
+        console.log("Nouveau revenu ajouté avec succès");
+      }
 
       // Rafraîchir les données
       const revenuSnap = await getDocs(
@@ -928,8 +964,11 @@ export default function DepensesRevenus() {
 
       // Déclencher un événement pour mettre à jour le tableau de bord
       window.dispatchEvent(new Event("data-updated"));
+
+      // Réinitialiser l'état d'édition
+      setEditTransaction(null);
     } catch (err) {
-      console.error("Erreur Firestore add revenu:", err);
+      console.error("Erreur Firestore revenu:", err);
     }
   };
 
