@@ -461,19 +461,7 @@ export default function PaiementRecurrent() {
                 {totalMensuel.toFixed(2)}€
               </div>
             </div>
-            <div className='bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl flex flex-col items-start gap-2 p-6'>
-              <div className='flex items-center gap-4'>
-                <div className='bg-green-100 dark:bg-green-900 rounded-full p-3'>
-                  <AiOutlineCalendar className='text-2xl text-green-500 dark:text-green-400' />
-                </div>
-                <div className='text-gray-500 dark:text-gray-400 text-sm font-medium'>
-                  Total annuel
-                </div>
-              </div>
-              <div className='text-2xl text-[#222] dark:text-white'>
-                {totalAnnuel.toFixed(2)}€
-              </div>
-            </div>
+        
           </div>
           {/* Colonne droite : Dépenses par catégorie */}
           <div className='flex-1 bg-white dark:bg-black border border-[#ececec] dark:border-gray-800 rounded-xl flex flex-col items-center justify-center p-6'>

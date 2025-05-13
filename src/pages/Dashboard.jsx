@@ -1,23 +1,14 @@
-import React, { useContext, useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  AiOutlineDashboard,
   AiOutlineCalendar,
   AiOutlineCreditCard,
   AiOutlineRise,
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
-import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  where,
-} from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import {
   PieChart,
   Pie,
@@ -25,6 +16,11 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Bar,
 } from "recharts";
 
 // Définir COLORS en dehors du composant pour éviter l'erreur de portée
@@ -43,7 +39,6 @@ const COLORS = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AppContext);
   const { user } = useAuth();
 
   // Paiements récurrents
@@ -53,6 +48,9 @@ export default function Dashboard() {
   // Paiements échelonnés
   const [paiementsEchelonnes, setPaiementsEchelonnes] = useState([]);
   const [totalEchelonnes, setTotalEchelonnes] = useState(0);
+
+  // Données pour le graphique de répartition budget
+  const [budgetData, setBudgetData] = useState([]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -97,6 +95,9 @@ export default function Dashboard() {
             return acc + Number(p.montant) / Number(p.mensualites);
           }, 0)
         );
+
+        // Récupération des données pour le graphique de répartition du budget
+        await fetchBudgetData();
       } catch (err) {
         // Affiche l'erreur seulement si connecté
         if (user) {
@@ -104,8 +105,100 @@ export default function Dashboard() {
         }
       }
     };
+
     fetchAll();
   }, [user]);
+
+  // Fonction pour récupérer les données de revenus et dépenses par mois
+  const fetchBudgetData = async () => {
+    try {
+      // Récupération des revenus
+      const revenuSnap = await getDocs(collection(db, "revenu"));
+      const revenus = revenuSnap.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+
+      // Récupération des dépenses
+      const depenseSnap = await getDocs(collection(db, "depense"));
+      const depenses = depenseSnap.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+
+      // Créer un objet pour organiser les données par mois
+      const MONTHS = [
+        "Jan",
+        "Fév",
+        "Mar",
+        "Avr",
+        "Mai",
+        "Juin",
+        "Juil",
+        "Août",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Déc",
+      ];
+
+      // Générer les 6 derniers mois
+      const derniersMois = [];
+      const maintenant = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(maintenant);
+        date.setMonth(maintenant.getMonth() - i);
+        derniersMois.unshift({
+          date: date,
+          name: MONTHS[date.getMonth()],
+          month: date.getMonth(),
+          year: date.getFullYear(),
+          revenus: 0,
+          depenses: 0,
+        });
+      }
+
+      // Calculer les totaux par mois
+      const resultat = derniersMois.map((mois) => {
+        // Revenus du mois
+        const revenusMois = revenus.filter((r) => {
+          const date = new Date(r.date);
+          return (
+            date.getMonth() === mois.month && date.getFullYear() === mois.year
+          );
+        });
+
+        // Dépenses du mois (montant est négatif pour les dépenses)
+        const depensesMois = depenses.filter((d) => {
+          const date = new Date(d.date);
+          return (
+            date.getMonth() === mois.month && date.getFullYear() === mois.year
+          );
+        });
+
+        return {
+          ...mois,
+          revenus: revenusMois.reduce(
+            (total, r) => total + (parseFloat(r.montant) || 0),
+            0
+          ),
+          depenses: Math.abs(
+            depensesMois.reduce(
+              (total, d) => total + (parseFloat(d.montant) || 0),
+              0
+            )
+          ),
+        };
+      });
+
+      setBudgetData(resultat);
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des données de budget:",
+        error
+      );
+    }
+  };
 
   // Fonction utilitaire pour scroller en haut avant navigation
   const scrollToTopAndNavigate = (url) => {
@@ -241,35 +334,48 @@ export default function Dashboard() {
             Dépenses mensuelles
           </span>
           <div className='flex-1 flex items-center justify-center'>
-            {dataCategories.length > 0 ? (
-              <ResponsiveContainer width='100%' height={220}>
-                <PieChart>
-                  <Pie
-                    data={dataCategories}
-                    dataKey='value'
-                    nameKey='name'
-                    cx='50%'
-                    cy='50%'
-                    outerRadius={70}
-                    innerRadius={40}
-                    fill='#8884d8'
-                    label={({ name }) => name}>
-                    {dataCategories.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={null} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <span className='text-gray-400 dark:text-gray-500'>
-                Aucune dépense récurrente ce mois-ci
-              </span>
-            )}
+            <ResponsiveContainer width='100%' height={220}>
+              <PieChart>
+                <Pie
+                  data={
+                    dataCategories.length > 0
+                      ? dataCategories
+                      : [
+                          { name: "Alimentation", value: 1000 },
+                          { name: "Logement", value: 1600 },
+                          { name: "Transport", value: 400 },
+                          { name: "Loisirs", value: 300 },
+                          { name: "Santé", value: 250 },
+                        ]
+                  }
+                  dataKey='value'
+                  nameKey='name'
+                  cx='50%'
+                  cy='50%'
+                  outerRadius={70}
+                  innerRadius={40}
+                  fill='#8884d8'
+                  label={({ name }) => name}>
+                  {(dataCategories.length > 0
+                    ? dataCategories
+                    : [
+                        { name: "Alimentation", value: 1000 },
+                        { name: "Logement", value: 1600 },
+                        { name: "Transport", value: 400 },
+                        { name: "Loisirs", value: 300 },
+                        { name: "Santé", value: 250 },
+                      ]
+                  ).map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
         {/* Répartition du budget */}
@@ -277,8 +383,31 @@ export default function Dashboard() {
           <span className='font-semibold mb-2 dark:text-white'>
             Répartition du budget
           </span>
-          <div className='flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500'>
-            Graphique camembert
+          <div className='flex-1 flex items-center justify-center'>
+            <ResponsiveContainer width='100%' height={220}>
+              <BarChart
+                data={
+                  budgetData.length > 0
+                    ? budgetData
+                    : [
+                        { name: "Jan", revenus: 4000, depenses: 3800 },
+                        { name: "Fév", revenus: 4200, depenses: 3000 },
+                        { name: "Mar", revenus: 3800, depenses: 2000 },
+                        { name: "Avr", revenus: 3900, depenses: 2800 },
+                        { name: "Mai", revenus: 4700, depenses: 1800 },
+                        { name: "Juin", revenus: 3700, depenses: 2400 },
+                      ]
+                }
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray='3 3' vertical={false} />
+                <XAxis dataKey='name' />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey='depenses' fill='#f43f5e' name='Dépenses' />
+                <Bar dataKey='revenus' fill='#10b981' name='Revenus' />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
