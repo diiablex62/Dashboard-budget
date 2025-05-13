@@ -1,8 +1,6 @@
-import React, { useContext, useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AiOutlineCalendar } from "react-icons/ai";
 import { FiEdit, FiTrash } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import {
   PieChart,
@@ -22,7 +20,6 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import ToastManager from "../components/ToastManager";
 
 const CATEGORIES = [
   "Maison",
@@ -42,10 +39,7 @@ export default function PaiementRecurrent() {
   const [paiements, setPaiements] = useState([]);
   const totalMensuel =
     paiements.length > 0 ? paiements.reduce((acc, p) => acc + p.montant, 0) : 0;
-  const totalAnnuel = totalMensuel * 12;
-  const totalDepenses = totalMensuel;
-  const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AppContext);
+
   const { user } = useAuth();
 
   // Gestion modal
@@ -100,71 +94,56 @@ export default function PaiementRecurrent() {
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
 
-  // Gestion des toasts multiple avec le nouveau système
-  const [toasts, setToasts] = useState([]);
-  const [lastDeleted, setLastDeleted] = useState(null);
-  const [deleteTimeout, setDeleteTimeout] = useState(null);
+  // Fonction pour supprimer un paiement sans toast
+  const handleDelete = async (idx) => {
+    const paiement = paiements[idx];
+    if (!paiement || !paiement.id) return;
 
-  // Ajout d'un toast avec identifiant unique et suppression automatique
-  const addToast = (toast) => {
-    const id = Date.now(); // Identifiant unique
-    const newToast = {
-      id,
-      ...toast,
-    };
+    const paiementId = paiement.id;
+    const paiementName = paiement.nom;
 
-    setToasts((prev) => [...prev, newToast]);
+    console.log(
+      `🚀 Début suppression de ${paiementName} (${paiementId}) dans recurrent`
+    );
 
-    // Si une durée est spécifiée et que ce n'est pas un toast de chargement,
-    // programmer sa suppression automatique
-    if (toast.duration && !toast.loading) {
-      const timeoutId = setTimeout(() => {
+    try {
+      console.log(`🔥 SUPPRESSION: recurrent/${paiementId}`);
+      // Suppression directe dans Firestore
+      await deleteDoc(doc(db, "recurrent", paiementId));
+      console.log(`✅ Document supprimé avec succès: recurrent/${paiementId}`);
+
+      // Mise à jour directe de l'interface
+      setPaiements((prevPaiements) => {
+        const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
         console.log(
-          `Suppression automatique du toast ${id} après ${toast.duration}ms`
+          `État local: ${
+            prevPaiements.length - newPaiements.length
+          } paiement supprimé`
         );
-        removeToast(id);
-      }, toast.duration);
+        return newPaiements;
+      });
 
-      // Stocker le timeoutId pour pouvoir l'annuler plus tard si nécessaire
-      newToast.timeoutId = timeoutId;
+      // Ajouter la notification sans bloquer le flux principal
+      try {
+        await addDoc(collection(db, "notifications"), {
+          type: "recurrent",
+          title: "Paiement récurrent supprimé",
+          desc: `Suppression de ${
+            paiementName.charAt(0).toUpperCase() + paiementName.slice(1)
+          } (${parseFloat(paiement.montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      } catch (notifError) {
+        console.error("Erreur lors de l'ajout de la notification:", notifError);
+      }
+    } catch (error) {
+      console.error(
+        `❌ ERREUR critique lors de la suppression: ${error.message || error}`
+      );
+      console.error(error);
     }
-
-    return id;
-  };
-
-  // Fonction pour supprimer un toast avec nettoyage du timeout
-  const removeToast = (id) => {
-    if (!id) {
-      console.warn("Tentative de suppression d'un toast sans ID");
-      return;
-    }
-
-    // Trouver le toast à supprimer pour nettoyer son timeout si existant
-    const toastToRemove = toasts.find((t) => t.id === id);
-    if (toastToRemove && toastToRemove.timeoutId) {
-      console.log(`Nettoyage du timeout pour toast ${id}`);
-      clearTimeout(toastToRemove.timeoutId);
-    }
-
-    // Filtrer les toasts pour supprimer celui avec l'ID spécifié
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  // Fonction pour supprimer tous les toasts
-  const clearAllToasts = () => {
-    setToasts([]);
-  };
-
-  // Mise à jour de handleUndo pour le nouveau système de toast
-  const handleUndo = () => {
-    if (deleteTimeout) clearTimeout(deleteTimeout);
-    setDeleteTimeout(null);
-    addToast({
-      message: "Suppression annulée.",
-      type: "success",
-      duration: 3000,
-    });
-    setLastDeleted(null);
   };
 
   // Commencer la modification
@@ -186,23 +165,10 @@ export default function PaiementRecurrent() {
     // Vérifications de base
     if (!newPaiement.nom || !newPaiement.categorie || !newPaiement.montant) {
       console.error("Données manquantes", newPaiement);
-      addToast({
-        message: "Veuillez remplir tous les champs",
-        type: "error",
-        duration: 3000,
-      });
       return;
     }
 
     try {
-      // Toast de chargement commun pour ajout ou modification
-      const loadingToastId = addToast({
-        message:
-          editIndex !== null ? "Modification en cours..." : "Ajout en cours...",
-        type: "loading",
-        loading: true,
-      });
-
       if (editIndex !== null && paiements[editIndex]) {
         // Modification
         const paiementId = paiements[editIndex].id;
@@ -211,16 +177,6 @@ export default function PaiementRecurrent() {
           categorie: newPaiement.categorie,
           montant: parseFloat(newPaiement.montant),
           updatedAt: serverTimestamp(),
-        });
-
-        // Supprimer le toast de chargement
-        removeToast(loadingToastId);
-
-        // Toast de confirmation
-        addToast({
-          message: "Paiement récurrent modifié avec succès",
-          type: "success",
-          duration: 3000,
         });
 
         // Notification modification paiement récurrent
@@ -243,16 +199,6 @@ export default function PaiementRecurrent() {
           categorie: newPaiement.categorie,
           montant: parseFloat(newPaiement.montant),
           createdAt: serverTimestamp(),
-        });
-
-        // Supprimer le toast de chargement
-        removeToast(loadingToastId);
-
-        // Toast de succès
-        addToast({
-          message: "Paiement récurrent ajouté avec succès",
-          type: "success",
-          duration: 3000,
         });
 
         // Ajoute une notification en BDD
@@ -278,95 +224,7 @@ export default function PaiementRecurrent() {
       setEditIndex(null);
     } catch (err) {
       console.error("Erreur Firestore add/update:", err);
-      addToast({
-        message: "Une erreur s'est produite",
-        type: "error",
-        duration: 5000,
-      });
     }
-  };
-
-  // Fonction pour supprimer un paiement (avec toast et délai pour annulation)
-  const handleDelete = async (idx) => {
-    const paiement = paiements[idx];
-    if (!paiement || !paiement.id) return;
-
-    // Ne pas réinitialiser les toasts existants
-    // clearAllToasts();
-
-    // Sauvegarder le paiement pour annulation éventuelle
-    setLastDeleted(paiement);
-
-    // Créer un toast avec bouton d'annulation
-    const toastId = addToast({
-      message: `Suppression de ${paiement.nom}...`,
-      type: "error",
-      duration: 5000,
-      action: {
-        label: "Annuler",
-        onClick: () => {
-          // Annuler uniquement cette suppression spécifique
-          if (deleteTimeout) {
-            clearTimeout(deleteTimeout);
-            setDeleteTimeout(null);
-          }
-          // Supprimer uniquement ce toast
-          removeToast(toastId);
-          // Toast d'annulation
-          addToast({
-            message: "Suppression annulée",
-            type: "success",
-            duration: 3000,
-          });
-          setLastDeleted(null);
-        },
-      },
-    });
-
-    // Supprimer après un délai pour permettre l'annulation
-    const timeout = setTimeout(async () => {
-      try {
-        // Suppression de Firebase
-        await deleteDoc(doc(db, "recurrent", paiement.id));
-
-        // Mettre à jour l'état local
-        await fetchPaiements();
-
-        // Supprimer uniquement ce toast
-        removeToast(toastId);
-
-        // Toast de confirmation finale
-        addToast({
-          message: "Suppression effectuée.",
-          type: "success",
-          duration: 3000,
-        });
-
-        // Notification suppression paiement récurrent
-        await addDoc(collection(db, "notifications"), {
-          type: "recurrent",
-          title: "Paiement récurrent supprimé",
-          desc: `Suppression de ${
-            paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
-          } (${parseFloat(paiement.montant).toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-      } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
-        removeToast(toastId);
-        addToast({
-          message: "Erreur lors de la suppression",
-          type: "error",
-          duration: 3000,
-        });
-      } finally {
-        setDeleteTimeout(null);
-      }
-    }, 5000);
-
-    setDeleteTimeout(timeout);
   };
 
   // Fonction pour regrouper les montants par catégorie
@@ -390,27 +248,8 @@ export default function PaiementRecurrent() {
     "#64748b",
   ];
 
-  // Nettoyage des timeouts lors du démontage du composant
-  useEffect(() => {
-    return () => {
-      // Nettoyer tous les timeouts de toast
-      toasts.forEach((toast) => {
-        if (toast.timeoutId) {
-          clearTimeout(toast.timeoutId);
-        }
-      });
-
-      // Nettoyer le timeout de suppression
-      if (deleteTimeout) {
-        clearTimeout(deleteTimeout);
-      }
-    };
-  }, [toasts, deleteTimeout]);
-
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
-      <ToastManager toasts={toasts} onClose={removeToast} />
-
       <div className='max-w-6xl mx-auto'>
         {/* En-tête et boutons d'action */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>

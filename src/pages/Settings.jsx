@@ -4,7 +4,6 @@ import bleuImage from "../assets/img/auth-bleu.png";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import Google from "../components/Google";
 import { AppContext } from "../context/AppContext";
-import { toast } from "react-toastify";
 import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
 import {
   GithubAuthProvider,
@@ -30,7 +29,7 @@ export default function Auth() {
         "user",
         JSON.stringify({ email: user.email, displayName: user.displayName })
       );
-      toast.success(`Bienvenue ${user.displayName} !`);
+      console.log(`Bienvenue ${user.displayName} !`);
       setIsLoggedIn(true);
       navigate("/");
     } catch (error) {
@@ -38,16 +37,16 @@ export default function Auth() {
 
       if (error.code === "auth/internal-error") {
         if (!navigator.cookieEnabled) {
-          toast.error(
+          console.error(
             `Les cookies tiers sont désactivés dans votre navigateur. Veuillez les activer pour utiliser ${providerName}.`
           );
         } else {
-          toast.error(
+          console.error(
             `Échec de la connexion avec ${providerName}. Assurez-vous que les cookies tiers sont activés.`
           );
         }
       } else {
-        toast.error(
+        console.error(
           `Échec de la connexion avec ${providerName}. Vérifiez votre configuration.`
         );
       }
@@ -56,7 +55,7 @@ export default function Auth() {
 
   const handleEmailSubmit = (e) => {
     e.preventDefault();
-    toast.success("Un lien magique a été envoyé à votre adresse e-mail !");
+    console.log("Un lien magique a été envoyé à votre adresse e-mail !");
     setShowEmailForm(false);
   };
 

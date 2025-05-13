@@ -16,9 +16,7 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import ToastManager from "../components/ToastManager";
 
-// Couleurs et icônes pour correspondre à l'image
 const MONTHS = [
   "Janvier",
   "Février",
@@ -34,7 +32,6 @@ const MONTHS = [
   "Décembre",
 ];
 
-// Catégories par défaut au cas où la récupération Firestore échoue
 const DEFAULT_CATEGORIES = [
   "Alimentation",
   "Logement",
@@ -612,12 +609,8 @@ export default function DepensesRevenus() {
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES); // État pour stocker les catégories
 
-  // Gestion des toasts
-  const [toasts, setToasts] = useState([]);
-
   // Autres états existants
   const [editTransaction, setEditTransaction] = useState(null);
-  const [deleteTimeout, setDeleteTimeout] = useState({});
 
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
@@ -685,22 +678,8 @@ export default function DepensesRevenus() {
 
         // Mise à jour de l'état local avec les catégories par défaut
         setCategories(DEFAULT_CATEGORIES);
-
-        // Afficher un toast de succès
-        addToast({
-          message: "Catégories initialisées avec succès",
-          type: "success",
-          duration: 3000,
-        });
       } catch (err) {
         console.error("Erreur lors de l'initialisation des catégories:", err);
-
-        // Toast d'erreur
-        addToast({
-          message: "Erreur lors de l'initialisation des catégories",
-          type: "error",
-          duration: 5000,
-        });
       }
     };
 
@@ -800,30 +779,65 @@ export default function DepensesRevenus() {
     year: "numeric",
   });
 
+  // Fonction pour supprimer une transaction sans toast
+  const handleDelete = async (transaction) => {
+    if (!transaction || !transaction.id) return;
+
+    const collectionName = transaction.montant >= 0 ? "revenu" : "depense";
+    const transactionId = transaction.id;
+    const transactionName = transaction.nom;
+
+    console.log(
+      `🚀 Début suppression de ${transactionName} (${transactionId}) dans ${collectionName}`
+    );
+
+    try {
+      console.log(`🔥 SUPPRESSION: ${collectionName}/${transactionId}`);
+      // Suppression directe dans Firestore
+      await deleteDoc(doc(db, collectionName, transactionId));
+      console.log(
+        `✅ Document supprimé avec succès: ${collectionName}/${transactionId}`
+      );
+
+      // Mise à jour de l'état local
+      if (collectionName === "revenu") {
+        setRevenus((prev) => {
+          const newRevenus = prev.filter((r) => r.id !== transactionId);
+          console.log(
+            `État local: ${prev.length - newRevenus.length} revenu supprimé`
+          );
+          return newRevenus;
+        });
+      } else {
+        setDepenses((prev) => {
+          const newDepenses = prev.filter((d) => d.id !== transactionId);
+          console.log(
+            `État local: ${prev.length - newDepenses.length} dépense supprimée`
+          );
+          return newDepenses;
+        });
+      }
+    } catch (error) {
+      console.error(
+        `❌ ERREUR critique lors de la suppression: ${error.message || error}`
+      );
+      console.error(error);
+    }
+  };
+
   // Fonction pour ajouter une dépense depuis la modale
   const handleAddDepense = async (depense) => {
     try {
       console.log("Ajout dépense Firestore :", depense);
 
-      // Vérification des données
+      // Vérifications de base
       if (!depense.nom) {
         console.error("Nom dépense manquant", depense);
-        addToast({
-          message: "Erreur: nom manquant. Veuillez saisir un nom.",
-          type: "error",
-          duration: 5000,
-        });
         return;
       }
 
       if (!depense.categorie) {
         console.error("Catégorie dépense manquante", depense);
-        addToast({
-          message:
-            "Erreur: catégorie manquante. Veuillez sélectionner une catégorie.",
-          type: "error",
-          duration: 5000,
-        });
         return;
       }
 
@@ -831,21 +845,8 @@ export default function DepensesRevenus() {
       const montant = parseFloat(depense.montant);
       if (isNaN(montant) || montant === 0) {
         console.error("Montant invalide ou nul", depense.montant);
-        addToast({
-          message:
-            "Erreur: montant invalide ou nul. Veuillez saisir un montant supérieur à 0.",
-          type: "error",
-          duration: 5000,
-        });
         return;
       }
-
-      // Affichage du toast de chargement
-      const loadingToastId = addToast({
-        message: "Ajout de la dépense en cours...",
-        type: "loading",
-        loading: true,
-      });
 
       // Simplification - juste essayer d'ajouter le document avec montant validé
       await addDoc(collection(db, "depense"), {
@@ -867,26 +868,8 @@ export default function DepensesRevenus() {
           icon: "€",
         }))
       );
-
-      // Supprimer le toast de chargement
-      removeToast(loadingToastId);
-
-      // Toast de succès
-      addToast({
-        message: "Dépense ajoutée avec succès",
-        type: "success",
-        duration: 3000,
-      });
     } catch (err) {
       console.error("Erreur Firestore add dépense:", err);
-
-      // Toast d'erreur
-      addToast({
-        message:
-          "Erreur lors de l'ajout de la dépense. Désactivez les bloqueurs de publicités.",
-        type: "error",
-        duration: 5000,
-      });
     }
   };
 
@@ -898,22 +881,11 @@ export default function DepensesRevenus() {
       // Vérification des données
       if (!revenu.nom) {
         console.error("Nom revenu manquant", revenu);
-        addToast({
-          message: "Erreur: nom manquant. Veuillez saisir un nom.",
-          type: "error",
-          duration: 5000,
-        });
         return;
       }
 
       if (!revenu.categorie) {
         console.error("Catégorie revenu manquante", revenu);
-        addToast({
-          message:
-            "Erreur: catégorie manquante. Veuillez sélectionner une catégorie.",
-          type: "error",
-          duration: 5000,
-        });
         return;
       }
 
@@ -921,21 +893,8 @@ export default function DepensesRevenus() {
       const montant = parseFloat(revenu.montant);
       if (isNaN(montant) || montant === 0) {
         console.error("Montant invalide ou nul", revenu.montant);
-        addToast({
-          message:
-            "Erreur: montant invalide ou nul. Veuillez saisir un montant supérieur à 0.",
-          type: "error",
-          duration: 5000,
-        });
         return;
       }
-
-      // Affichage du toast de chargement
-      const loadingToastId = addToast({
-        message: "Ajout du revenu en cours...",
-        type: "loading",
-        loading: true,
-      });
 
       // Simplification - juste essayer d'ajouter le document
       await addDoc(collection(db, "revenu"), {
@@ -957,26 +916,8 @@ export default function DepensesRevenus() {
           icon: "€",
         }))
       );
-
-      // Supprimer le toast de chargement
-      removeToast(loadingToastId);
-
-      // Toast de succès
-      addToast({
-        message: "Revenu ajouté avec succès",
-        type: "success",
-        duration: 3000,
-      });
     } catch (err) {
       console.error("Erreur Firestore add revenu:", err);
-
-      // Toast d'erreur
-      addToast({
-        message:
-          "Erreur lors de l'ajout du revenu. Désactivez les bloqueurs de publicités.",
-        type: "error",
-        duration: 5000,
-      });
     }
   };
 
@@ -992,200 +933,6 @@ export default function DepensesRevenus() {
       });
       setShowDepenseModal(true);
     }
-  };
-
-  // Fonction pour supprimer une transaction avec délai et toast
-  const handleDelete = async (transaction) => {
-    if (!transaction || !transaction.id) return;
-    console.log(`Début suppression pour transaction ${transaction.id}`);
-
-    const collectionName = transaction.montant >= 0 ? "revenu" : "depense";
-
-    // Utiliser clearAllToasts pour éviter l'erreur de linter
-    clearAllToasts();
-
-    // Créer le toast de confirmation
-    const toastId = addToast({
-      message: `Suppression de ${transaction.nom}...`,
-      type: "error",
-      loading: true,
-      duration: 3000, // Réduire à 3 secondes pour voir les effets plus rapidement
-      action: {
-        label: "Annuler",
-        onClick: () => {
-          console.log(
-            `Annulation pour transaction ${transaction.id}, toast ${toastId}`
-          );
-          if (deleteTimeout[transaction.id]) {
-            clearTimeout(deleteTimeout[transaction.id]);
-            // Supprimer l'entrée du délai pour cette transaction
-            setDeleteTimeout((prev) => {
-              const newTimeouts = { ...prev };
-              delete newTimeouts[transaction.id];
-              return newTimeouts;
-            });
-          }
-          removeToast(toastId);
-          addToast({
-            message: "Suppression annulée",
-            type: "success",
-            duration: 3000,
-          });
-        },
-      },
-    });
-
-    console.log(
-      `Toast créé avec ID ${toastId} pour transaction ${transaction.id}`
-    );
-
-    // Stocker le timeout par ID de transaction
-    const timeout = setTimeout(async () => {
-      console.log(
-        `Exécution du timeout pour transaction ${transaction.id}, toast ${toastId}`
-      );
-      try {
-        // Exécuter la suppression
-        await deleteDoc(doc(db, collectionName, transaction.id));
-        console.log(`Suppression réussie pour transaction ${transaction.id}`);
-
-        // Mettre à jour l'état local immédiatement
-        if (collectionName === "revenu") {
-          setRevenus((prev) => prev.filter((r) => r.id !== transaction.id));
-        } else {
-          setDepenses((prev) => prev.filter((d) => d.id !== transaction.id));
-        }
-
-        // Forcer la suppression du toast de chargement
-        console.log(`Suppression du toast ${toastId}`);
-        removeToast(toastId);
-
-        // Afficher le toast de succès
-        addToast({
-          message: "Transaction supprimée avec succès",
-          type: "success",
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error(
-          `Erreur lors de la suppression de transaction ${transaction.id}:`,
-          error
-        );
-        removeToast(toastId);
-        addToast({
-          message: "Erreur lors de la suppression",
-          type: "error",
-          duration: 3000,
-        });
-      } finally {
-        // Nettoyer le timeout
-        console.log(`Nettoyage du timeout pour transaction ${transaction.id}`);
-        setDeleteTimeout((prev) => {
-          const newTimeouts = { ...prev };
-          delete newTimeouts[transaction.id];
-          return newTimeouts;
-        });
-      }
-    }, 3000);
-
-    // Enregistrer le timeout
-    setDeleteTimeout((prev) => {
-      console.log(`Stockage du timeout pour transaction ${transaction.id}`);
-      return {
-        ...prev,
-        [transaction.id]: timeout,
-      };
-    });
-  };
-
-  // Nettoyage des timeouts lors du démontage du composant
-  useEffect(() => {
-    return () => {
-      // Nettoyer tous les timeouts de toast
-      toasts.forEach((toast) => {
-        if (toast.timeoutId) {
-          console.log(
-            `Nettoyage du timeout pour toast ${toast.id} lors du démontage`
-          );
-          clearTimeout(toast.timeoutId);
-        }
-      });
-
-      // Nettoyer tous les timeouts de suppression
-      if (Object.keys(deleteTimeout).length > 0) {
-        console.log(
-          `Nettoyage de ${
-            Object.keys(deleteTimeout).length
-          } timeouts de suppression lors du démontage`
-        );
-        Object.values(deleteTimeout).forEach((timeout) =>
-          clearTimeout(timeout)
-        );
-      }
-    };
-  }, [toasts, deleteTimeout]);
-
-  // Fonction pour ajouter un toast
-  const addToast = (toast) => {
-    const id = Date.now() + Math.floor(Math.random() * 1000);
-    console.log(`Création d'un toast avec ID ${id}, message: ${toast.message}`);
-
-    // Créer le nouveau toast avec ID et timestamp
-    const newToast = {
-      id,
-      ...toast,
-      timestamp: new Date().toISOString(),
-    };
-
-    // Ajouter le toast à la liste
-    setToasts((prev) => {
-      const updated = [...prev, newToast];
-      console.log(`Nombre de toasts actifs: ${updated.length}`);
-      return updated;
-    });
-
-    // Si une durée est spécifiée, programmer la suppression automatique
-    if (toast.duration && !toast.loading) {
-      const timeoutId = setTimeout(() => {
-        console.log(
-          `Suppression automatique du toast ${id} après ${toast.duration}ms`
-        );
-        removeToast(id);
-      }, toast.duration);
-
-      // Stocker le timeoutId pour pouvoir l'annuler plus tard si nécessaire
-      newToast.timeoutId = timeoutId;
-    }
-
-    return id;
-  };
-
-  // Fonction pour supprimer un toast
-  const removeToast = (id) => {
-    if (!id) {
-      console.warn("Tentative de suppression d'un toast sans ID");
-      return;
-    }
-    console.log(`Suppression du toast avec ID ${id}`);
-
-    // Trouver le toast à supprimer pour nettoyer son timeout si existant
-    const toastToRemove = toasts.find((t) => t.id === id);
-    if (toastToRemove && toastToRemove.timeoutId) {
-      console.log(`Nettoyage du timeout pour toast ${id}`);
-      clearTimeout(toastToRemove.timeoutId);
-    }
-
-    // Filtrer les toasts pour supprimer celui avec l'ID spécifié
-    setToasts((prev) => {
-      const filtered = prev.filter((t) => t.id !== id);
-      console.log(`Après suppression: ${filtered.length} toasts restants`);
-      return filtered;
-    });
-  };
-
-  // Fonction pour supprimer tous les toasts - maintenue pour compatibilité
-  const clearAllToasts = () => {
-    setToasts([]);
   };
 
   // Fonctions de rendu des cartes de transaction
@@ -1274,8 +1021,6 @@ export default function DepensesRevenus() {
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
-      <ToastManager toasts={toasts} onClose={removeToast} />
-
       <div className='max-w-6xl mx-auto'>
         {/* Header */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>

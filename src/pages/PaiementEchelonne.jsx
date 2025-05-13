@@ -22,7 +22,6 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import ToastManager from "../components/ToastManager";
 
 const echelonnes = [
   {
@@ -89,10 +88,7 @@ export default function PaiementEchelonne() {
   const mensualitesInputRef = useRef(null);
   const debutMoisInputRef = useRef(null);
 
-  // Gestion des toasts multiple avec le nouveau système
-  const [toasts, setToasts] = useState([]);
   const [lastDeleted, setLastDeleted] = useState(null);
-  const [deleteTimeout, setDeleteTimeout] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
 
   // Mode sélection multiple
@@ -269,178 +265,19 @@ export default function PaiementEchelonne() {
     });
   };
 
-  // Ajout d'un toast avec identifiant unique
-  const addToast = (toast) => {
-    const id = Date.now(); // Identifiant unique
-    const newToast = {
-      id,
-      ...toast,
-      timeoutId:
-        toast.timeoutId ||
-        setTimeout(() => {
-          removeToast(id);
-        }, toast.duration || 5000),
-    };
-    setToasts((prev) => [...prev, newToast]);
-    return id;
-  };
-
-  // Fonction pour supprimer un toast
-  const removeToast = (id) => {
-    setToasts((prev) => {
-      const toast = prev.find((t) => t.id === id);
-      if (toast && toast.timeoutId) {
-        clearTimeout(toast.timeoutId);
-      }
-      return prev.filter((t) => t.id !== id);
-    });
-  };
-
-  // Fonction pour supprimer tous les toasts
-  const clearAllToasts = () => {
-    toasts.forEach((toast) => {
-      if (toast.timeoutId) clearTimeout(toast.timeoutId);
-    });
-    setToasts([]);
-  };
-
-  // Mise à jour clearToast pour utiliser le nouveau système
-  const clearToast = () => {
-    clearAllToasts();
-  };
-
-  // Mise à jour de handleUndo pour le nouveau système de toast
-  const handleUndo = () => {
-    if (deleteTimeout) clearTimeout(deleteTimeout);
-    setDeleteTimeout(null);
-    addToast({
-      message: "Suppression annulée.",
-      type: "success",
-      duration: 3000,
-    });
-    setLastDeleted(null);
-  };
-
-  // Fonction pour supprimer les paiements sélectionnés
-  const deleteSelectedPaiements = async () => {
-    if (selectedPaiements.length === 0) return;
-
-    // Créer un tableau pour stocker les identifiants de toasts
-    const toastIds = [];
-
-    // Ajouter un toast pour chaque paiement
-    for (let i = 0; i < selectedPaiements.length; i++) {
-      const paiement = selectedPaiements[i];
-      const toastId = addToast({
-        message: `Suppression de ${paiement.nom} (${i + 1}/${
-          selectedPaiements.length
-        })`,
-        type: "error",
-        loading: true,
-        duration: 5000,
-        action: {
-          label: "Annuler",
-          onClick: () => {
-            // Annuler toutes les suppressions
-            if (deleteTimeout) clearTimeout(deleteTimeout);
-            // Supprimer tous les toasts en cours
-            toastIds.forEach((id) => removeToast(id));
-            addToast({
-              message: "Suppression annulée",
-              type: "success",
-              duration: 3000,
-            });
-          },
-        },
-      });
-      toastIds.push(toastId);
-    }
-
-    // Créer un timeout pour la suppression
-    const timeout = setTimeout(async () => {
-      try {
-        // Supprimer chaque paiement sélectionné
-        const operations = [];
-        for (const paiement of selectedPaiements) {
-          operations.push(deleteDoc(doc(db, "xfois", paiement.id)));
-        }
-
-        // Attendre que toutes les opérations de suppression soient terminées
-        await Promise.all(operations);
-
-        // Mettre à jour les états locaux
-        setPaiements((prev) =>
-          prev.filter((p) => !selectedPaiements.some((sp) => sp.id === p.id))
-        );
-
-        // Supprimer d'abord tous les toasts de chargement
-        toastIds.forEach((id) => removeToast(id));
-
-        // Puis ajouter un toast de succès
-        addToast({
-          message:
-            selectedPaiements.length === 1
-              ? "Paiement échelonné supprimé"
-              : `${selectedPaiements.length} paiements échelonnés supprimés`,
-          type: "success",
-          duration: 3000,
-        });
-
-        // Réinitialiser la sélection
-        setSelectedPaiements([]);
-
-        // Sortir du mode sélection si activé
-        if (isMultiSelectMode) {
-          setIsMultiSelectMode(false);
-        }
-      } catch (error) {
-        console.error("Erreur lors de la suppression multiple:", error);
-
-        // Supprimer tous les toasts de chargement
-        toastIds.forEach((id) => removeToast(id));
-
-        addToast({
-          message: "Erreur lors de la suppression",
-          type: "error",
-          duration: 5000,
-        });
-      }
-
-      // Nettoyage du timeout
-      setDeleteTimeout(null);
-    }, 3000);
-
-    // Stocker le timeout pour pouvoir l'annuler
-    setDeleteTimeout(timeout);
-  };
-
-  // Mise à jour de handleDelete pour utiliser le nouveau système de toast
+  // Fonction pour supprimer un paiement sans toast
   const handleDelete = async (idx) => {
     if (!user) return;
     const paiement = paiements[idx];
     if (!paiement || !paiement.id) return;
-    clearToast();
-    const toastId = addToast({
-      message: "Suppression en cours...",
-      type: "error",
-      loading: true,
-      action: {
-        label: "Annuler",
-        onClick: handleUndo,
-      },
-    });
-    setLastDeleted({ ...paiement, idx });
-    const timeout = setTimeout(async () => {
+
+    try {
+      console.log(`🔥 SUPPRESSION: xfois/${paiement.id}`);
       await deleteDoc(doc(db, "xfois", paiement.id));
+      console.log(`✅ Document supprimé avec succès: xfois/${paiement.id}`);
+
       setPaiements((prev) => prev.filter((_, i) => i !== idx));
-      removeToast(toastId);
-      addToast({
-        message: "Suppression effectuée.",
-        type: "success",
-        duration: 5000,
-      });
-      setDeleteTimeout(null);
-      setLastDeleted(null);
+
       // Notification suppression paiement échelonné
       await addDoc(collection(db, "notifications"), {
         type: "echelonne",
@@ -452,8 +289,42 @@ export default function PaiementEchelonne() {
         read: false,
         createdAt: serverTimestamp(),
       });
-    }, 5000);
-    setDeleteTimeout(timeout);
+    } catch (error) {
+      console.error(
+        `❌ ERREUR lors de la suppression: ${error.message || error}`
+      );
+      console.error(error);
+    }
+  };
+
+  // Fonction pour supprimer plusieurs paiements
+  const deleteSelectedPaiements = async () => {
+    if (selectedPaiements.length === 0) return;
+
+    try {
+      // Supprimer chaque paiement sélectionné
+      const operations = [];
+      for (const paiement of selectedPaiements) {
+        operations.push(deleteDoc(doc(db, "xfois", paiement.id)));
+      }
+
+      // Attendre que toutes les opérations de suppression soient terminées
+      await Promise.all(operations);
+
+      // Mettre à jour les états locaux
+      setPaiements((prev) =>
+        prev.filter((p) => !selectedPaiements.some((sp) => sp.id === p.id))
+      );
+
+      // Réinitialiser la sélection
+      setSelectedPaiements([]);
+      setIsMultiSelectMode(false);
+    } catch (error) {
+      console.error(
+        `❌ ERREUR lors des suppressions multiples: ${error.message || error}`
+      );
+      console.error(error);
+    }
   };
 
   // Quand on ouvre la modale pour ajouter, on remet le mois actuel par défaut
@@ -498,8 +369,6 @@ export default function PaiementEchelonne() {
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
-      <ToastManager toasts={toasts} onClose={removeToast} />
-
       <div className='max-w-6xl mx-auto'>
         {/* En-tête et boutons d'action */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>

@@ -4,11 +4,9 @@ import orangeImage from "../assets/img/auth-orange.jpg";
 import Google from "../components/Google";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
 import { auth, googleProvider } from "../firebaseConfig";
 import { signInWithPopup } from "firebase/auth";
 import { GithubAuthProvider } from "firebase/auth";
-import Toast from "../components/Toast";
 
 export default function Auth() {
   const { setIsLoggedIn, primaryColor } = useContext(AppContext);
@@ -20,13 +18,6 @@ export default function Auth() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    type: "success",
-    loading: false,
-    timeoutId: null,
-  });
 
   // Appliquez immédiatement la couleur primaire au DOM avant le rendu
   useEffect(() => {
@@ -99,92 +90,42 @@ export default function Auth() {
   };
 
   const handleAuthProvider = async (provider, providerName) => {
-    setToast({
-      open: true,
-      message: `Connexion en cours avec ${providerName}...`,
-      type: "loading",
-      loading: true,
-      timeoutId: null,
-    });
+    console.log(`Connexion en cours avec ${providerName}...`);
 
     try {
       const result = await loginWithGoogle();
       if (result.success) {
-        if (toast.timeoutId) clearTimeout(toast.timeoutId);
-        setToast({
-          open: true,
-          message: `Bienvenue ${result.user?.displayName || "utilisateur"} !`,
-          type: "success",
-          loading: false,
-          timeoutId: null,
-        });
-        setTimeout(() => setToast((t) => ({ ...t, open: false })), 3000);
+        console.log(`Bienvenue ${result.user?.displayName || "utilisateur"} !`);
         setIsLoggedIn(true);
         navigate("/");
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
-      setToast({
-        open: true,
-        message: `Échec de la connexion avec ${providerName}.`,
-        type: "error",
-        loading: false,
-        timeoutId: null,
-      });
-      setTimeout(() => setToast((t) => ({ ...t, open: false })), 4000);
-      console.error(`Error during ${providerName} sign-in:`, error);
+      console.error(`Échec de la connexion avec ${providerName}.`, error);
     }
   };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    setToast({
-      open: true,
-      message: "Connexion en cours...",
-      type: "loading",
-      loading: true,
-      timeoutId: null,
-    });
+    console.log("Connexion en cours...");
 
     try {
       const result = await login(email, password);
       if (result.success) {
-        if (toast.timeoutId) clearTimeout(toast.timeoutId);
-        setToast({
-          open: true,
-          message: "Connexion réussie !",
-          type: "success",
-          loading: false,
-          timeoutId: null,
-        });
-        setTimeout(() => setToast((t) => ({ ...t, open: false })), 3000);
+        console.log("Connexion réussie !");
         setIsLoggedIn(true);
         navigate("/");
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
-      setToast({
-        open: true,
-        message: "Échec de la connexion. Vérifiez vos identifiants.",
-        type: "error",
-        loading: false,
-        timeoutId: null,
-      });
-      setTimeout(() => setToast((t) => ({ ...t, open: false })), 4000);
+      console.error("Échec de la connexion. Vérifiez vos identifiants.", error);
     }
   };
 
   return (
     <div className='flex min-h-screen relative'>
-      <Toast
-        open={toast.open}
-        message={toast.message}
-        type={toast.type}
-        loading={toast.loading}
-        onClose={() => setToast((t) => ({ ...t, open: false }))}
-      />
       {/* Section image */}
       <div
         className={`absolute inset-y-0 w-1/2 ${

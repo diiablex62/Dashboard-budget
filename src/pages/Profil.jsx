@@ -3,7 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import Toast from "../components/Toast";
 import { FaSearch, FaCamera } from "react-icons/fa";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../firebaseConfig";
@@ -23,8 +22,6 @@ export default function Profil() {
     photoURL: "",
   });
   const [loading, setLoading] = useState(true);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -77,11 +74,10 @@ export default function Profil() {
       } catch (error) {
         console.error("Erreur lors de la récupération des données:", error);
         if (error.code === "permission-denied") {
-          setToastMessage("Erreur d'autorisation. Veuillez vous reconnecter.");
+          console.error("Erreur d'autorisation. Veuillez vous reconnecter.");
         } else {
-          setToastMessage("Erreur lors de la récupération des données");
+          console.error("Erreur lors de la récupération des données");
         }
-        setShowToast(true);
       } finally {
         setLoading(false);
       }
@@ -96,8 +92,7 @@ export default function Profil() {
 
     // Vérification du type de fichier
     if (!file.type.startsWith("image/")) {
-      setToastMessage("Veuillez sélectionner une image valide");
-      setShowToast(true);
+      console.error("Veuillez sélectionner une image valide");
       return;
     }
 
@@ -155,14 +150,12 @@ export default function Profil() {
       // Ajout : retire le hover après upload réussi
       setIsHovering(false);
 
-      setToastMessage("Photo de profil mise à jour avec succès");
-      setShowToast(true);
+      console.log("Photo de profil mise à jour avec succès");
     } catch (error) {
       console.error("Erreur lors de l'upload de la photo:", error);
-      setToastMessage(
+      console.error(
         error.message || "Erreur lors de la mise à jour de la photo"
       );
-      setShowToast(true);
     } finally {
       setLoading(false);
     }
@@ -222,13 +215,11 @@ export default function Profil() {
     e.preventDefault();
     try {
       await setDoc(doc(db, "users", user.uid), userData);
-      setToastMessage("Profil mis à jour avec succès");
-      setShowToast(true);
+      console.log("Profil mis à jour avec succès");
       setHasChanges(false);
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
-      setToastMessage("Erreur lors de la mise à jour du profil");
-      setShowToast(true);
+      console.error("Erreur lors de la mise à jour du profil");
     }
   };
 
@@ -381,13 +372,6 @@ export default function Profil() {
           </form>
         </div>
       </div>
-      {showToast && (
-        <Toast
-          message={toastMessage}
-          onClose={() => setShowToast(false)}
-          type={toastMessage.includes("Erreur") ? "error" : "success"}
-        />
-      )}
     </div>
   );
 }
