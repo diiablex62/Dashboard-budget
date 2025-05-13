@@ -11,17 +11,14 @@ export default function NotificationBell() {
   useEffect(() => {
     if (!user) return;
 
-    // Créer une requête pour filtrer les notifications par utilisateur
-    const notificationsQuery = query(
-      collection(db, "notifications"),
-      where("userId", "==", user.uid)
-    );
+    // Récupérer toutes les notifications (sans filtre par utilisateur pour l'instant)
+    const notificationsQuery = query(collection(db, "notifications"));
 
-    // Utilise onSnapshot pour écouter en temps réel les changements
+    // Utiliser onSnapshot pour écouter en temps réel les changements
     const unsubscribe = onSnapshot(
       notificationsQuery,
       (snapshot) => {
-        // Affiche le point rouge s'il y a au moins une notification non lue
+        // Vérifier s'il y a au moins une notification non lue
         const anyUnread = snapshot.docs.some(
           (doc) => doc.data().read === false
         );
@@ -32,6 +29,7 @@ export default function NotificationBell() {
       }
     );
 
+    // Se désabonner de l'écouteur lors du démontage du composant
     return () => unsubscribe();
   }, [user]);
 
@@ -39,7 +37,7 @@ export default function NotificationBell() {
     <div className='relative'>
       <FiBell className='text-2xl' />
       {hasUnread && (
-        <span className='absolute top-0 right-0 block w-2.5 h-2.5 bg-red-500 rounded-full'></span>
+        <span className='absolute -top-1 -right-1 block w-3 h-3 bg-red-500 rounded-full'></span>
       )}
     </div>
   );

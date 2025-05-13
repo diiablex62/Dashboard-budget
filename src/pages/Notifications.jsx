@@ -20,25 +20,6 @@ export default function Notifications() {
   const [hoveredId, setHoveredId] = useState(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    // Si pas connecté, ne fetch pas les notifications
-    if (!user) {
-      setNotifications([]);
-      return;
-    }
-    const fetchNotifications = async () => {
-      if (!user) return;
-      const snapshot = await getDocs(collection(db, "notifications"));
-      setNotifications(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-      );
-    };
-    fetchNotifications();
-  }, [user]);
-
   // Marquer comme lu (optionnel, à appeler lors de l'ouverture)
   const markAllAsRead = async () => {
     if (!user) return;
@@ -58,6 +39,34 @@ export default function Notifications() {
     );
   };
 
+  useEffect(() => {
+    // Si pas connecté, ne fetch pas les notifications
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+    const fetchNotifications = async () => {
+      if (!user) return;
+      const snapshot = await getDocs(collection(db, "notifications"));
+      const notifs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setNotifications(notifs);
+
+      // Marquer automatiquement toutes les notifications non lues
+      const unreadNotifs = notifs.filter((n) => !n.read);
+      if (unreadNotifs.length > 0) {
+        for (const notif of unreadNotifs) {
+          await updateDoc(doc(db, "notifications", notif.id), { read: true });
+        }
+        // Mettre à jour l'état local
+        setNotifications(notifs.map((n) => ({ ...n, read: true })));
+      }
+    };
+    fetchNotifications();
+  }, [user]);
+
   // Supprimer toutes les notifications
   const handleDeleteAll = async () => {
     if (!user) return;
@@ -74,7 +83,10 @@ export default function Notifications() {
     if (notif.type === "recurrent") {
       return <AiOutlineCalendar className='text-2xl text-[#a259e6]' />;
     }
-    // Ajoute d'autres types si besoin
+    if (notif.type === "echelonne") {
+      return <AiOutlineCreditCard className='text-2xl text-[#ff7ca3]' />;
+    }
+    // Icône par défaut
     return <FiBell className='text-2xl text-[#5b8efc]' />;
   };
 
