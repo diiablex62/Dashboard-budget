@@ -794,6 +794,8 @@ export default function DepensesRevenus() {
     const collectionName = transaction.montant >= 0 ? "revenu" : "depense";
     const transactionId = transaction.id;
     const transactionName = transaction.nom;
+    const transactionType = transaction.montant >= 0 ? "revenu" : "dépense";
+    const transactionMontant = Math.abs(transaction.montant);
 
     console.log(
       `🚀 Début suppression de ${transactionName} (${transactionId}) dans ${collectionName}`
@@ -825,6 +827,20 @@ export default function DepensesRevenus() {
           return newDepenses;
         });
       }
+
+      // Ajouter une notification pour la suppression
+      await addDoc(collection(db, "notifications"), {
+        type: collectionName,
+        title: `${
+          transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
+        } supprimé`,
+        desc: `Suppression de ${
+          transactionName.charAt(0).toUpperCase() + transactionName.slice(1)
+        } (${transactionMontant.toFixed(2)}€)`,
+        date: new Date().toLocaleDateString("fr-FR"),
+        read: false,
+        createdAt: serverTimestamp(),
+      });
 
       // Déclencher un événement pour mettre à jour le tableau de bord
       window.dispatchEvent(new Event("data-updated"));
@@ -870,6 +886,18 @@ export default function DepensesRevenus() {
           updatedAt: serverTimestamp(),
         });
         console.log("Dépense modifiée avec succès:", depense.id);
+
+        // Ajouter une notification pour la modification
+        await addDoc(collection(db, "notifications"), {
+          type: "depense",
+          title: "Dépense modifiée",
+          desc: `Modification de ${
+            depense.nom.charAt(0).toUpperCase() + depense.nom.slice(1)
+          } (${Math.abs(montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       } else {
         // Nouvel ajout
         await addDoc(collection(db, "depense"), {
@@ -880,6 +908,18 @@ export default function DepensesRevenus() {
           createdAt: serverTimestamp(),
         });
         console.log("Nouvelle dépense ajoutée avec succès");
+
+        // Ajouter une notification pour l'ajout
+        await addDoc(collection(db, "notifications"), {
+          type: "depense",
+          title: "Nouvelle dépense",
+          desc: `Ajout de ${
+            depense.nom.charAt(0).toUpperCase() + depense.nom.slice(1)
+          } (${Math.abs(montant).toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       }
 
       // Rafraîchir les données
@@ -938,6 +978,18 @@ export default function DepensesRevenus() {
           updatedAt: serverTimestamp(),
         });
         console.log("Revenu modifié avec succès:", revenu.id);
+
+        // Ajouter une notification pour la modification
+        await addDoc(collection(db, "notifications"), {
+          type: "revenu",
+          title: "Revenu modifié",
+          desc: `Modification de ${
+            revenu.nom.charAt(0).toUpperCase() + revenu.nom.slice(1)
+          } (${montant.toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       } else {
         // Nouvel ajout
         await addDoc(collection(db, "revenu"), {
@@ -948,6 +1000,18 @@ export default function DepensesRevenus() {
           createdAt: serverTimestamp(),
         });
         console.log("Nouveau revenu ajouté avec succès");
+
+        // Ajouter une notification pour l'ajout
+        await addDoc(collection(db, "notifications"), {
+          type: "revenu",
+          title: "Nouveau revenu",
+          desc: `Ajout de ${
+            revenu.nom.charAt(0).toUpperCase() + revenu.nom.slice(1)
+          } (${montant.toFixed(2)}€)`,
+          date: new Date().toLocaleDateString("fr-FR"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
       }
 
       // Rafraîchir les données

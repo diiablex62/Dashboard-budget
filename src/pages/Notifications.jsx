@@ -54,15 +54,10 @@ export default function Notifications() {
       }));
       setNotifications(notifs);
 
-      // Marquer automatiquement toutes les notifications non lues
-      const unreadNotifs = notifs.filter((n) => !n.read);
-      if (unreadNotifs.length > 0) {
-        for (const notif of unreadNotifs) {
-          await updateDoc(doc(db, "notifications", notif.id), { read: true });
-        }
-        // Mettre à jour l'état local
-        setNotifications(notifs.map((n) => ({ ...n, read: true })));
-      }
+      // Suppression du marquage automatique des notifications comme lues
+      // Les notifications ne sont plus marquées comme lues automatiquement
+      // mais seulement quand l'utilisateur clique sur une notification
+      // ou utilise le bouton "Tout supprimer"
     };
     fetchNotifications();
   }, [user]);
