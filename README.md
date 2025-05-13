@@ -1,10 +1,8 @@
 # Dashboard Budget
 
-![Dashboard Budget](https://dashboard-budget.vercel.app/logo.png)
+## Application live sur Vercel
 
-## Application live
-
-🚀 [Accéder à l'application](https://dashboard-budget.vercel.app/)
+🚀 [Lien vers Vercel](https://dashboard-budget.vercel.app/)
 
 ## Présentation
 
