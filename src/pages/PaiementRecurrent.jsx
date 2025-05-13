@@ -273,8 +273,9 @@ export default function PaiementRecurrent() {
                 setShowModal(true);
                 setStep(1);
               }}
-              className='px-5 py-2.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-lg font-semibold flex items-center justify-center'>
-              <AiOutlineCalendar className='mr-2' /> Ajouter un paiement
+              className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
+              <span className='text-lg font-bold'>+</span>
+              <span>Ajouter</span>
             </button>
           </div>
         </div>
@@ -350,66 +351,21 @@ export default function PaiementRecurrent() {
         </div>
 
         {/* Affichage des paiements récurrents */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
-          {paiements.length > 0 ? (
-            paiements.map((paiement, idx) => {
-              return (
-                <div
-                  key={paiement.id || idx}
-                  className={`bg-white dark:bg-black rounded-xl shadow border border-gray-100 dark:border-gray-800 p-5 flex flex-col transition-all duration-200`}>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center'>
-                      <div className='w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mr-3'>
-                        <AiOutlineCalendar className='text-indigo-600 dark:text-indigo-300 text-xl' />
-                      </div>
-                      <div>
-                        <div className='font-semibold text-[#111] dark:text-white'>
-                          {paiement.nom}
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          {paiement.categorie}
-                        </div>
-                      </div>
-                    </div>
-                    <div className='flex flex-col items-end'>
-                      <div className='font-bold text-green-600 dark:text-green-400'>
-                        {paiement.montant
-                          ? parseFloat(paiement.montant).toFixed(2)
-                          : "0.00"}
-                        €
-                      </div>
-                      <div className='text-xs text-gray-500 dark:text-gray-400'>
-                        par mois
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex justify-end mt-4 pt-2 border-t border-gray-100 dark:border-gray-800'>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(idx);
-                      }}
-                      className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 p-2'>
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(idx);
-                      }}
-                      className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-2'>
-                      <FiTrash />
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className='col-span-3 bg-white dark:bg-black rounded-xl shadow border border-gray-100 dark:border-gray-800 p-8 flex flex-col items-center justify-center'>
-              <div className='text-lg text-gray-500 dark:text-gray-400 text-center'>
-                Vous n'avez aucun paiement récurrent.
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-6'>
+          <div className='flex items-center justify-between mb-6'>
+            <div>
+              <div className='text-2xl font-bold text-[#222] dark:text-white'>
+                Paiements Récurrents
               </div>
+              <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+                Liste de tous vos paiements mensuels
+              </div>
+            </div>
+          </div>
+
+          {paiements.length === 0 ? (
+            <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
+              <p>Aucun paiement récurrent à afficher.</p>
               <button
                 onClick={() => {
                   setEditIndex(null);
@@ -421,9 +377,92 @@ export default function PaiementRecurrent() {
                   setShowModal(true);
                   setStep(1);
                 }}
-                className='mt-4 px-5 py-2.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-lg font-semibold'>
-                Ajouter votre premier paiement récurrent
+                className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
+                <span className='text-lg font-bold'>+</span>
+                <span>Ajouter un paiement récurrent</span>
               </button>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 gap-4'>
+              {paiements.map((paiement, idx) => {
+                return (
+                  <div
+                    key={paiement.id || idx}
+                    className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center'>
+                        <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
+                          <AiOutlineCalendar className='text-gray-600 dark:text-gray-300 text-xl' />
+                        </div>
+                        <div>
+                          <div className='font-semibold dark:text-white'>
+                            {paiement.nom.charAt(0).toUpperCase() +
+                              paiement.nom.slice(1)}
+                          </div>
+                          <div className='text-xs text-gray-500 dark:text-gray-400'>
+                            {paiement.categorie}
+                          </div>
+                        </div>
+                      </div>
+                      <div className='flex flex-col items-end'>
+                        <div className='font-bold text-green-600 dark:text-green-400'>
+                          {paiement.montant
+                            ? parseFloat(paiement.montant).toFixed(2)
+                            : "0.00"}
+                          €
+                        </div>
+                        <div className='text-xs text-gray-500 dark:text-gray-400'>
+                          par mois
+                        </div>
+                        <div className='flex mt-2'>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(idx);
+                            }}
+                            className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 mr-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
+                            aria-label='Modifier'>
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              strokeWidth={1.5}
+                              stroke='currentColor'
+                              className='w-4 h-4'>
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                d='M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10'
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(idx);
+                            }}
+                            className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
+                            aria-label='Supprimer'>
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              strokeWidth={1.5}
+                              stroke='currentColor'
+                              className='w-4 h-4'>
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                d='M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0'
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -432,47 +471,77 @@ export default function PaiementRecurrent() {
       {/* Modal d'ajout ou modification */}
       {showModal && (
         <div
-          className='fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-60'
-          onClick={(e) => {
-            // Ferme le modal seulement si on clique à l'extérieur du contenu
-            if (e.target === e.currentTarget) setShowModal(false);
-          }}>
-          <div className='bg-white dark:bg-black rounded-xl shadow-lg p-8 w-full max-w-md'>
-            <h2 className='text-xl font-bold text-[#222] dark:text-white mb-6'>
+          className='fixed inset-0 z-[9999] flex items-center justify-center'
+          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
+          <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+            <button
+              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              onClick={() => {
+                setShowModal(false);
+                setStep(1);
+                setNewPaiement({
+                  nom: "",
+                  categorie: "",
+                  montant: "",
+                });
+                setEditIndex(null);
+              }}
+              aria-label='Fermer'>
+              ✕
+            </button>
+            <div className='mb-6 text-lg font-semibold dark:text-white'>
               {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
               récurrent
-            </h2>
+            </div>
+
+            {/* Récapitulatif dynamique */}
+            <div className='mb-4 dark:text-gray-300'>
+              {newPaiement.nom && (
+                <div>
+                  <span className='font-medium'>Libellé :</span>{" "}
+                  {newPaiement.nom.charAt(0).toUpperCase() +
+                    newPaiement.nom.slice(1)}
+                </div>
+              )}
+              {step > 1 && newPaiement.categorie && (
+                <div>
+                  <span className='font-medium'>Catégorie :</span>{" "}
+                  {newPaiement.categorie}
+                </div>
+              )}
+              {step > 2 && newPaiement.montant && (
+                <div>
+                  <span className='font-medium'>Montant :</span>{" "}
+                  {parseFloat(newPaiement.montant).toFixed(2)} €
+                </div>
+              )}
+            </div>
 
             <div className='space-y-4'>
               {/* Étape 1: Nom */}
               {step === 1 && (
-                <div className='space-y-3'>
-                  <label
-                    htmlFor='nom'
-                    className='block text-gray-700 dark:text-gray-300 font-medium'>
+                <div>
+                  <label className='block mb-2 font-medium dark:text-white'>
                     Nom du paiement
                   </label>
                   <input
-                    id='nom'
+                    type='text'
                     name='nom'
                     value={newPaiement.nom}
                     onChange={handleChange}
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                     placeholder='Ex: Loyer, Netflix, etc.'
-                    className='w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
                     ref={nomInputRef}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && newPaiement.nom && handleNext()
-                    }
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newPaiement.nom) handleNext();
+                    }}
                   />
                   <div className='flex justify-end'>
                     <button
-                      onClick={handleNext}
+                      className='bg-gray-900 text-white px-4 py-2 rounded'
                       disabled={!newPaiement.nom}
-                      className={`px-5 py-2 rounded-lg font-medium ${
-                        newPaiement.nom
-                          ? "bg-[#6366f1] hover:bg-[#4f46e5] text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}>
+                      onClick={handleNext}>
                       Suivant
                     </button>
                   </div>
@@ -481,22 +550,28 @@ export default function PaiementRecurrent() {
 
               {/* Étape 2: Catégorie */}
               {step === 2 && (
-                <div className='space-y-3'>
-                  <label
-                    htmlFor='categorie'
-                    className='block text-gray-700 dark:text-gray-300 font-medium'>
+                <div>
+                  <label className='block mb-2 font-medium dark:text-white'>
                     Catégorie
                   </label>
                   <select
-                    id='categorie'
                     name='categorie'
                     value={newPaiement.categorie}
                     onChange={(e) => {
                       handleChange(e);
-                      // Passer automatiquement à l'étape suivante si une catégorie est sélectionnée
-                      if (e.target.value) setTimeout(() => handleNext(), 200);
+                      // Passage automatique après sélection d'une catégorie (mais pas sur la valeur vide)
+                      if (e.target.value && e.target.value !== "") {
+                        setTimeout(() => handleNext(), 100);
+                      }
                     }}
-                    className='w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white'>
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newPaiement.categorie) {
+                        e.preventDefault();
+                        handleNext();
+                      }
+                    }}>
                     <option value=''>Sélectionner une catégorie</option>
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -506,18 +581,14 @@ export default function PaiementRecurrent() {
                   </select>
                   <div className='flex justify-between'>
                     <button
-                      onClick={handlePrev}
-                      className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
-                      Retour
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
+                      Précédent
                     </button>
                     <button
-                      onClick={handleNext}
+                      className='bg-gray-900 text-white px-4 py-2 rounded'
                       disabled={!newPaiement.categorie}
-                      className={`px-5 py-2 rounded-lg font-medium ${
-                        newPaiement.categorie
-                          ? "bg-[#6366f1] hover:bg-[#4f46e5] text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}>
+                      onClick={handleNext}>
                       Suivant
                     </button>
                   </div>
@@ -526,47 +597,42 @@ export default function PaiementRecurrent() {
 
               {/* Étape 3: Montant */}
               {step === 3 && (
-                <div className='space-y-3'>
-                  <label
-                    htmlFor='montant'
-                    className='block text-gray-700 dark:text-gray-300 font-medium'>
+                <div>
+                  <label className='block mb-2 font-medium dark:text-white'>
                     Montant (€)
                   </label>
                   <input
-                    id='montant'
-                    name='montant'
                     type='number'
-                    step='0.01'
-                    min='0.01'
+                    name='montant'
                     value={newPaiement.montant}
                     onChange={handleChange}
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                    step='0.01'
+                    min='0.01'
                     placeholder='Ex: 49.99'
-                    className='w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white'
                     ref={montantInputRef}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" &&
-                      parseFloat(newPaiement.montant) > 0 &&
-                      handleAddOrEditPaiement()
-                    }
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (
+                        e.key === "Enter" &&
+                        parseFloat(newPaiement.montant) > 0
+                      )
+                        handleAddOrEditPaiement();
+                    }}
                   />
                   <div className='flex justify-between'>
                     <button
-                      onClick={handlePrev}
-                      className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'>
-                      Retour
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
+                      Précédent
                     </button>
                     <button
-                      onClick={handleAddOrEditPaiement}
+                      className='bg-gray-900 text-white px-4 py-2 rounded'
                       disabled={
                         !newPaiement.montant ||
                         parseFloat(newPaiement.montant) <= 0
                       }
-                      className={`px-5 py-2 rounded-lg font-medium ${
-                        newPaiement.montant &&
-                        parseFloat(newPaiement.montant) > 0
-                          ? "bg-[#6366f1] hover:bg-[#4f46e5] text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}>
+                      onClick={handleAddOrEditPaiement}>
                       {editIndex !== null ? "Modifier" : "Ajouter"}
                     </button>
                   </div>

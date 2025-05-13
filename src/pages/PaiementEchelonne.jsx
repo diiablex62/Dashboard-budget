@@ -381,173 +381,157 @@ export default function PaiementEchelonne() {
             </div>
           </div>
           <div className='flex flex-col sm:flex-row gap-2 mt-4 md:mt-0'>
-            {isMultiSelectMode && (
-              <button
-                onClick={deleteSelectedPaiements}
-                disabled={selectedPaiements.length === 0}
-                className={`px-5 py-2.5 rounded-lg font-semibold flex items-center justify-center ${
-                  selectedPaiements.length === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600 text-white"
-                }`}>
-                <FiTrash className='mr-2' />
-                Supprimer{" "}
-                {selectedPaiements.length > 0 &&
-                  `(${selectedPaiements.length})`}
-              </button>
-            )}
-            <button
-              onClick={toggleMultiSelectMode}
-              className={`px-5 py-2.5 rounded-lg font-semibold flex items-center justify-center ${
-                isMultiSelectMode
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                  : "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-              }`}>
-              {isMultiSelectMode ? "Annuler" : "Sélection multiple"}
-            </button>
             <button
               onClick={handleOpenModal}
-              className='px-5 py-2.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-lg font-semibold flex items-center justify-center'>
-              <AiOutlinePlus className='mr-2' /> Ajouter un paiement
+              className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
+              <span className='text-lg font-bold'>+</span>
+              <span>Ajouter</span>
             </button>
           </div>
         </div>
 
         {/* Affichage des paiements échelonnés */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6'>
-          {paiements.length > 0 ? (
-            paiements.map((paiement, idx) => {
-              // Calculer le pourcentage de progression
-              const totalPaiement = parseFloat(paiement.montant);
-              const mensualite =
-                totalPaiement / parseFloat(paiement.mensualites);
-
-              // Calculer le nombre de paiements effectués
-              let paiementsEffectues = 0;
-              if (paiement.debutMois) {
-                const [debutAnnee, debutMois] = paiement.debutMois
-                  .split("-")
-                  .map(Number);
-                const dateDebut = new Date(debutAnnee, debutMois - 1);
-                const maintenant = new Date();
-                const moisEcoules =
-                  (maintenant.getFullYear() - dateDebut.getFullYear()) * 12 +
-                  maintenant.getMonth() -
-                  dateDebut.getMonth() +
-                  1;
-                paiementsEffectues = Math.min(
-                  moisEcoules,
-                  parseInt(paiement.mensualites)
-                );
-              }
-
-              const progressPercent = Math.max(
-                0,
-                Math.min(
-                  100,
-                  (paiementsEffectues / parseFloat(paiement.mensualites)) * 100
-                )
-              );
-              const montantRestant =
-                totalPaiement - mensualite * paiementsEffectues;
-
-              // Vérifier si le paiement est sélectionné
-              const isSelected = selectedPaiements.some(
-                (p) => p.id === paiement.id
-              );
-
-              return (
-                <div
-                  key={paiement.id || idx}
-                  className={`bg-white dark:bg-black rounded-xl shadow border ${
-                    isSelected
-                      ? "border-blue-500 dark:border-blue-500 ring-2 ring-blue-300 dark:ring-blue-700"
-                      : "border-gray-100 dark:border-gray-800"
-                  } p-5 flex flex-col transition-all duration-200 ${
-                    isMultiSelectMode ? "cursor-pointer" : ""
-                  }`}
-                  onClick={() =>
-                    isMultiSelectMode && togglePaiementSelection(paiement)
-                  }>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center'>
-                      {isMultiSelectMode && (
-                        <div className='mr-3'>
-                          <input
-                            type='checkbox'
-                            checked={isSelected}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              togglePaiementSelection(paiement);
-                            }}
-                            className='h-5 w-5 text-blue-600 rounded'
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      )}
-                      <div className='w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3'>
-                        <AiOutlineDollarCircle className='text-blue-600 dark:text-blue-300 text-xl' />
-                      </div>
-                      <div>
-                        <div className='font-semibold text-[#111] dark:text-white'>
-                          {paiement.nom}
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          Mensualité: {mensualite.toFixed(2)}€
-                        </div>
-                      </div>
-                    </div>
-                    <div className='flex flex-col items-end'>
-                      <div className='font-bold text-green-600 dark:text-green-400'>
-                        {paiementsEffectues}/{paiement.mensualites}
-                      </div>
-                      <div className='text-xs text-gray-500 dark:text-gray-400'>
-                        Reste: {montantRestant.toFixed(2)}€
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Barre de progression */}
-                  <div className='mt-3 h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden'>
-                    <div
-                      className='h-full bg-blue-500 rounded-full'
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-
-                  {!isMultiSelectMode && (
-                    <div className='flex justify-end mt-4 pt-2 border-t border-gray-100 dark:border-gray-800'>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(idx);
-                        }}
-                        className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 p-2'>
-                        <FiEdit />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(idx);
-                        }}
-                        className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-2'>
-                        <FiTrash />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div className='col-span-3 bg-white dark:bg-black rounded-xl shadow border border-gray-100 dark:border-gray-800 p-8 flex flex-col items-center justify-center'>
-              <div className='text-lg text-gray-500 dark:text-gray-400 text-center'>
-                Vous n'avez aucun paiement échelonné.
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
+          <div className='flex items-center justify-between mb-6'>
+            <div>
+              <div className='text-2xl font-bold text-[#222] dark:text-white'>
+                Paiements Échelonnés
               </div>
+              <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+                Liste de tous vos paiements en plusieurs fois
+              </div>
+            </div>
+          </div>
+
+          {paiements.length === 0 ? (
+            <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
+              <p>Aucun paiement échelonné à afficher.</p>
               <button
                 onClick={handleOpenModal}
-                className='mt-4 px-5 py-2.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-lg font-semibold'>
-                Ajouter votre premier paiement échelonné
+                className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
+                <span className='text-lg font-bold'>+</span>
+                <span>Ajouter un paiement échelonné</span>
               </button>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 gap-4'>
+              {paiements.map((paiement, idx) => {
+                // Calculer le pourcentage de progression
+                const totalPaiement = parseFloat(paiement.montant);
+                const mensualite =
+                  totalPaiement / parseFloat(paiement.mensualites);
+
+                // Calculer le nombre de paiements effectués
+                let paiementsEffectues = 0;
+                if (paiement.debutMois) {
+                  const [debutAnnee, debutMois] = paiement.debutMois
+                    .split("-")
+                    .map(Number);
+                  const dateDebut = new Date(debutAnnee, debutMois - 1);
+                  const maintenant = new Date();
+                  const moisEcoules =
+                    (maintenant.getFullYear() - dateDebut.getFullYear()) * 12 +
+                    maintenant.getMonth() -
+                    dateDebut.getMonth() +
+                    1;
+                  paiementsEffectues = Math.min(
+                    moisEcoules,
+                    parseInt(paiement.mensualites)
+                  );
+                }
+
+                const progressPercent = Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    (paiementsEffectues / parseFloat(paiement.mensualites)) *
+                      100
+                  )
+                );
+                const montantRestant =
+                  totalPaiement - mensualite * paiementsEffectues;
+
+                return (
+                  <div
+                    key={paiement.id || idx}
+                    className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center'>
+                        <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
+                          <AiOutlineDollarCircle className='text-gray-600 dark:text-gray-300 text-xl' />
+                        </div>
+                        <div>
+                          <div className='font-semibold dark:text-white'>
+                            {paiement.nom.charAt(0).toUpperCase() +
+                              paiement.nom.slice(1)}
+                          </div>
+                          <div className='text-xs text-gray-500 dark:text-gray-400'>
+                            Mensualité: {mensualite.toFixed(2)}€ •{" "}
+                            {paiementsEffectues}/{paiement.mensualites}{" "}
+                            paiements • Reste: {montantRestant.toFixed(2)}€
+                          </div>
+                        </div>
+                      </div>
+                      <div className='flex flex-col items-end'>
+                        <div className='font-bold text-green-600 dark:text-green-400'>
+                          {(montantRestant / paiement.mensualites).toFixed(2)}
+                          €/mois
+                        </div>
+                        <div className='flex mt-2'>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(idx);
+                            }}
+                            className='text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 mr-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
+                            aria-label='Modifier'>
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              strokeWidth={1.5}
+                              stroke='currentColor'
+                              className='w-4 h-4'>
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                d='M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10'
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(idx);
+                            }}
+                            className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
+                            aria-label='Supprimer'>
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='none'
+                              viewBox='0 0 24 24'
+                              strokeWidth={1.5}
+                              stroke='currentColor'
+                              className='w-4 h-4'>
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                d='M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0'
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className='mt-3 bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden'>
+                      <div
+                        className='bg-green-500 h-full'
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -621,6 +605,7 @@ export default function PaiementEchelonne() {
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                   placeholder='Ex: Smartphone'
                   ref={nomInputRef}
+                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newPaiement.nom) handleNext();
                   }}
@@ -650,6 +635,7 @@ export default function PaiementEchelonne() {
                   step='0.01'
                   placeholder='Ex: 999.99'
                   ref={montantInputRef}
+                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newPaiement.montant) handleNext();
                   }}
@@ -684,6 +670,7 @@ export default function PaiementEchelonne() {
                   max='48'
                   placeholder='Ex: 12'
                   ref={mensualitesInputRef}
+                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newPaiement.mensualites)
                       handleNext();
@@ -716,6 +703,7 @@ export default function PaiementEchelonne() {
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                   ref={debutMoisInputRef}
+                  autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newPaiement.debutMois)
                       handleAddOrEditPaiement();

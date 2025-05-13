@@ -1154,8 +1154,9 @@ export default function DepensesRevenus() {
                 <p>Aucune dépense à afficher pour cette période.</p>
                 <button
                   onClick={() => setShowDepenseModal(true)}
-                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium'>
-                  Ajouter une dépense
+                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
+                  <span className='text-lg font-bold'>+</span>
+                  <span>Ajouter une dépense</span>
                 </button>
               </div>
             )}
@@ -1207,8 +1208,9 @@ export default function DepensesRevenus() {
                 <p>Aucun revenu à afficher pour cette période.</p>
                 <button
                   onClick={() => setShowRevenuModal(true)}
-                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium'>
-                  Ajouter un revenu
+                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
+                  <span className='text-lg font-bold'>+</span>
+                  <span>Ajouter un revenu</span>
                 </button>
               </div>
             )}
