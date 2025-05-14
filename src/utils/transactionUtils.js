@@ -205,3 +205,149 @@ export const deleteTransaction = async (transaction) => {
     transaction.id
   );
 };
+
+/**
+ * Calcule le total des dépenses mensuelles en combinant toutes les sources
+ * @param {Date} date - Date pour laquelle calculer le total (par défaut le mois courant)
+ * @returns {Promise<Object>} - Objet contenant les détails des dépenses mensuelles
+ */
+export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
+  try {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    // Définir les limites du mois
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0);
+
+    // Récupérer toutes les données nécessaires
+    const [depensesSnap, recurrentsSnap, echelonnesSnap] = await Promise.all([
+      getDocs(collection(db, "depense")),
+      getDocs(collection(db, "recurrent")),
+      getDocs(collection(db, "xfois")),
+    ]);
+
+    // 1. Traiter les dépenses régulières du mois
+    const depenses = depensesSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const depensesDuMois = depenses.filter((d) => {
+      const depenseDate = new Date(d.date);
+      return depenseDate >= startDate && depenseDate <= endDate;
+    });
+
+    const totalDepensesRegulieres = Math.abs(
+      depensesDuMois.reduce((acc, d) => acc + (parseFloat(d.montant) || 0), 0)
+    );
+
+    // 2. Traiter les paiements récurrents
+    const paiementsRecurrents = recurrentsSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const totalRecurrents = paiementsRecurrents.reduce(
+      (acc, p) => acc + (parseFloat(p.montant) || 0),
+      0
+    );
+
+    // 3. Traiter les paiements échelonnés actifs ce mois-ci
+    const paiementsEchelonnes = echelonnesSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Filtrer les paiements échelonnés actifs ce mois-ci
+    const echelonnesActifs = paiementsEchelonnes.filter((p) => {
+      if (!p.debutMois || !p.mensualites) return false;
+
+      const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+      const debut = new Date(startYear, startMonth - 1);
+      const fin = new Date(
+        startYear,
+        startMonth - 1 + Number(p.mensualites) - 1
+      );
+
+      return startDate >= debut && startDate <= fin;
+    });
+
+    // Calculer le total des mensualités échelonnées
+    const totalEchelonnes = echelonnesActifs.reduce((acc, p) => {
+      if (!p.montant || !p.mensualites) return acc;
+      return acc + Number(p.montant) / Number(p.mensualites);
+    }, 0);
+
+    // 4. Calculer le total général
+    const totalGeneral =
+      totalDepensesRegulieres + totalRecurrents + totalEchelonnes;
+
+    // Retourner un objet avec les détails
+    return {
+      total: totalGeneral,
+      regulieres: totalDepensesRegulieres,
+      recurrentes: totalRecurrents,
+      echelonnees: totalEchelonnes,
+      nombreDepenses: depensesDuMois.length,
+      nombreRecurrentes: paiementsRecurrents.length,
+      nombreEchelonnees: echelonnesActifs.length,
+      // Ajouter les données par catégorie également
+      parCategorie: categorizeExpenses(
+        depensesDuMois,
+        paiementsRecurrents,
+        echelonnesActifs
+      ),
+    };
+  } catch (error) {
+    console.error("Erreur lors du calcul des dépenses mensuelles:", error);
+    throw error;
+  }
+};
+
+/**
+ * Catégorise toutes les dépenses par type
+ * @param {Array} depenses - Dépenses régulières
+ * @param {Array} recurrentes - Dépenses récurrentes
+ * @param {Array} echelonnees - Dépenses échelonnées
+ * @returns {Array} - Tableau des dépenses par catégorie
+ */
+const categorizeExpenses = (depenses, recurrentes, echelonnees) => {
+  // Créer un objet pour stocker les totaux par catégorie
+  const categoriesObj = {};
+
+  // Traiter les dépenses régulières
+  depenses.forEach((d) => {
+    const categorie = d.categorie || "Autre";
+    if (!categoriesObj[categorie]) {
+      categoriesObj[categorie] = 0;
+    }
+    categoriesObj[categorie] += Math.abs(parseFloat(d.montant) || 0);
+  });
+
+  // Traiter les dépenses récurrentes
+  recurrentes.forEach((r) => {
+    const categorie = r.categorie || "Autre";
+    if (!categoriesObj[categorie]) {
+      categoriesObj[categorie] = 0;
+    }
+    categoriesObj[categorie] += parseFloat(r.montant) || 0;
+  });
+
+  // Traiter les dépenses échelonnées
+  echelonnees.forEach((e) => {
+    const categorie = e.categorie || "Autre";
+    if (!categoriesObj[categorie]) {
+      categoriesObj[categorie] = 0;
+    }
+    const montantMensuel =
+      (parseFloat(e.montant) || 0) / (parseInt(e.mensualites) || 1);
+    categoriesObj[categorie] += montantMensuel;
+  });
+
+  // Convertir l'objet en tableau pour le graphique
+  return Object.entries(categoriesObj).map(([name, value]) => ({
+    name,
+    value,
+  }));
+};

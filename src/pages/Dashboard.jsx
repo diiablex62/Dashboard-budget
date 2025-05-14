@@ -23,6 +23,7 @@ import {
   YAxis,
   Bar,
 } from "recharts";
+import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
 
 // Définir COLORS en dehors du composant pour éviter l'erreur de portée
 const COLORS = [
@@ -62,6 +63,9 @@ export default function Dashboard() {
   // Données pour le graphique de répartition budget
   const [budgetData, setBudgetData] = useState([]);
 
+  // Nouvelles données pour le graphique combiné de toutes les dépenses
+  const [depensesTotalesData, setDepensesTotalesData] = useState([]);
+
   const fetchAll = async () => {
     if (!user) return; // Ne tente pas de fetch si non connecté
     try {
@@ -83,23 +87,37 @@ export default function Dashboard() {
       const previousMonthStart = new Date(previousYear, previousMonth - 1, 1); // premier jour du mois précédent
       const previousMonthEnd = new Date(previousYear, previousMonth, 0); // dernier jour du mois précédent
 
-      // Récupération des paiements récurrents
+      // Utiliser la nouvelle fonction pour calculer les dépenses totales mensuelles
+      const depensesMensuelles = await calculateMonthlyTotalExpenses(
+        currentMonthStart
+      );
+      const depensesMoisPrecedent = await calculateMonthlyTotalExpenses(
+        previousMonthStart
+      );
+
+      // Mettre à jour les états avec les données détaillées
+      setTotalDepensesMois(depensesMensuelles.total);
+      setTotalDepensesMoisPrecedent(depensesMoisPrecedent.total);
+      setTotalRecurrents(depensesMensuelles.recurrentes);
+      setTotalEchelonnes(depensesMensuelles.echelonnees);
+
+      // Mettre à jour les données du graphique de répartition des dépenses par catégorie
+      setDepensesTotalesData(depensesMensuelles.parCategorie);
+
+      // Récupération des paiements récurrents et échelonnés pour les listes
       const [recurrentsSnap, echelonnesSnap] = await Promise.all([
         getDocs(collection(db, "recurrent")),
         getDocs(collection(db, "xfois")),
       ]);
 
-      // Traitement des paiements récurrents
+      // Traitement des paiements récurrents pour la liste
       const paiements = recurrentsSnap.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setPaiementsRecurrents(paiements);
-      setTotalRecurrents(
-        paiements.reduce((acc, p) => acc + (p.montant || 0), 0)
-      );
 
-      // Traitement des paiements échelonnés du mois courant
+      // Traitement des paiements échelonnés du mois courant pour la liste
       const echelonnes = echelonnesSnap.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -118,43 +136,12 @@ export default function Dashboard() {
       });
       setPaiementsEchelonnes(echelonnesDuMois);
 
-      const totalEchelonne = echelonnesDuMois.reduce((acc, p) => {
-        if (!p.montant || !p.mensualites) return acc;
-        return acc + Number(p.montant) / Number(p.mensualites);
-      }, 0);
-      setTotalEchelonnes(totalEchelonne);
-
-      // Récupération des dépenses et revenus
-      const [depenseSnap, revenuSnap] = await Promise.all([
-        getDocs(collection(db, "depense")),
-        getDocs(collection(db, "revenu")),
-      ]);
-
-      const depenses = depenseSnap.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-
+      // Récupération des revenus
+      const revenuSnap = await getDocs(collection(db, "revenu"));
       const revenus = revenuSnap.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
       }));
-
-      // Filtrer les dépenses du mois actuel
-      const depensesMoisActuel = depenses.filter((d) => {
-        const depenseDate = new Date(d.date);
-        return (
-          depenseDate >= currentMonthStart && depenseDate <= currentMonthEnd
-        );
-      });
-
-      // Filtrer les dépenses du mois précédent
-      const depensesMoisPrecedent = depenses.filter((d) => {
-        const depenseDate = new Date(d.date);
-        return (
-          depenseDate >= previousMonthStart && depenseDate <= previousMonthEnd
-        );
-      });
 
       // Filtrer les revenus du mois actuel
       const revenusMoisActuel = revenus.filter((r) => {
@@ -170,22 +157,6 @@ export default function Dashboard() {
         );
       });
 
-      // Calculer le total des dépenses du mois actuel (valeurs négatives)
-      const totalDepensesActuel = Math.abs(
-        depensesMoisActuel.reduce(
-          (acc, d) => acc + (parseFloat(d.montant) || 0),
-          0
-        )
-      );
-
-      // Calculer le total des dépenses du mois précédent
-      const totalDepensesPrecedent = Math.abs(
-        depensesMoisPrecedent.reduce(
-          (acc, d) => acc + (parseFloat(d.montant) || 0),
-          0
-        )
-      );
-
       // Calculer le total des revenus du mois actuel
       const totalRevenusActuel = revenusMoisActuel.reduce(
         (acc, r) => acc + (parseFloat(r.montant) || 0),
@@ -198,14 +169,6 @@ export default function Dashboard() {
         0
       );
 
-      // Calculer le total des dépenses mensuelles (dépenses + récurrents + échelonnés)
-      const totalMoisActuel =
-        totalDepensesActuel + totalRecurrents + totalEchelonne;
-      const totalMoisPrecedent =
-        totalDepensesPrecedent + totalRecurrents + totalEchelonne;
-
-      setTotalDepensesMois(totalMoisActuel);
-      setTotalDepensesMoisPrecedent(totalMoisPrecedent);
       setTotalRevenusMois(totalRevenusActuel);
       setTotalRevenusMoisPrecedent(totalRevenusPrecedent);
 
@@ -348,17 +311,6 @@ export default function Dashboard() {
   };
 
   // Optimisation: useMemo pour éviter les recalculs inutiles
-  const dataCategories = useMemo(() => {
-    return [...new Set(paiementsRecurrents.map((p) => p.categorie))]
-      .map((cat) => ({
-        name: cat,
-        value: paiementsRecurrents
-          .filter((p) => p.categorie === cat)
-          .reduce((acc, p) => acc + (p.montant || 0), 0),
-      }))
-      .filter((d) => d.value > 0);
-  }, [paiementsRecurrents]);
-
   const derniersPaiements = useMemo(
     () =>
       [...paiementsRecurrents]
@@ -505,21 +457,25 @@ export default function Dashboard() {
         {/* Dépenses mensuelles */}
         <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col min-h-[220px]'>
           <span className='font-semibold mb-2 dark:text-white'>
-            Dépenses mensuelles
+            Total des dépenses mensuelles
           </span>
           <div className='flex-1 flex items-center justify-center'>
             <ResponsiveContainer width='100%' height={220}>
               <PieChart>
                 <Pie
                   data={
-                    dataCategories.length > 0
-                      ? dataCategories
+                    depensesTotalesData.length > 0
+                      ? depensesTotalesData
                       : [
-                          { name: "Alimentation", value: 1000 },
-                          { name: "Logement", value: 1600 },
-                          { name: "Transport", value: 400 },
-                          { name: "Loisirs", value: 300 },
-                          { name: "Santé", value: 250 },
+                          {
+                            name: "Régulières",
+                            value:
+                              totalDepensesMois -
+                              totalRecurrents -
+                              totalEchelonnes,
+                          },
+                          { name: "Récurrentes", value: totalRecurrents },
+                          { name: "Échelonnées", value: totalEchelonnes },
                         ]
                   }
                   dataKey='value'
@@ -529,15 +485,21 @@ export default function Dashboard() {
                   outerRadius={70}
                   innerRadius={40}
                   fill='#8884d8'
-                  label={({ name }) => name}>
-                  {(dataCategories.length > 0
-                    ? dataCategories
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }>
+                  {(depensesTotalesData.length > 0
+                    ? depensesTotalesData
                     : [
-                        { name: "Alimentation", value: 1000 },
-                        { name: "Logement", value: 1600 },
-                        { name: "Transport", value: 400 },
-                        { name: "Loisirs", value: 300 },
-                        { name: "Santé", value: 250 },
+                        {
+                          name: "Régulières",
+                          value:
+                            totalDepensesMois -
+                            totalRecurrents -
+                            totalEchelonnes,
+                        },
+                        { name: "Récurrentes", value: totalRecurrents },
+                        { name: "Échelonnées", value: totalEchelonnes },
                       ]
                   ).map((entry, index) => (
                     <Cell
@@ -546,8 +508,8 @@ export default function Dashboard() {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
+                <Legend formatter={(value) => `${value}`} />
               </PieChart>
             </ResponsiveContainer>
           </div>

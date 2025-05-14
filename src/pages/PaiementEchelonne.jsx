@@ -71,9 +71,10 @@ export default function PaiementEchelonne() {
   const { user } = useAuth();
   // Valeur par défaut pour débutMois : mois actuel au format "YYYY-MM"
   const currentMonth = new Date();
-  const defaultDebutMois = `${currentMonth.getFullYear()}-${String(
-    currentMonth.getMonth() + 1
-  ).padStart(2, "0")}`;
+  const defaultDebutDate = (() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0]; // Format YYYY-MM-DD
+  })();
 
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
@@ -81,14 +82,14 @@ export default function PaiementEchelonne() {
     nom: "",
     montant: "",
     mensualites: "",
-    debutMois: defaultDebutMois,
+    debutDate: defaultDebutDate,
     categorie: "",
   });
   const [paiements, setPaiements] = useState([]);
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
   const mensualitesInputRef = useRef(null);
-  const debutMoisInputRef = useRef(null);
+  const debutDateInputRef = useRef(null);
   const categorieInputRef = useRef(null);
 
   const [lastDeleted, setLastDeleted] = useState(null);
@@ -107,8 +108,8 @@ export default function PaiementEchelonne() {
       montantInputRef.current.focus();
     if (showModal && step === 3 && mensualitesInputRef.current)
       mensualitesInputRef.current.focus();
-    if (showModal && step === 4 && debutMoisInputRef.current)
-      debutMoisInputRef.current.focus();
+    if (showModal && step === 4 && debutDateInputRef.current)
+      debutDateInputRef.current.focus();
   }, [showModal, step]);
 
   const handleNext = () => setStep((s) => s + 1);
@@ -158,8 +159,8 @@ export default function PaiementEchelonne() {
     const [year, month] = currentPeriod.split("-").map(Number);
     const nowDate = new Date(year, month - 1);
     return paiements.reduce((acc, p) => {
-      if (!p.debutMois || !p.mensualites || !p.montant) return acc;
-      const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+      if (!p.debutDate || !p.mensualites || !p.montant) return acc;
+      const [startYear, startMonth] = p.debutDate.split("-").map(Number);
       const debut = new Date(startYear, startMonth - 1);
       const fin = new Date(
         startYear,
@@ -184,7 +185,7 @@ export default function PaiementEchelonne() {
           nom: newPaiement.nom,
           montant: parseFloat(newPaiement.montant),
           mensualites: parseInt(newPaiement.mensualites, 10),
-          debutMois: newPaiement.debutMois,
+          debutDate: newPaiement.debutDate,
           categorie: newPaiement.categorie || "Autre",
         });
         // Notification modification paiement échelonné
@@ -204,7 +205,7 @@ export default function PaiementEchelonne() {
           nom: newPaiement.nom,
           montant: parseFloat(newPaiement.montant),
           mensualites: parseInt(newPaiement.mensualites, 10),
-          debutMois: newPaiement.debutMois,
+          debutDate: newPaiement.debutDate,
           categorie: newPaiement.categorie || "Autre",
           createdAt: serverTimestamp(),
         });
@@ -227,7 +228,7 @@ export default function PaiementEchelonne() {
         nom: "",
         montant: "",
         mensualites: "",
-        debutMois: defaultDebutMois,
+        debutDate: defaultDebutDate,
         categorie: "",
       });
       setEditIndex(null);
@@ -246,7 +247,7 @@ export default function PaiementEchelonne() {
       nom: paiements[idx].nom,
       montant: paiements[idx].montant.toString(),
       mensualites: paiements[idx].mensualites.toString(),
-      debutMois: paiements[idx].debutMois,
+      debutDate: paiements[idx].debutDate,
       categorie: paiements[idx].categorie || "Autre",
     });
     setShowModal(true);
@@ -343,7 +344,7 @@ export default function PaiementEchelonne() {
     }
   };
 
-  // Quand on ouvre la modale pour ajouter, on remet le mois actuel par défaut
+  // Quand on ouvre la modale pour ajouter, on remet la date actuelle par défaut
   const handleOpenModal = () => {
     setShowModal(true);
     setStep(1);
@@ -352,7 +353,7 @@ export default function PaiementEchelonne() {
       nom: "",
       montant: "",
       mensualites: "",
-      debutMois: defaultDebutMois,
+      debutDate: defaultDebutDate,
       categorie: "",
     });
   };
@@ -363,9 +364,9 @@ export default function PaiementEchelonne() {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
     return paiements.map((item) => {
-      if (!item.debutMois || !item.mensualites)
+      if (!item.debutDate || !item.mensualites)
         return { ...item, mensualitesPayees: 1, percentPaye: 0 };
-      const [startYear, startMonth] = item.debutMois.split("-").map(Number);
+      const [startYear, startMonth] = item.debutDate.split("-").map(Number);
       const debut = new Date(startYear, startMonth - 1);
       const nowDate = new Date(currentYear, currentMonth - 1);
       // Calcul du nombre de mensualités déjà passées (1 si on commence ce mois)
@@ -440,8 +441,8 @@ export default function PaiementEchelonne() {
 
                 // Calculer le nombre de paiements effectués
                 let paiementsEffectues = 0;
-                if (paiement.debutMois) {
-                  const [debutAnnee, debutMois] = paiement.debutMois
+                if (paiement.debutDate) {
+                  const [debutAnnee, debutMois] = paiement.debutDate
                     .split("-")
                     .map(Number);
                   const dateDebut = new Date(debutAnnee, debutMois - 1);
@@ -507,8 +508,8 @@ export default function PaiementEchelonne() {
                       <div>Reste à payer: {montantRestant.toFixed(2)}€</div>
                       <div>
                         Début:{" "}
-                        {paiement.debutMois
-                          ? paiement.debutMois.replace("-", " ")
+                        {paiement.debutDate
+                          ? paiement.debutDate.replace("-", " ")
                           : "N/A"}
                       </div>
                     </div>
@@ -584,7 +585,7 @@ export default function PaiementEchelonne() {
                   nom: "",
                   montant: "",
                   mensualites: "",
-                  debutMois: defaultDebutMois,
+                  debutDate: defaultDebutDate,
                   categorie: "",
                 });
                 setEditIndex(null);
@@ -617,10 +618,10 @@ export default function PaiementEchelonne() {
                   {newPaiement.mensualites}
                 </div>
               )}
-              {step > 3 && newPaiement.debutMois && (
+              {step > 3 && newPaiement.debutDate && (
                 <div>
                   <span className='font-medium'>Début :</span>{" "}
-                  {newPaiement.debutMois}
+                  {new Date(newPaiement.debutDate).toLocaleDateString("fr-FR")}
                 </div>
               )}
             </div>
@@ -777,12 +778,12 @@ export default function PaiementEchelonne() {
                   Date de début
                 </label>
                 <input
-                  type='month'
-                  name='debutMois'
-                  value={newPaiement.debutMois}
+                  type='date'
+                  name='debutDate'
+                  value={newPaiement.debutDate}
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  ref={debutMoisInputRef}
+                  ref={debutDateInputRef}
                   autoFocus
                 />
                 <div className='flex justify-between'>
@@ -793,7 +794,7 @@ export default function PaiementEchelonne() {
                   </button>
                   <button
                     className='bg-gray-900 text-white px-4 py-2 rounded'
-                    disabled={!newPaiement.debutMois}
+                    disabled={!newPaiement.debutDate}
                     onClick={handleAddOrEditPaiement}>
                     {editIndex !== null ? "Modifier" : "Ajouter"}
                   </button>

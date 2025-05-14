@@ -1,5 +1,15 @@
 import { db } from "../firebaseConfig";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc,
+  query,
+  where,
+  serverTimestamp,
+} from "firebase/firestore";
 import { handleItemOperation } from "./firebaseUtils";
 
 /**
@@ -65,8 +75,13 @@ export const filterCurrentMonthEchelonnePayments = (
   const currentMonth = currentDate.getMonth() + 1;
 
   return payments.filter((p) => {
-    if (!p.debutMois || !p.mensualites) return false;
-    const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+    if (!p.debutDate || !p.mensualites) return false;
+
+    // Extraire l'année, le mois et le jour de la date de début
+    const startDate = new Date(p.debutDate);
+    const startYear = startDate.getFullYear();
+    const startMonth = startDate.getMonth() + 1;
+
     const debut = new Date(startYear, startMonth - 1);
     const fin = new Date(startYear, startMonth - 1 + Number(p.mensualites) - 1);
     const nowDate = new Date(currentYear, currentMonth - 1);
@@ -135,8 +150,8 @@ export const validateEchelonnePayment = (payment) => {
     errors.push("Le nombre de mensualités doit être un entier positif non nul");
   }
 
-  if (!payment.debutMois) {
-    errors.push("Le mois de début est requis");
+  if (!payment.debutDate) {
+    errors.push("La date de début est requise");
   }
 
   return {
@@ -146,82 +161,115 @@ export const validateEchelonnePayment = (payment) => {
 };
 
 /**
- * Ajoute ou modifie un paiement récurrent
+ * Ajoute ou met à jour un paiement récurrent
  * @param {Object} payment - Données du paiement
- * @returns {Promise<string|void>} - ID du document créé (si ajout)
+ * @param {string} [id] - ID du paiement (pour mise à jour)
+ * @returns {Promise<string|null>} - ID du document créé (si ajout)
  */
-export const addOrUpdateRecurrentPayment = async (payment) => {
-  const { isValid, errors } = validateRecurrentPayment(payment);
+export const addOrUpdateRecurrentPayment = async (payment, id = null) => {
+  try {
+    const { nom, montant, categorie } = payment;
 
-  if (!isValid) {
-    console.error("Validation failed:", errors);
-    throw new Error(errors.join(", "));
+    // Validation basique
+    if (!nom || !montant) {
+      throw new Error("Nom et montant sont obligatoires");
+    }
+
+    const montantValue = parseFloat(montant);
+    if (isNaN(montantValue) || montantValue <= 0) {
+      throw new Error("Le montant doit être un nombre positif");
+    }
+
+    const paymentData = {
+      nom,
+      montant: montantValue,
+      categorie: categorie || "Autre",
+      updatedAt: serverTimestamp(),
+    };
+
+    if (id) {
+      // Mise à jour
+      await updateDoc(doc(db, "recurrent", id), paymentData);
+      return null;
+    } else {
+      // Ajout
+      paymentData.createdAt = serverTimestamp();
+      const docRef = await addDoc(collection(db, "recurrent"), paymentData);
+      return docRef.id;
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'ajout/mise à jour du paiement:", error);
+    throw error;
   }
-
-  const operation = payment.id ? "update" : "add";
-
-  // Préparer les données pour la base de données
-  const paymentData = {
-    nom: payment.nom.trim(),
-    categorie: payment.categorie.trim(),
-    montant: parseFloat(payment.montant),
-  };
-
-  return handleItemOperation(operation, "recurrent", paymentData, payment.id);
 };
 
 /**
- * Ajoute ou modifie un paiement échelonné
+ * Ajoute ou met à jour un paiement échelonné
  * @param {Object} payment - Données du paiement
- * @returns {Promise<string|void>} - ID du document créé (si ajout)
+ * @param {string} [id] - ID du paiement (pour mise à jour)
+ * @returns {Promise<string|null>} - ID du document créé (si ajout)
  */
-export const addOrUpdateEchelonnePayment = async (payment) => {
-  const { isValid, errors } = validateEchelonnePayment(payment);
+export const addOrUpdateEchelonnePayment = async (payment, id = null) => {
+  try {
+    // Validation avec la fonction dédiée
+    const validation = validateEchelonnePayment(payment);
+    if (!validation.isValid) {
+      throw new Error(validation.errors.join(", "));
+    }
 
-  if (!isValid) {
-    console.error("Validation failed:", errors);
-    throw new Error(errors.join(", "));
+    const paymentData = {
+      nom: payment.nom.trim(),
+      montant: parseFloat(payment.montant),
+      mensualites: parseInt(payment.mensualites, 10),
+      debutDate: payment.debutDate,
+      categorie: payment.categorie || "Autre",
+      updatedAt: serverTimestamp(),
+    };
+
+    if (id) {
+      // Mise à jour
+      await updateDoc(doc(db, "xfois", id), paymentData);
+      return null;
+    } else {
+      // Ajout
+      paymentData.createdAt = serverTimestamp();
+      const docRef = await addDoc(collection(db, "xfois"), paymentData);
+      return docRef.id;
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'ajout/mise à jour du paiement:", error);
+    throw error;
   }
-
-  const operation = payment.id ? "update" : "add";
-
-  // Préparer les données pour la base de données
-  const paymentData = {
-    nom: payment.nom.trim(),
-    montant: parseFloat(payment.montant),
-    mensualites: parseInt(payment.mensualites, 10),
-    debutMois: payment.debutMois,
-  };
-
-  return handleItemOperation(operation, "xfois", paymentData, payment.id);
 };
 
 /**
  * Supprime un paiement récurrent
- * @param {string} paymentId - ID du paiement
- * @param {Object} paymentData - Données du paiement pour la notification
+ * @param {string} id - ID du paiement à supprimer
  * @returns {Promise<void>}
  */
-export const deleteRecurrentPayment = async (paymentId, paymentData) => {
-  if (!paymentId) {
-    throw new Error("Payment ID est requis pour la suppression");
+export const deleteRecurrentPayment = async (id) => {
+  if (!id) throw new Error("ID requis");
+  try {
+    await deleteDoc(doc(db, "recurrent", id));
+  } catch (error) {
+    console.error("Erreur lors de la suppression du paiement:", error);
+    throw error;
   }
-
-  return handleItemOperation("delete", "recurrent", paymentData, paymentId);
 };
 
 /**
  * Supprime un paiement échelonné
- * @param {string} paymentId - ID du paiement
- * @param {Object} paymentData - Données du paiement pour la notification
+ * @param {string} id - ID du paiement à supprimer
  * @returns {Promise<void>}
  */
-export const deleteEchelonnePayment = async (paymentId, paymentData) => {
-  if (!paymentId) {
-    throw new Error("Payment ID est requis pour la suppression");
+export const deleteEchelonnePayment = async (id) => {
+  if (!id) throw new Error("ID requis");
+  try {
+    await deleteDoc(doc(db, "xfois", id));
+  } catch (error) {
+    console.error("Erreur lors de la suppression du paiement:", error);
+    throw error;
   }
-
-  return handleItemOperation("delete", "xfois", paymentData, paymentId);
 };
 
 /**
@@ -230,7 +278,7 @@ export const deleteEchelonnePayment = async (paymentId, paymentData) => {
  * @returns {Object} - {percentProgress, paiementsEffectues, montantRestant, mensualite}
  */
 export const calculateEchelonneProgress = (payment) => {
-  if (!payment.debutMois || !payment.mensualites || !payment.montant) {
+  if (!payment.debutDate || !payment.mensualites || !payment.montant) {
     return {
       percentProgress: 0,
       paiementsEffectues: 0,
@@ -243,13 +291,15 @@ export const calculateEchelonneProgress = (payment) => {
   const mensualite = totalPaiement / parseFloat(payment.mensualites);
 
   // Calculer le nombre de paiements effectués
-  const [debutAnnee, debutMois] = payment.debutMois.split("-").map(Number);
-  const dateDebut = new Date(debutAnnee, debutMois - 1);
+  const startDate = new Date(payment.debutDate);
+  const debutAnnee = startDate.getFullYear();
+  const debutMois = startDate.getMonth() + 1;
+
   const maintenant = new Date();
   const moisEcoules =
-    (maintenant.getFullYear() - dateDebut.getFullYear()) * 12 +
+    (maintenant.getFullYear() - debutAnnee) * 12 +
     maintenant.getMonth() -
-    dateDebut.getMonth() +
+    (debutMois - 1) +
     1;
 
   const paiementsEffectues = Math.max(
@@ -270,4 +320,45 @@ export const calculateEchelonneProgress = (payment) => {
     montantRestant,
     mensualite,
   };
+};
+
+/**
+ * Récupère tous les paiements échelonnés pour une date donnée
+ * @param {Date} date - Date pour laquelle récupérer les paiements
+ * @returns {Promise<Array>} - Paiements échelonnés pour la date
+ */
+export const getEchelonnePaymentsForDate = async (date) => {
+  try {
+    // Récupérer tous les paiements échelonnés
+    const allPayments = await getAllEchelonnePayments();
+
+    // Filtrer pour ne garder que ceux dont le jour du mois correspond à la date de début
+    return allPayments.filter((payment) => {
+      if (!payment.debutDate || !payment.mensualites) return false;
+
+      // Date de début du paiement
+      const startDate = new Date(payment.debutDate);
+
+      // Date de fin (pour vérifier si le paiement est toujours actif)
+      const endDate = new Date(startDate);
+      endDate.setMonth(
+        startDate.getMonth() + parseInt(payment.mensualites) - 1
+      );
+
+      // On vérifie si:
+      // 1. Le jour du mois de la date fournie correspond au jour de début du paiement
+      // 2. La date fournie est dans la période d'activité du paiement (entre début et fin)
+      return (
+        date.getDate() === startDate.getDate() &&
+        date >= startDate &&
+        date <= endDate
+      );
+    });
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des paiements pour la date:",
+      error
+    );
+    throw error;
+  }
 };
