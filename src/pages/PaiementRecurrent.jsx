@@ -20,19 +20,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-
-const CATEGORIES = [
-  "Maison",
-  "Transports",
-  "Assurance",
-  "Divertissement",
-  "Loisirs",
-  "Alimentation",
-  "Sport",
-  "Santé",
-  "Éducation",
-  "Autre",
-];
+import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
 
 export default function PaiementRecurrent() {
   // Paiements vides au départ
@@ -234,12 +222,14 @@ export default function PaiementRecurrent() {
   };
 
   // Fonction pour regrouper les montants par catégorie
-  const dataCategories = CATEGORIES.map((cat) => ({
-    name: cat,
-    value: paiements
-      .filter((p) => p.categorie === cat)
-      .reduce((acc, p) => acc + p.montant, 0),
-  })).filter((d) => d.value > 0);
+  const dataCategories = Array.from(new Set(RECURRENT_CATEGORIES))
+    .map((cat) => ({
+      name: cat,
+      value: paiements
+        .filter((p) => p.categorie === cat)
+        .reduce((acc, p) => acc + p.montant, 0),
+    }))
+    .filter((d) => d.value > 0);
 
   const COLORS = [
     "#6366f1",
@@ -579,7 +569,7 @@ export default function PaiementRecurrent() {
                       }
                     }}>
                     <option value=''>Sélectionner une catégorie</option>
-                    {CATEGORIES.map((cat) => (
+                    {Array.from(new Set(RECURRENT_CATEGORIES)).map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
                       </option>

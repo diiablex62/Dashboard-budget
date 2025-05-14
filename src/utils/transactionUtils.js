@@ -1,6 +1,10 @@
 import { db } from "../firebaseConfig";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { handleItemOperation } from "./firebaseUtils";
+import {
+  TRANSACTION_CATEGORIES,
+  getMonthYear as getFormattedMonthYear,
+} from "./categoryUtils";
 
 /**
  * Formate une date au format français
@@ -22,36 +26,13 @@ export const formatDate = (dateStr) => {
  * @returns {string} - Mois et année formatés
  */
 export const getMonthYear = (date) => {
-  const MONTHS = [
-    "Janvier",
-    "Février",
-    "Mars",
-    "Avril",
-    "Mai",
-    "Juin",
-    "Juillet",
-    "Août",
-    "Septembre",
-    "Octobre",
-    "Novembre",
-    "Décembre",
-  ];
-  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  return getFormattedMonthYear(date);
 };
 
 /**
- * Liste des catégories par défaut
+ * Liste des catégories par défaut - Utilise maintenant les catégories centralisées
  */
-export const DEFAULT_CATEGORIES = [
-  "Alimentation",
-  "Logement",
-  "Transport",
-  "Loisirs",
-  "Santé",
-  "Shopping",
-  "Factures",
-  "Autre",
-];
+export const DEFAULT_CATEGORIES = TRANSACTION_CATEGORIES;
 
 /**
  * Récupère toutes les dépenses

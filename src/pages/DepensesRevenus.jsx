@@ -19,7 +19,7 @@ import {
 import {
   formatDate,
   getMonthYear,
-  DEFAULT_CATEGORIES,
+  DEFAULT_CATEGORIES, // Ces catégories proviennent maintenant du fichier categoryUtils.js
   getAllDepenses,
   getAllRevenus,
   addOrUpdateDepense,
@@ -203,7 +203,8 @@ function RevenuModal({
                 }}>
                 {/* Première option vide avec message */}
                 <option value=''>Sélectionner une catégorie</option>
-                {categories.map((cat, index) => (
+                {/* Utiliser Array.from(new Set(categories)) pour éliminer les doublons */}
+                {Array.from(new Set(categories)).map((cat, index) => (
                   <option key={index} value={cat}>
                     {cat}
                   </option>
@@ -473,7 +474,8 @@ function DepenseModal({
                 }}>
                 {/* Première option vide avec message */}
                 <option value=''>Sélectionner une catégorie</option>
-                {categories.map((cat, index) => (
+                {/* Utiliser Array.from(new Set(categories)) pour éliminer les doublons */}
+                {Array.from(new Set(categories)).map((cat, index) => (
                   <option key={index} value={cat}>
                     {cat}
                   </option>
@@ -619,10 +621,12 @@ export default function DepensesRevenus() {
             (doc) => doc.data().nom || doc.data().name
           );
           if (categoriesList.length > 0) {
-            setCategories(categoriesList);
+            // Éliminer les doublons avant de mettre à jour l'état
+            const uniqueCategories = Array.from(new Set(categoriesList));
+            setCategories(uniqueCategories);
           }
         } else {
-          // Si la collection est vide, on l'initialise avec les catégories par défaut
+          // Si la collection est vide, on l'initialise avec les catégories par défaut sans doublons
           await initializeCategories();
         }
 
@@ -658,8 +662,11 @@ export default function DepensesRevenus() {
       try {
         console.log("Initialisation des catégories dans Firestore");
 
+        // S'assurer que DEFAULT_CATEGORIES n'a pas de doublons
+        const uniqueDefaultCategories = Array.from(new Set(DEFAULT_CATEGORIES));
+
         // Ajout des catégories par défaut dans Firestore
-        for (const categorie of DEFAULT_CATEGORIES) {
+        for (const categorie of uniqueDefaultCategories) {
           await addDoc(collection(db, "categories"), {
             nom: categorie,
             createdAt: serverTimestamp(),
@@ -667,7 +674,7 @@ export default function DepensesRevenus() {
         }
 
         // Mise à jour de l'état local avec les catégories par défaut
-        setCategories(DEFAULT_CATEGORIES);
+        setCategories(uniqueDefaultCategories);
       } catch (err) {
         console.error("Erreur lors de l'initialisation des catégories:", err);
       }
@@ -1311,7 +1318,8 @@ export default function DepensesRevenus() {
                   ref={categorieInputRef}
                   autoFocus>
                   <option value=''>Sélectionner une catégorie</option>
-                  {categories.map((cat, index) => (
+                  {/* Utiliser Array.from(new Set(categories)) pour éliminer les doublons */}
+                  {Array.from(new Set(categories)).map((cat, index) => (
                     <option key={index} value={cat}>
                       {cat}
                     </option>

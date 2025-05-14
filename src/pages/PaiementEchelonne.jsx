@@ -22,6 +22,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import { ECHELONNE_CATEGORIES } from "../utils/categoryUtils";
 
 const echelonnes = [
   {
@@ -81,12 +82,14 @@ export default function PaiementEchelonne() {
     montant: "",
     mensualites: "",
     debutMois: defaultDebutMois,
+    categorie: "",
   });
   const [paiements, setPaiements] = useState([]);
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
   const mensualitesInputRef = useRef(null);
   const debutMoisInputRef = useRef(null);
+  const categorieInputRef = useRef(null);
 
   const [lastDeleted, setLastDeleted] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
@@ -182,6 +185,7 @@ export default function PaiementEchelonne() {
           montant: parseFloat(newPaiement.montant),
           mensualites: parseInt(newPaiement.mensualites, 10),
           debutMois: newPaiement.debutMois,
+          categorie: newPaiement.categorie || "Autre",
         });
         // Notification modification paiement échelonné
         await addDoc(collection(db, "notifications"), {
@@ -201,6 +205,7 @@ export default function PaiementEchelonne() {
           montant: parseFloat(newPaiement.montant),
           mensualites: parseInt(newPaiement.mensualites, 10),
           debutMois: newPaiement.debutMois,
+          categorie: newPaiement.categorie || "Autre",
           createdAt: serverTimestamp(),
         });
         // Notification ajout paiement échelonné
@@ -223,6 +228,7 @@ export default function PaiementEchelonne() {
         montant: "",
         mensualites: "",
         debutMois: defaultDebutMois,
+        categorie: "",
       });
       setEditIndex(null);
 
@@ -241,6 +247,7 @@ export default function PaiementEchelonne() {
       montant: paiements[idx].montant.toString(),
       mensualites: paiements[idx].mensualites.toString(),
       debutMois: paiements[idx].debutMois,
+      categorie: paiements[idx].categorie || "Autre",
     });
     setShowModal(true);
     setStep(1);
@@ -346,6 +353,7 @@ export default function PaiementEchelonne() {
       montant: "",
       mensualites: "",
       debutMois: defaultDebutMois,
+      categorie: "",
     });
   };
 
@@ -505,6 +513,10 @@ export default function PaiementEchelonne() {
                       </div>
                     </div>
 
+                    <div className='text-xs text-gray-500 dark:text-gray-400'>
+                      {paiement.categorie || "Autre"}
+                    </div>
+
                     <div className='flex justify-end mt-3'>
                       <button
                         onClick={(e) => {
@@ -573,6 +585,7 @@ export default function PaiementEchelonne() {
                   montant: "",
                   mensualites: "",
                   debutMois: defaultDebutMois,
+                  categorie: "",
                 });
                 setEditIndex(null);
               }}
@@ -623,7 +636,7 @@ export default function PaiementEchelonne() {
                   value={newPaiement.nom}
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  placeholder='Ex: Smartphone'
+                  placeholder='Ex: Crédit auto'
                   ref={nomInputRef}
                   autoFocus
                   onKeyDown={(e) => {
@@ -651,9 +664,9 @@ export default function PaiementEchelonne() {
                   value={newPaiement.montant}
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  min='0'
+                  min='0.01'
                   step='0.01'
-                  placeholder='Ex: 999.99'
+                  placeholder='Ex: 9999'
                   ref={montantInputRef}
                   autoFocus
                   onKeyDown={(e) => {
@@ -676,6 +689,53 @@ export default function PaiementEchelonne() {
               </div>
             )}
             {step === 3 && (
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
+                  Catégorie
+                </label>
+                <select
+                  name='categorie'
+                  value={newPaiement.categorie}
+                  onChange={(e) => {
+                    handleChange(e);
+                    // Passage automatique après sélection d'une catégorie (mais pas sur la valeur vide)
+                    if (e.target.value && e.target.value !== "") {
+                      setTimeout(() => handleNext(), 100);
+                    }
+                  }}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  ref={categorieInputRef}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newPaiement.categorie) {
+                      e.preventDefault();
+                      handleNext();
+                    }
+                  }}>
+                  <option value=''>Sélectionner une catégorie</option>
+                  {/* Utiliser Array.from(new Set()) pour éliminer les doublons */}
+                  {Array.from(new Set(ECHELONNE_CATEGORIES)).map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <div className='flex justify-between'>
+                  <button
+                    className='text-gray-600 dark:text-gray-400'
+                    onClick={handlePrev}>
+                    Précédent
+                  </button>
+                  <button
+                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    disabled={!newPaiement.categorie}
+                    onClick={handleNext}>
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
+            {step === 4 && (
               <div>
                 <label className='block mb-2 font-medium dark:text-white'>
                   Nombre de mensualités
@@ -711,10 +771,10 @@ export default function PaiementEchelonne() {
                 </div>
               </div>
             )}
-            {step === 4 && (
+            {step === 5 && (
               <div>
                 <label className='block mb-2 font-medium dark:text-white'>
-                  Début de mois
+                  Date de début
                 </label>
                 <input
                   type='month'
@@ -724,10 +784,6 @@ export default function PaiementEchelonne() {
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                   ref={debutMoisInputRef}
                   autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.debutMois)
-                      handleAddOrEditPaiement();
-                  }}
                 />
                 <div className='flex justify-between'>
                   <button
@@ -737,12 +793,7 @@ export default function PaiementEchelonne() {
                   </button>
                   <button
                     className='bg-gray-900 text-white px-4 py-2 rounded'
-                    disabled={
-                      !newPaiement.nom ||
-                      !newPaiement.montant ||
-                      !newPaiement.mensualites ||
-                      !newPaiement.debutMois
-                    }
+                    disabled={!newPaiement.debutMois}
                     onClick={handleAddOrEditPaiement}>
                     {editIndex !== null ? "Modifier" : "Ajouter"}
                   </button>
