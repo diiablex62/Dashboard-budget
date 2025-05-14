@@ -5,72 +5,73 @@ import {
   AiOutlineExclamationCircle,
 } from "react-icons/ai";
 import { FiBell } from "react-icons/fi";
-import { db } from "../firebaseConfig";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
+import {
+  getAllNotifications,
+  markNotificationAsRead,
+  deleteAllNotifications,
+} from "../utils/firebaseUtils";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [hoveredId, setHoveredId] = useState(null);
   const { user } = useAuth();
 
-  // Marquer comme lu (optionnel, à appeler lors de l'ouverture)
+  // Marquer toutes les notifications comme lues (fonction conservée mais non utilisée automatiquement)
   const markAllAsRead = async () => {
     if (!user) return;
     const unread = notifications.filter((n) => !n.read);
+
+    // Mettre à jour les notifications non lues
     for (const notif of unread) {
-      await updateDoc(doc(db, "notifications", notif.id), { read: true });
+      await markNotificationAsRead(notif.id);
     }
+
+    // Mettre à jour l'état local
     setNotifications(notifications.map((n) => ({ ...n, read: true })));
   };
 
   // Marquer une notification comme lue au clic
-  const markAsRead = async (notifId) => {
+  const handleMarkAsRead = async (notifId) => {
     if (!user) return;
-    await updateDoc(doc(db, "notifications", notifId), { read: true });
+    await markNotificationAsRead(notifId);
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId ? { ...n, read: true } : n))
     );
   };
 
+  // Charger les notifications
   useEffect(() => {
-    // Si pas connecté, ne fetch pas les notifications
     if (!user) {
       setNotifications([]);
       return;
     }
-    const fetchNotifications = async () => {
-      if (!user) return;
-      const snapshot = await getDocs(collection(db, "notifications"));
-      const notifs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setNotifications(notifs);
 
-      // Suppression du marquage automatique des notifications comme lues
-      // Les notifications ne sont plus marquées comme lues automatiquement
-      // mais seulement quand l'utilisateur clique sur une notification
-      // ou utilise le bouton "Tout supprimer"
+    const fetchNotifications = async () => {
+      try {
+        const notifs = await getAllNotifications();
+        setNotifications(notifs);
+        // Les notifications ne sont plus marquées comme lues automatiquement
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des notifications:",
+          error
+        );
+      }
     };
+
     fetchNotifications();
   }, [user]);
 
   // Supprimer toutes les notifications
   const handleDeleteAll = async () => {
     if (!user) return;
-    const snapshot = await getDocs(collection(db, "notifications"));
-    const batchDeletes = snapshot.docs.map((d) =>
-      deleteDoc(doc(db, "notifications", d.id))
-    );
-    await Promise.all(batchDeletes);
-    setNotifications([]);
+    try {
+      await deleteAllNotifications();
+      setNotifications([]);
+    } catch (error) {
+      console.error("Erreur lors de la suppression des notifications:", error);
+    }
   };
 
   // Choix de l'icône selon le type de notification
@@ -117,7 +118,7 @@ export default function Notifications() {
               onMouseEnter={() => setHoveredId(notif.id)}
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => {
-                if (!notif.read) markAsRead(notif.id);
+                if (!notif.read) handleMarkAsRead(notif.id);
               }}
               style={{ cursor: !notif.read ? "pointer" : "default" }}>
               <div

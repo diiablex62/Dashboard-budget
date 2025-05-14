@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FiBell } from "react-icons/fi";
 import { db } from "../firebaseConfig";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 
 export default function NotificationBell() {

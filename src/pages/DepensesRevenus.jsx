@@ -13,10 +13,19 @@ import {
   serverTimestamp,
   query,
   orderBy,
-  deleteDoc,
-  doc,
-  updateDoc,
 } from "firebase/firestore";
+
+// Importation des nouvelles fonctions utilitaires
+import {
+  formatDate,
+  getMonthYear,
+  DEFAULT_CATEGORIES,
+  getAllDepenses,
+  getAllRevenus,
+  addOrUpdateDepense,
+  addOrUpdateRevenu,
+  deleteTransaction,
+} from "../utils/transactionUtils";
 
 const MONTHS = [
   "Janvier",
@@ -32,30 +41,6 @@ const MONTHS = [
   "Novembre",
   "Décembre",
 ];
-
-const DEFAULT_CATEGORIES = [
-  "Alimentation",
-  "Logement",
-  "Transport",
-  "Loisirs",
-  "Santé",
-  "Shopping",
-  "Factures",
-  "Autre",
-];
-
-function getMonthYear(date) {
-  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
 
 function RevenuModal({
   onClose,
@@ -791,59 +776,15 @@ export default function DepensesRevenus() {
   const handleDelete = async (transaction) => {
     if (!transaction || !transaction.id) return;
 
-    const collectionName = transaction.montant >= 0 ? "revenu" : "depense";
-    const transactionId = transaction.id;
-    const transactionName = transaction.nom;
-    const transactionType = transaction.montant >= 0 ? "revenu" : "dépense";
-    const transactionMontant = Math.abs(transaction.montant);
-
-    console.log(
-      `🚀 Début suppression de ${transactionName} (${transactionId}) dans ${collectionName}`
-    );
-
     try {
-      console.log(`🔥 SUPPRESSION: ${collectionName}/${transactionId}`);
-      // Suppression directe dans Firestore
-      await deleteDoc(doc(db, collectionName, transactionId));
-      console.log(
-        `✅ Document supprimé avec succès: ${collectionName}/${transactionId}`
-      );
+      await deleteTransaction(transaction);
 
-      // Mise à jour de l'état local
-      if (collectionName === "revenu") {
-        setRevenus((prev) => {
-          const newRevenus = prev.filter((r) => r.id !== transactionId);
-          console.log(
-            `État local: ${prev.length - newRevenus.length} revenu supprimé`
-          );
-          return newRevenus;
-        });
+      // Mettre à jour l'état local
+      if (transaction.montant >= 0) {
+        setRevenus((prev) => prev.filter((r) => r.id !== transaction.id));
       } else {
-        setDepenses((prev) => {
-          const newDepenses = prev.filter((d) => d.id !== transactionId);
-          console.log(
-            `État local: ${prev.length - newDepenses.length} dépense supprimée`
-          );
-          return newDepenses;
-        });
+        setDepenses((prev) => prev.filter((d) => d.id !== transaction.id));
       }
-
-      // Ajouter une notification pour la suppression
-      await addDoc(collection(db, "notifications"), {
-        type: collectionName,
-        title: `${
-          transactionType.charAt(0).toUpperCase() + transactionType.slice(1)
-        } supprimé`,
-        desc: `Suppression de ${
-          transactionName.charAt(0).toUpperCase() + transactionName.slice(1)
-        } (${transactionMontant.toFixed(2)}€)`,
-        date: new Date().toLocaleDateString("fr-FR"),
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
     } catch (error) {
       console.error(
         `❌ ERREUR critique lors de la suppression: ${error.message || error}`
@@ -855,90 +796,11 @@ export default function DepensesRevenus() {
   // Fonction pour ajouter une dépense depuis la modale
   const handleAddDepense = async (depense) => {
     try {
-      console.log("Ajout/modification dépense Firestore :", depense);
-
-      // Vérifications de base
-      if (!depense.nom) {
-        console.error("Nom dépense manquant", depense);
-        return;
-      }
-
-      if (!depense.categorie) {
-        console.error("Catégorie dépense manquante", depense);
-        return;
-      }
-
-      // Vérifier que le montant est un nombre valide et non nul
-      const montant = parseFloat(depense.montant);
-      if (isNaN(montant) || montant === 0) {
-        console.error("Montant invalide ou nul", depense.montant);
-        return;
-      }
-
-      // Vérifier s'il s'agit d'une modification ou d'un ajout
-      if (depense.id) {
-        // Modification d'une dépense existante
-        await updateDoc(doc(db, "depense", depense.id), {
-          nom: depense.nom.trim(),
-          montant: -Math.abs(montant),
-          date: depense.date || new Date().toISOString().split("T")[0],
-          categorie: depense.categorie.trim(),
-          updatedAt: serverTimestamp(),
-        });
-        console.log("Dépense modifiée avec succès:", depense.id);
-
-        // Ajouter une notification pour la modification
-        await addDoc(collection(db, "notifications"), {
-          type: "depense",
-          title: "Dépense modifiée",
-          desc: `Modification de ${
-            depense.nom.charAt(0).toUpperCase() + depense.nom.slice(1)
-          } (${Math.abs(montant).toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-      } else {
-        // Nouvel ajout
-        await addDoc(collection(db, "depense"), {
-          nom: depense.nom.trim(),
-          montant: -Math.abs(montant), // Utiliser la valeur validée
-          date: depense.date || new Date().toISOString().split("T")[0],
-          categorie: depense.categorie.trim(),
-          createdAt: serverTimestamp(),
-        });
-        console.log("Nouvelle dépense ajoutée avec succès");
-
-        // Ajouter une notification pour l'ajout
-        await addDoc(collection(db, "notifications"), {
-          type: "depense",
-          title: "Nouvelle dépense",
-          desc: `Ajout de ${
-            depense.nom.charAt(0).toUpperCase() + depense.nom.slice(1)
-          } (${Math.abs(montant).toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-      }
+      await addOrUpdateDepense(depense);
 
       // Rafraîchir les données
-      const depenseSnap = await getDocs(
-        query(collection(db, "depense"), orderBy("date", "desc"))
-      );
-      setDepenses(
-        depenseSnap.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          icon: "€",
-        }))
-      );
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
-
-      // Réinitialiser l'état d'édition
-      setEditTransaction(null);
+      const updatedDepenses = await getAllDepenses();
+      setDepenses(updatedDepenses);
     } catch (err) {
       console.error("Erreur Firestore dépense:", err);
     }
@@ -947,90 +809,11 @@ export default function DepensesRevenus() {
   // Fonction pour ajouter un revenu depuis la modale
   const handleAddRevenu = async (revenu) => {
     try {
-      console.log("Ajout/modification revenu Firestore :", revenu);
-
-      // Vérification des données
-      if (!revenu.nom) {
-        console.error("Nom revenu manquant", revenu);
-        return;
-      }
-
-      if (!revenu.categorie) {
-        console.error("Catégorie revenu manquante", revenu);
-        return;
-      }
-
-      // Vérifier que le montant est un nombre valide et non nul
-      const montant = parseFloat(revenu.montant);
-      if (isNaN(montant) || montant === 0) {
-        console.error("Montant invalide ou nul", revenu.montant);
-        return;
-      }
-
-      // Vérifier s'il s'agit d'une modification ou d'un ajout
-      if (revenu.id) {
-        // Modification d'un revenu existant
-        await updateDoc(doc(db, "revenu", revenu.id), {
-          nom: revenu.nom.trim(),
-          montant: montant,
-          date: revenu.date || new Date().toISOString().split("T")[0],
-          categorie: revenu.categorie.trim(),
-          updatedAt: serverTimestamp(),
-        });
-        console.log("Revenu modifié avec succès:", revenu.id);
-
-        // Ajouter une notification pour la modification
-        await addDoc(collection(db, "notifications"), {
-          type: "revenu",
-          title: "Revenu modifié",
-          desc: `Modification de ${
-            revenu.nom.charAt(0).toUpperCase() + revenu.nom.slice(1)
-          } (${montant.toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-      } else {
-        // Nouvel ajout
-        await addDoc(collection(db, "revenu"), {
-          nom: revenu.nom.trim(),
-          montant: montant,
-          date: revenu.date || new Date().toISOString().split("T")[0],
-          categorie: revenu.categorie.trim(),
-          createdAt: serverTimestamp(),
-        });
-        console.log("Nouveau revenu ajouté avec succès");
-
-        // Ajouter une notification pour l'ajout
-        await addDoc(collection(db, "notifications"), {
-          type: "revenu",
-          title: "Nouveau revenu",
-          desc: `Ajout de ${
-            revenu.nom.charAt(0).toUpperCase() + revenu.nom.slice(1)
-          } (${montant.toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-      }
+      await addOrUpdateRevenu(revenu);
 
       // Rafraîchir les données
-      const revenuSnap = await getDocs(
-        query(collection(db, "revenu"), orderBy("date", "desc"))
-      );
-      setRevenus(
-        revenuSnap.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          icon: "€",
-        }))
-      );
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
-
-      // Réinitialiser l'état d'édition
-      setEditTransaction(null);
+      const updatedRevenus = await getAllRevenus();
+      setRevenus(updatedRevenus);
     } catch (err) {
       console.error("Erreur Firestore revenu:", err);
     }
