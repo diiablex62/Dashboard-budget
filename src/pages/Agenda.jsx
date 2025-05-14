@@ -419,7 +419,7 @@ export default function Agenda() {
           {/* Section: Événements du mois avec listes de dépenses et revenus */}
           <div>
             <div className='text-lg font-semibold mb-4 text-gray-800 dark:text-white'>
-              Événements de {MONTHS[month]} {year}
+              Événements de {MONTHS[month]}
             </div>
             <div className='grid grid-cols-3 gap-4 mb-6'>
               {/* Colonne des dépenses */}
@@ -437,6 +437,16 @@ export default function Agenda() {
                         // Vérifier si la transaction est pour la date sélectionnée
                         const isSelected =
                           depense.date === selectedDateFormatted;
+                        // Formater la date pour n'afficher que le jour/mois
+                        const dateObj = new Date(depense.date);
+                        const jour = dateObj
+                          .getDate()
+                          .toString()
+                          .padStart(2, "0");
+                        const mois = (dateObj.getMonth() + 1)
+                          .toString()
+                          .padStart(2, "0");
+                        const dateSimple = `${jour}/${mois}`;
                         return (
                           <li
                             key={depense.id}
@@ -447,7 +457,7 @@ export default function Agenda() {
                                 : "border-b border-gray-100 dark:border-gray-800"
                             }`}>
                             <span className='text-gray-700 dark:text-gray-300'>
-                              {formatDate(depense.date)} - {depense.nom}
+                              {dateSimple} - {depense.nom}
                             </span>
                           </li>
                         );
@@ -475,6 +485,16 @@ export default function Agenda() {
                         // Vérifier si la transaction est pour la date sélectionnée
                         const isSelected =
                           revenu.date === selectedDateFormatted;
+                        // Formater la date pour n'afficher que le jour/mois
+                        const dateObj = new Date(revenu.date);
+                        const jour = dateObj
+                          .getDate()
+                          .toString()
+                          .padStart(2, "0");
+                        const mois = (dateObj.getMonth() + 1)
+                          .toString()
+                          .padStart(2, "0");
+                        const dateSimple = `${jour}/${mois}`;
                         return (
                           <li
                             key={revenu.id}
@@ -485,7 +505,7 @@ export default function Agenda() {
                                 : "border-b border-gray-100 dark:border-gray-800"
                             }`}>
                             <span className='text-gray-700 dark:text-gray-300'>
-                              {formatDate(revenu.date)} - {revenu.nom}
+                              {dateSimple} - {revenu.nom}
                             </span>
                           </li>
                         );
@@ -513,6 +533,16 @@ export default function Agenda() {
                         // Vérifier si la transaction est pour la date sélectionnée
                         const isSelected =
                           echelonne.date === selectedDateFormatted;
+                        // Formater la date pour n'afficher que le jour/mois
+                        const dateObj = new Date(echelonne.date);
+                        const jour = dateObj
+                          .getDate()
+                          .toString()
+                          .padStart(2, "0");
+                        const mois = (dateObj.getMonth() + 1)
+                          .toString()
+                          .padStart(2, "0");
+                        const dateSimple = `${jour}/${mois}`;
                         return (
                           <li
                             key={`${echelonne.id}-${echelonne.date}`}
@@ -523,7 +553,7 @@ export default function Agenda() {
                                 : "border-b border-gray-100 dark:border-gray-800"
                             }`}>
                             <span className='text-gray-700 dark:text-gray-300'>
-                              {formatDate(echelonne.date)} - {echelonne.nom}
+                              {dateSimple} - {echelonne.nom}
                             </span>
                           </li>
                         );

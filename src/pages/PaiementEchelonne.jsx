@@ -173,6 +173,22 @@ export default function PaiementEchelonne() {
     }, 0);
   }, [paiements, currentPeriod]);
 
+  // Ajout d'un élément pour afficher le total mensuel
+  const renderTotalMensuel = () => {
+    return (
+      <div className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 mb-4'>
+        <div className='flex justify-between items-center'>
+          <div className='font-semibold text-gray-700 dark:text-gray-300'>
+            Total mensuel
+          </div>
+          <div className='font-bold text-green-600 dark:text-green-400'>
+            {totalDepenses.toFixed(2)}€
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Ajout ou modification du paiement échelonné
   const handleAddOrEditPaiement = async (e) => {
     if (!user) return;
@@ -420,6 +436,9 @@ export default function PaiementEchelonne() {
               </div>
             </div>
           </div>
+
+          {/* Affichage du total mensuel */}
+          {paiements.length > 0 && renderTotalMensuel()}
 
           {paiements.length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>

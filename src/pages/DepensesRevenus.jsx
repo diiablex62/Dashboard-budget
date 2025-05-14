@@ -1044,15 +1044,16 @@ export default function DepensesRevenus() {
                   Liste de toutes vos dépenses pour {moisSelectionne}
                 </div>
               </div>
-              <div className='flex space-x-3'>
-                {/* Afficher le bouton uniquement s'il y a des dépenses */}
-                <button
-                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                  onClick={() => setShowDepenseModal(true)}>
-                  <span className='text-lg font-bold'>+</span>
-                  <span>Ajouter</span>
-                </button>
-              </div>
+              {!showEmpty && (
+                <div className='flex space-x-3'>
+                  <button
+                    className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                    onClick={() => setShowDepenseModal(true)}>
+                    <span className='text-lg font-bold'>+</span>
+                    <span>Ajouter</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {showEmpty && (
@@ -1098,15 +1099,16 @@ export default function DepensesRevenus() {
                   Liste de tous vos revenus pour {moisSelectionne}
                 </div>
               </div>
-              <div className='flex space-x-3'>
-                {/* Afficher le bouton uniquement s'il y a des revenus */}
-                <button
-                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                  onClick={() => setShowRevenuModal(true)}>
-                  <span className='text-lg font-bold'>+</span>
-                  <span>Ajouter</span>
-                </button>
-              </div>
+              {!showEmpty && (
+                <div className='flex space-x-3'>
+                  <button
+                    className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                    onClick={() => setShowRevenuModal(true)}>
+                    <span className='text-lg font-bold'>+</span>
+                    <span>Ajouter</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {showEmpty && (
