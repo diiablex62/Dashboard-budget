@@ -127,6 +127,106 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
 
     console.log(`Rendu du graphique ${type} avec ${chartData.length} segments`);
 
+    // Cas spécial pour un graphique avec un seul segment
+    if (chartData.length === 1) {
+      const singleItem = chartData[0];
+      console.log(
+        `Graphique à segment unique - Catégorie: ${singleItem.categorie}, Couleur: ${singleItem.color}`
+      );
+
+      return (
+        <div className='flex flex-col items-center mt-4'>
+          {/* Rendu d'un cercle plein pour un seul segment */}
+          <div
+            className='relative w-64 h-64 mb-8'
+            role='img'
+            aria-label={`Graphique des ${
+              type === "revenus" ? "revenus" : "dépenses"
+            } par catégorie`}>
+            <svg
+              ref={svgRef}
+              viewBox='0 0 100 100'
+              width='100%'
+              height='100%'
+              className={
+                type === "depenses" ? "depenses-chart" : "revenus-chart"
+              }>
+              {/* Cercle complet pour le segment unique */}
+              <circle
+                cx='50'
+                cy='50'
+                r='40'
+                fill={singleItem.color || "#cccccc"}
+                stroke='#fff'
+                strokeWidth='0.5'
+                style={{
+                  transformOrigin: "center",
+                  transition: "transform 0.2s ease-out",
+                  opacity: animationProgress, // Animation d'opacité
+                }}
+                onClick={() => handleCategoryClick(singleItem.categorie)}
+                role='button'
+                aria-label={`${
+                  singleItem.categorie
+                }: 100%, ${singleItem.montant.toFixed(2)} €`}
+                tabIndex='0'
+                className='cursor-pointer'
+              />
+
+              {/* Cercle intérieur pour l'effet donut */}
+              <circle
+                cx='50'
+                cy='50'
+                r='20'
+                fill='white'
+                className='dark:fill-gray-800'
+                style={{
+                  opacity: animationProgress, // Animation d'opacité
+                }}
+              />
+
+              {/* Texte au centre avec animation de compteur */}
+              <text
+                x='50'
+                y='50'
+                textAnchor='middle'
+                dominantBaseline='middle'
+                fontSize='5'
+                fontWeight='bold'
+                fill='currentColor'
+                className='text-gray-700 dark:text-gray-300'>
+                {(total * animationProgress).toFixed(2)} €
+              </text>
+            </svg>
+          </div>
+
+          {/* Légende spéciale pour un seul élément */}
+          <div className='mt-2 max-w-xs'>
+            <div
+              className='flex items-center p-1 rounded cursor-pointer transition-all duration-200'
+              onClick={() => handleCategoryClick(singleItem.categorie)}
+              role='button'
+              tabIndex='0'>
+              <div
+                className='w-4 h-4 rounded-full mr-2'
+                style={{
+                  backgroundColor: singleItem.color || "#cccccc",
+                }}></div>
+              <div className='text-sm'>
+                <span className='font-medium'>{singleItem.categorie}</span>
+                <span className='text-gray-500 dark:text-gray-400 ml-1'>
+                  100%
+                </span>
+                <span className='text-gray-600 dark:text-gray-300 ml-2'>
+                  {singleItem.montant.toFixed(2)} €
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Calculer les positions des segments du camembert avec l'animation
     return (
       <div className='flex flex-col items-center mt-4'>
@@ -295,13 +395,31 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
         Par catégorie
       </div>
       <style jsx global>{`
-        .depenses-chart path {
-          /* Forcer les couleurs à rester visibles */
-          fill-opacity: 1 !important;
-        }
+        .depenses-chart path,
         .revenus-chart path {
-          /* Assurer la visibilité des revenus aussi */
+          /* Forcer les couleurs à rester visibles quelle que soit l'animation */
           fill-opacity: 1 !important;
+          opacity: 1 !important;
+          transition: transform 0.2s ease-out;
+        }
+
+        /* S'assurer que les transitions en mode sombre fonctionnent aussi */
+        .dark .depenses-chart path,
+        .dark .revenus-chart path {
+          fill-opacity: 1 !important;
+          opacity: 1 !important;
+        }
+
+        /* Styles spécifiques pour les dépenses */
+        .depenses-chart path {
+          stroke: #ffffff;
+          stroke-width: 0.8;
+        }
+
+        /* Styles spécifiques pour les revenus */
+        .revenus-chart path {
+          stroke: #ffffff;
+          stroke-width: 0.8;
         }
       `}</style>
       {renderChart()}

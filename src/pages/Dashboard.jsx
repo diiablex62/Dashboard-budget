@@ -23,7 +23,6 @@ import {
   YAxis,
   Bar,
   Sector,
-  Animatable,
 } from "recharts";
 import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
 
@@ -68,11 +67,8 @@ export default function Dashboard() {
   // Nouvelles données pour le graphique combiné de toutes les dépenses
   const [depensesTotalesData, setDepensesTotalesData] = useState([]);
 
-  // État pour contrôler l'animation du graphique des dépenses mensuelles
-  const [chartAnimProgress, setChartAnimProgress] = useState(0);
-
-  // État pour l'animation du graphique "Répartition du budget"
-  const [budgetChartAnimProgress, setBudgetChartAnimProgress] = useState(0);
+  // État pour mémoriser le secteur actif dans le graphique
+  const [activePieIndex, setActivePieIndex] = useState(null);
 
   const fetchAll = async () => {
     if (!user) return; // Ne tente pas de fetch si non connecté
@@ -312,70 +308,6 @@ export default function Dashboard() {
     }
   };
 
-  // Effet pour animer le graphique des dépenses mensuelles
-  useEffect(() => {
-    const animationDuration = 1000; // 1 seconde
-    const frameDuration = 16; // ~60fps
-    const totalFrames = animationDuration / frameDuration;
-    let frame = 0;
-
-    // Réinitialiser l'animation quand les données changent
-    setChartAnimProgress(0);
-
-    const animateChart = () => {
-      if (frame < totalFrames) {
-        // Fonction d'accélération pour une animation plus naturelle
-        const progress = Math.pow(frame / totalFrames, 2);
-        setChartAnimProgress(progress);
-        frame++;
-        requestAnimationFrame(animateChart);
-      } else {
-        setChartAnimProgress(1);
-      }
-    };
-
-    const timerId = setTimeout(() => {
-      requestAnimationFrame(animateChart);
-    }, 200); // Petit délai avant le début de l'animation
-
-    return () => {
-      clearTimeout(timerId);
-      cancelAnimationFrame(animateChart);
-    };
-  }, [depensesTotalesData, totalDepensesMois]);
-
-  // Effet pour animer le graphique "Répartition du budget"
-  useEffect(() => {
-    const animationDuration = 1200; // 1,2 secondes
-    const frameDuration = 16; // ~60fps
-    const totalFrames = animationDuration / frameDuration;
-    let frame = 0;
-
-    // Réinitialiser l'animation quand les données changent
-    setBudgetChartAnimProgress(0);
-
-    const animateChart = () => {
-      if (frame < totalFrames) {
-        // Fonction d'ease-out-cubic pour une animation plus naturelle
-        const progress = 1 - Math.pow(1 - frame / totalFrames, 3);
-        setBudgetChartAnimProgress(progress);
-        frame++;
-        requestAnimationFrame(animateChart);
-      } else {
-        setBudgetChartAnimProgress(1);
-      }
-    };
-
-    const timerId = setTimeout(() => {
-      requestAnimationFrame(animateChart);
-    }, 300); // Petit délai avant le début de l'animation, légèrement décalé par rapport au premier graphique
-
-    return () => {
-      clearTimeout(timerId);
-      cancelAnimationFrame(animateChart);
-    };
-  }, [budgetData]);
-
   // Fonction utilitaire pour scroller en haut avant navigation
   const scrollToTopAndNavigate = (url) => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -438,22 +370,6 @@ export default function Dashboard() {
         />
       </g>
     );
-  };
-
-  // État pour mémoriser le secteur actif dans le graphique
-  const [activePieIndex, setActivePieIndex] = useState(null);
-
-  // Fonction de personnalisation de l'animation des barres
-  const getBarAnimationProps = (entry) => {
-    // Calculer la hauteur maximale de la barre
-    const maxBarHeight = Math.max(entry.revenus || 0, entry.depenses || 0);
-
-    // Appliquer l'animation progressive
-    return {
-      revenus: entry.revenus * budgetChartAnimProgress,
-      depenses: entry.depenses * budgetChartAnimProgress,
-      _maxHeight: maxBarHeight, // propriété cachée pour le calcul
-    };
   };
 
   return (
@@ -618,11 +534,9 @@ export default function Dashboard() {
                   onMouseEnter={(_, index) => setActivePieIndex(index)}
                   onMouseLeave={() => setActivePieIndex(null)}
                   animationBegin={0}
-                  animationDuration={1000}
+                  animationDuration={800}
                   animationEasing='ease-out'
-                  isAnimationActive={true}
-                  startAngle={90}
-                  endAngle={-270 + 360 * chartAnimProgress}>
+                  isAnimationActive={true}>
                   {(depensesTotalesData.length > 0
                     ? depensesTotalesData
                     : [
@@ -659,38 +573,14 @@ export default function Dashboard() {
               <BarChart
                 data={
                   budgetData.length > 0
-                    ? budgetData.map(getBarAnimationProps)
+                    ? budgetData
                     : [
-                        {
-                          name: "Jan",
-                          revenus: 4000 * budgetChartAnimProgress,
-                          depenses: 3800 * budgetChartAnimProgress,
-                        },
-                        {
-                          name: "Fév",
-                          revenus: 4200 * budgetChartAnimProgress,
-                          depenses: 3000 * budgetChartAnimProgress,
-                        },
-                        {
-                          name: "Mar",
-                          revenus: 3800 * budgetChartAnimProgress,
-                          depenses: 2000 * budgetChartAnimProgress,
-                        },
-                        {
-                          name: "Avr",
-                          revenus: 3900 * budgetChartAnimProgress,
-                          depenses: 2800 * budgetChartAnimProgress,
-                        },
-                        {
-                          name: "Mai",
-                          revenus: 4700 * budgetChartAnimProgress,
-                          depenses: 1800 * budgetChartAnimProgress,
-                        },
-                        {
-                          name: "Juin",
-                          revenus: 3700 * budgetChartAnimProgress,
-                          depenses: 2400 * budgetChartAnimProgress,
-                        },
+                        { name: "Jan", revenus: 4000, depenses: 3800 },
+                        { name: "Fév", revenus: 4200, depenses: 3000 },
+                        { name: "Mar", revenus: 3800, depenses: 2000 },
+                        { name: "Avr", revenus: 3900, depenses: 2800 },
+                        { name: "Mai", revenus: 4700, depenses: 1800 },
+                        { name: "Juin", revenus: 3700, depenses: 2400 },
                       ]
                 }
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>

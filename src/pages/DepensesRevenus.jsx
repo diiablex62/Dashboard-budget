@@ -964,10 +964,15 @@ export default function DepensesRevenus() {
       setTab(newTab);
       setCategoryFilter(null); // Réinitialiser le filtre lors du changement d'onglet
 
-      // Réinitialiser l'animation après un court délai
+      // Utiliser un délai plus long pour s'assurer que l'animation a le temps de se charger complètement
       setTimeout(() => {
+        console.log(`Changement d'onglet vers ${newTab} - Fin du chargement`);
         setLoadingChart(false);
-      }, 300);
+
+        // Force un redimensionnement de la fenêtre pour rafraichir les graphiques
+        // Cela peut aider à résoudre des problèmes d'affichage avec SVG
+        window.dispatchEvent(new Event("resize"));
+      }, 600); // Augmentation du délai pour s'assurer que le DOM a le temps de se mettre à jour
     }
   };
 
