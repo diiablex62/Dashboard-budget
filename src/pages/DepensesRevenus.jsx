@@ -4,7 +4,7 @@ import {
   AiOutlineArrowRight,
   AiOutlinePlus,
 } from "react-icons/ai";
-import { FaArrowDown, FaArrowUp } from "react-icons/fa";
+import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { db } from "../firebaseConfig";
 import {
   collection,
@@ -26,6 +26,9 @@ import {
   addOrUpdateRevenu,
   deleteTransaction,
 } from "../utils/transactionUtils";
+
+// Importation du composant TransactionsChart
+import TransactionsChart from "../components/TransactionsChart";
 
 const MONTHS = [
   "Janvier",
@@ -600,6 +603,10 @@ export default function DepensesRevenus() {
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES); // État pour stocker les catégories
+  // Nouvel état pour gérer le filtrage par catégorie
+  const [categoryFilter, setCategoryFilter] = useState(null);
+  // État pour gérer l'animation de chargement des graphiques
+  const [loadingChart, setLoadingChart] = useState(false);
 
   // Autres états existants
   const [editTransaction, setEditTransaction] = useState(null);
@@ -737,11 +744,21 @@ export default function DepensesRevenus() {
       new Date(r.date).getMonth() === selectedDate.getMonth() &&
       new Date(r.date).getFullYear() === selectedDate.getFullYear()
   );
+
   const depensesFiltres = depenses.filter(
     (d) =>
       new Date(d.date).getMonth() === selectedDate.getMonth() &&
       new Date(d.date).getFullYear() === selectedDate.getFullYear()
   );
+
+  // Appliquer le filtre de catégorie si présent
+  const revenusFiltersWithCategory = categoryFilter
+    ? revenusFiltres.filter((r) => r.categorie === categoryFilter)
+    : revenusFiltres;
+
+  const depensesFiltersWithCategory = categoryFilter
+    ? depensesFiltres.filter((d) => d.categorie === categoryFilter)
+    : depensesFiltres;
 
   const totalRevenus = revenusFiltres.reduce(
     (acc, r) => acc + (r.montant || 0),
@@ -768,10 +785,25 @@ export default function DepensesRevenus() {
     });
   };
 
+  // Gestion du filtre par catégorie
+  const handleCategoryClick = (category) => {
+    if (categoryFilter === category) {
+      // Si on clique sur la même catégorie, on désactive le filtre
+      setCategoryFilter(null);
+    } else {
+      // Sinon, on active le filtre sur cette catégorie
+      setCategoryFilter(category);
+    }
+  };
+
+  const clearCategoryFilter = () => {
+    setCategoryFilter(null);
+  };
+
   const showEmpty =
     tab === "revenus"
-      ? revenusFiltres.length === 0
-      : depensesFiltres.length === 0;
+      ? revenusFiltersWithCategory.length === 0
+      : depensesFiltersWithCategory.length === 0;
 
   // Obtenir le mois et l'année correctement depuis la date sélectionnée
   const moisSelectionne = selectedDate.toLocaleDateString("fr-FR", {
@@ -925,6 +957,27 @@ export default function DepensesRevenus() {
     );
   };
 
+  // Ajouter une animation de chargement lors du changement d'onglet
+  const handleTabChange = (newTab) => {
+    if (tab !== newTab) {
+      setLoadingChart(true);
+      setTab(newTab);
+      setCategoryFilter(null); // Réinitialiser le filtre lors du changement d'onglet
+
+      // Réinitialiser l'animation après un court délai
+      setTimeout(() => {
+        setLoadingChart(false);
+      }, 300);
+    }
+  };
+
+  // Composant de chargement pour les graphiques
+  const LoadingSpinner = () => (
+    <div className='flex items-center justify-center h-full'>
+      <div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900 dark:border-white'></div>
+    </div>
+  );
+
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
       <div className='max-w-6xl mx-auto'>
@@ -961,45 +1014,106 @@ export default function DepensesRevenus() {
             </div>
           </div>
         </div>
-        {/* Indicateurs */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-4'>
-          {/* Total Revenus */}
-          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-            <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
-              <FaArrowDown className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Revenus</span>
-            </div>
-            <div className='text-2xl text-[#222] dark:text-white'>
-              {totalRevenus.toFixed(2)} €
-            </div>
-          </div>
-          {/* Total Dépenses */}
-          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-            <div className='flex items-center text-red-600 dark:text-red-400 mb-2'>
-              <FaArrowUp className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Dépenses</span>
-            </div>
-            <div className='text-2xl text-[#222] dark:text-white'>
-              {totalDepenses.toFixed(2)} €
-            </div>
-          </div>
-          {/* Solde */}
-          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-            <div className='flex items-center mb-2'>
-              <span className='text-2xl text-gray-700 dark:text-gray-300 font-bold mr-2'>
-                €
-              </span>
-              <span className='text-sm font-semibold text-gray-600 dark:text-gray-400'>
-                Solde
+
+        {/* Filtre actif */}
+        {categoryFilter && (
+          <div className='bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4 flex items-center justify-between'>
+            <div className='flex items-center'>
+              <FaFilter className='text-blue-500 dark:text-blue-400 mr-2' />
+              <span className='text-blue-700 dark:text-blue-300'>
+                Filtré par catégorie: <strong>{categoryFilter}</strong>
               </span>
             </div>
+            <button
+              onClick={clearCategoryFilter}
+              className='text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 p-1'
+              aria-label='Supprimer le filtre'>
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
+        {/* Indicateurs et graphique */}
+        <div className='flex flex-col md:flex-row gap-6 mb-4'>
+          {/* Cartes des totaux à gauche */}
+          <div className='md:w-1/2 flex flex-col gap-4'>
+            {/* Total Revenus */}
+            <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+              <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
+                <FaArrowDown className='text-2xl mr-2' />
+                <span className='text-sm font-semibold'>Total Revenus</span>
+              </div>
+              <div className='text-2xl text-[#222] dark:text-white'>
+                {totalRevenus.toFixed(2)} €
+              </div>
+            </div>
+            {/* Total Dépenses */}
+            <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+              <div className='flex items-center text-red-600 dark:text-red-400 mb-2'>
+                <FaArrowUp className='text-2xl mr-2' />
+                <span className='text-sm font-semibold'>Total Dépenses</span>
+              </div>
+              <div className='text-2xl text-[#222] dark:text-white'>
+                {totalDepenses.toFixed(2)} €
+              </div>
+            </div>
+            {/* Solde */}
+            <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+              <div className='flex items-center mb-2'>
+                <span className='text-2xl text-gray-700 dark:text-gray-300 font-bold mr-2'>
+                  €
+                </span>
+                <span className='text-sm font-semibold text-gray-600 dark:text-gray-400'>
+                  Solde
+                </span>
+              </div>
+              <div
+                className={`text-2xl ${
+                  solde >= 0
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
+                }`}>
+                {solde.toFixed(2)} €
+              </div>
+            </div>
+          </div>
+
+          {/* Graphique à droite - un pour chaque type avec transition */}
+          <div className='md:w-1/2 relative min-h-[400px]'>
+            {/* Graphique des revenus */}
             <div
-              className={`text-2xl ${
-                solde >= 0
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
+              className={`transition-opacity duration-300 ${
+                tab === "revenus" ? "opacity-100" : "opacity-0 hidden"
               }`}>
-              {solde.toFixed(2)} €
+              {loadingChart ? (
+                <div className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full flex items-center justify-center'>
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <TransactionsChart
+                  data={revenusFiltres}
+                  type='revenus'
+                  onCategoryClick={handleCategoryClick}
+                />
+              )}
+            </div>
+
+            {/* Graphique des dépenses */}
+            <div
+              className={`transition-opacity duration-300 ${
+                tab === "depenses" ? "opacity-100" : "opacity-0 hidden"
+              }`}>
+              {loadingChart ? (
+                <div className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full flex items-center justify-center'>
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <TransactionsChart
+                  data={depensesFiltres}
+                  type='depenses'
+                  onCategoryClick={handleCategoryClick}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -1014,7 +1128,7 @@ export default function DepensesRevenus() {
                     : "bg-transparent text-[#7b849b] dark:text-gray-400 font-normal"
                 }
               `}
-              onClick={() => setTab("revenus")}
+              onClick={() => handleTabChange("revenus")}
               type='button'>
               Revenus
             </button>
@@ -1026,7 +1140,7 @@ export default function DepensesRevenus() {
                     : "bg-transparent text-[#7b849b] dark:text-gray-400 font-normal"
                 }
               `}
-              onClick={() => setTab("depenses")}
+              onClick={() => handleTabChange("depenses")}
               type='button'>
               Dépenses
             </button>
@@ -1039,6 +1153,11 @@ export default function DepensesRevenus() {
               <div>
                 <div className='text-2xl font-bold text-[#222] dark:text-white'>
                   Dépenses du mois
+                  {categoryFilter && (
+                    <span className='ml-2 text-lg text-gray-500 dark:text-gray-400'>
+                      ({categoryFilter})
+                    </span>
+                  )}
                 </div>
                 <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   Liste de toutes vos dépenses pour {moisSelectionne}
@@ -1058,7 +1177,11 @@ export default function DepensesRevenus() {
 
             {showEmpty && (
               <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
-                <p>Aucune dépense à afficher pour cette période.</p>
+                <p>
+                  {categoryFilter
+                    ? `Aucune dépense dans la catégorie "${categoryFilter}" pour cette période.`
+                    : "Aucune dépense à afficher pour cette période."}
+                </p>
                 <button
                   onClick={() => setShowDepenseModal(true)}
                   className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
@@ -1068,9 +1191,9 @@ export default function DepensesRevenus() {
               </div>
             )}
 
-            {depensesFiltres.length === 0 ? null : (
+            {depensesFiltersWithCategory.length === 0 ? null : (
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                {depensesFiltres.map(renderTransaction)}
+                {depensesFiltersWithCategory.map(renderTransaction)}
               </div>
             )}
 
@@ -1094,6 +1217,11 @@ export default function DepensesRevenus() {
               <div>
                 <div className='text-2xl font-bold text-[#222] dark:text-white'>
                   Revenus du mois
+                  {categoryFilter && (
+                    <span className='ml-2 text-lg text-gray-500 dark:text-gray-400'>
+                      ({categoryFilter})
+                    </span>
+                  )}
                 </div>
                 <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   Liste de tous vos revenus pour {moisSelectionne}
@@ -1113,7 +1241,11 @@ export default function DepensesRevenus() {
 
             {showEmpty && (
               <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
-                <p>Aucun revenu à afficher pour cette période.</p>
+                <p>
+                  {categoryFilter
+                    ? `Aucun revenu dans la catégorie "${categoryFilter}" pour cette période.`
+                    : "Aucun revenu à afficher pour cette période."}
+                </p>
                 <button
                   onClick={() => setShowRevenuModal(true)}
                   className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
@@ -1123,9 +1255,9 @@ export default function DepensesRevenus() {
               </div>
             )}
 
-            {revenusFiltres.length === 0 ? null : (
+            {revenusFiltersWithCategory.length === 0 ? null : (
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                {revenusFiltres.map(renderTransaction)}
+                {revenusFiltersWithCategory.map(renderTransaction)}
               </div>
             )}
 

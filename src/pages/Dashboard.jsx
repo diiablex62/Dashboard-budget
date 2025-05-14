@@ -22,6 +22,8 @@ import {
   XAxis,
   YAxis,
   Bar,
+  Sector,
+  Animatable,
 } from "recharts";
 import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
 
@@ -65,6 +67,12 @@ export default function Dashboard() {
 
   // Nouvelles données pour le graphique combiné de toutes les dépenses
   const [depensesTotalesData, setDepensesTotalesData] = useState([]);
+
+  // État pour contrôler l'animation du graphique des dépenses mensuelles
+  const [chartAnimProgress, setChartAnimProgress] = useState(0);
+
+  // État pour l'animation du graphique "Répartition du budget"
+  const [budgetChartAnimProgress, setBudgetChartAnimProgress] = useState(0);
 
   const fetchAll = async () => {
     if (!user) return; // Ne tente pas de fetch si non connecté
@@ -304,6 +312,70 @@ export default function Dashboard() {
     }
   };
 
+  // Effet pour animer le graphique des dépenses mensuelles
+  useEffect(() => {
+    const animationDuration = 1000; // 1 seconde
+    const frameDuration = 16; // ~60fps
+    const totalFrames = animationDuration / frameDuration;
+    let frame = 0;
+
+    // Réinitialiser l'animation quand les données changent
+    setChartAnimProgress(0);
+
+    const animateChart = () => {
+      if (frame < totalFrames) {
+        // Fonction d'accélération pour une animation plus naturelle
+        const progress = Math.pow(frame / totalFrames, 2);
+        setChartAnimProgress(progress);
+        frame++;
+        requestAnimationFrame(animateChart);
+      } else {
+        setChartAnimProgress(1);
+      }
+    };
+
+    const timerId = setTimeout(() => {
+      requestAnimationFrame(animateChart);
+    }, 200); // Petit délai avant le début de l'animation
+
+    return () => {
+      clearTimeout(timerId);
+      cancelAnimationFrame(animateChart);
+    };
+  }, [depensesTotalesData, totalDepensesMois]);
+
+  // Effet pour animer le graphique "Répartition du budget"
+  useEffect(() => {
+    const animationDuration = 1200; // 1,2 secondes
+    const frameDuration = 16; // ~60fps
+    const totalFrames = animationDuration / frameDuration;
+    let frame = 0;
+
+    // Réinitialiser l'animation quand les données changent
+    setBudgetChartAnimProgress(0);
+
+    const animateChart = () => {
+      if (frame < totalFrames) {
+        // Fonction d'ease-out-cubic pour une animation plus naturelle
+        const progress = 1 - Math.pow(1 - frame / totalFrames, 3);
+        setBudgetChartAnimProgress(progress);
+        frame++;
+        requestAnimationFrame(animateChart);
+      } else {
+        setBudgetChartAnimProgress(1);
+      }
+    };
+
+    const timerId = setTimeout(() => {
+      requestAnimationFrame(animateChart);
+    }, 300); // Petit délai avant le début de l'animation, légèrement décalé par rapport au premier graphique
+
+    return () => {
+      clearTimeout(timerId);
+      cancelAnimationFrame(animateChart);
+    };
+  }, [budgetData]);
+
   // Fonction utilitaire pour scroller en haut avant navigation
   const scrollToTopAndNavigate = (url) => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -330,6 +402,59 @@ export default function Dashboard() {
         .slice(-3),
     [paiementsEchelonnes]
   );
+
+  // Composant pour le secteur actif (animation d'hover)
+  const renderActiveShape = (props) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
+      props;
+
+    // Calculer les coordonnées pour l'effet de "pull out"
+    const midAngle = (startAngle + endAngle) / 2;
+    const offsetX = outerRadius * 0.1 * Math.cos(midAngle);
+    const offsetY = outerRadius * 0.1 * Math.sin(midAngle);
+
+    return (
+      <g>
+        <Sector
+          cx={cx + offsetX}
+          cy={cy + offsetY}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          stroke='#fff'
+          strokeWidth={2}
+        />
+        <Sector
+          cx={cx + offsetX}
+          cy={cy + offsetY}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 2}
+          outerRadius={outerRadius + 6}
+          fill={fill}
+          opacity={0.3}
+        />
+      </g>
+    );
+  };
+
+  // État pour mémoriser le secteur actif dans le graphique
+  const [activePieIndex, setActivePieIndex] = useState(null);
+
+  // Fonction de personnalisation de l'animation des barres
+  const getBarAnimationProps = (entry) => {
+    // Calculer la hauteur maximale de la barre
+    const maxBarHeight = Math.max(entry.revenus || 0, entry.depenses || 0);
+
+    // Appliquer l'animation progressive
+    return {
+      revenus: entry.revenus * budgetChartAnimProgress,
+      depenses: entry.depenses * budgetChartAnimProgress,
+      _maxHeight: maxBarHeight, // propriété cachée pour le calcul
+    };
+  };
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
@@ -487,7 +612,17 @@ export default function Dashboard() {
                   fill='#8884d8'
                   label={({ name, percent }) =>
                     `${name} ${(percent * 100).toFixed(0)}%`
-                  }>
+                  }
+                  activeIndex={activePieIndex}
+                  activeShape={renderActiveShape}
+                  onMouseEnter={(_, index) => setActivePieIndex(index)}
+                  onMouseLeave={() => setActivePieIndex(null)}
+                  animationBegin={0}
+                  animationDuration={1000}
+                  animationEasing='ease-out'
+                  isAnimationActive={true}
+                  startAngle={90}
+                  endAngle={-270 + 360 * chartAnimProgress}>
                   {(depensesTotalesData.length > 0
                     ? depensesTotalesData
                     : [
@@ -524,24 +659,62 @@ export default function Dashboard() {
               <BarChart
                 data={
                   budgetData.length > 0
-                    ? budgetData
+                    ? budgetData.map(getBarAnimationProps)
                     : [
-                        { name: "Jan", revenus: 4000, depenses: 3800 },
-                        { name: "Fév", revenus: 4200, depenses: 3000 },
-                        { name: "Mar", revenus: 3800, depenses: 2000 },
-                        { name: "Avr", revenus: 3900, depenses: 2800 },
-                        { name: "Mai", revenus: 4700, depenses: 1800 },
-                        { name: "Juin", revenus: 3700, depenses: 2400 },
+                        {
+                          name: "Jan",
+                          revenus: 4000 * budgetChartAnimProgress,
+                          depenses: 3800 * budgetChartAnimProgress,
+                        },
+                        {
+                          name: "Fév",
+                          revenus: 4200 * budgetChartAnimProgress,
+                          depenses: 3000 * budgetChartAnimProgress,
+                        },
+                        {
+                          name: "Mar",
+                          revenus: 3800 * budgetChartAnimProgress,
+                          depenses: 2000 * budgetChartAnimProgress,
+                        },
+                        {
+                          name: "Avr",
+                          revenus: 3900 * budgetChartAnimProgress,
+                          depenses: 2800 * budgetChartAnimProgress,
+                        },
+                        {
+                          name: "Mai",
+                          revenus: 4700 * budgetChartAnimProgress,
+                          depenses: 1800 * budgetChartAnimProgress,
+                        },
+                        {
+                          name: "Juin",
+                          revenus: 3700 * budgetChartAnimProgress,
+                          depenses: 2400 * budgetChartAnimProgress,
+                        },
                       ]
                 }
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray='3 3' vertical={false} />
                 <XAxis dataKey='name' />
                 <YAxis />
-                <Tooltip />
+                <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
                 <Legend />
-                <Bar dataKey='revenus' fill='#10b981' name='Revenus' />
-                <Bar dataKey='depenses' fill='#f43f5e' name='Dépenses' />
+                <Bar
+                  dataKey='revenus'
+                  fill='#10b981'
+                  name='Revenus'
+                  animationBegin={0}
+                  animationDuration={1200}
+                  animationEasing='ease-out'
+                />
+                <Bar
+                  dataKey='depenses'
+                  fill='#f43f5e'
+                  name='Dépenses'
+                  animationBegin={100}
+                  animationDuration={1200}
+                  animationEasing='ease-out'
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -18,6 +18,7 @@ export const TRANSACTION_CATEGORIES = uniqueArray([
   "Loisirs", // Cinéma, sorties, voyages
   "Shopping", // Vêtements, électronique
   "Salaire", // Pour les revenus
+  "Travail", // Pour les revenus liés au travail non salarié
   "Épargne", // Pour les revenus ou transferts
   "Autre",
 ]);
@@ -139,4 +140,47 @@ export const getCategoryIcon = (category) => {
   };
 
   return icons[category] || "circle"; // icône par défaut
+};
+
+/**
+ * Retourne la couleur associée à une catégorie
+ * @param {string} category - Nom de la catégorie
+ * @returns {string} - Code couleur hexadécimal
+ */
+export const getCategoryColor = (category) => {
+  const colors = {
+    // Revenus
+    Salaire: "#4ade80", // vert clair
+    Prime: "#22c55e", // vert
+    Travail: "#34d399", // vert émeraude
+    Freelance: "#16a34a", // vert foncé
+    Investissement: "#15803d", // vert très foncé
+    Épargne: "#22c55e", // vert
+
+    // Dépenses
+    Logement: "#f87171", // rouge clair
+    Alimentation: "#ef4444", // rouge
+    Courses: "#ef4444", // rouge
+    Restaurant: "#dc2626", // rouge foncé
+    Transport: "#b91c1c", // rouge très foncé
+    Factures: "#f59e0b", // orange
+    Santé: "#818cf8", // bleu-violet
+    Loisirs: "#6366f1", // indigo
+    Shopping: "#d946ef", // rose
+    Assurance: "#f97316", // orange foncé
+    Abonnements: "#8b5cf6", // violet
+    Électronique: "#3b82f6", // bleu
+    Électroménager: "#0ea5e9", // bleu ciel
+    Mobilier: "#14b8a6", // turquoise
+    Travaux: "#f59e0b", // orange
+    Voyage: "#8b5cf6", // violet
+    Véhicule: "#dc2626", // rouge foncé
+    Prêt: "#f97316", // orange foncé
+    Éducation: "#3b82f6", // bleu
+
+    // Par défaut
+    Autre: "#94a3b8", // gris
+  };
+
+  return colors[category] || colors["Autre"]; // couleur par défaut si la catégorie n'est pas définie
 };
