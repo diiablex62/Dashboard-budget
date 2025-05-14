@@ -25,20 +25,7 @@ import {
   Sector,
 } from "recharts";
 import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
-
-// Définir COLORS en dehors du composant pour éviter l'erreur de portée
-const COLORS = [
-  "#6366f1",
-  "#22d3ee",
-  "#f59e42",
-  "#f43f5e",
-  "#10b981",
-  "#a78bfa",
-  "#fbbf24",
-  "#3b82f6",
-  "#ef4444",
-  "#64748b",
-];
+import { getCategoryColor } from "../utils/categoryUtils";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -509,14 +496,14 @@ export default function Dashboard() {
                       ? depensesTotalesData
                       : [
                           {
-                            name: "Régulières",
+                            name: "Factures",
                             value:
                               totalDepensesMois -
                               totalRecurrents -
                               totalEchelonnes,
                           },
-                          { name: "Récurrentes", value: totalRecurrents },
-                          { name: "Échelonnées", value: totalEchelonnes },
+                          { name: "Logement", value: totalRecurrents },
+                          { name: "Transport", value: totalEchelonnes },
                         ]
                   }
                   dataKey='value'
@@ -541,19 +528,19 @@ export default function Dashboard() {
                     ? depensesTotalesData
                     : [
                         {
-                          name: "Régulières",
+                          name: "Factures",
                           value:
                             totalDepensesMois -
                             totalRecurrents -
                             totalEchelonnes,
                         },
-                        { name: "Récurrentes", value: totalRecurrents },
-                        { name: "Échelonnées", value: totalEchelonnes },
+                        { name: "Logement", value: totalRecurrents },
+                        { name: "Transport", value: totalEchelonnes },
                       ]
                   ).map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+                      fill={getCategoryColor(entry.name)}
                     />
                   ))}
                 </Pie>

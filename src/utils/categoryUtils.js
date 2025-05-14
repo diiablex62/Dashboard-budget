@@ -18,7 +18,9 @@ export const TRANSACTION_CATEGORIES = uniqueArray([
   "Loisirs", // Cinéma, sorties, voyages
   "Shopping", // Vêtements, électronique
   "Salaire", // Pour les revenus
+  "Employé", // Pour les revenus d'emploi
   "Travail", // Pour les revenus liés au travail non salarié
+  "Aide", // Pour les aides et subventions
   "Épargne", // Pour les revenus ou transferts
   "Autre",
 ]);
@@ -137,6 +139,9 @@ export const getCategoryIcon = (category) => {
     Assurance: "shield",
     Épargne: "piggy-bank",
     Salaire: "dollar-sign",
+    Employé: "briefcase",
+    Travail: "tool",
+    Aide: "gift",
   };
 
   return icons[category] || "circle"; // icône par défaut
@@ -153,9 +158,11 @@ export const getCategoryColor = (category) => {
     Salaire: "#4ade80", // vert clair
     Prime: "#22c55e", // vert
     Travail: "#34d399", // vert émeraude
+    Employé: "#10b981", // vert teal
     Freelance: "#16a34a", // vert foncé
     Investissement: "#15803d", // vert très foncé
     Épargne: "#22c55e", // vert
+    Aide: "#84cc16", // lime vert
 
     // Dépenses
     Logement: "#f87171", // rouge clair
