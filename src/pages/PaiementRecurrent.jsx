@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { AiOutlineCalendar } from "react-icons/ai";
+import {
+  AiOutlineCalendar,
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
+} from "react-icons/ai";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -20,13 +24,17 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
+import { RECURRENT_CATEGORIES, getMonthYear } from "../utils/categoryUtils";
 
 export default function PaiementRecurrent() {
   // Paiements vides au départ
   const [paiements, setPaiements] = useState([]);
+  const [allPaiements, setAllPaiements] = useState([]); // Tous les paiements stockés ici
   const totalMensuel =
     paiements.length > 0 ? paiements.reduce((acc, p) => acc + p.montant, 0) : 0;
+
+  // Ajouter l'état pour la date sélectionnée
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const { user } = useAuth();
 
@@ -37,6 +45,8 @@ export default function PaiementRecurrent() {
     nom: "",
     categorie: "",
     montant: "",
+    // Ajouter la date comme propriété pour les paiements récurrents avec mois spécifique
+    date: new Date(selectedDate).toISOString().split("T")[0],
   });
 
   const montantInputRef = useRef(null);
@@ -56,6 +66,13 @@ export default function PaiementRecurrent() {
     fetchPaiements();
   }, [user]);
 
+  // Effet pour mettre à jour les données quand le mois change
+  useEffect(() => {
+    if (allPaiements.length > 0) {
+      filterPaiementsByMonth();
+    }
+  }, [selectedDate, allPaiements]);
+
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
 
@@ -63,20 +80,42 @@ export default function PaiementRecurrent() {
     setNewPaiement({ ...newPaiement, [e.target.name]: e.target.value });
   };
 
-  // Charger les paiements depuis Firestore au chargement et après chaque ajout/suppression/modification
+  // Charger tous les paiements depuis Firestore
   const fetchPaiements = async () => {
     if (!user) return;
     try {
       const snapshot = await getDocs(collection(db, "recurrent"));
-      setPaiements(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-      );
+      const loadedPaiements = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setAllPaiements(loadedPaiements);
+      filterPaiementsByMonth(loadedPaiements);
     } catch (err) {
       console.error("Erreur Firestore fetch:", err);
     }
+  };
+
+  // Filtrer les paiements selon le mois sélectionné
+  const filterPaiementsByMonth = (paiementsToFilter = allPaiements) => {
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth();
+
+    // Filtrer les paiements par mois spécifique si la date existe
+    // ou inclure les paiements sans date (mensuels permanents)
+    const filteredPaiements = paiementsToFilter.filter((paiement) => {
+      // Si le paiement n'a pas de date, c'est un paiement récurrent permanent
+      if (!paiement.date) return true;
+
+      const paiementDate = new Date(paiement.date);
+      return (
+        paiementDate.getMonth() === selectedMonth &&
+        paiementDate.getFullYear() === selectedYear
+      );
+    });
+
+    setPaiements(filteredPaiements);
   };
 
   // Pour l'édition
@@ -101,6 +140,11 @@ export default function PaiementRecurrent() {
       console.log(`✅ Document supprimé avec succès: recurrent/${paiementId}`);
 
       // Mise à jour directe de l'interface
+      setAllPaiements((prevPaiements) => {
+        const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
+        return newPaiements;
+      });
+
       setPaiements((prevPaiements) => {
         const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
         console.log(
@@ -144,6 +188,9 @@ export default function PaiementRecurrent() {
       nom: paiements[idx].nom,
       categorie: paiements[idx].categorie,
       montant: paiements[idx].montant.toString(),
+      date:
+        paiements[idx].date ||
+        new Date(selectedDate).toISOString().split("T")[0],
     });
     setShowModal(true);
     setStep(1);
@@ -160,13 +207,22 @@ export default function PaiementRecurrent() {
     }
 
     try {
+      // S'assurer que la date correspond au mois sélectionné
+      const paiementData = {
+        nom: newPaiement.nom,
+        categorie: newPaiement.categorie,
+        montant: parseFloat(newPaiement.montant),
+        // Utiliser le mois sélectionné pour la date
+        date: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 15)
+          .toISOString()
+          .split("T")[0],
+      };
+
       if (editIndex !== null && paiements[editIndex]) {
         // Modification
         const paiementId = paiements[editIndex].id;
         await updateDoc(doc(db, "recurrent", paiementId), {
-          nom: newPaiement.nom,
-          categorie: newPaiement.categorie,
-          montant: parseFloat(newPaiement.montant),
+          ...paiementData,
           updatedAt: serverTimestamp(),
         });
 
@@ -175,20 +231,18 @@ export default function PaiementRecurrent() {
           type: "recurrent",
           title: "Paiement récurrent modifié",
           desc: `Modification de ${
-            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
-          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+            paiementData.nom.charAt(0).toUpperCase() + paiementData.nom.slice(1)
+          } (${parseFloat(paiementData.montant).toFixed(2)}€)`,
           date: new Date().toLocaleDateString("fr-FR"),
           read: false,
           createdAt: serverTimestamp(),
         });
       } else {
         // Ajout
-        console.log("Ajout paiement Firestore :", newPaiement);
+        console.log("Ajout paiement Firestore :", paiementData);
 
         await addDoc(collection(db, "recurrent"), {
-          nom: newPaiement.nom,
-          categorie: newPaiement.categorie,
-          montant: parseFloat(newPaiement.montant),
+          ...paiementData,
           createdAt: serverTimestamp(),
         });
 
@@ -197,8 +251,8 @@ export default function PaiementRecurrent() {
           type: "recurrent",
           title: "Nouveau paiement récurrent",
           desc: `Ajout de ${
-            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
-          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+            paiementData.nom.charAt(0).toUpperCase() + paiementData.nom.slice(1)
+          } (${parseFloat(paiementData.montant).toFixed(2)}€)`,
           date: new Date().toLocaleDateString("fr-FR"),
           read: false,
           createdAt: serverTimestamp(),
@@ -211,7 +265,12 @@ export default function PaiementRecurrent() {
       // Réinitialiser le formulaire et fermer la modal
       setShowModal(false);
       setStep(1);
-      setNewPaiement({ nom: "", categorie: "", montant: "" });
+      setNewPaiement({
+        nom: "",
+        categorie: "",
+        montant: "",
+        date: new Date(selectedDate).toISOString().split("T")[0],
+      });
       setEditIndex(null);
 
       // Déclencher un événement pour mettre à jour le tableau de bord
@@ -244,10 +303,27 @@ export default function PaiementRecurrent() {
     "#64748b",
   ];
 
+  // Fonctions pour naviguer entre les mois
+  const handlePrevMonth = () => {
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      return d;
+    });
+  };
+
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
       <div className='max-w-6xl mx-auto'>
-        {/* En-tête et boutons d'action */}
+        {/* En-tête et sélecteur de mois */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
           <div>
             <h1 className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
@@ -257,22 +333,27 @@ export default function PaiementRecurrent() {
               Gérez vos paiements mensuels.
             </div>
           </div>
-          <div className='flex flex-col sm:flex-row gap-2 mt-4 md:mt-0'>
-            <button
-              onClick={() => {
-                setEditIndex(null);
-                setNewPaiement({
-                  nom: "",
-                  categorie: "",
-                  montant: "",
-                });
-                setShowModal(true);
-                setStep(1);
-              }}
-              className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
-              <span className='text-lg font-bold'>+</span>
-              <span>Ajouter</span>
-            </button>
+          {/* Sélecteur mois/année style image remplaçant le bouton ajouter */}
+          <div className='flex items-center mt-4 md:mt-0'>
+            <div className='flex items-center bg-[#f6f9fb] dark:bg-black rounded-xl px-4 py-2 shadow-none border border-transparent'>
+              <button
+                className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
+                onClick={handlePrevMonth}
+                aria-label='Mois précédent'
+                type='button'>
+                <AiOutlineArrowLeft />
+              </button>
+              <div className='mx-4 text-[#222] dark:text-white text-lg font-medium w-40 text-center'>
+                {getMonthYear(selectedDate)}
+              </div>
+              <button
+                className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
+                onClick={handleNextMonth}
+                aria-label='Mois suivant'
+                type='button'>
+                <AiOutlineArrowRight />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -286,7 +367,7 @@ export default function PaiementRecurrent() {
                   <AiOutlineCalendar className='text-2xl text-blue-500 dark:text-blue-400' />
                 </div>
                 <div className='text-gray-500 dark:text-gray-400 text-sm font-medium'>
-                  Total mensuel
+                  Total mensuel pour {getMonthYear(selectedDate)}
                 </div>
               </div>
               <div className='text-2xl text-[#222] dark:text-white'>
@@ -354,14 +435,33 @@ export default function PaiementRecurrent() {
                 Paiements Récurrents
               </div>
               <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                Liste de tous vos paiements mensuels
+                Paiements du mois de {getMonthYear(selectedDate)}
               </div>
+            </div>
+            {/* Bouton Ajouter déplacé ici */}
+            <div className='flex space-x-3'>
+              <button
+                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                onClick={() => {
+                  setEditIndex(null);
+                  setNewPaiement({
+                    nom: "",
+                    categorie: "",
+                    montant: "",
+                    date: new Date(selectedDate).toISOString().split("T")[0],
+                  });
+                  setShowModal(true);
+                  setStep(1);
+                }}>
+                <span className='text-lg font-bold'>+</span>
+                <span>Ajouter</span>
+              </button>
             </div>
           </div>
 
           {paiements.length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
-              <p>Aucun paiement récurrent à afficher.</p>
+              <p>Aucun paiement récurrent pour {getMonthYear(selectedDate)}.</p>
               <button
                 onClick={() => {
                   setEditIndex(null);
@@ -369,6 +469,7 @@ export default function PaiementRecurrent() {
                     nom: "",
                     categorie: "",
                     montant: "",
+                    date: new Date(selectedDate).toISOString().split("T")[0],
                   });
                   setShowModal(true);
                   setStep(1);
@@ -479,6 +580,7 @@ export default function PaiementRecurrent() {
                   nom: "",
                   categorie: "",
                   montant: "",
+                  date: new Date(selectedDate).toISOString().split("T")[0],
                 });
                 setEditIndex(null);
               }}
@@ -487,7 +589,7 @@ export default function PaiementRecurrent() {
             </button>
             <div className='mb-6 text-lg font-semibold dark:text-white'>
               {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
-              récurrent
+              récurrent pour {getMonthYear(selectedDate)}
             </div>
 
             {/* Récapitulatif dynamique */}
