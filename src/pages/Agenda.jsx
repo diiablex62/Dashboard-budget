@@ -1,15 +1,10 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineCalendar } from "react-icons/ai";
-import { useNavigate } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
-import { formatDate } from "../utils/transactionUtils";
+import { collection, getDocs } from "firebase/firestore";
 import {
-  getEchelonnePaymentsForDate,
   getAllEchelonnePayments,
-  getRecurrentPaymentsForDate,
   getAllRecurrentPayments,
 } from "../utils/paymentUtils";
 
@@ -52,14 +47,6 @@ function getMonthMatrix(year, month) {
   return matrix;
 }
 
-const fakeEvents = {
-  "2025-05-07": [],
-  "2025-05-12": ["Paiement EDF"],
-  "2025-05-15": ["Loyer"],
-  "2025-05-20": ["Internet"],
-  "2025-05-25": ["Assurance"],
-};
-
 export default function Agenda() {
   // Par défaut : mai 2025 comme sur l'image
   const [month, setMonth] = useState(4); // 0-based, 4 = mai
@@ -81,14 +68,28 @@ export default function Agenda() {
   const echelonnesListRef = useRef(null);
   const recurrentsListRef = useRef(null);
 
-  const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AppContext);
   const { user } = useAuth();
 
   const matrix = getMonthMatrix(year, month);
 
   const handleSelect = (day) => {
     if (day) {
+      console.log(`🔍 Sélection du jour ${day}/${month + 1}/${year}`);
+
+      // Vérifier si ce jour a des paiements récurrents
+      const jourInfo = joursDepsRev[day];
+      if (jourInfo) {
+        console.log(
+          `Information pour le jour ${day}:`,
+          `depenses=${jourInfo.depenses}, ` +
+            `revenus=${jourInfo.revenus}, ` +
+            `echelonnes=${jourInfo.echelonnes}, ` +
+            `recurrents=${jourInfo.recurrents}`
+        );
+      } else {
+        console.log(`Aucune information trouvée pour le jour ${day}`);
+      }
+
       setSelected({ day, month, year });
 
       // Mettre à jour les paiements récurrents pour le nouveau jour
@@ -104,16 +105,73 @@ export default function Agenda() {
   // Fonction pour mettre à jour les paiements récurrents en fonction du jour sélectionné
   const updateRecurrentsForSelectedDay = (day) => {
     console.log(
-      `Les paiements récurrents sont attachés à leurs jours spécifiques de prélèvement`
+      `Mise à jour des paiements récurrents pour le jour ${day}/${
+        month + 1
+      }/${year}`
     );
-  };
 
-  // Fonction pour scroller vers les transactions de la date sélectionnée
-  const scrollToSelectedTransactions = (day) => {
+    // Formater la date sélectionnée au format YYYY-MM-DD
     const selectedDateStr = `${year}-${String(month + 1).padStart(
       2,
       "0"
     )}-${String(day).padStart(2, "0")}`;
+
+    console.log(`Date formatée pour recherche: ${selectedDateStr}`);
+
+    // Vérifier si des paiements récurrents sont attachés à ce jour
+    const jourSelectionne = joursDepsRev[day];
+    if (jourSelectionne && jourSelectionne.recurrents) {
+      console.log("Ce jour contient des paiements récurrents");
+
+      // Filtrer les paiements récurrents pour n'afficher que ceux du jour sélectionné
+      // Utiliser le jourPrelevement plutôt que la date complète pour la comparaison
+      const paiementsJourSelectionne = recurrentsMois.filter((p) => {
+        // Vérifier si le jour de prélèvement correspond au jour sélectionné
+        const correspondance = p.jourEffectif === day;
+
+        console.log(
+          `Comparaison paiement ${p.nom}: jourEffectif=${p.jourEffectif}, jourPrelevement=${p.jourPrelevement}, jour sélectionné=${day}, correspondance=${correspondance}`
+        );
+
+        return correspondance;
+      });
+
+      console.log(
+        `${paiementsJourSelectionne.length} paiements récurrents trouvés pour le jour ${day}`
+      );
+
+      // Forcer une nouvelle sélection pour s'assurer que l'UI se met à jour
+      setSelected({ day, month, year });
+
+      // Vérification de l'état de selection pour déboguer
+      recurrentsMois.forEach((p) => {
+        const pDate = new Date(p.date);
+        const pJour = pDate.getDate();
+
+        console.log(
+          `Paiement: ${p.nom}, date=${p.date}, jour=${pJour}, jourEffectif=${
+            p.jourEffectif
+          }, jourPrelevement=${p.jourPrelevement}, sélectionné=${
+            p.jourEffectif === day
+          }`
+        );
+      });
+    } else {
+      console.log("Aucun paiement récurrent pour ce jour");
+    }
+  };
+
+  // Fonction pour scroller vers les transactions de la date sélectionnée
+  const scrollToSelectedTransactions = (day) => {
+    console.log(`Scroll vers les transactions du jour ${day}`);
+
+    // S'assurer que la date est correctement formatée
+    const selectedDateStr = `${year}-${String(month + 1).padStart(
+      2,
+      "0"
+    )}-${String(day).padStart(2, "0")}`;
+
+    console.log(`Date formatée pour recherche: ${selectedDateStr}`);
 
     // Trouver les éléments correspondant à la date sélectionnée
     const depenseElement = document.getElementById(
@@ -123,9 +181,64 @@ export default function Agenda() {
     const echelonneElement = document.getElementById(
       `echelonne-${selectedDateStr}`
     );
-    const recurrentElement = document.getElementById(
-      `recurrent-${selectedDateStr}`
+
+    // Pour les récurrents, chercher par le jourEffectif plutôt que par la date complète
+    let recurrentElement = null;
+
+    // Vérifier dans la liste des paiements récurrents si un correspond au jour sélectionné
+    const recurrentPourCeJour = recurrentsMois.find((p) => {
+      return p.jourEffectif === day;
+    });
+
+    console.log(
+      `Recherche des éléments pour la date ${selectedDateStr} et le jour ${day}`
     );
+    if (depenseElement) console.log("Élément dépense trouvé");
+    if (revenuElement) console.log("Élément revenu trouvé");
+    if (echelonneElement) console.log("Élément échelonné trouvé");
+
+    if (recurrentPourCeJour) {
+      console.log(
+        `Paiement récurrent trouvé pour le jour ${day}: ${recurrentPourCeJour.nom} (date=${recurrentPourCeJour.date}, jourEffectif=${recurrentPourCeJour.jourEffectif})`
+      );
+
+      // Rechercher l'élément récurrent par son ID avec la date formatée
+      recurrentElement = document.getElementById(
+        `recurrent-${recurrentPourCeJour.date}`
+      );
+
+      if (recurrentElement) {
+        console.log(
+          `Élément récurrent trouvé avec ID: recurrent-${recurrentPourCeJour.date}`
+        );
+      } else {
+        console.log(
+          `Élément récurrent non trouvé avec ID: recurrent-${recurrentPourCeJour.date}`
+        );
+
+        // Si on ne trouve pas l'élément par son ID, chercher tous les éléments récurrents
+        const recurrentElements =
+          document.querySelectorAll(`[id^="recurrent-"]`);
+        console.log(
+          `Nombre d'éléments récurrents trouvés: ${recurrentElements.length}`
+        );
+
+        // Parcourir tous les éléments récurrents pour trouver celui qui correspond au nom
+        recurrentElements.forEach((el) => {
+          console.log(`ID trouvé: ${el.id}`);
+
+          // Vérifier si cet élément contient le nom du paiement récurrent
+          if (el.textContent.includes(recurrentPourCeJour.nom)) {
+            console.log(
+              `Élément récurrent trouvé par son contenu (nom): ${el.id}`
+            );
+            recurrentElement = el;
+          }
+        });
+      }
+    } else {
+      console.log(`Aucun paiement récurrent trouvé pour le jour ${day}`);
+    }
 
     // Scroller vers l'élément de dépense si existant
     if (depenseElement && depensesListRef.current) {
@@ -147,6 +260,9 @@ export default function Agenda() {
 
     // Scroller vers l'élément de paiement récurrent si existant
     if (recurrentElement && recurrentsListRef.current) {
+      console.log(
+        `Défilement vers l'élément récurrent: ${recurrentElement.id}`
+      );
       recurrentsListRef.current.scrollTop =
         recurrentElement.offsetTop - recurrentsListRef.current.offsetTop;
     }
@@ -178,10 +294,6 @@ export default function Agenda() {
         // Définir les limites du mois sélectionné
         const currentMonthStart = new Date(year, month, 1);
         const currentMonthEnd = new Date(year, month + 1, 0);
-
-        // Format des dates pour Firestore
-        const startDateStr = currentMonthStart.toISOString().split("T")[0];
-        const endDateStr = currentMonthEnd.toISOString().split("T")[0];
 
         // Récupérer les dépenses du mois
         const depensesSnap = await getDocs(collection(db, "depense"));
@@ -273,9 +385,7 @@ export default function Agenda() {
         });
 
         // Convertir l'objet en tableau
-        const uniqueEchelonnes = Object.entries(paymentsByDate).flatMap(
-          ([date, payments]) => payments
-        );
+        const uniqueEchelonnes = Object.values(paymentsByDate).flat();
 
         setEchelonnesMois(uniqueEchelonnes);
 
@@ -337,7 +447,9 @@ export default function Agenda() {
 
         // Pour chaque paiement récurrent, ajouter une entrée sur son jour de prélèvement
         allRecurrents.forEach((recurrent) => {
-          const jourPrelevement = recurrent.jourPrelevement || 1;
+          // S'assurer que jourPrelevement est bien un nombre
+          const jourPrelevement = parseInt(recurrent.jourPrelevement) || 1;
+
           // Vérifier que le jour existe dans ce mois (maximum = nombre de jours dans le mois)
           const jourEffectif = Math.min(
             jourPrelevement,
@@ -348,14 +460,20 @@ export default function Agenda() {
           const dateRecurrent = new Date(year, month, jourEffectif);
           const dateStr = dateRecurrent.toISOString().split("T")[0];
 
-          // Ajouter le paiement à la liste
+          console.log(
+            `Paiement récurrent ${recurrent.nom} assigné au jour ${jourEffectif} (jour de prélèvement ${jourPrelevement}) avec date ${dateStr}`
+          );
+
+          // Ajouter le paiement à la liste avec le jourPrelevement normalisé en nombre
           recurrentsMoisArray.push({
             ...recurrent,
-            date: dateStr,
-            type: "recurrent",
+            date: dateStr, // Ceci est utilisé pour l'ID HTML
+            jourEffectif: jourEffectif, // Jour effectif dans ce mois
+            jourPrelevement: jourPrelevement, // Jour de prélèvement d'origine (stocké comme nombre)
           });
 
           // Marquer le jour comme ayant un paiement récurrent
+          // IMPORTANT: Marquer le jour du jourEffectif (pas celui de la date qui peut être différent)
           if (!jourTransactions[jourEffectif]) {
             jourTransactions[jourEffectif] = {
               depenses: false,
@@ -363,8 +481,14 @@ export default function Agenda() {
               echelonnes: false,
               recurrents: true,
             };
+            console.log(
+              `✅ Jour ${jourEffectif} marqué comme ayant un paiement récurrent`
+            );
           } else {
             jourTransactions[jourEffectif].recurrents = true;
+            console.log(
+              `✅ Drapeau 'recurrents' ajouté au jour ${jourEffectif}`
+            );
           }
         });
 
@@ -447,6 +571,8 @@ export default function Agenda() {
                     hasTransactions && joursDepsRev[day].revenus;
                   const hasEchelonnes =
                     hasTransactions && joursDepsRev[day].echelonnes;
+                  const hasRecurrents =
+                    hasTransactions && joursDepsRev[day].recurrents;
 
                   return (
                     <div
@@ -474,7 +600,7 @@ export default function Agenda() {
                         {hasEchelonnes && (
                           <div className='w-2 h-2 rounded-full bg-blue-500'></div>
                         )}
-                        {hasTransactions && joursDepsRev[day].recurrents && (
+                        {hasRecurrents && (
                           <div className='w-2 h-2 rounded-full bg-purple-500'></div>
                         )}
                       </div>
@@ -589,7 +715,14 @@ export default function Agenda() {
                 {recurrentsMois.length > 0 ? (
                   <ul className='space-y-2'>
                     {recurrentsMois.map((payment) => {
-                      const isSelected = payment.date === selectedDateFormatted;
+                      // Vérifier si la transaction est pour la date sélectionnée
+                      // Comparer le jour effectif avec le jour sélectionné
+                      const isSelected = payment.jourEffectif === selected.day;
+
+                      console.log(
+                        `Affichage paiement récurrent: ${payment.nom}, jourEffectif=${payment.jourEffectif}, jourPrelevement=${payment.jourPrelevement}, date=${payment.date}, sélectionné=${isSelected}, jour sélectionné=${selected.day}`
+                      );
+
                       return (
                         <li
                           key={payment.id}
@@ -598,10 +731,24 @@ export default function Agenda() {
                             isSelected
                               ? "border-l-4 border-purple-400 dark:border-purple-500 pl-2 bg-purple-50 dark:bg-purple-900/10 rounded"
                               : "border-b border-gray-100 dark:border-gray-800"
-                          }`}>
-                          <span className='text-gray-700 dark:text-gray-300'>
-                            {payment.nom} ({payment.categorie || "Autre"})
-                          </span>
+                          }`}
+                          onClick={() => {
+                            console.log(
+                              `Clic sur paiement récurrent: ${payment.nom}, date=${payment.date}, jourEffectif=${payment.jourEffectif}, jourPrelevement=${payment.jourPrelevement}`
+                            );
+                            // Utiliser le jour effectif pour la sélection
+                            const clickedDay = payment.jourEffectif;
+                            // Simuler un clic sur le jour dans le calendrier
+                            handleSelect(clickedDay);
+                          }}>
+                          <div>
+                            <span className='text-gray-700 dark:text-gray-300'>
+                              {payment.nom}
+                            </span>
+                            <div className='text-xs text-gray-500 dark:text-gray-400'>
+                              {payment.jourPrelevement} du mois
+                            </div>
+                          </div>
                           <span className='font-medium text-gray-800 dark:text-gray-200'>
                             {payment.montant.toFixed(2)}€
                           </span>

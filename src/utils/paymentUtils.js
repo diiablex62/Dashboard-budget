@@ -386,15 +386,22 @@ export const getRecurrentPaymentsForDate = async (date) => {
     // Récupérer tous les paiements récurrents
     const allPayments = await getAllRecurrentPayments();
     const jourDuMois = date.getDate();
+    const dateObj = new Date(date);
 
     console.log(
       `Récupération des paiements récurrents pour le ${date.toLocaleDateString()}`
     );
 
-    // Filtrer pour ne garder que les paiements récurrents dont le jour de prélèvement correspond au jour de la date
-    const paymentsForDay = allPayments.filter(
-      (payment) => payment.jourPrelevement === jourDuMois
-    );
+    // Filtrer pour ne garder que les paiements récurrents dont
+    // le jour de prélèvement correspond au jour de la date
+    const paymentsForDay = allPayments.filter((payment) => {
+      // Vérifier si le jour de prélèvement correspond
+      if (payment.jourPrelevement !== jourDuMois) {
+        return false;
+      }
+
+      return true;
+    });
 
     // Ajouter la date exacte à chaque paiement
     return paymentsForDay.map((payment) => ({

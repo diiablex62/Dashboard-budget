@@ -960,19 +960,19 @@ export default function DepensesRevenus() {
   // Ajouter une animation de chargement lors du changement d'onglet
   const handleTabChange = (newTab) => {
     if (tab !== newTab) {
+      // Démarrer l'animation de chargement
+      console.log(
+        `Changement d'onglet de ${tab} vers ${newTab} - Début du chargement`
+      );
       setLoadingChart(true);
       setTab(newTab);
       setCategoryFilter(null); // Réinitialiser le filtre lors du changement d'onglet
 
-      // Utiliser un délai plus long pour s'assurer que l'animation a le temps de se charger complètement
+      // Utiliser un délai pour l'animation
       setTimeout(() => {
-        console.log(`Changement d'onglet vers ${newTab} - Fin du chargement`);
         setLoadingChart(false);
-
-        // Force un redimensionnement de la fenêtre pour rafraichir les graphiques
-        // Cela peut aider à résoudre des problèmes d'affichage avec SVG
-        window.dispatchEvent(new Event("resize"));
-      }, 600); // Augmentation du délai pour s'assurer que le DOM a le temps de se mettre à jour
+        console.log(`Changement d'onglet vers ${newTab} - Fin du chargement`);
+      }, 600);
     }
   };
 
@@ -1042,27 +1042,31 @@ export default function DepensesRevenus() {
         <div className='flex flex-col md:flex-row gap-6 mb-4'>
           {/* Cartes des totaux à gauche */}
           <div className='md:w-1/2 flex flex-col gap-4'>
-            {/* Total Revenus */}
-            <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-              <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
-                <FaArrowDown className='text-2xl mr-2' />
-                <span className='text-sm font-semibold'>Total Revenus</span>
+            {/* Total Revenus - affiché uniquement dans l'onglet revenus */}
+            {tab === "revenus" && (
+              <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+                <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
+                  <FaArrowDown className='text-2xl mr-2' />
+                  <span className='text-sm font-semibold'>Total Revenus</span>
+                </div>
+                <div className='text-2xl text-[#222] dark:text-white'>
+                  {totalRevenus.toFixed(2)} €
+                </div>
               </div>
-              <div className='text-2xl text-[#222] dark:text-white'>
-                {totalRevenus.toFixed(2)} €
+            )}
+            {/* Total Dépenses - affiché uniquement dans l'onglet dépenses */}
+            {tab === "depenses" && (
+              <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+                <div className='flex items-center text-red-600 dark:text-red-400 mb-2'>
+                  <FaArrowUp className='text-2xl mr-2' />
+                  <span className='text-sm font-semibold'>Total Dépenses</span>
+                </div>
+                <div className='text-2xl text-[#222] dark:text-white'>
+                  {totalDepenses.toFixed(2)} €
+                </div>
               </div>
-            </div>
-            {/* Total Dépenses */}
-            <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-              <div className='flex items-center text-red-600 dark:text-red-400 mb-2'>
-                <FaArrowUp className='text-2xl mr-2' />
-                <span className='text-sm font-semibold'>Total Dépenses</span>
-              </div>
-              <div className='text-2xl text-[#222] dark:text-white'>
-                {totalDepenses.toFixed(2)} €
-              </div>
-            </div>
-            {/* Solde */}
+            )}
+            {/* Solde - toujours affiché */}
             <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
               <div className='flex items-center mb-2'>
                 <span className='text-2xl text-gray-700 dark:text-gray-300 font-bold mr-2'>
@@ -1083,41 +1087,45 @@ export default function DepensesRevenus() {
             </div>
           </div>
 
-          {/* Graphique à droite - un pour chaque type avec transition */}
-          <div className='md:w-1/2 relative min-h-[400px]'>
+          {/* Graphique à droite - conteneur avec hauteur fixe */}
+          <div className='md:w-1/2 relative h-[400px]'>
             {/* Graphique des revenus */}
             <div
-              className={`transition-opacity duration-300 ${
-                tab === "revenus" ? "opacity-100" : "opacity-0 hidden"
+              className={`absolute inset-0 transition-opacity duration-300 h-full ${
+                tab === "revenus" ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}>
               {loadingChart ? (
                 <div className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full flex items-center justify-center'>
                   <LoadingSpinner />
                 </div>
               ) : (
-                <TransactionsChart
-                  data={revenusFiltres}
-                  type='revenus'
-                  onCategoryClick={handleCategoryClick}
-                />
+                <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
+                  <TransactionsChart
+                    data={revenusFiltres}
+                    type='revenus'
+                    onCategoryClick={handleCategoryClick}
+                  />
+                </div>
               )}
             </div>
 
             {/* Graphique des dépenses */}
             <div
-              className={`transition-opacity duration-300 ${
-                tab === "depenses" ? "opacity-100" : "opacity-0 hidden"
+              className={`absolute inset-0 transition-opacity duration-300 h-full ${
+                tab === "depenses" ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}>
               {loadingChart ? (
                 <div className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full flex items-center justify-center'>
                   <LoadingSpinner />
                 </div>
               ) : (
-                <TransactionsChart
-                  data={depensesFiltres}
-                  type='depenses'
-                  onCategoryClick={handleCategoryClick}
-                />
+                <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
+                  <TransactionsChart
+                    data={depensesFiltres}
+                    type='depenses'
+                    onCategoryClick={handleCategoryClick}
+                  />
+                </div>
               )}
             </div>
           </div>

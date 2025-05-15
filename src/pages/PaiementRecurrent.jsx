@@ -122,8 +122,23 @@ export default function PaiementRecurrent() {
   // Pour l'édition
   const [editIndex, setEditIndex] = useState(null);
 
-  // Fonction pour supprimer un paiement sans toast
-  const handleDelete = async (idx) => {
+  // Modal de confirmation pour la suppression
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [paiementToDelete, setPaiementToDelete] = useState(null);
+  const [deleteOption, setDeleteOption] = useState("all"); // all, futureOnly, currentOnly
+
+  // Ouvrir la modal de confirmation de suppression
+  const confirmDelete = (idx) => {
+    setPaiementToDelete(idx);
+    setDeleteOption("all"); // Option par défaut
+    setShowDeleteModal(true);
+  };
+
+  // Fonction pour supprimer un paiement selon l'option choisie
+  const handleDelete = async () => {
+    if (paiementToDelete === null) return;
+
+    const idx = paiementToDelete;
     const paiement = paiements[idx];
     if (!paiement || !paiement.id) return;
 
@@ -131,54 +146,170 @@ export default function PaiementRecurrent() {
     const paiementName = paiement.nom;
 
     console.log(
-      `🚀 Début suppression de ${paiementName} (${paiementId}) dans recurrent`
+      `🚀 Début suppression de ${paiementName} (${paiementId}) dans recurrent - Option: ${deleteOption}`
     );
 
     try {
-      console.log(`🔥 SUPPRESSION: recurrent/${paiementId}`);
-      // Suppression directe dans Firestore
-      await deleteDoc(doc(db, "recurrent", paiementId));
-      console.log(`✅ Document supprimé avec succès: recurrent/${paiementId}`);
-
-      // Mise à jour directe de l'interface
-      setAllPaiements((prevPaiements) => {
-        const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
-        return newPaiements;
-      });
-
-      setPaiements((prevPaiements) => {
-        const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
+      // Selon l'option choisie
+      if (deleteOption === "all") {
+        // Suppression complète du paiement récurrent
+        console.log(`🔥 SUPPRESSION COMPLÈTE: recurrent/${paiementId}`);
+        await deleteDoc(doc(db, "recurrent", paiementId));
         console.log(
-          `État local: ${
-            prevPaiements.length - newPaiements.length
-          } paiement supprimé`
+          `✅ Document supprimé avec succès: recurrent/${paiementId}`
         );
-        return newPaiements;
-      });
 
-      // Ajouter la notification sans bloquer le flux principal
-      try {
-        await addDoc(collection(db, "notifications"), {
-          type: "recurrent",
-          title: "Paiement récurrent supprimé",
-          desc: `Suppression de ${
-            paiementName.charAt(0).toUpperCase() + paiementName.slice(1)
-          } (${parseFloat(paiement.montant).toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
+        // Mise à jour directe de l'interface
+        setAllPaiements((prevPaiements) => {
+          const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
+          return newPaiements;
         });
-      } catch (notifError) {
-        console.error("Erreur lors de l'ajout de la notification:", notifError);
+
+        setPaiements((prevPaiements) => {
+          const newPaiements = prevPaiements.filter((p) => p.id !== paiementId);
+          console.log(
+            `État local: ${
+              prevPaiements.length - newPaiements.length
+            } paiement supprimé`
+          );
+          return newPaiements;
+        });
+
+        // Notification de suppression complète
+        try {
+          await addDoc(collection(db, "notifications"), {
+            type: "recurrent",
+            title: "Paiement récurrent supprimé",
+            desc: `Suppression complète de ${
+              paiementName.charAt(0).toUpperCase() + paiementName.slice(1)
+            } (${parseFloat(paiement.montant).toFixed(2)}€)`,
+            date: new Date().toLocaleDateString("fr-FR"),
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        } catch (notifError) {
+          console.error(
+            "Erreur lors de l'ajout de la notification:",
+            notifError
+          );
+        }
+      } else if (deleteOption === "futureOnly") {
+        // Mettre à jour le paiement avec une date de fin
+        console.log(
+          `🔄 MODIFICATION avec date de fin: recurrent/${paiementId}`
+        );
+        await updateDoc(doc(db, "recurrent", paiementId), {
+          finDate: new Date(selectedDate).toISOString().split("T")[0],
+          updatedAt: serverTimestamp(),
+        });
+        console.log(`✅ Document mis à jour avec une date de fin`);
+
+        // Conserver le paiement dans l'interface mais mettre à jour son état
+        setAllPaiements((prevPaiements) => {
+          return prevPaiements.map((p) => {
+            if (p.id === paiementId) {
+              return {
+                ...p,
+                finDate: new Date(selectedDate).toISOString().split("T")[0],
+              };
+            }
+            return p;
+          });
+        });
+
+        // Notification de suppression future
+        try {
+          await addDoc(collection(db, "notifications"), {
+            type: "recurrent",
+            title: "Paiement récurrent modifié",
+            desc: `Arrêt des paiements futurs de ${
+              paiementName.charAt(0).toUpperCase() + paiementName.slice(1)
+            } à partir de ${new Date(selectedDate).toLocaleDateString(
+              "fr-FR"
+            )}`,
+            date: new Date().toLocaleDateString("fr-FR"),
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        } catch (notifError) {
+          console.error(
+            "Erreur lors de l'ajout de la notification:",
+            notifError
+          );
+        }
+      } else if (deleteOption === "currentOnly") {
+        // Créer une exclusion pour ce mois spécifique
+        console.log(`🔄 AJOUT d'exclusion mensuelle: recurrent/${paiementId}`);
+
+        // Structure pour stocker les exclusions
+        const currentMonth = `${selectedDate.getFullYear()}-${String(
+          selectedDate.getMonth() + 1
+        ).padStart(2, "0")}`;
+
+        // Récupérer les exclusions existantes ou initialiser un tableau vide
+        const exclusions = paiement.exclusions || [];
+
+        // Ajouter le mois actuel s'il n'est pas déjà exclu
+        if (!exclusions.includes(currentMonth)) {
+          exclusions.push(currentMonth);
+
+          await updateDoc(doc(db, "recurrent", paiementId), {
+            exclusions: exclusions,
+            updatedAt: serverTimestamp(),
+          });
+          console.log(`✅ Exclusion ajoutée pour ${currentMonth}`);
+
+          // Mettre à jour l'interface
+          setAllPaiements((prevPaiements) => {
+            return prevPaiements.map((p) => {
+              if (p.id === paiementId) {
+                return { ...p, exclusions };
+              }
+              return p;
+            });
+          });
+
+          // Retirer temporairement de l'affichage pour ce mois
+          setPaiements((prevPaiements) => {
+            return prevPaiements.filter((p) => p.id !== paiementId);
+          });
+
+          // Notification d'exclusion mensuelle
+          try {
+            await addDoc(collection(db, "notifications"), {
+              type: "recurrent",
+              title: "Paiement récurrent modifié",
+              desc: `Exclusion de ${
+                paiementName.charAt(0).toUpperCase() + paiementName.slice(1)
+              } pour ${getMonthYear(selectedDate)}`,
+              date: new Date().toLocaleDateString("fr-FR"),
+              read: false,
+              createdAt: serverTimestamp(),
+            });
+          } catch (notifError) {
+            console.error(
+              "Erreur lors de l'ajout de la notification:",
+              notifError
+            );
+          }
+        }
       }
 
       // Déclencher un événement pour mettre à jour le tableau de bord
       window.dispatchEvent(new Event("data-updated"));
+
+      // Fermer la modal
+      setShowDeleteModal(false);
+      setPaiementToDelete(null);
     } catch (error) {
       console.error(
         `❌ ERREUR critique lors de la suppression: ${error.message || error}`
       );
       console.error(error);
+
+      // Fermer la modal même en cas d'erreur
+      setShowDeleteModal(false);
+      setPaiementToDelete(null);
     }
   };
 
@@ -550,7 +681,7 @@ export default function PaiementRecurrent() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(idx);
+                          confirmDelete(idx);
                         }}
                         className='text-red-500 dark:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
                         aria-label='Supprimer'>
@@ -658,7 +789,6 @@ export default function PaiementRecurrent() {
                   </div>
                 </div>
               )}
-
               {/* Étape 2: Catégorie */}
               {step === 2 && (
                 <div>
@@ -705,7 +835,6 @@ export default function PaiementRecurrent() {
                   </div>
                 </div>
               )}
-
               {/* Étape 3: Montant */}
               {step === 3 && (
                 <div>
@@ -749,8 +878,7 @@ export default function PaiementRecurrent() {
                   </div>
                 </div>
               )}
-
-              {/* Étape 4: Jour de prélèvement */}
+              {/* Étape 4: Jour de prélèvement (anciennement étape 5) */}
               {step === 4 && (
                 <div>
                   <label className='block mb-2 font-medium dark:text-white'>
@@ -923,7 +1051,6 @@ export default function PaiementRecurrent() {
                       ))}
                     </div>
                   </div>
-
                   <div className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
                     Le système utilisera le 1er jour du mois par défaut pour
                     tous les paiements récurrents, sauf si vous sélectionnez un
@@ -944,6 +1071,69 @@ export default function PaiementRecurrent() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression */}
+      {showDeleteModal && (
+        <div
+          className='fixed inset-0 z-[9999] flex items-center justify-center'
+          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
+          <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+            <button
+              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              onClick={() => {
+                setShowDeleteModal(false);
+                setPaiementToDelete(null);
+              }}
+              aria-label='Fermer'>
+              ✕
+            </button>
+            <div className='mb-6 text-lg font-semibold dark:text-white'>
+              Êtes-vous sûr de vouloir supprimer ce paiement récurrent ?
+            </div>
+
+            <div className='space-y-4'>
+              {/* Étape 1: Options de suppression */}
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
+                  Options de suppression
+                </label>
+                <select
+                  value={deleteOption}
+                  onChange={(e) => {
+                    setDeleteOption(e.target.value);
+                  }}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleDelete();
+                    }
+                  }}>
+                  <option value='all'>
+                    Supprimer ce paiement et tous les suivants
+                  </option>
+                  <option value='futureOnly'>
+                    Supprimer ce paiement et tous les suivants à partir de
+                    maintenant
+                  </option>
+                  <option value='currentOnly'>
+                    Exclure ce paiement pour ce mois
+                  </option>
+                </select>
+              </div>
+
+              {/* Étape 2: Confirmation */}
+              <div>
+                <button
+                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  onClick={handleDelete}>
+                  Confirmer
+                </button>
+              </div>
             </div>
           </div>
         </div>

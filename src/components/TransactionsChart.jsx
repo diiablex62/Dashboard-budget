@@ -19,6 +19,17 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
   const [animationProgress, setAnimationProgress] = useState(0);
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [key, setKey] = useState(0); // Clé unique pour forcer le remontage du composant
+  const [loading, setLoading] = useState(true);
+
+  // Fonction pour afficher le montant avec le bon formatage
+  const formatMontant = (montant) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(montant);
+  };
 
   // Remontage du composant quand le type change
   useEffect(() => {
@@ -27,15 +38,20 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
     setKey((prevKey) => prevKey + 1);
     // Réinitialiser l'animation
     setAnimationProgress(0);
+    setLoading(true);
   }, [type]);
 
   // Animation des transitions
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      setLoading(false);
+      return;
+    }
 
     console.log(`Animation démarrée pour ${type}`);
     // Réinitialiser l'animation
     setAnimationProgress(0);
+    setLoading(true);
 
     const animationDuration = 1000; // 1 seconde
     const frameDuration = 16; // ~60fps
@@ -51,6 +67,7 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
         requestAnimationFrame(animateChart);
       } else {
         setAnimationProgress(1);
+        setLoading(false);
         console.log(`Animation terminée pour ${type}`);
       }
     };
@@ -118,6 +135,7 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
   // Rendu du graphique
   const renderChart = () => {
     if (chartData.length === 0) {
+      console.log(`Aucune donnée à afficher pour ${type}`);
       return (
         <div className='flex items-center justify-center h-60 text-gray-500 dark:text-gray-400'>
           Aucune donnée à afficher
@@ -125,7 +143,11 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
       );
     }
 
-    console.log(`Rendu du graphique ${type} avec ${chartData.length} segments`);
+    console.log(
+      `Rendu du graphique ${type} avec ${
+        chartData.length
+      } segments, animation: ${animationProgress * 100}%`
+    );
 
     // Cas spécial pour un graphique avec un seul segment
     if (chartData.length === 1) {
@@ -138,7 +160,7 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
         <div className='flex flex-col items-center mt-4'>
           {/* Rendu d'un cercle plein pour un seul segment */}
           <div
-            className='relative w-64 h-64 mb-8'
+            className='relative w-64 h-64'
             role='img'
             aria-label={`Graphique des ${
               type === "revenus" ? "revenus" : "dépenses"
@@ -199,30 +221,6 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
               </text>
             </svg>
           </div>
-
-          {/* Légende spéciale pour un seul élément */}
-          <div className='mt-2 max-w-xs'>
-            <div
-              className='flex items-center p-1 rounded cursor-pointer transition-all duration-200'
-              onClick={() => handleCategoryClick(singleItem.categorie)}
-              role='button'
-              tabIndex='0'>
-              <div
-                className='w-4 h-4 rounded-full mr-2'
-                style={{
-                  backgroundColor: singleItem.color || "#cccccc",
-                }}></div>
-              <div className='text-sm'>
-                <span className='font-medium'>{singleItem.categorie}</span>
-                <span className='text-gray-500 dark:text-gray-400 ml-1'>
-                  100%
-                </span>
-                <span className='text-gray-600 dark:text-gray-300 ml-2'>
-                  {singleItem.montant.toFixed(2)} €
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       );
     }
@@ -232,7 +230,7 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
       <div className='flex flex-col items-center mt-4'>
         {/* Rendu du camembert avec SVG */}
         <div
-          className='relative w-64 h-64 mb-8'
+          className='relative w-64 h-64'
           role='img'
           aria-label={`Graphique des ${
             type === "revenus" ? "revenus" : "dépenses"
@@ -343,86 +341,68 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
             </text>
           </svg>
         </div>
-
-        {/* Légende avec effet de surbrillance */}
-        <div className='grid grid-cols-2 gap-x-6 gap-y-3 mt-2 max-w-xs'>
-          {chartData.map((item, index) => (
-            <div
-              key={index}
-              className={`flex items-center p-1 rounded cursor-pointer transition-all duration-200 ${
-                hoveredCategory === item.categorie
-                  ? "bg-gray-100 dark:bg-gray-800 scale-105 shadow-sm"
-                  : ""
-              }`}
-              onClick={() => handleCategoryClick(item.categorie)}
-              onMouseEnter={() => setHoveredCategory(item.categorie)}
-              onMouseLeave={() => setHoveredCategory(null)}
-              role='button'
-              tabIndex='0'>
-              <div
-                className='w-3 h-3 rounded-full mr-2 transition-transform duration-200'
-                style={{
-                  backgroundColor: item.color || "#cccccc",
-                  transform:
-                    hoveredCategory === item.categorie
-                      ? "scale(1.3)"
-                      : "scale(1)",
-                }}></div>
-              <div className='text-xs'>
-                <span className='font-medium'>{item.categorie}</span>
-                <span className='text-gray-500 dark:text-gray-400 ml-1'>
-                  {item.percentage.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     );
   };
 
   // Affichage du graphique avec une clé unique pour forcer le remontage à chaque changement de type
   return (
-    <div
-      key={key}
-      className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
-      <h3 className='text-lg font-semibold text-gray-800 dark:text-white mb-2'>
+    <div className='h-[300px] flex flex-col relative' key={key}>
+      {loading && (
+        <div className='absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-70 dark:bg-opacity-70 flex items-center justify-center z-10'>
+          <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 dark:border-white'></div>
+        </div>
+      )}
+
+      <div className='text-xl font-semibold text-gray-700 dark:text-white mb-4'>
         {type === "revenus"
           ? "Répartition des revenus"
           : "Répartition des dépenses"}
-      </h3>
-      <div className='text-sm text-gray-500 dark:text-gray-400 mb-4'>
-        Par catégorie
       </div>
-      <style jsx global>{`
-        .depenses-chart path,
-        .revenus-chart path {
-          /* Forcer les couleurs à rester visibles quelle que soit l'animation */
-          fill-opacity: 1 !important;
-          opacity: 1 !important;
-          transition: transform 0.2s ease-out;
-        }
 
-        /* S'assurer que les transitions en mode sombre fonctionnent aussi */
-        .dark .depenses-chart path,
-        .dark .revenus-chart path {
-          fill-opacity: 1 !important;
-          opacity: 1 !important;
-        }
+      <div className='flex-1 flex flex-col md:flex-row items-center justify-center gap-6'>
+        {/* Partie graphique */}
+        <div className='flex-1 flex items-center justify-center'>
+          {renderChart()}
+        </div>
 
-        /* Styles spécifiques pour les dépenses */
-        .depenses-chart path {
-          stroke: #ffffff;
-          stroke-width: 0.8;
-        }
-
-        /* Styles spécifiques pour les revenus */
-        .revenus-chart path {
-          stroke: #ffffff;
-          stroke-width: 0.8;
-        }
-      `}</style>
-      {renderChart()}
+        {/* Légende */}
+        <div className='flex-1'>
+          {chartData.length > 0 && (
+            <div className='space-y-2'>
+              {chartData.map((item) => (
+                <div
+                  key={item.categorie}
+                  className={`flex items-center justify-between p-2 rounded-md transition-all duration-200 ${
+                    hoveredCategory === item.categorie
+                      ? "bg-gray-100 dark:bg-gray-800"
+                      : ""
+                  } cursor-pointer`}
+                  onClick={() => handleCategoryClick(item.categorie)}
+                  onMouseEnter={() => setHoveredCategory(item.categorie)}
+                  onMouseLeave={() => setHoveredCategory(null)}>
+                  <div className='flex items-center gap-2'>
+                    <div
+                      className='w-3 h-3 rounded-full'
+                      style={{ backgroundColor: item.color || "#ccc" }}></div>
+                    <span className='text-gray-700 dark:text-gray-300 font-medium'>
+                      {item.categorie}
+                    </span>
+                  </div>
+                  <div className='text-right'>
+                    <div className='text-gray-800 dark:text-gray-200 font-semibold'>
+                      {formatMontant(item.montant)}
+                    </div>
+                    <div className='text-xs text-gray-500 dark:text-gray-400'>
+                      {item.percentage.toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
