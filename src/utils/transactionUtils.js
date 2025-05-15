@@ -220,12 +220,40 @@ export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 0);
 
-    // Récupérer toutes les données nécessaires
-    const [depensesSnap, recurrentsSnap, echelonnesSnap] = await Promise.all([
+    // Récupérer toutes les données des dépenses et paiements récurrents
+    const [depensesSnap, recurrentsSnap] = await Promise.all([
       getDocs(collection(db, "depense")),
       getDocs(collection(db, "recurrent")),
-      getDocs(collection(db, "xfois")),
     ]);
+
+    // Récupérer les paiements échelonnés avec gestion des erreurs
+    let echelonnesSnap;
+    try {
+      // Essayer d'abord avec la collection "echelonne"
+      echelonnesSnap = await getDocs(collection(db, "echelonne"));
+      console.log(
+        "Utilisation de la collection 'echelonne' pour les paiements échelonnés"
+      );
+    } catch (echelonneError) {
+      console.error(
+        "Erreur avec collection 'echelonne', fallback sur 'xfois':",
+        echelonneError
+      );
+      // Si erreur, essayer avec l'ancienne collection "xfois"
+      try {
+        echelonnesSnap = await getDocs(collection(db, "xfois"));
+        console.log(
+          "Utilisation de la collection 'xfois' pour les paiements échelonnés"
+        );
+      } catch (xfoisError) {
+        console.error(
+          "Erreur également avec 'xfois', aucun paiement échelonné disponible:",
+          xfoisError
+        );
+        // Si les deux collections échouent, créer un snapshot vide
+        echelonnesSnap = { docs: [] };
+      }
+    }
 
     // 1. Traiter les dépenses régulières du mois
     const depenses = depensesSnap.docs.map((doc) => ({
@@ -259,17 +287,26 @@ export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
       ...doc.data(),
     }));
 
-    // Filtrer les paiements échelonnés actifs ce mois-ci
+    // Filtrer les paiements échelonnés actifs ce mois-ci (avec prise en charge des deux formats)
     const echelonnesActifs = paiementsEchelonnes.filter((p) => {
-      if (!p.debutMois || !p.mensualites) return false;
+      // Vérifier si nous avons les champs nécessaires
+      if (!p.mensualites) return false;
 
-      const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+      // Gérer les deux formats possibles : debutMois (ancien) ou debutDate (nouveau)
+      const debutDateStr = p.debutDate || p.debutMois;
+      if (!debutDateStr) return false;
+
+      // Extraire l'année et le mois du début
+      const [startYear, startMonth] = debutDateStr.split("-").map(Number);
       const debut = new Date(startYear, startMonth - 1);
+
+      // Calculer la date de fin
       const fin = new Date(
         startYear,
         startMonth - 1 + Number(p.mensualites) - 1
       );
 
+      // Vérifier si le mois actuel est dans la période active
       return startDate >= debut && startDate <= fin;
     });
 
@@ -301,7 +338,17 @@ export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
     };
   } catch (error) {
     console.error("Erreur lors du calcul des dépenses mensuelles:", error);
-    throw error;
+    // Retourner un objet vide mais structuré en cas d'erreur pour éviter les crashs
+    return {
+      total: 0,
+      regulieres: 0,
+      recurrentes: 0,
+      echelonnees: 0,
+      nombreDepenses: 0,
+      nombreRecurrentes: 0,
+      nombreEchelonnees: 0,
+      parCategorie: [],
+    };
   }
 };
 

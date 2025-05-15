@@ -98,7 +98,33 @@ export default function Dashboard() {
       // Récupération des paiements récurrents et échelonnés pour les listes
       const [recurrentsSnap, echelonnesSnap] = await Promise.all([
         getDocs(collection(db, "recurrent")),
-        getDocs(collection(db, "xfois")),
+        // Essayer d'abord avec echelonne puis fallback sur xfois
+        (async () => {
+          try {
+            // Essayer d'abord la collection "echelonne"
+            const snap = await getDocs(collection(db, "echelonne"));
+            console.log("Dashboard: Utilisation de la collection 'echelonne'");
+            return snap;
+          } catch (echelonneError) {
+            console.error(
+              "Dashboard: Erreur sur collection echelonne, fallback sur xfois:",
+              echelonneError
+            );
+            try {
+              // Fallback sur l'ancienne collection "xfois"
+              const snap = await getDocs(collection(db, "xfois"));
+              console.log("Dashboard: Utilisation de la collection 'xfois'");
+              return snap;
+            } catch (xfoisError) {
+              console.error(
+                "Dashboard: Erreur également sur xfois:",
+                xfoisError
+              );
+              // Retourner un snapshot vide en cas d'échec des deux collections
+              return { docs: [] };
+            }
+          }
+        })(),
       ]);
 
       // Traitement des paiements récurrents pour la liste
@@ -114,9 +140,15 @@ export default function Dashboard() {
         ...doc.data(),
       }));
 
+      // Adapter le filtrage pour gérer les deux formats (debutMois et debutDate)
       const echelonnesDuMois = echelonnes.filter((p) => {
-        if (!p.debutMois || !p.mensualites) return false;
-        const [startYear, startMonth] = p.debutMois.split("-").map(Number);
+        if (!p.mensualites) return false;
+
+        // Accepter soit debutDate (nouveau format) soit debutMois (ancien format)
+        const debutDateStr = p.debutDate || p.debutMois;
+        if (!debutDateStr) return false;
+
+        const [startYear, startMonth] = debutDateStr.split("-").map(Number);
         const debut = new Date(startYear, startMonth - 1);
         const fin = new Date(
           startYear,

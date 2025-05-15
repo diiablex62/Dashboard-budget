@@ -7,7 +7,13 @@ import React, {
   useCallback,
   useTransition,
 } from "react";
-import { AiOutlinePlus, AiOutlineDollarCircle } from "react-icons/ai";
+import {
+  AiOutlinePlus,
+  AiOutlineDollarCircle,
+  AiOutlineCalendar,
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
+} from "react-icons/ai";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -21,60 +27,22 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  setDoc,
+  getDoc,
 } from "firebase/firestore";
-import { ECHELONNE_CATEGORIES } from "../utils/categoryUtils";
-
-const echelonnes = [
-  {
-    nom: "Smartphone Samsung",
-    mensualite: 149.99,
-    numero: 6,
-    total: 24,
-    reste: 2699.82,
-    percent: 25,
-    iconColor: "#00b6e6",
-  },
-  {
-    nom: "Assurance Auto",
-    mensualite: 60.0,
-    numero: 5,
-    total: 12,
-    reste: 420.0,
-    percent: 42,
-    iconColor: "#a259e6",
-  },
-  {
-    nom: "Crédit Mobilier",
-    mensualite: 99.5,
-    numero: 4,
-    total: 10,
-    reste: 597.0,
-    percent: 40,
-    iconColor: "#ff7ca3",
-  },
-  {
-    nom: "Électroménagers",
-    mensualite: 120.45,
-    numero: 2,
-    total: 6,
-    reste: 482.25,
-    percent: 33,
-    iconColor: "#a2b6ff",
-  },
-];
+import { ECHELONNE_CATEGORIES, getMonthYear } from "../utils/categoryUtils";
 
 export default function PaiementEchelonne() {
-  const totalRevenus = 0;
-  const barColor = "#00b96b";
-  const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AppContext);
+  const _navigate = useNavigate();
+  const { _isLoggedIn } = useContext(AppContext);
   const { user } = useAuth();
-  // Valeur par défaut pour débutMois : mois actuel au format "YYYY-MM"
-  const currentMonth = new Date();
   const defaultDebutDate = (() => {
     const today = new Date();
     return today.toISOString().split("T")[0]; // Format YYYY-MM-DD
   })();
+
+  // Ajouter l'état pour la date sélectionnée
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
@@ -86,20 +54,21 @@ export default function PaiementEchelonne() {
     categorie: "",
   });
   const [paiements, setPaiements] = useState([]);
+  const [allPaiements, setAllPaiements] = useState([]); // Tous les paiements stockés ici
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
   const mensualitesInputRef = useRef(null);
   const debutDateInputRef = useRef(null);
   const categorieInputRef = useRef(null);
 
-  const [lastDeleted, setLastDeleted] = useState(null);
+  const [_lastDeleted, _setLastDeleted] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
 
   // Mode sélection multiple
-  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
-  const [selectedPaiements, setSelectedPaiements] = useState([]);
+  const [_isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [_selectedPaiements, setSelectedPaiements] = useState([]);
 
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (showModal && step === 1 && nomInputRef.current)
@@ -123,136 +92,502 @@ export default function PaiementEchelonne() {
   const fetchPaiements = useCallback(async () => {
     if (!user) return;
     try {
-      const snapshot = await getDocs(collection(db, "xfois"));
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      startTransition(() => setPaiements(data));
+      // Essayer d'abord avec la collection "echelonne"
+      try {
+        const snapshot = await getDocs(collection(db, "echelonne"));
+        const data = snapshot.docs
+          .filter((doc) => doc.data().uid === user.uid)
+          .map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        startTransition(() => {
+          setAllPaiements(data);
+          filterPaiementsByMonth(data);
+          console.log(
+            "Paiements échelonnés chargés depuis echelonne:",
+            data.length
+          );
+        });
+      } catch (error) {
+        console.error(
+          "Erreur sur collection echelonne, tentative avec xfois:",
+          error
+        );
+
+        try {
+          // Fallback sur l'ancienne collection "xfois" si "echelonne" n'est pas accessible
+          const snapshot = await getDocs(collection(db, "xfois"));
+          const data = snapshot.docs
+            .filter((doc) => doc.data().uid === user.uid)
+            .map((doc) => ({ id: doc.id, ...doc.data() }));
+
+          // Si on a des données dans xfois, on va essayer de les migrer vers echelonne
+          if (data.length > 0) {
+            console.log(
+              "Tentative de migration des données de xfois vers echelonne..."
+            );
+
+            try {
+              // Essayer de créer un document dans echelonne pour tester les permissions
+              const testRef = await addDoc(collection(db, "echelonne"), {
+                test: true,
+                uid: user.uid,
+                createdAt: serverTimestamp(),
+              });
+
+              // Si on arrive ici, on a les permissions, on peut migrer
+              console.log("Test de création réussi, migration en cours...");
+
+              // Supprimer le document de test
+              await deleteDoc(doc(db, "echelonne", testRef.id));
+
+              // Migrer les données
+              for (const item of data) {
+                const { id: _id, ...dataWithoutId } = item;
+                await addDoc(collection(db, "echelonne"), {
+                  ...dataWithoutId,
+                  migratedAt: serverTimestamp(),
+                });
+              }
+
+              console.log("Migration réussie. Chargement depuis echelonne...");
+
+              // Recharger depuis echelonne
+              const echelonneSnapshot = await getDocs(
+                collection(db, "echelonne")
+              );
+              const echelonneData = echelonneSnapshot.docs
+                .filter((doc) => doc.data().uid === user.uid)
+                .map((doc) => ({ id: doc.id, ...doc.data() }));
+
+              startTransition(() => {
+                setAllPaiements(echelonneData);
+                filterPaiementsByMonth(echelonneData);
+                console.log(
+                  "Paiements échelonnés chargés depuis echelonne après migration:",
+                  echelonneData.length
+                );
+              });
+
+              return;
+            } catch (migrationError) {
+              console.error(
+                "Migration impossible, permissions insuffisantes:",
+                migrationError
+              );
+            }
+          }
+
+          startTransition(() => {
+            setAllPaiements(data);
+            filterPaiementsByMonth(data);
+            console.log(
+              "Paiements échelonnés chargés depuis xfois:",
+              data.length
+            );
+          });
+        } catch (xfoisError) {
+          console.error("Erreur sur collection xfois:", xfoisError);
+          setAllPaiements([]);
+          setPaiements([]);
+        }
+      }
     } catch (err) {
-      console.error("Erreur Firestore fetch xfois:", err);
+      console.error("Erreur Firestore fetch paiements échelonnés:", err);
+      setAllPaiements([]);
+      setPaiements([]);
     }
   }, [user]);
+
+  // Filtrer les paiements selon le mois sélectionné
+  const filterPaiementsByMonth = (paiementsToFilter = allPaiements) => {
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth();
+    const selectedDateObj = new Date(selectedYear, selectedMonth);
+
+    // Filtrer les paiements actifs pour le mois sélectionné
+    const filteredPaiements = paiementsToFilter.filter((p) => {
+      if (!p.debutDate || !p.mensualites || !p.montant) return false;
+
+      // Convertir la date de début en objet Date
+      const [startYear, startMonth] = p.debutDate.split("-").map(Number);
+      const debutDate = new Date(startYear, startMonth - 1); // -1 car les mois dans Date sont 0-11
+
+      // Calculer la date de fin (date de début + nombre de mensualités)
+      const finDate = new Date(
+        startYear,
+        startMonth - 1 + parseInt(p.mensualites)
+      );
+
+      // Le paiement est actif si le mois sélectionné est entre la date de début et la date de fin
+      return selectedDateObj >= debutDate && selectedDateObj < finDate;
+    });
+
+    // Une fois filtrés, mettre à jour les paiements avec le calcul du nombre de mensualités déjà effectuées
+    // pour le mois sélectionné (pour l'affichage de la progression)
+    const paiementsAvecMensualites = filteredPaiements.map((p) => {
+      const [startYear, startMonth] = p.debutDate.split("-").map(Number);
+
+      // Calculer le nombre de mois écoulés depuis la date de début (0-based)
+      // Si on est en mars et le paiement a commencé en mars, moisEcoules = 0
+      // Si on est en avril et le paiement a commencé en mars, moisEcoules = 1
+      const moisEcoules =
+        (selectedYear - startYear) * 12 + (selectedMonth - (startMonth - 1));
+
+      // Mensualité = mois écoulés + 1
+      // Si on commence en mars, mensualité 1 en mars, mensualité 2 en avril
+      const mensualitesPayees = Math.max(
+        1,
+        Math.min(moisEcoules + 1, parseInt(p.mensualites))
+      );
+
+      // Mettre à jour le paiement avec l'information du nombre de mensualités déjà payées
+      // pour le mois actuellement sélectionné
+      return {
+        ...p,
+        mensualitesPayees,
+      };
+    });
+
+    setPaiements(paiementsAvecMensualites);
+  };
 
   useEffect(() => {
     fetchPaiements();
   }, [fetchPaiements]);
 
-  // Total Dépenses échelonnées (uniquement la somme des mensualités du mois courant)
-  const [currentPeriod, setCurrentPeriod] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${now.getMonth() + 1}`;
-  });
-
+  // Effet pour mettre à jour les données quand le mois change
   useEffect(() => {
-    // Met à jour la période si le mois change (utile si la page reste ouverte longtemps)
-    const interval = setInterval(() => {
-      const now = new Date();
-      const period = `${now.getFullYear()}-${now.getMonth() + 1}`;
-      setCurrentPeriod(period);
-    }, 1000 * 60 * 60); // vérifie chaque heure
-    return () => clearInterval(interval);
-  }, []);
+    if (allPaiements.length > 0) {
+      filterPaiementsByMonth();
+    }
+  }, [selectedDate, allPaiements]);
 
+  // Fonctions pour naviguer entre les mois
+  const handlePrevMonth = () => {
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      return d;
+    });
+  };
+
+  // Total Dépenses échelonnées (uniquement la somme des mensualités du mois courant)
   const totalDepenses = useMemo(() => {
     if (!paiements.length) return 0;
-    const [year, month] = currentPeriod.split("-").map(Number);
-    const nowDate = new Date(year, month - 1);
-    return paiements.reduce((acc, p) => {
-      if (!p.debutDate || !p.mensualites || !p.montant) return acc;
-      const [startYear, startMonth] = p.debutDate.split("-").map(Number);
-      const debut = new Date(startYear, startMonth - 1);
-      const fin = new Date(
-        startYear,
-        startMonth - 1 + Number(p.mensualites) - 1
-      );
-      if (nowDate >= debut && nowDate <= fin) {
-        return acc + Number(p.montant) / Number(p.mensualites);
-      }
-      return acc;
-    }, 0);
-  }, [paiements, currentPeriod]);
 
-  // Ajout d'un élément pour afficher le total mensuel
-  const renderTotalMensuel = () => {
-    return (
-      <div className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 mb-4'>
-        <div className='flex justify-between items-center'>
-          <div className='font-semibold text-gray-700 dark:text-gray-300'>
-            Total mensuel
-          </div>
-          <div className='font-bold text-green-600 dark:text-green-400'>
-            {totalDepenses.toFixed(2)}€
-          </div>
-        </div>
-      </div>
-    );
-  };
+    return paiements.reduce((acc, p) => {
+      if (!p.montant || !p.mensualites) return acc;
+      // Calcul du montant mensuel = montant total / nombre de mensualités
+      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
+      return acc + montantMensuel;
+    }, 0);
+  }, [paiements]);
+
+  // On expose le montant total des paiements échelonnés pour le tableau de bord
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Stockage dans le localStorage pour une meilleure persistance
+      localStorage.setItem(
+        "paiementsEchelonnesTotal",
+        totalDepenses.toString()
+      );
+
+      // Également dans une variable globale pour un accès facile
+      window.paiementsEchelonnesTotal = totalDepenses;
+
+      // Déclencher un événement pour mettre à jour le tableau de bord
+      const event = new CustomEvent("paiements-echelonnes-updated", {
+        detail: { total: totalDepenses },
+      });
+      window.dispatchEvent(event);
+
+      console.log("Total paiements échelonnés mis à jour:", totalDepenses);
+    }
+  }, [totalDepenses]);
+
+  // Calcul de la répartition par catégorie
+  const _categoriesStats = useMemo(() => {
+    if (!paiements.length) return [];
+
+    // Grouper les paiements par catégorie
+    const categoriesMap = paiements.reduce((acc, p) => {
+      const categorie = p.categorie || "Autre";
+      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
+
+      if (!acc[categorie]) {
+        acc[categorie] = {
+          categorie,
+          montant: 0,
+          count: 0,
+        };
+      }
+
+      acc[categorie].montant += montantMensuel;
+      acc[categorie].count += 1;
+
+      return acc;
+    }, {});
+
+    // Convertir en tableau et trier par montant décroissant
+    return Object.values(categoriesMap).sort((a, b) => b.montant - a.montant);
+  }, [paiements]);
 
   // Ajout ou modification du paiement échelonné
   const handleAddOrEditPaiement = async (e) => {
-    if (!user) return;
     if (e) e.preventDefault();
+
+    // Vérification des champs obligatoires
+    if (
+      !newPaiement.nom ||
+      !newPaiement.montant ||
+      !newPaiement.mensualites ||
+      !newPaiement.debutDate
+    ) {
+      console.error("Tous les champs sont obligatoires");
+      alert("Tous les champs sont obligatoires");
+      return;
+    }
+
+    // Vérification de la connexion utilisateur
+    if (!user) {
+      console.error("Utilisateur non connecté");
+      alert("Vous devez être connecté pour ajouter un paiement échelonné.");
+      return;
+    }
+
+    console.log(
+      "Tentative d'ajout/modification d'un paiement échelonné:",
+      newPaiement
+    );
+
     try {
+      // Déterminer quelle collection utiliser
+      let collectionName = "echelonne"; // Essayer d'abord avec echelonne
+
+      try {
+        // Tester si la collection echelonne est accessible en écriture
+        const testRef = await addDoc(collection(db, "echelonne"), {
+          test: true,
+          uid: user.uid,
+          createdAt: serverTimestamp(),
+        });
+
+        // Si on arrive ici, la collection est accessible
+        console.log("Collection 'echelonne' accessible, suppression du test");
+        await deleteDoc(doc(db, "echelonne", testRef.id));
+      } catch (error) {
+        console.log(
+          "Impossible d'écrire dans 'echelonne', utilisation de 'xfois':",
+          error
+        );
+        collectionName = "xfois";
+      }
+
       if (editIndex !== null && paiements[editIndex]) {
         // MODIFICATION
-        const paiementId = paiements[editIndex].id;
-        await updateDoc(doc(db, "xfois", paiementId), {
-          nom: newPaiement.nom,
-          montant: parseFloat(newPaiement.montant),
-          mensualites: parseInt(newPaiement.mensualites, 10),
-          debutDate: newPaiement.debutDate,
-          categorie: newPaiement.categorie || "Autre",
-        });
-        // Notification modification paiement échelonné
-        await addDoc(collection(db, "notifications"), {
-          type: "echelonne",
-          title: "Paiement échelonné modifié",
-          desc: `Modification de ${
-            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
-          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
+        try {
+          const paiementId = paiements[editIndex].id;
+          console.log(
+            `Modification du paiement: ${collectionName}/${paiementId}`
+          );
+
+          await updateDoc(doc(db, collectionName, paiementId), {
+            nom: newPaiement.nom,
+            montant: parseFloat(newPaiement.montant),
+            mensualites: parseInt(newPaiement.mensualites, 10),
+            debutDate: newPaiement.debutDate,
+            categorie: newPaiement.categorie || "Autre",
+            updatedAt: serverTimestamp(),
+          });
+
+          console.log("✅ Modification réussie");
+        } catch (modifError) {
+          console.error("Erreur lors de la modification:", modifError);
+          throw new Error(
+            `Erreur lors de la modification: ${modifError.message}`
+          );
+        }
+
+        // Notification
+        try {
+          await addDoc(collection(db, "notifications"), {
+            type: "echelonne",
+            title: "Paiement échelonné modifié",
+            desc: `Modification de ${
+              newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
+            } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+            date: new Date().toLocaleDateString("fr-FR"),
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        } catch (notifError) {
+          console.error(
+            "Erreur lors de l'ajout de notification (non bloquant):",
+            notifError
+          );
+          // On continue même si l'ajout de notification échoue
+        }
       } else {
         // AJOUT
-        await addDoc(collection(db, "xfois"), {
-          nom: newPaiement.nom,
-          montant: parseFloat(newPaiement.montant),
-          mensualites: parseInt(newPaiement.mensualites, 10),
-          debutDate: newPaiement.debutDate,
-          categorie: newPaiement.categorie || "Autre",
-          createdAt: serverTimestamp(),
-        });
-        // Notification ajout paiement échelonné
-        await addDoc(collection(db, "notifications"), {
-          type: "echelonne",
-          title: "Nouveau paiement échelonné",
-          desc: `Ajout de ${
-            newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
-          } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
-          date: new Date().toLocaleDateString("fr-FR"),
-          read: false,
-          createdAt: serverTimestamp(),
-        });
-      }
-      await fetchPaiements();
-      setShowModal(false);
-      setStep(1);
-      setNewPaiement({
-        nom: "",
-        montant: "",
-        mensualites: "",
-        debutDate: defaultDebutDate,
-        categorie: "",
-      });
-      setEditIndex(null);
+        try {
+          console.log(
+            `Création d'un nouveau paiement échelonné dans ${collectionName}`
+          );
 
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
+          const newData = {
+            nom: newPaiement.nom,
+            montant: parseFloat(newPaiement.montant),
+            mensualites: parseInt(newPaiement.mensualites, 10),
+            debutDate: newPaiement.debutDate,
+            categorie: newPaiement.categorie || "Autre",
+            createdAt: serverTimestamp(),
+            uid: user.uid,
+          };
+
+          console.log("Données à ajouter:", newData);
+
+          const docRef = await addDoc(collection(db, collectionName), newData);
+
+          console.log(
+            `✅ Ajout réussi avec ID: ${docRef.id} dans ${collectionName}`
+          );
+        } catch (ajoutError) {
+          console.error("Erreur lors de l'ajout:", ajoutError);
+          throw new Error(`Erreur lors de l'ajout: ${ajoutError.message}`);
+        }
+
+        // Notification
+        try {
+          await addDoc(collection(db, "notifications"), {
+            type: "echelonne",
+            title: "Nouveau paiement échelonné",
+            desc: `Ajout de ${
+              newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
+            } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
+            date: new Date().toLocaleDateString("fr-FR"),
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        } catch (notifError) {
+          console.error(
+            "Erreur lors de l'ajout de notification (non bloquant):",
+            notifError
+          );
+          // On continue même si l'ajout de notification échoue
+        }
+      }
+
+      // Mise à jour du dashboard
+      try {
+        // Enregistrer le total mensuel dans une collection séparée pour le dashboard
+        const currentYear = selectedDate.getFullYear();
+        const currentMonth = selectedDate.getMonth() + 1;
+        const periodId = `${currentYear}-${currentMonth}`;
+
+        console.log(`Mise à jour du dashboard pour la période ${periodId}`);
+
+        // Calculer le total des paiements échelonnés pour le mois en cours
+        const updatedPaiements = await getDocs(collection(db, collectionName));
+        const userPaiements = updatedPaiements.docs
+          .filter((doc) => doc.data().uid === user.uid)
+          .map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        console.log(
+          `Paiements utilisateur après ajout/modification: ${userPaiements.length}`
+        );
+
+        // Filtrer pour n'avoir que les paiements actifs pour le mois courant
+        const activePaiements = userPaiements.filter((p) => {
+          if (!p.debutDate || !p.mensualites || !p.montant) return false;
+          const [startYear, startMonth] = p.debutDate.split("-").map(Number);
+          const debutDate = new Date(startYear, startMonth - 1);
+          const finDate = new Date(
+            startYear,
+            startMonth - 1 + parseInt(p.mensualites)
+          );
+          const currentDate = new Date(currentYear, currentMonth - 1);
+          return currentDate >= debutDate && currentDate < finDate;
+        });
+
+        console.log(
+          `Paiements actifs pour ${periodId}: ${activePaiements.length}`
+        );
+
+        // Calculer le total mensuel
+        const totalMensuel = activePaiements.reduce((sum, p) => {
+          const mensualite = parseFloat(p.montant) / parseInt(p.mensualites);
+          return sum + mensualite;
+        }, 0);
+
+        // Récupérer ou créer le document pour ce mois
+        const dashboardRef = doc(db, "dashboard", periodId);
+
+        // Vérifier si le document existe déjà
+        const dashboardDoc = await getDoc(dashboardRef);
+
+        if (dashboardDoc.exists()) {
+          // Mettre à jour le document existant
+          await updateDoc(dashboardRef, {
+            echelonneTotal: totalMensuel,
+            updatedAt: serverTimestamp(),
+          });
+        } else {
+          // Créer un nouveau document
+          await setDoc(dashboardRef, {
+            echelonneTotal: totalMensuel,
+            year: currentYear,
+            month: currentMonth,
+            updatedAt: serverTimestamp(),
+            uid: user.uid,
+          });
+        }
+
+        console.log(
+          `Total échelonné pour ${periodId} mis à jour: ${totalMensuel}€`
+        );
+      } catch (dashboardError) {
+        console.error(
+          "Erreur lors de la mise à jour du dashboard (non bloquant):",
+          dashboardError
+        );
+        // On continue même si la mise à jour du dashboard échoue
+      }
+
+      try {
+        // Réinitialiser l'état et fermer la modale
+        await fetchPaiements();
+        setShowModal(false);
+        setStep(1);
+        setNewPaiement({
+          nom: "",
+          montant: "",
+          mensualites: "",
+          debutDate: defaultDebutDate,
+          categorie: "",
+        });
+        setEditIndex(null);
+
+        // Déclencher un événement pour mettre à jour le tableau de bord
+        window.dispatchEvent(new Event("data-updated"));
+      } catch (resetError) {
+        console.error(
+          "Erreur lors de la réinitialisation de l'interface:",
+          resetError
+        );
+      }
+
+      console.log("Processus d'ajout/modification terminé avec succès");
     } catch (err) {
-      console.error("Erreur Firestore add/update xfois:", err);
+      console.error("❌ Erreur Firestore add/update:", err);
+      alert(`Une erreur est survenue: ${err.message || "Erreur inconnue"}`);
     }
   };
 
@@ -271,16 +606,16 @@ export default function PaiementEchelonne() {
   };
 
   // Fonction pour gérer le mode sélection multiple
-  const toggleMultiSelectMode = () => {
-    setIsMultiSelectMode(!isMultiSelectMode);
-    if (isMultiSelectMode) {
+  const _toggleMultiSelectMode = () => {
+    setIsMultiSelectMode(!_isMultiSelectMode);
+    if (_isMultiSelectMode) {
       setSelectedPaiements([]);
     }
   };
 
   // Fonction pour sélectionner/désélectionner un paiement
-  const togglePaiementSelection = (paiement) => {
-    if (!isMultiSelectMode) return;
+  const _togglePaiementSelection = (paiement) => {
+    if (!_isMultiSelectMode) return;
 
     setSelectedPaiements((prev) => {
       const isSelected = prev.some((p) => p.id === paiement.id);
@@ -292,50 +627,15 @@ export default function PaiementEchelonne() {
     });
   };
 
-  // Fonction pour supprimer un paiement sans toast
-  const handleDelete = async (idx) => {
-    if (!user) return;
-    const paiement = paiements[idx];
-    if (!paiement || !paiement.id) return;
-
-    try {
-      console.log(`🔥 SUPPRESSION: xfois/${paiement.id}`);
-      await deleteDoc(doc(db, "xfois", paiement.id));
-      console.log(`✅ Document supprimé avec succès: xfois/${paiement.id}`);
-
-      setPaiements((prev) => prev.filter((_, i) => i !== idx));
-
-      // Notification suppression paiement échelonné
-      await addDoc(collection(db, "notifications"), {
-        type: "echelonne",
-        title: "Paiement échelonné supprimé",
-        desc: `Suppression de ${
-          paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
-        } (${parseFloat(paiement.montant).toFixed(2)}€)`,
-        date: new Date().toLocaleDateString("fr-FR"),
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
-    } catch (error) {
-      console.error(
-        `❌ ERREUR lors de la suppression: ${error.message || error}`
-      );
-      console.error(error);
-    }
-  };
-
   // Fonction pour supprimer plusieurs paiements
-  const deleteSelectedPaiements = async () => {
-    if (selectedPaiements.length === 0) return;
+  const _deleteSelectedPaiements = async () => {
+    if (_selectedPaiements.length === 0) return;
 
     try {
       // Supprimer chaque paiement sélectionné
       const operations = [];
-      for (const paiement of selectedPaiements) {
-        operations.push(deleteDoc(doc(db, "xfois", paiement.id)));
+      for (const paiement of _selectedPaiements) {
+        operations.push(deleteDoc(doc(db, "echelonne", paiement.id)));
       }
 
       // Attendre que toutes les opérations de suppression soient terminées
@@ -343,7 +643,7 @@ export default function PaiementEchelonne() {
 
       // Mettre à jour les états locaux
       setPaiements((prev) =>
-        prev.filter((p) => !selectedPaiements.some((sp) => sp.id === p.id))
+        prev.filter((p) => !_selectedPaiements.some((sp) => sp.id === p.id))
       );
 
       // Réinitialiser la sélection
@@ -361,7 +661,7 @@ export default function PaiementEchelonne() {
   };
 
   // Quand on ouvre la modale pour ajouter, on remet la date actuelle par défaut
-  const handleOpenModal = () => {
+  const _handleOpenModal = () => {
     setShowModal(true);
     setStep(1);
     setEditIndex(null);
@@ -369,30 +669,34 @@ export default function PaiementEchelonne() {
       nom: "",
       montant: "",
       mensualites: "",
-      debutDate: defaultDebutDate,
+      debutDate: new Date(selectedDate).toISOString().split("T")[0],
       categorie: "",
     });
   };
 
   // Optimisation : calcul du pourcentage payé avec useMemo pour chaque paiement
-  const paiementsAvecPourcentage = useMemo(() => {
+  const _paiementsAvecPourcentage = useMemo(() => {
     const now = new Date();
-    const currentMonth = now.getMonth() + 1;
+    const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     return paiements.map((item) => {
       if (!item.debutDate || !item.mensualites)
         return { ...item, mensualitesPayees: 1, percentPaye: 0 };
       const [startYear, startMonth] = item.debutDate.split("-").map(Number);
-      const debut = new Date(startYear, startMonth - 1);
-      const nowDate = new Date(currentYear, currentMonth - 1);
-      // Calcul du nombre de mensualités déjà passées (1 si on commence ce mois)
+
+      // Calcul du nombre de mensualités déjà passées
+      // Première mensualité = mois de début
+      // Pour un paiement commençant en mars:
+      // - mars = mensualité 1
+      // - avril = mensualité 2, etc.
+      const moisEcoules =
+        (currentYear - startYear) * 12 + (currentMonth - (startMonth - 1));
+
       let mensualitesPayees = Math.max(
         1,
-        Math.min(
-          item.mensualites,
-          (currentYear - startYear) * 12 + (currentMonth - startMonth) + 1
-        )
+        Math.min(item.mensualites, moisEcoules + 1)
       );
+
       const percentPaye =
         item.mensualites && item.mensualites > 0
           ? (mensualitesPayees / item.mensualites) * 100
@@ -401,10 +705,122 @@ export default function PaiementEchelonne() {
     });
   }, [paiements]);
 
+  // Fonction pour supprimer un paiement sans toast
+  const handleDelete = async (idx) => {
+    if (!user) return;
+    const paiement = paiements[idx];
+    if (!paiement || !paiement.id) return;
+
+    try {
+      // Déterminer quelle collection utiliser
+      let collectionName = "echelonne"; // Tenter d'abord echelonne
+
+      try {
+        // Tester si la collection echelonne est accessible en lecture
+        await getDocs(collection(db, "echelonne"));
+      } catch (error) {
+        console.log(
+          "Impossible de lire 'echelonne', utilisation de 'xfois':",
+          error
+        );
+        collectionName = "xfois";
+      }
+
+      console.log(`🔥 SUPPRESSION: ${collectionName}/${paiement.id}`);
+      await deleteDoc(doc(db, collectionName, paiement.id));
+      console.log(
+        `✅ Document supprimé avec succès: ${collectionName}/${paiement.id}`
+      );
+
+      setPaiements((prev) => prev.filter((_, i) => i !== idx));
+
+      // Notification suppression paiement échelonné
+      await addDoc(collection(db, "notifications"), {
+        type: "echelonne",
+        title: "Paiement échelonné supprimé",
+        desc: `Suppression de ${
+          paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
+        } (${parseFloat(paiement.montant).toFixed(2)}€)`,
+        date: new Date().toLocaleDateString("fr-FR"),
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+
+      // Mettre à jour le total dans la collection dashboard
+      const currentYear = selectedDate.getFullYear();
+      const currentMonth = selectedDate.getMonth() + 1;
+      const periodId = `${currentYear}-${currentMonth}`;
+
+      try {
+        // Recalculer le total après suppression
+        const updatedPaiements = await getDocs(collection(db, collectionName));
+        const userPaiements = updatedPaiements.docs
+          .filter((doc) => doc.data().uid === user.uid)
+          .map((doc) => doc.data());
+
+        // Filtrer pour n'avoir que les paiements actifs pour le mois courant
+        const activePaiements = userPaiements.filter((p) => {
+          if (!p.debutDate || !p.mensualites || !p.montant) return false;
+          const [startYear, startMonth] = p.debutDate.split("-").map(Number);
+          const debutDate = new Date(startYear, startMonth - 1);
+          const finDate = new Date(
+            startYear,
+            startMonth - 1 + parseInt(p.mensualites)
+          );
+          const currentDate = new Date(currentYear, currentMonth - 1);
+          return currentDate >= debutDate && currentDate < finDate;
+        });
+
+        // Calculer le total mensuel
+        const totalMensuel = activePaiements.reduce((sum, p) => {
+          const mensualite = parseFloat(p.montant) / parseInt(p.mensualites);
+          return sum + mensualite;
+        }, 0);
+
+        // Récupérer ou créer le document pour ce mois
+        const dashboardRef = doc(db, "dashboard", periodId);
+
+        // Vérifier si le document existe déjà
+        const dashboardDoc = await getDoc(dashboardRef);
+
+        if (dashboardDoc.exists()) {
+          // Mettre à jour le document existant
+          await updateDoc(dashboardRef, {
+            echelonneTotal: totalMensuel,
+            updatedAt: serverTimestamp(),
+          });
+        } else {
+          // Créer un nouveau document
+          await setDoc(dashboardRef, {
+            echelonneTotal: totalMensuel,
+            year: currentYear,
+            month: currentMonth,
+            updatedAt: serverTimestamp(),
+            uid: user.uid,
+          });
+        }
+
+        console.log(
+          `Total échelonné pour ${periodId} mis à jour après suppression: ${totalMensuel}€`
+        );
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour du dashboard:", error);
+      }
+
+      // Déclencher un événement pour mettre à jour le tableau de bord
+      window.dispatchEvent(new Event("data-updated"));
+    } catch (error) {
+      console.error(
+        `❌ ERREUR lors de la suppression: ${error.message || error}`
+      );
+      console.error(error);
+    }
+  };
+
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
       <div className='max-w-6xl mx-auto'>
-        {/* En-tête et boutons d'action */}
+        {/* En-tête et sélecteur de mois */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
           <div>
             <h1 className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
@@ -414,13 +830,52 @@ export default function PaiementEchelonne() {
               Gérez vos paiements en plusieurs fois.
             </div>
           </div>
-          <div className='flex flex-col sm:flex-row gap-2 mt-4 md:mt-0'>
-            <button
-              onClick={handleOpenModal}
-              className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
-              <span className='text-lg font-bold'>+</span>
-              <span>Ajouter</span>
-            </button>
+          {/* Sélecteur mois/année */}
+          <div className='flex items-center mt-4 md:mt-0'>
+            <div className='flex items-center bg-[#f6f9fb] dark:bg-black rounded-xl px-4 py-2 shadow-none border border-transparent'>
+              <button
+                className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
+                onClick={handlePrevMonth}
+                aria-label='Mois précédent'
+                type='button'>
+                <AiOutlineArrowLeft />
+              </button>
+              <div className='mx-4 text-[#222] dark:text-white text-lg font-medium w-40 text-center'>
+                {getMonthYear(selectedDate)}
+              </div>
+              <button
+                className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
+                onClick={handleNextMonth}
+                aria-label='Mois suivant'
+                type='button'>
+                <AiOutlineArrowRight />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Cartes de statistiques */}
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
+          {/* Carte 1: Total mensuel */}
+          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-blue-600 dark:text-blue-400 mb-2'>
+              <AiOutlineDollarCircle className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Total Mensuel</span>
+            </div>
+            <div className='text-2xl text-[#222] dark:text-white'>
+              {totalDepenses.toFixed(2)} €
+            </div>
+          </div>
+
+          {/* Carte 2: Paiements actifs */}
+          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
+              <AiOutlineCalendar className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Paiements Actifs</span>
+            </div>
+            <div className='text-2xl text-[#222] dark:text-white'>
+              {paiements.length} paiements
+            </div>
           </div>
         </div>
 
@@ -432,62 +887,40 @@ export default function PaiementEchelonne() {
                 Paiements Échelonnés
               </div>
               <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                Liste de tous vos paiements en plusieurs fois
+                Paiements du mois de {getMonthYear(selectedDate)}
               </div>
+            </div>
+            {/* Bouton Ajouter - toujours visible ici */}
+            <div className='flex space-x-3'>
+              <button
+                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                onClick={() => {
+                  setEditIndex(null);
+                  setNewPaiement({
+                    nom: "",
+                    montant: "",
+                    mensualites: "",
+                    debutDate: new Date(selectedDate)
+                      .toISOString()
+                      .split("T")[0],
+                    categorie: "",
+                  });
+                  setShowModal(true);
+                  setStep(1);
+                }}>
+                <span className='text-lg font-bold'>+</span>
+                <span>Ajouter</span>
+              </button>
             </div>
           </div>
 
-          {/* Affichage du total mensuel */}
-          {paiements.length > 0 && renderTotalMensuel()}
-
           {paiements.length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
-              <p>Aucun paiement échelonné à afficher.</p>
-              <button
-                onClick={handleOpenModal}
-                className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
-                <span className='text-lg font-bold'>+</span>
-                <span>Ajouter un paiement échelonné</span>
-              </button>
+              <p>Aucun paiement échelonné pour {getMonthYear(selectedDate)}.</p>
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
               {paiements.map((paiement, idx) => {
-                // Calculer le pourcentage de progression
-                const totalPaiement = parseFloat(paiement.montant);
-                const mensualite =
-                  totalPaiement / parseFloat(paiement.mensualites);
-
-                // Calculer le nombre de paiements effectués
-                let paiementsEffectues = 0;
-                if (paiement.debutDate) {
-                  const [debutAnnee, debutMois] = paiement.debutDate
-                    .split("-")
-                    .map(Number);
-                  const dateDebut = new Date(debutAnnee, debutMois - 1);
-                  const maintenant = new Date();
-                  const moisEcoules =
-                    (maintenant.getFullYear() - dateDebut.getFullYear()) * 12 +
-                    maintenant.getMonth() -
-                    dateDebut.getMonth() +
-                    1;
-                  paiementsEffectues = Math.min(
-                    moisEcoules,
-                    parseInt(paiement.mensualites)
-                  );
-                }
-
-                const progressPercent = Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    (paiementsEffectues / parseFloat(paiement.mensualites)) *
-                      100
-                  )
-                );
-                const montantRestant =
-                  totalPaiement - mensualite * paiementsEffectues;
-
                 return (
                   <div
                     key={paiement.id || idx}
@@ -506,29 +939,50 @@ export default function PaiementEchelonne() {
                       </div>
                       <div className='flex flex-col items-end'>
                         <div className='font-bold text-green-600 dark:text-green-400'>
-                          {(montantRestant / paiement.mensualites).toFixed(2)}
+                          {(
+                            parseFloat(paiement.montant) /
+                            parseFloat(paiement.mensualites)
+                          ).toFixed(2)}
                           €/mois
                         </div>
                       </div>
                     </div>
 
                     <div className='mt-4 text-sm text-green-500 font-medium'>
-                      Mensualité {paiementsEffectues}/{paiement.mensualites}
+                      Mensualité {paiement.mensualitesPayees}/
+                      {paiement.mensualites}
                     </div>
 
                     <div className='mt-1 mb-2 bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden'>
                       <div
                         className='bg-green-500 h-full'
-                        style={{ width: `${progressPercent}%` }}
+                        style={{
+                          width: `${
+                            (paiement.mensualitesPayees /
+                              parseFloat(paiement.mensualites)) *
+                            100
+                          }%`,
+                        }}
                       />
                     </div>
 
                     <div className='mt-1 flex justify-between text-gray-500 dark:text-gray-400 text-sm'>
-                      <div>Reste à payer: {montantRestant.toFixed(2)}€</div>
+                      <div>
+                        Reste à payer:{" "}
+                        {(
+                          parseFloat(paiement.montant) -
+                          (parseFloat(paiement.montant) /
+                            parseFloat(paiement.mensualites)) *
+                            paiement.mensualitesPayees
+                        ).toFixed(2)}
+                        €
+                      </div>
                       <div>
                         Début:{" "}
                         {paiement.debutDate
-                          ? paiement.debutDate.replace("-", " ")
+                          ? new Date(paiement.debutDate).toLocaleDateString(
+                              "fr-FR"
+                            )
                           : "N/A"}
                       </div>
                     </div>
@@ -604,7 +1058,7 @@ export default function PaiementEchelonne() {
                   nom: "",
                   montant: "",
                   mensualites: "",
-                  debutDate: defaultDebutDate,
+                  debutDate: new Date(selectedDate).toISOString().split("T")[0],
                   categorie: "",
                 });
                 setEditIndex(null);
@@ -614,8 +1068,9 @@ export default function PaiementEchelonne() {
             </button>
             <div className='mb-6 text-lg font-semibold dark:text-white'>
               {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
-              échelonné
+              échelonné pour {getMonthYear(selectedDate)}
             </div>
+
             {/* Récapitulatif dynamique */}
             <div className='mb-4 dark:text-gray-300'>
               {newPaiement.nom && (
@@ -804,18 +1259,32 @@ export default function PaiementEchelonne() {
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                   ref={debutDateInputRef}
                   autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newPaiement.debutDate) {
+                      e.preventDefault();
+                      console.log("Validation par touche Entrée");
+                      handleAddOrEditPaiement();
+                    }
+                  }}
                 />
-                <div className='flex justify-between'>
+                <div className='flex justify-between mt-4'>
                   <button
-                    className='text-gray-600 dark:text-gray-400'
+                    type='button'
+                    className='text-gray-600 dark:text-gray-400 px-4 py-2'
                     onClick={handlePrev}>
                     Précédent
                   </button>
                   <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    type='button'
+                    className='bg-gray-900 text-white px-6 py-2 rounded-lg font-medium'
                     disabled={!newPaiement.debutDate}
-                    onClick={handleAddOrEditPaiement}>
-                    {editIndex !== null ? "Modifier" : "Ajouter"}
+                    onClick={() => {
+                      console.log("Validation par clic bouton");
+                      handleAddOrEditPaiement();
+                    }}>
+                    {editIndex !== null
+                      ? "Valider la modification"
+                      : "Valider l'ajout"}
                   </button>
                 </div>
               </div>
