@@ -53,6 +53,9 @@ export default function Agenda() {
   const [year, setYear] = useState(2025);
   const [selected, setSelected] = useState({ day: 7, month: 4, year: 2025 });
 
+  // État pour contrôler l'affichage du sélecteur de date
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   // États pour les transactions du mois
   const [depensesMois, setDepensesMois] = useState([]);
   const [revenusMois, setRevenusMois] = useState([]);
@@ -284,6 +287,24 @@ export default function Agenda() {
     } else {
       setMonth((m) => m + 1);
     }
+  };
+
+  // Fonctions pour le sélecteur de date
+  const handleYearSelect = (yearValue) => {
+    console.log(`Année sélectionnée: ${yearValue}`);
+    setYear(yearValue);
+  };
+
+  const handleMonthSelect = (monthIndex) => {
+    console.log(`Mois sélectionné: ${MONTHS[monthIndex]} (${monthIndex})`);
+    setMonth(monthIndex);
+  };
+
+  const handleDatePickerConfirm = () => {
+    console.log(`Date confirmée: ${MONTHS[month]} ${year}`);
+    // Réinitialiser la sélection du jour au premier jour du mois
+    setSelected({ day: 1, month: month, year: year });
+    setShowDatePicker(false);
   };
 
   useEffect(() => {
@@ -537,7 +558,9 @@ export default function Agenda() {
               aria-label='Mois précédent'>
               &lt;
             </button>
-            <div className='flex items-center border dark:border-gray-800 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-black font-medium text-lg'>
+            <div
+              className='flex items-center border dark:border-gray-800 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-black font-medium text-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900'
+              onClick={() => setShowDatePicker(true)}>
               <AiOutlineCalendar className='mr-2' />
               {MONTHS[month]} {year}
             </div>
@@ -548,6 +571,95 @@ export default function Agenda() {
               &gt;
             </button>
           </div>
+
+          {/* Sélecteur de mois et année */}
+          {showDatePicker && (
+            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+              <div className='bg-white dark:bg-gray-900 rounded-lg shadow-xl p-6 w-80'>
+                <div className='flex justify-between items-center mb-4'>
+                  <h3 className='text-lg font-medium text-gray-700 dark:text-gray-300'>
+                    Sélectionner une date
+                  </h3>
+                  <button
+                    className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                    onClick={() => setShowDatePicker(false)}>
+                    &times;
+                  </button>
+                </div>
+
+                {/* Sélecteur d'année */}
+                <div className='mb-4'>
+                  <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
+                    Année
+                  </label>
+                  <div className='space-y-2'>
+                    {/* Décennies */}
+                    {[2020, 2030, 2040, 2050].map((decennie) => (
+                      <div
+                        key={decennie}
+                        className='grid grid-cols-5 gap-2 mb-2'>
+                        {[...Array(10)].map((_, i) => {
+                          const yearValue = decennie + i;
+                          return (
+                            <button
+                              key={yearValue}
+                              className={`py-2 px-3 rounded text-sm ${
+                                yearValue === year
+                                  ? "bg-teal-500 text-white"
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                              }`}
+                              onClick={() => {
+                                handleYearSelect(yearValue);
+                              }}>
+                              {yearValue}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sélecteur de mois */}
+                <div className='mb-4'>
+                  <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
+                    Mois
+                  </label>
+                  <div className='grid grid-cols-3 gap-2'>
+                    {MONTHS.map((monthName, idx) => (
+                      <button
+                        key={idx}
+                        className={`py-2 px-3 rounded ${
+                          idx === month
+                            ? "bg-teal-500 text-white"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                        onClick={() => {
+                          handleMonthSelect(idx);
+                        }}>
+                        {monthName.substring(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Boutons d'action */}
+                <div className='flex justify-end space-x-2'>
+                  <button
+                    className='px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600'
+                    onClick={() => setShowDatePicker(false)}>
+                    Annuler
+                  </button>
+                  <button
+                    className='px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600'
+                    onClick={handleDatePickerConfirm}>
+                    Valider
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className='mb-6'>
             <div className='grid grid-cols-7 text-center mb-2 text-gray-500 dark:text-gray-400 font-medium'>
               {DAYS.map((d) => (

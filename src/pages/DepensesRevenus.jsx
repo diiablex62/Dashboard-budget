@@ -26,24 +26,10 @@ import {
   addOrUpdateRevenu,
   deleteTransaction,
 } from "../utils/transactionUtils";
+import { MONTHS } from "../utils/categoryUtils";
 
 // Importation du composant TransactionsChart
 import TransactionsChart from "../components/TransactionsChart";
-
-const MONTHS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
 
 function RevenuModal({
   onClose,
@@ -611,6 +597,16 @@ export default function DepensesRevenus() {
   // Autres états existants
   const [editTransaction, setEditTransaction] = useState(null);
 
+  // État pour le contenu des modales
+  const [depenseModalVisible, setDepenseModalVisible] = useState(false);
+  const [revenuModalVisible, setRevenuModalVisible] = useState(false);
+
+  // État pour contrôler l'affichage du sélecteur de date
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // États pour la sélection des transactions
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
   const dateInputRef = useRef(null);
@@ -783,6 +779,30 @@ export default function DepensesRevenus() {
       d.setMonth(d.getMonth() + 1);
       return d;
     });
+  };
+
+  // Fonctions pour le sélecteur de date avancé
+  const handleYearSelect = (yearValue) => {
+    console.log(`Année sélectionnée: ${yearValue}`);
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setFullYear(yearValue);
+      return d;
+    });
+  };
+
+  const handleMonthSelect = (monthIndex) => {
+    console.log(`Mois sélectionné: ${MONTHS[monthIndex]} (${monthIndex})`);
+    setSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(monthIndex);
+      return d;
+    });
+  };
+
+  const handleDatePickerConfirm = () => {
+    console.log(`Date confirmée: ${getMonthYear(selectedDate)}`);
+    setShowDatePicker(false);
   };
 
   // Gestion du filtre par catégorie
@@ -1006,7 +1026,9 @@ export default function DepensesRevenus() {
                 type='button'>
                 <AiOutlineArrowLeft />
               </button>
-              <div className='mx-4 text-[#222] dark:text-white text-lg font-medium w-40 text-center'>
+              <div
+                className='mx-4 text-[#222] dark:text-white text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] dark:hover:bg-gray-900 px-3 py-1 rounded transition'
+                onClick={() => setShowDatePicker(true)}>
                 {getMonthYear(selectedDate)}
               </div>
               <button
@@ -1019,6 +1041,88 @@ export default function DepensesRevenus() {
             </div>
           </div>
         </div>
+
+        {/* Sélecteur de mois et année */}
+        {showDatePicker && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+            <div className='bg-white dark:bg-gray-900 rounded-lg shadow-xl p-6 w-80'>
+              <div className='flex justify-between items-center mb-4'>
+                <h3 className='text-lg font-medium text-gray-700 dark:text-gray-300'>
+                  Sélectionner une date
+                </h3>
+                <button
+                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+                  onClick={() => setShowDatePicker(false)}>
+                  &times;
+                </button>
+              </div>
+
+              {/* Sélecteur d'année */}
+              <div className='mb-4'>
+                <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
+                  Année
+                </label>
+                <div className='space-y-2'>
+                  {/* Décennies */}
+                  {[2020, 2030, 2040, 2050].map((decennie) => (
+                    <div key={decennie} className='grid grid-cols-5 gap-2 mb-2'>
+                      {[...Array(10)].map((_, i) => {
+                        const yearValue = decennie + i;
+                        return (
+                          <button
+                            key={yearValue}
+                            className={`py-2 px-3 rounded text-sm ${
+                              yearValue === selectedDate.getFullYear()
+                                ? "bg-teal-500 text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            }`}
+                            onClick={() => handleYearSelect(yearValue)}>
+                            {yearValue}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sélecteur de mois */}
+              <div className='mb-4'>
+                <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
+                  Mois
+                </label>
+                <div className='grid grid-cols-3 gap-2'>
+                  {MONTHS.map((monthName, idx) => (
+                    <button
+                      key={idx}
+                      className={`py-2 px-3 rounded ${
+                        idx === selectedDate.getMonth()
+                          ? "bg-teal-500 text-white"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                      onClick={() => handleMonthSelect(idx)}>
+                      {monthName.substring(0, 3)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Boutons d'action */}
+              <div className='flex justify-end space-x-2'>
+                <button
+                  className='px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600'
+                  onClick={() => setShowDatePicker(false)}>
+                  Annuler
+                </button>
+                <button
+                  className='px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600'
+                  onClick={handleDatePickerConfirm}>
+                  Valider
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Filtre actif */}
         {categoryFilter && (
