@@ -104,7 +104,7 @@ export default function Agenda() {
   // Fonction pour mettre à jour les paiements récurrents en fonction du jour sélectionné
   const updateRecurrentsForSelectedDay = (day) => {
     console.log(
-      `Les paiements récurrents restent au jour fixe même si le jour sélectionné est ${day}`
+      `Les paiements récurrents sont attachés à leurs jours spécifiques de prélèvement`
     );
   };
 
@@ -279,26 +279,10 @@ export default function Agenda() {
 
         setEchelonnesMois(uniqueEchelonnes);
 
-        // Récupérer les paiements récurrents une seule fois
+        // Récupérer les paiements récurrents pour chaque jour du mois
         console.log("Récupération des paiements récurrents pour le mois");
         const allRecurrents = await getAllRecurrentPayments();
-
-        // On suppose que les paiements récurrents sont dus le 1er du mois
-        // Vous pouvez ajuster cette date selon votre logique métier
-        const jourPaiementsRecurrents = 1;
-        const dateRecurrents = `${year}-${String(month + 1).padStart(
-          2,
-          "0"
-        )}-${String(jourPaiementsRecurrents).padStart(2, "0")}`;
-
-        // Ajouter la date du 1er du mois à chaque paiement récurrent
-        const recurrentsWithDate = allRecurrents.map((payment) => ({
-          ...payment,
-          date: dateRecurrents,
-          type: "recurrent",
-        }));
-
-        setRecurrentsMois(recurrentsWithDate);
+        const recurrentsMoisArray = [];
 
         // Créer un objet pour suivre les jours avec des transactions
         const jourTransactions = {};
@@ -351,20 +335,43 @@ export default function Agenda() {
           }
         });
 
-        // Marquer uniquement le jour spécifique pour les paiements récurrents
-        if (allRecurrents.length > 0) {
-          if (!jourTransactions[jourPaiementsRecurrents]) {
-            jourTransactions[jourPaiementsRecurrents] = {
+        // Pour chaque paiement récurrent, ajouter une entrée sur son jour de prélèvement
+        allRecurrents.forEach((recurrent) => {
+          const jourPrelevement = recurrent.jourPrelevement || 1;
+          // Vérifier que le jour existe dans ce mois (maximum = nombre de jours dans le mois)
+          const jourEffectif = Math.min(
+            jourPrelevement,
+            currentMonthEnd.getDate()
+          );
+
+          // Créer la date pour ce paiement dans le mois courant
+          const dateRecurrent = new Date(year, month, jourEffectif);
+          const dateStr = dateRecurrent.toISOString().split("T")[0];
+
+          // Ajouter le paiement à la liste
+          recurrentsMoisArray.push({
+            ...recurrent,
+            date: dateStr,
+            type: "recurrent",
+          });
+
+          // Marquer le jour comme ayant un paiement récurrent
+          if (!jourTransactions[jourEffectif]) {
+            jourTransactions[jourEffectif] = {
               depenses: false,
               revenus: false,
               echelonnes: false,
               recurrents: true,
             };
           } else {
-            jourTransactions[jourPaiementsRecurrents].recurrents = true;
+            jourTransactions[jourEffectif].recurrents = true;
           }
-        }
+        });
 
+        // Trier les paiements récurrents par date
+        recurrentsMoisArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        setRecurrentsMois(recurrentsMoisArray);
         setJoursDepsRev(jourTransactions);
 
         // Scroller vers les transactions de la date sélectionnée si elle existe
@@ -483,108 +490,8 @@ export default function Agenda() {
           <div className='text-lg font-semibold mb-4 text-gray-800 dark:text-white'>
             Événements de {MONTHS[month]}
           </div>
-
-          {/* Première ligne : Dépenses et Revenus */}
-          <div className='grid grid-cols-2 gap-4 mb-6'>
-            {/* Colonne des dépenses */}
-            <div className='border dark:border-gray-800 rounded-lg p-4'>
-              <h3 className='text-base font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center'>
-                <span className='w-3 h-3 bg-red-400 rounded-full mr-2'></span>
-                Dépenses
-              </h3>
-              <div
-                ref={depensesListRef}
-                className='max-h-60 overflow-y-auto text-sm'>
-                {depensesMois.length > 0 ? (
-                  <ul className='space-y-2'>
-                    {depensesMois.map((depense) => {
-                      // Vérifier si la transaction est pour la date sélectionnée
-                      const isSelected = depense.date === selectedDateFormatted;
-                      // Formater la date pour n'afficher que le jour/mois
-                      const dateObj = new Date(depense.date);
-                      const jour = dateObj
-                        .getDate()
-                        .toString()
-                        .padStart(2, "0");
-                      const mois = (dateObj.getMonth() + 1)
-                        .toString()
-                        .padStart(2, "0");
-                      const dateSimple = `${jour}/${mois}`;
-                      return (
-                        <li
-                          key={depense.id}
-                          id={`depense-${depense.date}`}
-                          className={`flex items-center pb-2 transition-all duration-300 ${
-                            isSelected
-                              ? "border-l-4 border-red-400 dark:border-red-500 pl-2 bg-red-50 dark:bg-red-900/10 rounded"
-                              : "border-b border-gray-100 dark:border-gray-800"
-                          }`}>
-                          <span className='text-gray-700 dark:text-gray-300'>
-                            {dateSimple} - {depense.nom}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <div className='text-gray-500 dark:text-gray-400 text-center'>
-                    Aucune dépense ce mois-ci
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Colonne des revenus */}
-            <div className='border dark:border-gray-800 rounded-lg p-4'>
-              <h3 className='text-base font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center'>
-                <span className='w-3 h-3 bg-green-400 rounded-full mr-2'></span>
-                Revenus
-              </h3>
-              <div
-                ref={revenusListRef}
-                className='max-h-60 overflow-y-auto text-sm'>
-                {revenusMois.length > 0 ? (
-                  <ul className='space-y-2'>
-                    {revenusMois.map((revenu) => {
-                      // Vérifier si la transaction est pour la date sélectionnée
-                      const isSelected = revenu.date === selectedDateFormatted;
-                      // Formater la date pour n'afficher que le jour/mois
-                      const dateObj = new Date(revenu.date);
-                      const jour = dateObj
-                        .getDate()
-                        .toString()
-                        .padStart(2, "0");
-                      const mois = (dateObj.getMonth() + 1)
-                        .toString()
-                        .padStart(2, "0");
-                      const dateSimple = `${jour}/${mois}`;
-                      return (
-                        <li
-                          key={revenu.id}
-                          id={`revenu-${revenu.date}`}
-                          className={`flex items-center pb-2 transition-all duration-300 ${
-                            isSelected
-                              ? "border-l-4 border-green-400 dark:border-green-500 pl-2 bg-green-50 dark:bg-green-900/10 rounded"
-                              : "border-b border-gray-100 dark:border-gray-800"
-                          }`}>
-                          <span className='text-gray-700 dark:text-gray-300'>
-                            {dateSimple} - {revenu.nom}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <div className='text-gray-500 dark:text-gray-400 text-center'>
-                    Aucun revenu ce mois-ci
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Deuxième ligne : Paiements échelonnés et récurrents */}
-          <div className='grid grid-cols-2 gap-4'>
+          <div className='grid grid-cols-2 gap-4 mb-6'>
             {/* Colonne des paiements échelonnés */}
             <div className='border dark:border-gray-800 rounded-lg p-4'>
               <h3 className='text-base font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center'>
@@ -705,6 +612,105 @@ export default function Agenda() {
                 ) : (
                   <div className='text-gray-500 dark:text-gray-400 text-center'>
                     Aucun paiement récurrent ce mois-ci
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Première ligne : Dépenses et Revenus */}
+          <div className='grid grid-cols-2 gap-4 '>
+            {/* Colonne des dépenses */}
+            <div className='border dark:border-gray-800 rounded-lg p-4'>
+              <h3 className='text-base font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center'>
+                <span className='w-3 h-3 bg-red-400 rounded-full mr-2'></span>
+                Dépenses
+              </h3>
+              <div
+                ref={depensesListRef}
+                className='max-h-60 overflow-y-auto text-sm'>
+                {depensesMois.length > 0 ? (
+                  <ul className='space-y-2'>
+                    {depensesMois.map((depense) => {
+                      // Vérifier si la transaction est pour la date sélectionnée
+                      const isSelected = depense.date === selectedDateFormatted;
+                      // Formater la date pour n'afficher que le jour/mois
+                      const dateObj = new Date(depense.date);
+                      const jour = dateObj
+                        .getDate()
+                        .toString()
+                        .padStart(2, "0");
+                      const mois = (dateObj.getMonth() + 1)
+                        .toString()
+                        .padStart(2, "0");
+                      const dateSimple = `${jour}/${mois}`;
+                      return (
+                        <li
+                          key={depense.id}
+                          id={`depense-${depense.date}`}
+                          className={`flex items-center pb-2 transition-all duration-300 ${
+                            isSelected
+                              ? "border-l-4 border-red-400 dark:border-red-500 pl-2 bg-red-50 dark:bg-red-900/10 rounded"
+                              : "border-b border-gray-100 dark:border-gray-800"
+                          }`}>
+                          <span className='text-gray-700 dark:text-gray-300'>
+                            {dateSimple} - {depense.nom}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <div className='text-gray-500 dark:text-gray-400 text-center'>
+                    Aucune dépense ce mois-ci
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Colonne des revenus */}
+            <div className='border dark:border-gray-800 rounded-lg p-4'>
+              <h3 className='text-base font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center'>
+                <span className='w-3 h-3 bg-green-400 rounded-full mr-2'></span>
+                Revenus
+              </h3>
+              <div
+                ref={revenusListRef}
+                className='max-h-60 overflow-y-auto text-sm'>
+                {revenusMois.length > 0 ? (
+                  <ul className='space-y-2'>
+                    {revenusMois.map((revenu) => {
+                      // Vérifier si la transaction est pour la date sélectionnée
+                      const isSelected = revenu.date === selectedDateFormatted;
+                      // Formater la date pour n'afficher que le jour/mois
+                      const dateObj = new Date(revenu.date);
+                      const jour = dateObj
+                        .getDate()
+                        .toString()
+                        .padStart(2, "0");
+                      const mois = (dateObj.getMonth() + 1)
+                        .toString()
+                        .padStart(2, "0");
+                      const dateSimple = `${jour}/${mois}`;
+                      return (
+                        <li
+                          key={revenu.id}
+                          id={`revenu-${revenu.date}`}
+                          className={`flex items-center pb-2 transition-all duration-300 ${
+                            isSelected
+                              ? "border-l-4 border-green-400 dark:border-green-500 pl-2 bg-green-50 dark:bg-green-900/10 rounded"
+                              : "border-b border-gray-100 dark:border-gray-800"
+                          }`}>
+                          <span className='text-gray-700 dark:text-gray-300'>
+                            {dateSimple} - {revenu.nom}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <div className='text-gray-500 dark:text-gray-400 text-center'>
+                    Aucun revenu ce mois-ci
                   </div>
                 )}
               </div>

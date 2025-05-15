@@ -47,6 +47,7 @@ export default function PaiementRecurrent() {
     montant: "",
     // Ajouter la date comme propriété pour les paiements récurrents avec mois spécifique
     date: new Date(selectedDate).toISOString().split("T")[0],
+    jourPrelevement: "1", // Jour par défaut (1er du mois)
   });
 
   const montantInputRef = useRef(null);
@@ -191,6 +192,7 @@ export default function PaiementRecurrent() {
       date:
         paiements[idx].date ||
         new Date(selectedDate).toISOString().split("T")[0],
+      jourPrelevement: (paiements[idx].jourPrelevement || 1).toString(),
     });
     setShowModal(true);
     setStep(1);
@@ -216,6 +218,11 @@ export default function PaiementRecurrent() {
         date: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 15)
           .toISOString()
           .split("T")[0],
+        // Ajouter le jour de prélèvement (entre 1 et 28)
+        jourPrelevement: Math.min(
+          Math.max(1, parseInt(newPaiement.jourPrelevement) || 1),
+          28
+        ),
       };
 
       if (editIndex !== null && paiements[editIndex]) {
@@ -270,6 +277,7 @@ export default function PaiementRecurrent() {
         categorie: "",
         montant: "",
         date: new Date(selectedDate).toISOString().split("T")[0],
+        jourPrelevement: "1",
       });
       setEditIndex(null);
 
@@ -438,25 +446,28 @@ export default function PaiementRecurrent() {
                 Paiements du mois de {getMonthYear(selectedDate)}
               </div>
             </div>
-            {/* Bouton Ajouter déplacé ici */}
-            <div className='flex space-x-3'>
-              <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                onClick={() => {
-                  setEditIndex(null);
-                  setNewPaiement({
-                    nom: "",
-                    categorie: "",
-                    montant: "",
-                    date: new Date(selectedDate).toISOString().split("T")[0],
-                  });
-                  setShowModal(true);
-                  setStep(1);
-                }}>
-                <span className='text-lg font-bold'>+</span>
-                <span>Ajouter</span>
-              </button>
-            </div>
+            {/* Bouton Ajouter déplacé ici - affiché seulement si des paiements existent déjà */}
+            {paiements.length > 0 && (
+              <div className='flex space-x-3'>
+                <button
+                  className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                  onClick={() => {
+                    setEditIndex(null);
+                    setNewPaiement({
+                      nom: "",
+                      categorie: "",
+                      montant: "",
+                      date: new Date(selectedDate).toISOString().split("T")[0],
+                      jourPrelevement: "1",
+                    });
+                    setShowModal(true);
+                    setStep(1);
+                  }}>
+                  <span className='text-lg font-bold'>+</span>
+                  <span>Ajouter</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {paiements.length === 0 ? (
@@ -470,6 +481,7 @@ export default function PaiementRecurrent() {
                     categorie: "",
                     montant: "",
                     date: new Date(selectedDate).toISOString().split("T")[0],
+                    jourPrelevement: "1",
                   });
                   setShowModal(true);
                   setStep(1);
@@ -509,7 +521,7 @@ export default function PaiementRecurrent() {
                           €
                         </div>
                         <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          par mois
+                          Prélèvement le {paiement.jourPrelevement || 1} du mois
                         </div>
                       </div>
                     </div>
@@ -581,6 +593,7 @@ export default function PaiementRecurrent() {
                   categorie: "",
                   montant: "",
                   date: new Date(selectedDate).toISOString().split("T")[0],
+                  jourPrelevement: "1",
                 });
                 setEditIndex(null);
               }}
@@ -715,7 +728,7 @@ export default function PaiementRecurrent() {
                         e.key === "Enter" &&
                         parseFloat(newPaiement.montant) > 0
                       )
-                        handleAddOrEditPaiement();
+                        handleNext();
                     }}
                   />
                   <div className='flex justify-between'>
@@ -730,6 +743,201 @@ export default function PaiementRecurrent() {
                         !newPaiement.montant ||
                         parseFloat(newPaiement.montant) <= 0
                       }
+                      onClick={handleNext}>
+                      Suivant
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Étape 4: Jour de prélèvement */}
+              {step === 4 && (
+                <div>
+                  <label className='block mb-2 font-medium dark:text-white'>
+                    Jour de prélèvement
+                  </label>
+
+                  {/* Ajout d'une gestion du clavier pour la navigation entre les jours */}
+                  <div
+                    className='mb-4'
+                    tabIndex='0'
+                    onKeyDown={(e) => {
+                      const currentJour = parseInt(newPaiement.jourPrelevement);
+
+                      // Validation avec la touche Entrée
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddOrEditPaiement();
+                        return;
+                      }
+
+                      // Navigation avec les flèches
+                      if (e.key === "ArrowLeft") {
+                        e.preventDefault();
+                        if (currentJour > 1) {
+                          setNewPaiement({
+                            ...newPaiement,
+                            jourPrelevement: (currentJour - 1).toString(),
+                          });
+                        }
+                      } else if (e.key === "ArrowRight") {
+                        e.preventDefault();
+                        if (currentJour < 28) {
+                          setNewPaiement({
+                            ...newPaiement,
+                            jourPrelevement: (currentJour + 1).toString(),
+                          });
+                        }
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        if (currentJour > 7) {
+                          setNewPaiement({
+                            ...newPaiement,
+                            jourPrelevement: (currentJour - 7).toString(),
+                          });
+                        }
+                      } else if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        if (currentJour <= 21) {
+                          setNewPaiement({
+                            ...newPaiement,
+                            jourPrelevement: (currentJour + 7).toString(),
+                          });
+                        }
+                      }
+                    }}
+                    style={{ outline: "none" }} // Supprimer le focus visible tout en gardant la fonctionnalité
+                    autoFocus>
+                    <div className='grid grid-cols-7 gap-1 mb-2 text-center text-xs text-gray-500 dark:text-gray-400'>
+                      <div>L</div>
+                      <div>M</div>
+                      <div>M</div>
+                      <div>J</div>
+                      <div>V</div>
+                      <div>S</div>
+                      <div>D</div>
+                    </div>
+                    <div className='grid grid-cols-7 gap-1'>
+                      {/* Première semaine: 1-7 */}
+                      {[1, 2, 3, 4, 5, 6, 7].map((jour) => (
+                        <button
+                          key={jour}
+                          type='button'
+                          onClick={() =>
+                            setNewPaiement({
+                              ...newPaiement,
+                              jourPrelevement: jour.toString(),
+                            })
+                          }
+                          className={`p-2 rounded-md text-center ${
+                            newPaiement.jourPrelevement === jour.toString()
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          }`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddOrEditPaiement();
+                            }
+                          }}>
+                          {jour}
+                        </button>
+                      ))}
+
+                      {/* Deuxième semaine: 8-14 */}
+                      {[8, 9, 10, 11, 12, 13, 14].map((jour) => (
+                        <button
+                          key={jour}
+                          type='button'
+                          onClick={() =>
+                            setNewPaiement({
+                              ...newPaiement,
+                              jourPrelevement: jour.toString(),
+                            })
+                          }
+                          className={`p-2 rounded-md text-center ${
+                            newPaiement.jourPrelevement === jour.toString()
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          }`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddOrEditPaiement();
+                            }
+                          }}>
+                          {jour}
+                        </button>
+                      ))}
+
+                      {/* Troisième semaine: 15-21 */}
+                      {[15, 16, 17, 18, 19, 20, 21].map((jour) => (
+                        <button
+                          key={jour}
+                          type='button'
+                          onClick={() =>
+                            setNewPaiement({
+                              ...newPaiement,
+                              jourPrelevement: jour.toString(),
+                            })
+                          }
+                          className={`p-2 rounded-md text-center ${
+                            newPaiement.jourPrelevement === jour.toString()
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          }`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddOrEditPaiement();
+                            }
+                          }}>
+                          {jour}
+                        </button>
+                      ))}
+
+                      {/* Quatrième semaine: 22-28 */}
+                      {[22, 23, 24, 25, 26, 27, 28].map((jour) => (
+                        <button
+                          key={jour}
+                          type='button'
+                          onClick={() =>
+                            setNewPaiement({
+                              ...newPaiement,
+                              jourPrelevement: jour.toString(),
+                            })
+                          }
+                          className={`p-2 rounded-md text-center ${
+                            newPaiement.jourPrelevement === jour.toString()
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          }`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddOrEditPaiement();
+                            }
+                          }}>
+                          {jour}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                    Le système utilisera le 1er jour du mois par défaut pour
+                    tous les paiements récurrents, sauf si vous sélectionnez un
+                    autre jour. Le paiement sera affiché dans l'agenda à ce jour
+                    chaque mois.
+                  </div>
+                  <div className='flex justify-between'>
+                    <button
+                      className='text-gray-600 dark:text-gray-400'
+                      onClick={handlePrev}>
+                      Précédent
+                    </button>
+                    <button
+                      className='bg-gray-900 text-white px-4 py-2 rounded'
                       onClick={handleAddOrEditPaiement}>
                       {editIndex !== null ? "Modifier" : "Ajouter"}
                     </button>

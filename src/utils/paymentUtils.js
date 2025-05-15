@@ -19,10 +19,17 @@ import { handleItemOperation } from "./firebaseUtils";
 export const getAllRecurrentPayments = async () => {
   try {
     const snapshot = await getDocs(collection(db, "recurrent"));
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    console.log("Récupération de tous les paiements récurrents");
+
+    // Par défaut, si jourPrelevement n'est pas défini, on utilise le 1er du mois
+    return snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        jourPrelevement: data.jourPrelevement || 1,
+      };
+    });
   } catch (error) {
     console.error(
       "Erreur lors de la récupération des paiements récurrents:",
@@ -378,13 +385,19 @@ export const getRecurrentPaymentsForDate = async (date) => {
   try {
     // Récupérer tous les paiements récurrents
     const allPayments = await getAllRecurrentPayments();
+    const jourDuMois = date.getDate();
+
     console.log(
       `Récupération des paiements récurrents pour le ${date.toLocaleDateString()}`
     );
 
-    // Paiements récurrents affichés tous les jours au lieu d'une date spécifique
-    // On retourne tous les paiements récurrents avec la date demandée
-    return allPayments.map((payment) => ({
+    // Filtrer pour ne garder que les paiements récurrents dont le jour de prélèvement correspond au jour de la date
+    const paymentsForDay = allPayments.filter(
+      (payment) => payment.jourPrelevement === jourDuMois
+    );
+
+    // Ajouter la date exacte à chaque paiement
+    return paymentsForDay.map((payment) => ({
       ...payment,
       type: "recurrent",
       date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
