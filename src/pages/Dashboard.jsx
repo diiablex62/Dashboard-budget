@@ -326,31 +326,6 @@ export default function Dashboard() {
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
-        {/* Total dépensé */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Total dépensé ce mois-ci
-            </span>
-            <AiOutlineDollarCircle className='text-blue-600 dark:text-blue-400 text-xl' />
-          </div>
-          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            {totalDepensesMois.toFixed(2)}€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-gray-500'>
-            {totalDepensesMois > totalDepensesMoisPrecedent ? (
-              <span className='text-red-500'>
-                +{(totalDepensesMois - totalDepensesMoisPrecedent).toFixed(2)}€
-              </span>
-            ) : (
-              <span className='text-green-500'>
-                -{(totalDepensesMoisPrecedent - totalDepensesMois).toFixed(2)}€
-              </span>
-            )}{" "}
-            par rapport au mois précédent
-          </div>
-        </div>
-
         {/* Total revenus */}
         <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
           <div className='flex items-center justify-between mb-2'>
@@ -370,6 +345,31 @@ export default function Dashboard() {
             ) : (
               <span className='text-red-500'>
                 -{(totalRevenusMoisPrecedent - totalRevenusMois).toFixed(2)}€
+              </span>
+            )}{" "}
+            par rapport au mois précédent
+          </div>
+        </div>
+
+        {/* Total dépensé */}
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
+          <div className='flex items-center justify-between mb-2'>
+            <span className='text-sm text-gray-500 dark:text-gray-400'>
+              Total dépensé ce mois-ci
+            </span>
+            <AiOutlineDollarCircle className='text-blue-600 dark:text-blue-400 text-xl' />
+          </div>
+          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
+            {totalDepensesMois.toFixed(2)}€
+          </div>
+          <div className='text-xs text-gray-400 dark:text-gray-500'>
+            {totalDepensesMois > totalDepensesMoisPrecedent ? (
+              <span className='text-red-500'>
+                +{(totalDepensesMois - totalDepensesMoisPrecedent).toFixed(2)}€
+              </span>
+            ) : (
+              <span className='text-green-500'>
+                -{(totalDepensesMoisPrecedent - totalDepensesMois).toFixed(2)}€
               </span>
             )}{" "}
             par rapport au mois précédent
