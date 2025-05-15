@@ -229,30 +229,14 @@ export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
     // Récupérer les paiements échelonnés avec gestion des erreurs
     let echelonnesSnap;
     try {
-      // Essayer d'abord avec la collection "echelonne"
       echelonnesSnap = await getDocs(collection(db, "echelonne"));
       console.log(
         "Utilisation de la collection 'echelonne' pour les paiements échelonnés"
       );
     } catch (echelonneError) {
-      console.error(
-        "Erreur avec collection 'echelonne', fallback sur 'xfois':",
-        echelonneError
-      );
-      // Si erreur, essayer avec l'ancienne collection "xfois"
-      try {
-        echelonnesSnap = await getDocs(collection(db, "xfois"));
-        console.log(
-          "Utilisation de la collection 'xfois' pour les paiements échelonnés"
-        );
-      } catch (xfoisError) {
-        console.error(
-          "Erreur également avec 'xfois', aucun paiement échelonné disponible:",
-          xfoisError
-        );
-        // Si les deux collections échouent, créer un snapshot vide
-        echelonnesSnap = { docs: [] };
-      }
+      console.error("Erreur avec collection 'echelonne':", echelonneError);
+      // Si la collection échoue, créer un snapshot vide
+      echelonnesSnap = { docs: [] };
     }
 
     // 1. Traiter les dépenses régulières du mois
@@ -287,17 +271,13 @@ export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
       ...doc.data(),
     }));
 
-    // Filtrer les paiements échelonnés actifs ce mois-ci (avec prise en charge des deux formats)
+    // Filtrer les paiements échelonnés actifs ce mois-ci (avec prise en charge standard debutDate)
     const echelonnesActifs = paiementsEchelonnes.filter((p) => {
       // Vérifier si nous avons les champs nécessaires
-      if (!p.mensualites) return false;
-
-      // Gérer les deux formats possibles : debutMois (ancien) ou debutDate (nouveau)
-      const debutDateStr = p.debutDate || p.debutMois;
-      if (!debutDateStr) return false;
+      if (!p.mensualites || !p.debutDate) return false;
 
       // Extraire l'année et le mois du début
-      const [startYear, startMonth] = debutDateStr.split("-").map(Number);
+      const [startYear, startMonth] = p.debutDate.split("-").map(Number);
       const debut = new Date(startYear, startMonth - 1);
 
       // Calculer la date de fin

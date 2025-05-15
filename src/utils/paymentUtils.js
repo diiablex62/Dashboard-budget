@@ -38,7 +38,8 @@ export const getAllRecurrentPayments = async () => {
  */
 export const getAllEchelonnePayments = async () => {
   try {
-    const snapshot = await getDocs(collection(db, "xfois"));
+    const snapshot = await getDocs(collection(db, "echelonne"));
+    console.log("PaymentUtils: Utilisation de la collection 'echelonne'");
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -48,7 +49,7 @@ export const getAllEchelonnePayments = async () => {
       "Erreur lors de la récupération des paiements échelonnés:",
       error
     );
-    throw error;
+    return []; // Retourner un tableau vide au lieu de throw pour éviter les crashs
   }
 };
 
@@ -228,12 +229,12 @@ export const addOrUpdateEchelonnePayment = async (payment, id = null) => {
 
     if (id) {
       // Mise à jour
-      await updateDoc(doc(db, "xfois", id), paymentData);
+      await updateDoc(doc(db, "echelonne", id), paymentData);
       return null;
     } else {
       // Ajout
       paymentData.createdAt = serverTimestamp();
-      const docRef = await addDoc(collection(db, "xfois"), paymentData);
+      const docRef = await addDoc(collection(db, "echelonne"), paymentData);
       return docRef.id;
     }
   } catch (error) {
@@ -265,7 +266,8 @@ export const deleteRecurrentPayment = async (id) => {
 export const deleteEchelonnePayment = async (id) => {
   if (!id) throw new Error("ID requis");
   try {
-    await deleteDoc(doc(db, "xfois", id));
+    await deleteDoc(doc(db, "echelonne", id));
+    console.log("PaymentUtils: Suppression réussie dans 'echelonne'");
   } catch (error) {
     console.error("Erreur lors de la suppression du paiement:", error);
     throw error;
@@ -331,10 +333,13 @@ export const getEchelonnePaymentsForDate = async (date) => {
   try {
     // Récupérer tous les paiements échelonnés
     const allPayments = await getAllEchelonnePayments();
+    console.log(
+      `Récupération des paiements échelonnés pour le ${date.toLocaleDateString()}`
+    );
 
     // Filtrer pour ne garder que ceux dont le jour du mois correspond à la date de début
     return allPayments.filter((payment) => {
-      if (!payment.debutDate || !payment.mensualites) return false;
+      if (!payment.mensualites) return false;
 
       // Date de début du paiement
       const startDate = new Date(payment.debutDate);
@@ -359,6 +364,40 @@ export const getEchelonnePaymentsForDate = async (date) => {
       "Erreur lors de la récupération des paiements pour la date:",
       error
     );
-    throw error;
+    // Retourner un tableau vide pour éviter les crashs
+    return [];
+  }
+};
+
+/**
+ * Récupère tous les paiements récurrents pour une date donnée
+ * @param {Date} date - Date pour laquelle récupérer les paiements
+ * @returns {Promise<Array>} - Paiements récurrents pour la date
+ */
+export const getRecurrentPaymentsForDate = async (date) => {
+  try {
+    // Récupérer tous les paiements récurrents
+    const allPayments = await getAllRecurrentPayments();
+    console.log(
+      `Récupération des paiements récurrents pour le ${date.toLocaleDateString()}`
+    );
+
+    // Paiements récurrents affichés tous les jours au lieu d'une date spécifique
+    // On retourne tous les paiements récurrents avec la date demandée
+    return allPayments.map((payment) => ({
+      ...payment,
+      type: "recurrent",
+      date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(date.getDate()).padStart(2, "0")}`,
+    }));
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des paiements récurrents pour la date:",
+      error
+    );
+    // Retourner un tableau vide pour éviter les crashs
+    return [];
   }
 };

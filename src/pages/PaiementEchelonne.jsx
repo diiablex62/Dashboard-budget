@@ -92,105 +92,19 @@ export default function PaiementEchelonne() {
   const fetchPaiements = useCallback(async () => {
     if (!user) return;
     try {
-      // Essayer d'abord avec la collection "echelonne"
-      try {
-        const snapshot = await getDocs(collection(db, "echelonne"));
-        const data = snapshot.docs
-          .filter((doc) => doc.data().uid === user.uid)
-          .map((doc) => ({ id: doc.id, ...doc.data() }));
+      const snapshot = await getDocs(collection(db, "echelonne"));
+      const data = snapshot.docs
+        .filter((doc) => doc.data().uid === user.uid)
+        .map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        startTransition(() => {
-          setAllPaiements(data);
-          filterPaiementsByMonth(data);
-          console.log(
-            "Paiements échelonnés chargés depuis echelonne:",
-            data.length
-          );
-        });
-      } catch (error) {
-        console.error(
-          "Erreur sur collection echelonne, tentative avec xfois:",
-          error
+      startTransition(() => {
+        setAllPaiements(data);
+        filterPaiementsByMonth(data);
+        console.log(
+          "Paiements échelonnés chargés depuis echelonne:",
+          data.length
         );
-
-        try {
-          // Fallback sur l'ancienne collection "xfois" si "echelonne" n'est pas accessible
-          const snapshot = await getDocs(collection(db, "xfois"));
-          const data = snapshot.docs
-            .filter((doc) => doc.data().uid === user.uid)
-            .map((doc) => ({ id: doc.id, ...doc.data() }));
-
-          // Si on a des données dans xfois, on va essayer de les migrer vers echelonne
-          if (data.length > 0) {
-            console.log(
-              "Tentative de migration des données de xfois vers echelonne..."
-            );
-
-            try {
-              // Essayer de créer un document dans echelonne pour tester les permissions
-              const testRef = await addDoc(collection(db, "echelonne"), {
-                test: true,
-                uid: user.uid,
-                createdAt: serverTimestamp(),
-              });
-
-              // Si on arrive ici, on a les permissions, on peut migrer
-              console.log("Test de création réussi, migration en cours...");
-
-              // Supprimer le document de test
-              await deleteDoc(doc(db, "echelonne", testRef.id));
-
-              // Migrer les données
-              for (const item of data) {
-                const { id: _id, ...dataWithoutId } = item;
-                await addDoc(collection(db, "echelonne"), {
-                  ...dataWithoutId,
-                  migratedAt: serverTimestamp(),
-                });
-              }
-
-              console.log("Migration réussie. Chargement depuis echelonne...");
-
-              // Recharger depuis echelonne
-              const echelonneSnapshot = await getDocs(
-                collection(db, "echelonne")
-              );
-              const echelonneData = echelonneSnapshot.docs
-                .filter((doc) => doc.data().uid === user.uid)
-                .map((doc) => ({ id: doc.id, ...doc.data() }));
-
-              startTransition(() => {
-                setAllPaiements(echelonneData);
-                filterPaiementsByMonth(echelonneData);
-                console.log(
-                  "Paiements échelonnés chargés depuis echelonne après migration:",
-                  echelonneData.length
-                );
-              });
-
-              return;
-            } catch (migrationError) {
-              console.error(
-                "Migration impossible, permissions insuffisantes:",
-                migrationError
-              );
-            }
-          }
-
-          startTransition(() => {
-            setAllPaiements(data);
-            filterPaiementsByMonth(data);
-            console.log(
-              "Paiements échelonnés chargés depuis xfois:",
-              data.length
-            );
-          });
-        } catch (xfoisError) {
-          console.error("Erreur sur collection xfois:", xfoisError);
-          setAllPaiements([]);
-          setPaiements([]);
-        }
-      }
+      });
     } catch (err) {
       console.error("Erreur Firestore fetch paiements échelonnés:", err);
       setAllPaiements([]);
@@ -369,37 +283,13 @@ export default function PaiementEchelonne() {
     );
 
     try {
-      // Déterminer quelle collection utiliser
-      let collectionName = "echelonne"; // Essayer d'abord avec echelonne
-
-      try {
-        // Tester si la collection echelonne est accessible en écriture
-        const testRef = await addDoc(collection(db, "echelonne"), {
-          test: true,
-          uid: user.uid,
-          createdAt: serverTimestamp(),
-        });
-
-        // Si on arrive ici, la collection est accessible
-        console.log("Collection 'echelonne' accessible, suppression du test");
-        await deleteDoc(doc(db, "echelonne", testRef.id));
-      } catch (error) {
-        console.log(
-          "Impossible d'écrire dans 'echelonne', utilisation de 'xfois':",
-          error
-        );
-        collectionName = "xfois";
-      }
-
       if (editIndex !== null && paiements[editIndex]) {
         // MODIFICATION
         try {
           const paiementId = paiements[editIndex].id;
-          console.log(
-            `Modification du paiement: ${collectionName}/${paiementId}`
-          );
+          console.log(`Modification du paiement: echelonne/${paiementId}`);
 
-          await updateDoc(doc(db, collectionName, paiementId), {
+          await updateDoc(doc(db, "echelonne", paiementId), {
             nom: newPaiement.nom,
             montant: parseFloat(newPaiement.montant),
             mensualites: parseInt(newPaiement.mensualites, 10),
@@ -439,7 +329,7 @@ export default function PaiementEchelonne() {
         // AJOUT
         try {
           console.log(
-            `Création d'un nouveau paiement échelonné dans ${collectionName}`
+            `Création d'un nouveau paiement échelonné dans echelonne`
           );
 
           const newData = {
@@ -454,11 +344,9 @@ export default function PaiementEchelonne() {
 
           console.log("Données à ajouter:", newData);
 
-          const docRef = await addDoc(collection(db, collectionName), newData);
+          const docRef = await addDoc(collection(db, "echelonne"), newData);
 
-          console.log(
-            `✅ Ajout réussi avec ID: ${docRef.id} dans ${collectionName}`
-          );
+          console.log(`✅ Ajout réussi avec ID: ${docRef.id} dans echelonne`);
         } catch (ajoutError) {
           console.error("Erreur lors de l'ajout:", ajoutError);
           throw new Error(`Erreur lors de l'ajout: ${ajoutError.message}`);
@@ -495,7 +383,7 @@ export default function PaiementEchelonne() {
         console.log(`Mise à jour du dashboard pour la période ${periodId}`);
 
         // Calculer le total des paiements échelonnés pour le mois en cours
-        const updatedPaiements = await getDocs(collection(db, collectionName));
+        const updatedPaiements = await getDocs(collection(db, "echelonne"));
         const userPaiements = updatedPaiements.docs
           .filter((doc) => doc.data().uid === user.uid)
           .map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -685,10 +573,6 @@ export default function PaiementEchelonne() {
       const [startYear, startMonth] = item.debutDate.split("-").map(Number);
 
       // Calcul du nombre de mensualités déjà passées
-      // Première mensualité = mois de début
-      // Pour un paiement commençant en mars:
-      // - mars = mensualité 1
-      // - avril = mensualité 2, etc.
       const moisEcoules =
         (currentYear - startYear) * 12 + (currentMonth - (startMonth - 1));
 
@@ -712,25 +596,9 @@ export default function PaiementEchelonne() {
     if (!paiement || !paiement.id) return;
 
     try {
-      // Déterminer quelle collection utiliser
-      let collectionName = "echelonne"; // Tenter d'abord echelonne
-
-      try {
-        // Tester si la collection echelonne est accessible en lecture
-        await getDocs(collection(db, "echelonne"));
-      } catch (error) {
-        console.log(
-          "Impossible de lire 'echelonne', utilisation de 'xfois':",
-          error
-        );
-        collectionName = "xfois";
-      }
-
-      console.log(`🔥 SUPPRESSION: ${collectionName}/${paiement.id}`);
-      await deleteDoc(doc(db, collectionName, paiement.id));
-      console.log(
-        `✅ Document supprimé avec succès: ${collectionName}/${paiement.id}`
-      );
+      console.log(`🔥 SUPPRESSION: echelonne/${paiement.id}`);
+      await deleteDoc(doc(db, "echelonne", paiement.id));
+      console.log(`✅ Document supprimé avec succès: echelonne/${paiement.id}`);
 
       setPaiements((prev) => prev.filter((_, i) => i !== idx));
 
@@ -753,7 +621,7 @@ export default function PaiementEchelonne() {
 
       try {
         // Recalculer le total après suppression
-        const updatedPaiements = await getDocs(collection(db, collectionName));
+        const updatedPaiements = await getDocs(collection(db, "echelonne"));
         const userPaiements = updatedPaiements.docs
           .filter((doc) => doc.data().uid === user.uid)
           .map((doc) => doc.data());
@@ -968,22 +836,27 @@ export default function PaiementEchelonne() {
 
                     <div className='mt-1 flex justify-between text-gray-500 dark:text-gray-400 text-sm'>
                       <div>
-                        Reste à payer:{" "}
-                        {(
-                          parseFloat(paiement.montant) -
-                          (parseFloat(paiement.montant) /
-                            parseFloat(paiement.mensualites)) *
-                            paiement.mensualitesPayees
-                        ).toFixed(2)}
-                        €
+                        {paiement.debutDate
+                          ? `Début: ${new Date(
+                              paiement.debutDate
+                            ).toLocaleDateString("fr-FR")}`
+                          : "Début: N/A"}
                       </div>
                       <div>
-                        Début:{" "}
-                        {paiement.debutDate
-                          ? new Date(paiement.debutDate).toLocaleDateString(
-                              "fr-FR"
-                            )
-                          : "N/A"}
+                        {paiement.debutDate && paiement.mensualites
+                          ? (() => {
+                              const dateDebut = new Date(paiement.debutDate);
+                              const dateFin = new Date(dateDebut);
+                              dateFin.setMonth(
+                                dateDebut.getMonth() +
+                                  parseInt(paiement.mensualites) -
+                                  1
+                              );
+                              return `Fin: ${dateFin.toLocaleDateString(
+                                "fr-FR"
+                              )}`;
+                            })()
+                          : "Fin: N/A"}
                       </div>
                     </div>
 
