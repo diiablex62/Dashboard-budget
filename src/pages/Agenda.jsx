@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AiOutlineCalendar } from "react-icons/ai";
+import {
+  AiOutlineCalendar,
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
+} from "react-icons/ai";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
@@ -556,7 +560,7 @@ export default function Agenda() {
               className='text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-full'
               onClick={handlePrev}
               aria-label='Mois précédent'>
-              &lt;
+              <AiOutlineArrowLeft />
             </button>
             <div
               className='flex items-center border dark:border-gray-800 rounded-lg px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-black font-medium text-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900'
@@ -568,7 +572,7 @@ export default function Agenda() {
               className='text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-full'
               onClick={handleNext}
               aria-label='Mois suivant'>
-              &gt;
+              <AiOutlineArrowRight />
             </button>
           </div>
 
@@ -907,13 +911,16 @@ export default function Agenda() {
                         <li
                           key={depense.id}
                           id={`depense-${depense.date}`}
-                          className={`flex items-center pb-2 transition-all duration-300 ${
+                          className={`flex items-center justify-between pb-2 transition-all duration-300 ${
                             isSelected
                               ? "border-l-4 border-red-400 dark:border-red-500 pl-2 bg-red-50 dark:bg-red-900/10 rounded"
                               : "border-b border-gray-100 dark:border-gray-800"
                           }`}>
                           <span className='text-gray-700 dark:text-gray-300'>
                             {dateSimple} - {depense.nom}
+                          </span>
+                          <span className='font-medium text-gray-800 dark:text-gray-200'>
+                            {parseFloat(depense.montant).toFixed(2)}€
                           </span>
                         </li>
                       );
@@ -955,13 +962,16 @@ export default function Agenda() {
                         <li
                           key={revenu.id}
                           id={`revenu-${revenu.date}`}
-                          className={`flex items-center pb-2 transition-all duration-300 ${
+                          className={`flex items-center justify-between pb-2 transition-all duration-300 ${
                             isSelected
                               ? "border-l-4 border-green-400 dark:border-green-500 pl-2 bg-green-50 dark:bg-green-900/10 rounded"
                               : "border-b border-gray-100 dark:border-gray-800"
                           }`}>
                           <span className='text-gray-700 dark:text-gray-300'>
                             {dateSimple} - {revenu.nom}
+                          </span>
+                          <span className='font-medium text-gray-800 dark:text-gray-200'>
+                            {parseFloat(revenu.montant).toFixed(2)}€
                           </span>
                         </li>
                       );

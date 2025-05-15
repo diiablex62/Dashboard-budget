@@ -29,6 +29,7 @@ import {
   getMonthYear,
   MONTHS,
 } from "../utils/categoryUtils";
+import TransactionsChart from "../components/TransactionsChart";
 
 export default function PaiementRecurrent() {
   // Paiements vides au départ
@@ -78,6 +79,13 @@ export default function PaiementRecurrent() {
   useEffect(() => {
     if (allPaiements.length > 0) {
       filterPaiementsByMonth();
+      console.log(
+        "🔄 Mise à jour des paiements récurrents pour",
+        getMonthYear(selectedDate),
+        "- Nombre:",
+        paiements.length,
+        "- Style bordure: #ececec"
+      );
     }
   }, [selectedDate, allPaiements]);
 
@@ -641,37 +649,13 @@ export default function PaiementRecurrent() {
             </div>
             <div className='w-full h-64 flex items-center justify-center'>
               {dataCategories.length > 0 ? (
-                <ResponsiveContainer width='100%' height='100%'>
-                  <PieChart>
-                    <Pie
-                      data={dataCategories}
-                      dataKey='value'
-                      nameKey='name'
-                      cx='50%'
-                      cy='50%'
-                      outerRadius={80}
-                      innerRadius={40}
-                      fill='#8884d8'
-                      label={({ payload }) => {
-                        const noms = paiements
-                          .filter((p) => p.categorie === payload.name)
-                          .map(
-                            (p) =>
-                              p.nom.charAt(0).toUpperCase() + p.nom.slice(1)
-                          );
-                        return noms.join(", ");
-                      }}>
-                      {dataCategories.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                <TransactionsChart
+                  data={dataCategories.map((item) => ({
+                    categorie: item.name,
+                    montant: item.value,
+                  }))}
+                  type='depenses'
+                />
               ) : (
                 <span className='text-gray-400 dark:text-gray-500'>
                   Aucune dépense récurrente
@@ -743,7 +727,7 @@ export default function PaiementRecurrent() {
                 return (
                   <div
                     key={paiement.id || idx}
-                    className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
+                    className='bg-white dark:bg-black rounded-lg shadow border border-[#ececec] dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
                     <div className='flex items-center justify-between'>
                       <div className='flex items-center'>
                         <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>

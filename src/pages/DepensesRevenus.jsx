@@ -93,7 +93,7 @@ function RevenuModal({
     onSave({
       ...form,
       montant: montant,
-      id: form.id, // Conserver l'ID si on est en mode édition
+      id: form.id, 
     });
     onClose();
   };
@@ -1204,11 +1204,7 @@ export default function DepensesRevenus() {
                 </div>
               ) : (
                 <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
-                  <TransactionsChart
-                    data={revenusFiltres}
-                    type='revenus'
-                    onCategoryClick={handleCategoryClick}
-                  />
+                  <TransactionsChart data={revenusFiltres} type='revenus' />
                 </div>
               )}
             </div>
@@ -1224,11 +1220,7 @@ export default function DepensesRevenus() {
                 </div>
               ) : (
                 <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
-                  <TransactionsChart
-                    data={depensesFiltres}
-                    type='depenses'
-                    onCategoryClick={handleCategoryClick}
-                  />
+                  <TransactionsChart data={depensesFiltres} type='depenses' />
                 </div>
               )}
             </div>

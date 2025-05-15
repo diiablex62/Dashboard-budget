@@ -25,7 +25,7 @@ import {
   Sector,
 } from "recharts";
 import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
-import { getCategoryColor } from "../utils/categoryUtils";
+import TransactionsChart from "../components/TransactionsChart";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -48,14 +48,9 @@ export default function Dashboard() {
   const [totalRevenusMois, setTotalRevenusMois] = useState(0);
   const [totalRevenusMoisPrecedent, setTotalRevenusMoisPrecedent] = useState(0);
 
-  // Données pour le graphique de répartition budget
+  // Variables d'état pour les graphiques
   const [budgetData, setBudgetData] = useState([]);
-
-  // Nouvelles données pour le graphique combiné de toutes les dépenses
   const [depensesTotalesData, setDepensesTotalesData] = useState([]);
-
-  // État pour mémoriser le secteur actif dans le graphique
-  const [activePieIndex, setActivePieIndex] = useState(null);
 
   const fetchAll = async () => {
     if (!user) return; // Ne tente pas de fetch si non connecté
@@ -327,43 +322,6 @@ export default function Dashboard() {
     [paiementsEchelonnes]
   );
 
-  // Composant pour le secteur actif (animation d'hover)
-  const renderActiveShape = (props) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
-      props;
-
-    // Calculer les coordonnées pour l'effet de "pull out"
-    const midAngle = (startAngle + endAngle) / 2;
-    const offsetX = outerRadius * 0.1 * Math.cos(midAngle);
-    const offsetY = outerRadius * 0.1 * Math.sin(midAngle);
-
-    return (
-      <g>
-        <Sector
-          cx={cx + offsetX}
-          cy={cy + offsetY}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-          stroke='#fff'
-          strokeWidth={2}
-        />
-        <Sector
-          cx={cx + offsetX}
-          cy={cy + offsetY}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          innerRadius={outerRadius + 2}
-          outerRadius={outerRadius + 6}
-          fill={fill}
-          opacity={0.3}
-        />
-      </g>
-    );
-  };
-
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
       {/* Cartes du haut */}
@@ -488,71 +446,33 @@ export default function Dashboard() {
       {/* Graphiques */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
         {/* Dépenses mensuelles */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col min-h-[220px]'>
+        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col min-h-[300px]'>
           <span className='font-semibold mb-2 dark:text-white'>
             Total des dépenses mensuelles
           </span>
           <div className='flex-1 flex items-center justify-center'>
-            <ResponsiveContainer width='100%' height={220}>
-              <PieChart>
-                <Pie
-                  data={
-                    depensesTotalesData.length > 0
-                      ? depensesTotalesData
-                      : [
-                          {
-                            name: "Factures",
-                            value:
-                              totalDepensesMois -
-                              totalRecurrents -
-                              totalEchelonnes,
-                          },
-                          { name: "Logement", value: totalRecurrents },
-                          { name: "Transport", value: totalEchelonnes },
-                        ]
-                  }
-                  dataKey='value'
-                  nameKey='name'
-                  cx='50%'
-                  cy='50%'
-                  outerRadius={70}
-                  innerRadius={40}
-                  fill='#8884d8'
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                  activeIndex={activePieIndex}
-                  activeShape={renderActiveShape}
-                  onMouseEnter={(_, index) => setActivePieIndex(index)}
-                  onMouseLeave={() => setActivePieIndex(null)}
-                  animationBegin={0}
-                  animationDuration={800}
-                  animationEasing='ease-out'
-                  isAnimationActive={true}>
-                  {(depensesTotalesData.length > 0
-                    ? depensesTotalesData
-                    : [
-                        {
-                          name: "Factures",
-                          value:
-                            totalDepensesMois -
-                            totalRecurrents -
-                            totalEchelonnes,
-                        },
-                        { name: "Logement", value: totalRecurrents },
-                        { name: "Transport", value: totalEchelonnes },
-                      ]
-                  ).map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={getCategoryColor(entry.name)}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-                <Legend formatter={(value) => `${value}`} />
-              </PieChart>
-            </ResponsiveContainer>
+            {depensesTotalesData.length > 0 ? (
+              <TransactionsChart
+                data={depensesTotalesData.map((item) => ({
+                  categorie: item.name,
+                  montant: item.value,
+                }))}
+                type='depenses'
+              />
+            ) : (
+              <TransactionsChart
+                data={[
+                  {
+                    categorie: "Factures",
+                    montant:
+                      totalDepensesMois - totalRecurrents - totalEchelonnes,
+                  },
+                  { categorie: "Logement", montant: totalRecurrents },
+                  { categorie: "Transport", montant: totalEchelonnes },
+                ]}
+                type='depenses'
+              />
+            )}
           </div>
         </div>
         {/* Répartition du budget */}

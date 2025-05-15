@@ -8,9 +8,8 @@ import { getCategoryColor } from "../utils/categoryUtils";
  * @param {Object} props - Propriétés du composant
  * @param {Array} props.data - Données des transactions
  * @param {string} props.type - Type de transactions ('revenus' ou 'depenses')
- * @param {Function} props.onCategoryClick - Fonction appelée lors du clic sur une catégorie (optionnel)
  */
-const TransactionsChart = ({ data, type, onCategoryClick }) => {
+const TransactionsChart = ({ data, type }) => {
   console.log(`TransactionsChart rendu avec type: ${type}, données: `, data);
 
   const svgRef = useRef(null);
@@ -48,7 +47,9 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
       return;
     }
 
-    console.log(`Animation démarrée pour ${type}`);
+    console.log(
+      `Animation démarrée pour ${type} avec ${data.length} catégories`
+    );
     // Réinitialiser l'animation
     setAnimationProgress(0);
     setLoading(true);
@@ -68,7 +69,7 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
       } else {
         setAnimationProgress(1);
         setLoading(false);
-        console.log(`Animation terminée pour ${type}`);
+        console.log(`Animation terminée pour ${type}, données: `, chartData);
       }
     };
 
@@ -124,14 +125,6 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
     setChartData(processedData);
   }, [data, type]);
 
-  // Gestion du clic sur une catégorie
-  const handleCategoryClick = (category) => {
-    console.log(`Catégorie cliquée: ${category}`);
-    if (onCategoryClick) {
-      onCategoryClick(category);
-    }
-  };
-
   // Rendu du graphique
   const renderChart = () => {
     if (chartData.length === 0) {
@@ -186,13 +179,9 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
                   transition: "transform 0.2s ease-out",
                   opacity: animationProgress, // Animation d'opacité
                 }}
-                onClick={() => handleCategoryClick(singleItem.categorie)}
-                role='button'
-                aria-label={`${
-                  singleItem.categorie
-                }: 100%, ${singleItem.montant.toFixed(2)} €`}
-                tabIndex='0'
-                className='cursor-pointer'
+                role='presentation'
+                aria-label={`${singleItem.categorie}: 100%`}
+                className=''
               />
 
               {/* Cercle intérieur pour l'effet donut */}
@@ -217,8 +206,33 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
                 fontWeight='bold'
                 fill='currentColor'
                 className='text-gray-700 dark:text-gray-300'>
-                {(total * animationProgress).toFixed(2)} €
+                {/* Aucun texte au centre */}
               </text>
+
+              {/* Afficher le prix au survol */}
+              {hoveredCategory === singleItem.categorie && (
+                <g>
+                  <rect
+                    x='25'
+                    y='40'
+                    width='50'
+                    height='10'
+                    rx='2'
+                    fill='rgba(0,0,0,0.7)'
+                    className='dark:fill-gray-800'
+                  />
+                  <text
+                    x='50'
+                    y='46'
+                    textAnchor='middle'
+                    dominantBaseline='middle'
+                    fontSize='4'
+                    fill='white'
+                    className='text-white'>
+                    {formatMontant(singleItem.montant)}
+                  </text>
+                </g>
+              )}
             </svg>
           </div>
         </div>
@@ -294,27 +308,52 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
               );
 
               return (
-                <path
-                  key={index}
-                  d={pathData}
-                  fill={item.color || "#cccccc"}
-                  stroke='#fff'
-                  strokeWidth='0.5'
-                  transform={transform}
-                  style={{
-                    transformOrigin: "center",
-                    transition: "transform 0.2s ease-out",
-                  }}
-                  onMouseEnter={() => setHoveredCategory(item.categorie)}
-                  onMouseLeave={() => setHoveredCategory(null)}
-                  onClick={() => handleCategoryClick(item.categorie)}
-                  role='button'
-                  aria-label={`${item.categorie}: ${item.percentage.toFixed(
-                    1
-                  )}%, ${item.montant.toFixed(2)} €`}
-                  tabIndex='0'
-                  className='cursor-pointer'
-                />
+                <g key={index}>
+                  <path
+                    d={pathData}
+                    fill={item.color || "#cccccc"}
+                    stroke='#fff'
+                    strokeWidth='0.5'
+                    transform={transform}
+                    style={{
+                      transformOrigin: "center",
+                      transition: "transform 0.2s ease-out",
+                    }}
+                    onMouseEnter={() => setHoveredCategory(item.categorie)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    role='presentation'
+                    aria-label={`${item.categorie}: ${item.percentage.toFixed(
+                      1
+                    )}%`}
+                    className=''
+                  />
+
+                  {/* Afficher le prix au survol */}
+                  {isHovered && (
+                    <g>
+                      {/* Position du tooltip près du segment survolé */}
+                      <rect
+                        x='30'
+                        y='45'
+                        width='40'
+                        height='10'
+                        rx='2'
+                        fill='rgba(0,0,0,0.7)'
+                        className='dark:fill-gray-800'
+                      />
+                      <text
+                        x='50'
+                        y='50'
+                        textAnchor='middle'
+                        dominantBaseline='middle'
+                        fontSize='4'
+                        fill='white'
+                        className='text-white'>
+                        {formatMontant(item.montant)}
+                      </text>
+                    </g>
+                  )}
+                </g>
               );
             })}
 
@@ -337,7 +376,7 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
               fontWeight='bold'
               fill='currentColor'
               className='text-gray-700 dark:text-gray-300'>
-              {(total * animationProgress).toFixed(2)} €
+              {/* Aucun texte au centre */}
             </text>
           </svg>
         </div>
@@ -354,12 +393,6 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
         </div>
       )}
 
-      <div className='text-xl font-semibold text-gray-700 dark:text-white mb-4'>
-        {type === "revenus"
-          ? "Répartition des revenus"
-          : "Répartition des dépenses"}
-      </div>
-
       <div className='flex-1 flex flex-col md:flex-row items-center justify-center gap-6'>
         {/* Partie graphique */}
         <div className='flex-1 flex items-center justify-center'>
@@ -374,11 +407,8 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
                 <div
                   key={item.categorie}
                   className={`flex items-center justify-between p-2 rounded-md transition-all duration-200 ${
-                    hoveredCategory === item.categorie
-                      ? "bg-gray-100 dark:bg-gray-800"
-                      : ""
-                  } cursor-pointer`}
-                  onClick={() => handleCategoryClick(item.categorie)}
+                    hoveredCategory === item.categorie ? "bg-transparent" : ""
+                  }`}
                   onMouseEnter={() => setHoveredCategory(item.categorie)}
                   onMouseLeave={() => setHoveredCategory(null)}>
                   <div className='flex items-center gap-2'>
@@ -386,16 +416,8 @@ const TransactionsChart = ({ data, type, onCategoryClick }) => {
                       className='w-3 h-3 rounded-full'
                       style={{ backgroundColor: item.color || "#ccc" }}></div>
                     <span className='text-gray-700 dark:text-gray-300 font-medium'>
-                      {item.categorie}
+                      {item.categorie} : {item.percentage.toFixed(1)}%
                     </span>
-                  </div>
-                  <div className='text-right'>
-                    <div className='text-gray-800 dark:text-gray-200 font-semibold'>
-                      {formatMontant(item.montant)}
-                    </div>
-                    <div className='text-xs text-gray-500 dark:text-gray-400'>
-                      {item.percentage.toFixed(1)}%
-                    </div>
                   </div>
                 </div>
               ))}
