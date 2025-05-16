@@ -862,6 +862,36 @@ export default function PaiementEchelonne() {
           </div>
         </div>
 
+        {/* Onglets Dépenses/Revenus */}
+        <div className='flex justify-center mb-6'>
+          <div className='flex w-full max-w-xl bg-[#f3f6fa] dark:bg-black rounded-xl p-1'>
+            <button
+              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center
+                bg-white dark:bg-black text-[#111827] dark:text-white shadow font-semibold border border-[#e5eaf1] dark:border-gray-800
+              `}
+              onClick={() =>
+                navigate("/depenses-revenus", {
+                  state: { tabInitial: "depenses" },
+                })
+              }
+              type='button'>
+              Dépenses
+            </button>
+            <button
+              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center
+                bg-transparent text-[#7b849b] dark:text-gray-400 font-normal
+              `}
+              onClick={() =>
+                navigate("/depenses-revenus", {
+                  state: { tabInitial: "revenus" },
+                })
+              }
+              type='button'>
+              Revenus
+            </button>
+          </div>
+        </div>
+
         {/* Affichage des paiements échelonnés */}
         <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
           <div className='flex items-center justify-between mb-6'>

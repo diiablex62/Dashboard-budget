@@ -7,6 +7,7 @@ import {
   AiOutlinePieChart,
   AiOutlineCalendar,
   AiOutlineSetting,
+  AiOutlineLogin,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
 
@@ -111,15 +112,14 @@ export default function Sidebar() {
       {!user && (
         <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
           <button
-            className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer'
-            onClick={() => navigate("/auth", { state: { isLogin: true } })}>
-            Se connecter
+            className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
+            onClick={() => navigate("/auth")}>
+            <AiOutlineLogin className='mr-2 text-xl' />
+            <span>Se connecter / S'inscrire</span>
           </button>
-          <button
-            className='w-full mt-4 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300 cursor-pointer'
-            onClick={() => navigate("/auth", { state: { isLogin: false } })}>
-            S'inscrire
-          </button>
+          <p className='text-xs text-center text-gray-500 mt-2'>
+            Connexion simplifiée par email, Google ou GitHub
+          </p>
         </div>
       )}
     </div>

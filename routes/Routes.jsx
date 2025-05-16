@@ -7,6 +7,7 @@ import PaiementRecurrent from "../src/pages/PaiementRecurrent";
 import PaiementEchelonne from "../src/pages/PaiementEchelonne";
 import Notifications from "../src/pages/Notifications";
 import Auth from "../src/pages/Auth";
+import AuthConfirm from "../src/pages/AuthConfirm";
 import PrivacyPolicy from "../src/pages/PrivacyPolicy";
 import UserDataDeletion from "../src/pages/UserDataDeletion";
 import Terms from "../src/pages/Terms";
@@ -23,12 +24,13 @@ export default function AppRoutes() {
       <Route path='/paiements-echelonnes' element={<PaiementEchelonne />} />
       <Route path='/notifications' element={<Notifications />} />
       <Route path='/auth' element={<Auth />} />
+      <Route path='/auth/confirm' element={<AuthConfirm />} />
       <Route path='/privacy-policy' element={<PrivacyPolicy />} />
       <Route path='/privacy' element={<PrivacyPolicy />} />
       <Route path='/user-data-deletion' element={<UserDataDeletion />} />
       <Route path='/terms' element={<Terms />} />
-      <Route path='*' element={<Navigate to='/' replace />} />
       <Route path='/depenses-revenus' element={<DepensesRevenus />} />
+      <Route path='*' element={<Navigate to='/' replace />} />
     </Routes>
   );
 }
