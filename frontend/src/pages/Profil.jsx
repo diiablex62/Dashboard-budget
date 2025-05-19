@@ -6,13 +6,15 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { FaSearch, FaCamera } from "react-icons/fa";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+import UserAccountInfo from "../components/UserAccountInfo";
+import { MigrationButton } from "../utils/dataMigration";
 
 const CLOUDINARY_CLOUD_NAME = "dulclkp2k";
 const CLOUDINARY_UPLOAD_PRESET = "ml_default";
 const CLOUDINARY_API_KEY = import.meta.env.VITE_CLOUDINARY_API_KEY;
 
 export default function Profil() {
-  const { user, refreshUser } = useAuth();
+  const { user, mainAccountId, refreshUser } = useAuth();
   const [userData, setUserData] = useState({
     prenom: "",
     nom: "",
@@ -42,14 +44,17 @@ export default function Profil() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user) {
+      if (!mainAccountId) {
         setLoading(false);
         return;
       }
 
       try {
-        // Utilise toujours auth.currentUser pour la photo la plus à jour
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        console.log(
+          `Chargement des données utilisateur pour: ${mainAccountId}`
+        );
+        // Utilise l'ID de compte principal pour charger les données utilisateur
+        const userDoc = await getDoc(doc(db, "users", mainAccountId));
         if (userDoc.exists()) {
           const data = userDoc.data();
           setUserData({
@@ -67,7 +72,7 @@ export default function Profil() {
             adresse: "",
             photoURL: auth.currentUser?.photoURL || user.photoURL || "",
           };
-          await setDoc(doc(db, "users", user.uid), defaultData);
+          await setDoc(doc(db, "users", mainAccountId), defaultData);
           setUserData(defaultData);
           setSearchQuery(defaultData.adresse || "");
         }
@@ -84,7 +89,7 @@ export default function Profil() {
     };
 
     fetchUserData();
-  }, [user, user?.photoURL]);
+  }, [mainAccountId, user]);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -139,7 +144,7 @@ export default function Profil() {
 
       // Mise à jour des données utilisateur dans Firestore (la BDD)
       const updatedData = { ...userData, photoURL };
-      await setDoc(doc(db, "users", firebaseUser.uid), updatedData);
+      await setDoc(doc(db, "users", mainAccountId), updatedData);
 
       // Mets à jour l'état local avec la photo la plus récente (Firebase Auth)
       setUserData((prev) => ({
@@ -213,8 +218,10 @@ export default function Profil() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!mainAccountId) return;
+
     try {
-      await setDoc(doc(db, "users", user.uid), userData);
+      await setDoc(doc(db, "users", mainAccountId), userData);
       console.log("Profil mis à jour avec succès");
       setHasChanges(false);
     } catch (error) {
@@ -235,43 +242,63 @@ export default function Profil() {
     <div className='p-8 bg-[#f8fafc] dark:bg-black min-h-screen'>
       <h1 className='text-3xl font-bold mb-8 dark:text-white'>PROFIL</h1>
       <div className='flex flex-col md:flex-row gap-8'>
-        {/* Carte profil */}
-        <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-8 flex flex-col items-center w-full md:w-1/3'>
-          <div
-            className='relative w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-4 cursor-pointer group'
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            onClick={() => fileInputRef.current?.click()}>
-            {userData.photoURL ? (
-              <img
-                src={userData.photoURL}
-                alt='Photo de profil'
-                className='w-full h-full rounded-full object-cover'
+        {/* Colonne de gauche: Carte profil + Infos compte */}
+        <div className='flex flex-col w-full md:w-1/3 gap-6'>
+          {/* Carte profil */}
+          <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-8 flex flex-col items-center'>
+            <div
+              className='relative w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-4 cursor-pointer group'
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              onClick={() => fileInputRef.current?.click()}>
+              {userData.photoURL ? (
+                <img
+                  src={userData.photoURL}
+                  alt='Photo de profil'
+                  className='w-full h-full rounded-full object-cover'
+                />
+              ) : (
+                <span className='text-2xl font-bold text-blue-500 flex items-center justify-center h-full'>
+                  {userData.prenom.charAt(0)}
+                  {userData.nom.charAt(0)}
+                </span>
+              )}
+              {isHovering && (
+                <div className='absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center'>
+                  <FaCamera className='text-white text-2xl' />
+                </div>
+              )}
+              <input
+                type='file'
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                accept='image/*'
+                className='hidden'
               />
-            ) : (
-              <span className='text-2xl font-bold text-blue-500 flex items-center justify-center h-full'>
-                {userData.prenom.charAt(0)}
-                {userData.nom.charAt(0)}
-              </span>
-            )}
-            {isHovering && (
-              <div className='absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center'>
-                <FaCamera className='text-white text-2xl' />
-              </div>
-            )}
-            <input
-              type='file'
-              ref={fileInputRef}
-              onChange={handlePhotoUpload}
-              accept='image/*'
-              className='hidden'
-            />
+            </div>
+            <div className='text-xl font-semibold mb-1 dark:text-white'>
+              {userData.prenom} {userData.nom}
+            </div>
+            <div className='text-gray-500 dark:text-gray-400 mb-6'>
+              {userData.email}
+            </div>
           </div>
-          <div className='text-xl font-semibold mb-1 dark:text-white'>
-            {userData.prenom} {userData.nom}
-          </div>
-          <div className='text-gray-500 dark:text-gray-400 mb-6'>
-            {userData.email}
+
+          {/* Informations du compte (nouveau composant) */}
+          <UserAccountInfo />
+
+          {/* Bouton de migration des données */}
+          <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-6'>
+            <h2 className='text-lg font-semibold mb-4 dark:text-white'>
+              Gestion des données
+            </h2>
+            <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
+              Si vous avez des données qui ne sont pas associées à votre compte,
+              vous pouvez les migrer ici.
+            </p>
+            <div className='flex justify-center'>
+              <MigrationButton userId={mainAccountId} />
+            </div>
           </div>
         </div>
 
@@ -349,22 +376,21 @@ export default function Profil() {
                   type='text'
                   name='adresse'
                   value={searchQuery}
-                  onChange={handleChange}
-                  placeholder='Commencez à taper une adresse...'
-                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
+                  onChange={handleAddressChange}
+                  placeholder='Rechercher une adresse...'
+                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
                 />
-                <FaSearch className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                <FaSearch className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500' />
               </div>
               {showSuggestions && addressSuggestions.length > 0 && (
-                <div className='absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto'>
-                  {addressSuggestions.map((suggestion, index) => (
-                    <button
+                <div className='absolute z-10 mt-1 bg-white dark:bg-gray-900 shadow-lg rounded-lg w-full max-h-60 overflow-auto border border-gray-200 dark:border-gray-800'>
+                  {addressSuggestions.map((address, index) => (
+                    <div
                       key={index}
-                      type='button'
-                      onClick={() => handleAddressSelect(suggestion)}
-                      className='w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-700 dark:text-gray-300'>
-                      {suggestion.properties.label}
-                    </button>
+                      className='px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white'
+                      onClick={() => handleAddressSelect(address)}>
+                      {address.properties.label}
+                    </div>
                   ))}
                 </div>
               )}

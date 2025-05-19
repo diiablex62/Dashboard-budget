@@ -15,11 +15,11 @@ import {
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [hoveredId, setHoveredId] = useState(null);
-  const { user } = useAuth();
+  const { user, mainAccountId } = useAuth();
 
   // Marquer toutes les notifications comme lues (fonction conservée mais non utilisée automatiquement)
   const markAllAsRead = async () => {
-    if (!user) return;
+    if (!mainAccountId) return;
     const unread = notifications.filter((n) => !n.read);
 
     // Mettre à jour les notifications non lues
@@ -33,7 +33,7 @@ export default function Notifications() {
 
   // Marquer une notification comme lue au clic
   const handleMarkAsRead = async (notifId) => {
-    if (!user) return;
+    if (!mainAccountId) return;
     await markNotificationAsRead(notifId);
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId ? { ...n, read: true } : n))
@@ -42,14 +42,17 @@ export default function Notifications() {
 
   // Charger les notifications
   useEffect(() => {
-    if (!user) {
+    if (!mainAccountId) {
       setNotifications([]);
       return;
     }
 
     const fetchNotifications = async () => {
       try {
-        const notifs = await getAllNotifications();
+        console.log(
+          `Chargement des notifications pour l'utilisateur: ${mainAccountId}`
+        );
+        const notifs = await getAllNotifications(mainAccountId);
         setNotifications(notifs);
         // Les notifications ne sont plus marquées comme lues automatiquement
       } catch (error) {
@@ -61,13 +64,13 @@ export default function Notifications() {
     };
 
     fetchNotifications();
-  }, [user]);
+  }, [mainAccountId]);
 
   // Supprimer toutes les notifications
   const handleDeleteAll = async () => {
-    if (!user) return;
+    if (!mainAccountId) return;
     try {
-      await deleteAllNotifications();
+      await deleteAllNotifications(mainAccountId);
       setNotifications([]);
     } catch (error) {
       console.error("Erreur lors de la suppression des notifications:", error);

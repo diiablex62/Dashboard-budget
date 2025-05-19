@@ -7,6 +7,8 @@ import {
   doc,
   getDocs,
   serverTimestamp,
+  query,
+  where,
 } from "firebase/firestore";
 
 /**
@@ -14,10 +16,12 @@ import {
  * @param {string} type - Type de notification (recurrent, echelonne, depense, revenu)
  * @param {string} title - Titre de la notification
  * @param {string} desc - Description de la notification
+ * @param {string} userId - ID de l'utilisateur
  * @returns {Promise<string>} - ID du document créé
  */
-export const addNotification = async (type, title, desc) => {
+export const addNotification = async (type, title, desc, userId) => {
   try {
+    console.log(`Ajout notification pour utilisateur: ${userId}`);
     const docRef = await addDoc(collection(db, "notifications"), {
       type,
       title,
@@ -25,6 +29,7 @@ export const addNotification = async (type, title, desc) => {
       date: new Date().toLocaleDateString("fr-FR"),
       read: false,
       createdAt: serverTimestamp(),
+      userId,
     });
     return docRef.id;
   } catch (error) {
@@ -39,12 +44,14 @@ export const addNotification = async (type, title, desc) => {
  * @param {string} type - Type d'élément (recurrent, echelonne, depense, revenu)
  * @param {string} nom - Nom de l'élément
  * @param {number} montant - Montant de l'élément
+ * @param {string} userId - ID de l'utilisateur
  */
 export const createNotificationForOperation = async (
   operation,
   type,
   nom,
-  montant
+  montant,
+  userId
 ) => {
   const absAmount = Math.abs(parseFloat(montant)).toFixed(2);
   const capitalizedName = nom.charAt(0).toUpperCase() + nom.slice(1);
@@ -89,7 +96,7 @@ export const createNotificationForOperation = async (
       throw new Error("Type d'opération non supporté");
   }
 
-  await addNotification(type, title, desc);
+  await addNotification(type, title, desc, userId);
 };
 
 /**
@@ -109,12 +116,18 @@ export const markNotificationAsRead = async (notificationId) => {
 };
 
 /**
- * Récupère toutes les notifications
+ * Récupère toutes les notifications d'un utilisateur
+ * @param {string} userId - ID de l'utilisateur
  * @returns {Promise<Array>} - Tableau des notifications
  */
-export const getAllNotifications = async () => {
+export const getAllNotifications = async (userId) => {
   try {
-    const snapshot = await getDocs(collection(db, "notifications"));
+    console.log(`Récupération des notifications pour utilisateur: ${userId}`);
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", userId)
+    );
+    const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -139,11 +152,17 @@ export const deleteNotification = async (notificationId) => {
 };
 
 /**
- * Supprime toutes les notifications
+ * Supprime toutes les notifications d'un utilisateur
+ * @param {string} userId - ID de l'utilisateur
  */
-export const deleteAllNotifications = async () => {
+export const deleteAllNotifications = async (userId) => {
   try {
-    const snapshot = await getDocs(collection(db, "notifications"));
+    console.log(`Suppression des notifications pour utilisateur: ${userId}`);
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", userId)
+    );
+    const snapshot = await getDocs(q);
     const batchDeletes = snapshot.docs.map((d) =>
       deleteDoc(doc(db, "notifications", d.id))
     );
@@ -169,6 +188,7 @@ export const refreshDashboard = () => {
  * @param {string} operation - Type d'opération (add, update, delete)
  * @param {string} collectionName - Nom de la collection Firestore
  * @param {Object} data - Données de l'élément
+ * @param {string} userId - ID de l'utilisateur
  * @param {string} [id] - ID de l'élément (pour update/delete)
  * @returns {Promise<string|void>} - ID du document créé (pour add)
  */
@@ -176,9 +196,13 @@ export const handleItemOperation = async (
   operation,
   collectionName,
   data,
+  userId,
   id = null
 ) => {
   try {
+    console.log(
+      `Opération ${operation} sur ${collectionName} pour utilisateur: ${userId}`
+    );
     let documentId = id;
     const simplifiedType =
       collectionName === "recurrent"
@@ -189,10 +213,16 @@ export const handleItemOperation = async (
         ? "depense"
         : "revenu";
 
+    // Ajout de l'ID utilisateur aux données
+    const dataWithUserId = {
+      ...data,
+      userId,
+    };
+
     switch (operation) {
       case "add":
         const docRef = await addDoc(collection(db, collectionName), {
-          ...data,
+          ...dataWithUserId,
           createdAt: serverTimestamp(),
         });
         documentId = docRef.id;
@@ -201,7 +231,7 @@ export const handleItemOperation = async (
       case "update":
         if (!id) throw new Error("ID requis pour la mise à jour");
         await updateDoc(doc(db, collectionName, id), {
-          ...data,
+          ...dataWithUserId,
           updatedAt: serverTimestamp(),
         });
         break;
@@ -220,7 +250,8 @@ export const handleItemOperation = async (
       operation,
       simplifiedType,
       data.nom,
-      data.montant
+      data.montant,
+      userId
     );
 
     // Rafraîchir le dashboard
@@ -230,6 +261,35 @@ export const handleItemOperation = async (
   } catch (error) {
     console.error(
       `Erreur lors de l'opération ${operation} sur ${collectionName}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+/**
+ * Récupère tous les éléments d'une collection pour un utilisateur spécifique
+ * @param {string} collectionName - Nom de la collection Firestore
+ * @param {string} userId - ID de l'utilisateur
+ * @returns {Promise<Array>} - Tableau des éléments
+ */
+export const getItemsByUserId = async (collectionName, userId) => {
+  try {
+    console.log(
+      `Récupération des ${collectionName} pour utilisateur: ${userId}`
+    );
+    const q = query(
+      collection(db, collectionName),
+      where("userId", "==", userId)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    console.error(
+      `Erreur lors de la récupération des ${collectionName}:`,
       error
     );
     throw error;

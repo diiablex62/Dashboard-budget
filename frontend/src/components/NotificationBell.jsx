@@ -1,37 +1,51 @@
 import React, { useEffect, useState } from "react";
 import { FiBell } from "react-icons/fi";
 import { db } from "../firebaseConfig";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 
 export default function NotificationBell() {
   const [hasUnread, setHasUnread] = useState(false);
-  const { user } = useAuth();
+  const { user, mainAccountId } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
+    if (!mainAccountId) {
+      setHasUnread(false);
+      return;
+    }
 
-    // Récupérer toutes les notifications (sans filtre par utilisateur pour l'instant)
-    const notificationsQuery = query(collection(db, "notifications"));
+    console.log(
+      `Configuration de l'écouteur de notifications pour: ${mainAccountId}`
+    );
+
+    // Filtrer les notifications par ID utilisateur principal
+    const notificationsQuery = query(
+      collection(db, "notifications"),
+      where("userId", "==", mainAccountId),
+      where("read", "==", false)
+    );
 
     // Utiliser onSnapshot pour écouter en temps réel les changements
     const unsubscribe = onSnapshot(
       notificationsQuery,
       (snapshot) => {
-        // Vérifier s'il y a au moins une notification non lue
-        const anyUnread = snapshot.docs.some(
-          (doc) => doc.data().read === false
+        // S'il y a des documents dans le résultat, on a des notifications non lues
+        setHasUnread(!snapshot.empty);
+        console.log(
+          `Notifications non lues pour ${mainAccountId}: ${
+            !snapshot.empty ? snapshot.size : 0
+          }`
         );
-        setHasUnread(anyUnread);
       },
       (error) => {
         console.error("Erreur lors de l'écoute des notifications:", error);
+        setHasUnread(false);
       }
     );
 
     // Se désabonner de l'écouteur lors du démontage du composant
     return () => unsubscribe();
-  }, [user]);
+  }, [mainAccountId]);
 
   return (
     <div className='relative'>

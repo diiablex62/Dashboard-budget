@@ -1,12 +1,61 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { AppContext } from "../context/AppContext";
 import { ThemeContext } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import {
+  FaGoogle,
+  FaEnvelope,
+  FaQuestionCircle,
+  FaGithub,
+} from "react-icons/fa";
 
 export default function SettingsPanel({ setIsSettingsOpen }) {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
+  const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const panelRef = useRef(null);
+
+  // Récupérer la méthode d'authentification actuelle
+  const savedUser = localStorage.getItem("authUser");
+  const userData = savedUser ? JSON.parse(savedUser) : null;
+  const currentMethod = userData?.lastLoginMethod || "inconnu";
+
+  // Obtenir le nom lisible et l'icône pour la méthode actuelle
+  const getProviderInfo = (method) => {
+    switch (method) {
+      case "google":
+        return {
+          name: "Google",
+          icon: <FaGoogle className='text-red-500' />,
+          email: userData?.email,
+        };
+      case "email-link":
+        return {
+          name: "Email",
+          icon: <FaEnvelope className='text-blue-500' />,
+          email: userData?.email,
+        };
+      case "github":
+        return {
+          name: "GitHub",
+          icon: <FaGithub className='text-purple-500' />,
+          email: userData?.email,
+        };
+      default:
+        return {
+          name: "Méthode inconnue",
+          icon: <FaQuestionCircle className='text-gray-500' />,
+          email: userData?.email,
+        };
+    }
+  };
+
+  const {
+    name: methodName,
+    icon: methodIcon,
+    email: userEmail,
+  } = getProviderInfo(currentMethod);
 
   useEffect(() => {
     const savedColor = localStorage.getItem("primaryColor");
@@ -126,11 +175,12 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
           &times;
         </button>
       </div>
-      <div className='p-4'>
+      <div className='p-4 overflow-y-auto h-full'>
         <p className='text-gray-500 dark:text-gray-400'>
           Ici vous pouvez personnaliser votre barre latérale et activer le mode
           sombre.
         </p>
+
         <div className='mt-6'>
           <h3 className='text-sm font-bold text-gray-800 dark:text-white'>
             Couleurs de la barre latérale
@@ -147,6 +197,7 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
             ))}
           </div>
         </div>
+
         <div className='mt-6'>
           <h3 className='text-sm font-bold text-gray-800 dark:text-white'>
             Mode sombre
@@ -165,6 +216,83 @@ export default function SettingsPanel({ setIsSettingsOpen }) {
                   isDarkMode ? "translate-x-5" : "translate-x-1"
                 }`}></span>
             </button>
+          </div>
+        </div>
+
+        {/* Section des méthodes d'authentification */}
+        <div className='mt-6 border-t pt-4'>
+          <h3 className='text-sm font-bold text-gray-800 dark:text-white mb-2'>
+            Connexion actuelle
+          </h3>
+
+          {userData ? (
+            <div className='bg-gray-50 dark:bg-gray-800 rounded-md p-3 mb-2'>
+              <div className='flex items-center'>
+                <div className='mr-3'>{methodIcon}</div>
+                <div>
+                  <p className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                    {methodName}
+                  </p>
+                  <p className='text-xs text-gray-500 dark:text-gray-400'>
+                    {userEmail}
+                  </p>
+                </div>
+                <div className='ml-auto'>
+                  <span className='text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full'>
+                    Actif
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className='text-sm text-gray-500 dark:text-gray-400'>
+              Non connecté
+            </p>
+          )}
+
+          <h3 className='text-sm font-bold text-gray-800 dark:text-white mt-4 mb-2'>
+            Méthodes disponibles
+          </h3>
+
+          <div className='space-y-2'>
+            {(!userData || currentMethod !== "google") && (
+              <div className='flex items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md'>
+                <div className='mr-3'>
+                  <FaGoogle className='text-red-500' />
+                </div>
+                <div>
+                  <p className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                    Google
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {(!userData || currentMethod !== "email-link") && (
+              <div className='flex items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md'>
+                <div className='mr-3'>
+                  <FaEnvelope className='text-blue-500' />
+                </div>
+                <div>
+                  <p className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                    Email (lien magique)
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {(!userData || currentMethod !== "github") && (
+              <div className='flex items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md'>
+                <div className='mr-3'>
+                  <FaGithub className='text-purple-500' />
+                </div>
+                <div>
+                  <p className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                    GitHub
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

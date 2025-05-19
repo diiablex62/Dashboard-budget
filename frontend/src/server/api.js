@@ -17,7 +17,9 @@ import {
 } from "./emailAuth.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// Forcer le port 3000 pour correspondre à la configuration frontend
+const PORT = 3000;
+console.log("Le serveur API démarre sur le port:", PORT);
 
 // Utiliser une clé JWT secrète robuste
 const JWT_SECRET =
@@ -42,6 +44,8 @@ console.log(`Durée de validité des tokens JWT: ${JWT_EXPIRES_IN}`);
 const ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://localhost:5174", // Port alternatif utilisé par Vite
+  "http://127.0.0.1:5174", // Port alternatif utilisé par Vite
   // Ajoutez d'autres origines si nécessaire
 ];
 
