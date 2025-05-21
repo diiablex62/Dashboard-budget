@@ -26,16 +26,16 @@ export default function AppRoutes() {
       <Route path='/user-data-deletion' element={<UserDataDeletion />} />
       <Route path='/terms' element={<Terms />} />
 
-      {/* Routes principales sous /budget */}
-      <Route path='/budget' element={<Dashboard />} />
-      <Route path='/budget/users' element={<Profil />} />
-      <Route path='/budget/agenda' element={<Agenda />} />
-      <Route path='/budget/recurrents' element={<PaiementRecurrent />} />
-      <Route path='/budget/echelonne' element={<PaiementEchelonne />} />
-      <Route path='/budget/notifications' element={<Notifications />} />
-      <Route path='/budget/depenses-revenus' element={<DepensesRevenus />} />
+      {/* Routes principales */}
+      <Route path='/dashboard' element={<Dashboard />} />
+      <Route path='/users' element={<Profil />} />
+      <Route path='/agenda' element={<Agenda />} />
+      <Route path='/recurrents' element={<PaiementRecurrent />} />
+      <Route path='/echelonne' element={<PaiementEchelonne />} />
+      <Route path='/notifications' element={<Notifications />} />
+      <Route path='/depenses-revenus' element={<DepensesRevenus />} />
 
-      <Route path='*' element={<Navigate to='/budget' replace />} />
+      <Route path='*' element={<Navigate to='/dashboard' replace />} />
     </Routes>
   );
 }

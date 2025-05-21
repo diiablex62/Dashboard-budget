@@ -50,7 +50,6 @@ const routeSchema = new mongoose.Schema(
 );
 
 // Index pour optimiser les recherches
-routeSchema.index({ path: 1 });
 routeSchema.index({ category: 1 });
 routeSchema.index({ order: 1 });
 

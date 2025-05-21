@@ -30,7 +30,7 @@ export default function Sidebar() {
           {/* Dashboard */}
           <li>
             <NavLink
-              to='/'
+              to='/dashboard'
               onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer transition ${
@@ -62,7 +62,7 @@ export default function Sidebar() {
           {/* Paiements récurrents */}
           <li>
             <NavLink
-              to='/paiements-recurrents'
+              to='/recurrents'
               onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer transition ${
@@ -78,7 +78,7 @@ export default function Sidebar() {
           {/* Paiements échelonnés */}
           <li>
             <NavLink
-              to='/paiements-echelonnes'
+              to='/echelonne'
               onClick={() => window.scrollTo(0, 0)}
               className={({ isActive }) =>
                 `flex items-center p-4 rounded-lg cursor-pointer transition ${

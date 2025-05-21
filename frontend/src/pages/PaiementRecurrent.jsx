@@ -19,16 +19,6 @@ export default function PaiementRecurrent() {
   const [editingId, setEditingId] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
-  useEffect(() => {
-    if (!user) {
-      console.log(
-        "Utilisateur non connecté, redirection vers la page de connexion"
-      );
-      navigate("/login");
-    }
-  }, [user, navigate]);
-
   const fetchPayments = useCallback(async () => {
     if (!user) {
       console.log("Pas d'utilisateur connecté");
@@ -62,7 +52,7 @@ export default function PaiementRecurrent() {
       );
       if (error.message === "Session expirée, veuillez vous reconnecter") {
         setError(error.message);
-        navigate("/login");
+        navigate("/auth", { replace: true });
       } else if (error.response) {
         setError(
           `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
@@ -111,7 +101,7 @@ export default function PaiementRecurrent() {
         console.log(
           "Utilisateur non connecté, redirection vers la page de connexion"
         );
-        navigate("/login");
+        navigate("/auth");
         return;
       }
 

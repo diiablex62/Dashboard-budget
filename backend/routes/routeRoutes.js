@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Route = require("../src/models/Route");
-const auth = require("../middleware/auth");
+const auth = require("../src/middleware/auth");
 
 // Récupérer toutes les routes
 router.get("/", async (req, res) => {
