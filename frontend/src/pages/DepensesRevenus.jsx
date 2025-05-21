@@ -21,6 +21,30 @@ import { transactionApi } from "../utils/api";
 import { MONTHS } from "../utils/categoryUtils";
 import TransactionsChart from "../components/TransactionsChart";
 
+// Catégories par défaut pour les dépenses et revenus
+const DEPENSES_CATEGORIES = [
+  "Alimentation",
+  "Transport",
+  "Logement",
+  "Santé",
+  "Loisirs",
+  "Shopping",
+  "Factures",
+  "Éducation",
+  "Voyages",
+  "Autres",
+];
+
+const REVENUS_CATEGORIES = [
+  "Salaire",
+  "Freelance",
+  "Investissements",
+  "Ventes",
+  "Prestations",
+  "Allocations",
+  "Autres",
+];
+
 // Importation des nouvelles fonctions utilitaires
 import {
   formatDate,
@@ -34,7 +58,56 @@ import {
 } from "../utils/transactionUtils";
 
 // Données factices pour la démo
-const fakeTransactions = [];
+const fakeTransactions = [
+  {
+    id: 1,
+    nom: "Loyer",
+    montant: 700,
+    categorie: "Logement",
+    date: "2024-06-01",
+    type: "depense",
+  },
+  {
+    id: 2,
+    nom: "Courses",
+    montant: 220.5,
+    categorie: "Alimentation",
+    date: "2024-06-03",
+    type: "depense",
+  },
+  {
+    id: 3,
+    nom: "Salaire",
+    montant: 2100,
+    categorie: "Salaire",
+    date: "2024-06-01",
+    type: "revenu",
+  },
+  {
+    id: 4,
+    nom: "Vente Vinted",
+    montant: 45,
+    categorie: "Ventes",
+    date: "2024-06-10",
+    type: "revenu",
+  },
+  {
+    id: 5,
+    nom: "Essence",
+    montant: 80,
+    categorie: "Transport",
+    date: "2024-06-07",
+    type: "depense",
+  },
+  {
+    id: 6,
+    nom: "Remboursement mutuelle",
+    montant: 60,
+    categorie: "Santé",
+    date: "2024-06-12",
+    type: "revenu",
+  },
+];
 
 function getMonthName(date) {
   return date.toLocaleString("fr-FR", { month: "long" });
@@ -45,7 +118,7 @@ function RevenuModal({
   onSave,
   revenu = {},
   stepInit = 1,
-  categories = [],
+  categories = REVENUS_CATEGORIES,
 }) {
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
@@ -314,7 +387,7 @@ function DepenseModal({
   onSave,
   depense = {},
   stepInit = 1,
-  categories = [],
+  categories = DEPENSES_CATEGORIES,
 }) {
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
@@ -598,12 +671,13 @@ export default function DepensesRevenus() {
       setLoading(true);
       setError(null);
       const response = await transactionApi.getTransactions();
-      if (!response) {
-        throw new Error("Format de réponse invalide");
+      if (response && Array.isArray(response) && response.length > 0) {
+        setTransactions(response);
+      } else {
+        setTransactions(fakeTransactions);
       }
-      console.log("Transactions reçues:", response);
-      setTransactions(response);
     } catch (error) {
+      setTransactions(fakeTransactions);
       console.error("Erreur lors de la récupération des transactions:", error);
       if (error.response) {
         setError(
@@ -650,97 +724,37 @@ export default function DepensesRevenus() {
     }
   }, []);
 
-  const handleDeleteTransaction = useCallback(
-    async (id) => {
-      if (
-        !window.confirm(
-          "Êtes-vous sûr de vouloir supprimer cette transaction ?"
-        )
-      ) {
-        return;
-      }
+  const handleDeleteTransaction = useCallback(async (id) => {
+    if (
+      !window.confirm("Êtes-vous sûr de vouloir supprimer cette transaction ?")
+    )
+      return;
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
-      try {
-        setLoading(true);
-        setError(null);
-        await deleteTransaction(id);
-        console.log("Transaction supprimée:", id);
-        await fetchTransactions();
-        window.dispatchEvent(new Event("data-updated"));
-      } catch (error) {
-        console.error(
-          "Erreur lors de la suppression de la transaction:",
-          error
-        );
-        if (error.response) {
-          setError(
-            `Erreur serveur: ${
-              error.response.data?.message || "Erreur inconnue"
-            }`
-          );
-        } else {
-          setError("Erreur lors de la suppression de la transaction");
-        }
-      } finally {
-        setLoading(false);
+  const handleSaveRevenu = useCallback(async (revenu) => {
+    setTransactions((prev) => {
+      if (revenu.id) {
+        // Edition locale
+        return prev.map((t) => (t.id === revenu.id ? { ...revenu } : t));
+      } else {
+        // Ajout local
+        return [...prev, { ...revenu, id: Date.now(), type: "revenu" }];
       }
-    },
-    [fetchTransactions]
-  );
+    });
+  }, []);
 
-  const handleSaveRevenu = useCallback(
-    async (revenu) => {
-      try {
-        setLoading(true);
-        setError(null);
-        await addOrUpdateRevenu(revenu);
-        console.log("Revenu sauvegardé:", revenu);
-        await fetchTransactions();
-        window.dispatchEvent(new Event("data-updated"));
-      } catch (error) {
-        console.error("Erreur lors de la sauvegarde du revenu:", error);
-        if (error.response) {
-          setError(
-            `Erreur serveur: ${
-              error.response.data?.message || "Erreur inconnue"
-            }`
-          );
-        } else {
-          setError("Erreur lors de la sauvegarde du revenu");
-        }
-      } finally {
-        setLoading(false);
+  const handleSaveDepense = useCallback(async (depense) => {
+    setTransactions((prev) => {
+      if (depense.id) {
+        // Edition locale
+        return prev.map((t) => (t.id === depense.id ? { ...depense } : t));
+      } else {
+        // Ajout local
+        return [...prev, { ...depense, id: Date.now(), type: "depense" }];
       }
-    },
-    [fetchTransactions]
-  );
-
-  const handleSaveDepense = useCallback(
-    async (depense) => {
-      try {
-        setLoading(true);
-        setError(null);
-        await addOrUpdateDepense(depense);
-        console.log("Dépense sauvegardée:", depense);
-        await fetchTransactions();
-        window.dispatchEvent(new Event("data-updated"));
-      } catch (error) {
-        console.error("Erreur lors de la sauvegarde de la dépense:", error);
-        if (error.response) {
-          setError(
-            `Erreur serveur: ${
-              error.response.data?.message || "Erreur inconnue"
-            }`
-          );
-        } else {
-          setError("Erreur lors de la sauvegarde de la dépense");
-        }
-      } finally {
-        setLoading(false);
-      }
-    },
-    [fetchTransactions]
-  );
+    });
+  }, []);
 
   const handleFilterChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -1011,15 +1025,15 @@ export default function DepensesRevenus() {
           onClose={() => setShowRevenuModal(false)}
           onSave={handleSaveRevenu}
           revenu={selectedTransaction}
-          categories={transactions.map((t) => t.categorie)}
+          categories={REVENUS_CATEGORIES}
         />
       )}
       {showDepenseModal && (
         <DepenseModal
           onClose={() => setShowDepenseModal(false)}
           onSave={handleSaveDepense}
-          depense={selectedTransaction}
-          categories={transactions.map((t) => t.categorie)}
+          depense={selectedTransaction || {}}
+          categories={DEPENSES_CATEGORIES}
         />
       )}
     </div>

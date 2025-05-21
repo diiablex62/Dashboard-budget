@@ -1,54 +1,26 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
-import {
-  AiOutlineCalendar,
-  AiOutlineArrowLeft,
-  AiOutlineArrowRight,
-} from "react-icons/ai";
-import {
-  getAllEchelonnePayments,
-  getAllRecurrentPayments,
-} from "../utils/paymentUtils";
-import { transactionApi } from "../utils/api";
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameMonth,
-  isToday,
-} from "date-fns";
-import { fr } from "date-fns/locale";
+import React, { useState, useMemo } from "react";
+import { AiOutlineCalendar, AiOutlinePlus } from "react-icons/ai";
 
-const MONTHS = [
-  "janvier",
-  "février",
-  "mars",
-  "avril",
-  "mai",
-  "juin",
-  "juillet",
-  "août",
-  "septembre",
-  "octobre",
-  "novembre",
-  "décembre",
+const fakeEvents = [
+  { date: "2025-05-07", title: "Prélèvement Netflix" },
+  { date: "2025-05-12", title: "Assurance voiture" },
+  { date: "2025-05-15", title: "Spotify" },
+  { date: "2025-05-20", title: "Salle de sport" },
+  { date: "2025-05-25", title: "Loyer" },
 ];
+
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
+function getMonthYear(date) {
+  return date.toLocaleString("fr-FR", { month: "long", year: "numeric" });
+}
+
 function getMonthMatrix(year, month) {
-  // month: 0-based
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const matrix = [];
   let week = [];
-  let dayOfWeek = (firstDay.getDay() + 6) % 7; // 0=Monday
-  // Fill first week
+  let dayOfWeek = (firstDay.getDay() + 6) % 7;
   for (let i = 0; i < dayOfWeek; i++) week.push(null);
   for (let d = 1; d <= lastDay.getDate(); d++) {
     week.push(d);
@@ -65,175 +37,138 @@ function getMonthMatrix(year, month) {
 }
 
 export default function Agenda() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 4, 7)); // mai 2025, 7 mai sélectionné
+  const [selectedDay, setSelectedDay] = useState(7);
 
-  const fetchTransactions = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await transactionApi.getTransactions();
-      setTransactions(response.data || response);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des transactions:", error);
-      setError("Erreur lors de la récupération des transactions");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysMatrix = useMemo(() => getMonthMatrix(year, month), [year, month]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
-
-  useEffect(() => {
-    const handleDataUpdate = () => fetchTransactions();
-    window.addEventListener("data-updated", handleDataUpdate);
-    return () => window.removeEventListener("data-updated", handleDataUpdate);
-  }, [fetchTransactions]);
-
-  const getTransactionsForDate = useCallback(
-    (date) => {
-      return transactions.filter((transaction) => {
-        const transactionDate = new Date(transaction.date);
-        return (
-          transactionDate.getDate() === date.getDate() &&
-          transactionDate.getMonth() === date.getMonth() &&
-          transactionDate.getFullYear() === date.getFullYear()
-        );
-      });
-    },
-    [transactions]
-  );
-
-  const handlePrevMonth = useCallback(() => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(newDate.getMonth() - 1);
-      return newDate;
+  // Événements du mois (pour les pastilles)
+  const eventsByDay = useMemo(() => {
+    const map = {};
+    fakeEvents.forEach((e) => {
+      const d = new Date(e.date);
+      if (d.getMonth() === month && d.getFullYear() === year) {
+        const day = d.getDate();
+        if (!map[day]) map[day] = [];
+        map[day].push(e);
+      }
     });
-  }, []);
+    return map;
+  }, [month, year]);
 
-  const handleNextMonth = useCallback(() => {
+  // Événements du jour sélectionné
+  const selectedDateStr = `${year}-${String(month + 1).padStart(
+    2,
+    "0"
+  )}-${String(selectedDay).padStart(2, "0")}`;
+  const eventsOfDay = fakeEvents.filter((e) => e.date === selectedDateStr);
+
+  // Navigation mois
+  const handlePrevMonth = () => {
     setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(newDate.getMonth() + 1);
-      return newDate;
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      setSelectedDay(1);
+      return d;
     });
-  }, []);
-
-  const handleToday = useCallback(() => {
-    setCurrentDate(new Date());
-  }, []);
-
-  const renderCalendar = useMemo(() => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-    return (
-      <div className='grid grid-cols-7 gap-px bg-gray-200'>
-        {DAYS.map((day) => (
-          <div
-            key={day}
-            className='bg-gray-100 p-2 text-center text-sm font-semibold text-gray-700'>
-            {day}
-          </div>
-        ))}
-        {days.map((day) => {
-          const dayTransactions = getTransactionsForDate(day);
-          const isCurrentMonth = isSameMonth(day, currentDate);
-          const isCurrentDay = isToday(day);
-
-          return (
-            <div
-              key={day.toString()}
-              className={`min-h-[100px] p-2 bg-white ${
-                !isCurrentMonth ? "text-gray-400" : ""
-              } ${isCurrentDay ? "bg-blue-50" : ""}`}>
-              <div className='font-semibold mb-1'>{format(day, "d")}</div>
-              <div className='space-y-1'>
-                {dayTransactions.map((transaction) => (
-                  <div
-                    key={transaction.id}
-                    className={`text-xs p-1 rounded ${
-                      transaction.type === "depense"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-green-100 text-green-800"
-                    }`}>
-                    <div className='font-medium truncate'>
-                      {transaction.description}
-                    </div>
-                    <div className='text-right'>
-                      {transaction.type === "depense" ? "-" : "+"}
-                      {transaction.amount
-                        ? transaction.amount.toFixed(2)
-                        : transaction.montant?.toFixed(2) || 0}{" "}
-                      €
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }, [currentDate, getTransactionsForDate]);
-
-  if (loading) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='animate-pulse'>
-          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
-          <div className='space-y-4'>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className='h-16 bg-gray-200 rounded'></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
-          {error}
-        </div>
-      </div>
-    );
-  }
+  };
+  const handleNextMonth = () => {
+    setCurrentDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      setSelectedDay(1);
+      return d;
+    });
+  };
 
   return (
-    <div className='max-w-7xl mx-auto p-6'>
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden'>
-        <div className='p-4 border-b flex justify-between items-center'>
-          <h1 className='text-2xl font-bold text-gray-900'>
-            {format(currentDate, "MMMM yyyy", { locale: fr })}
-          </h1>
-          <div className='space-x-2'>
-            <button
-              onClick={handlePrevMonth}
-              className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
-              Précédent
+    <div className='bg-[#f8fafc] min-h-screen p-8'>
+      <div className='max-w-7xl mx-auto flex gap-8'>
+        {/* Partie gauche : calendrier */}
+        <div className='flex-1 bg-white rounded-2xl shadow border border-[#ececec] p-8'>
+          <div className='mb-2'>
+            <h1 className='text-2xl font-bold text-gray-900'>Agenda mensuel</h1>
+            <div className='text-gray-500 text-base'>
+              Planifiez vos paiements
+            </div>
+          </div>
+          <div className='flex items-center justify-end mb-4'>
+            <button className='flex items-center gap-2 border rounded px-3 py-1 text-gray-700 bg-white shadow-sm'>
+              <AiOutlineCalendar className='text-lg' />
+              {getMonthYear(currentDate)}
             </button>
             <button
-              onClick={handleToday}
-              className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
-              Aujourd'hui
+              onClick={handlePrevMonth}
+              className='ml-2 text-gray-400 hover:text-gray-700 text-xl'>
+              &#8592;
             </button>
             <button
               onClick={handleNextMonth}
-              className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
-              Suivant
+              className='ml-1 text-gray-400 hover:text-gray-700 text-xl'>
+              &#8594;
             </button>
           </div>
+          <div className='grid grid-cols-7 gap-y-2 mb-4'>
+            {DAYS.map((day) => (
+              <div key={day} className='text-center text-gray-500 font-medium'>
+                {day}
+              </div>
+            ))}
+            {daysMatrix.map((week, i) =>
+              week.map((day, j) => (
+                <div
+                  key={i + "-" + j}
+                  className={`h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-all ${
+                    day === selectedDay ? "bg-teal-100" : "hover:bg-gray-100"
+                  }`}
+                  onClick={() => day && setSelectedDay(day)}>
+                  <span
+                    className={`text-lg ${
+                      day === selectedDay
+                        ? "font-bold text-gray-900"
+                        : "text-gray-700"
+                    }`}>
+                    {day || ""}
+                  </span>
+                  {day && eventsByDay[day] && (
+                    <span className='w-2 h-2 rounded-full bg-teal-400 mt-1 inline-block'></span>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
-        {renderCalendar}
+        {/* Partie droite : événements du jour */}
+        <div className='w-[350px] flex flex-col justify-between bg-white rounded-2xl shadow border border-[#ececec] p-8'>
+          <div className='flex items-center justify-between mb-4'>
+            <div className='font-semibold'>
+              Evenements du {String(selectedDay).padStart(2, "0")}/
+              {String(month + 1).padStart(2, "0")}/{year}
+            </div>
+            <button className='flex items-center gap-2 bg-teal-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-teal-600 transition cursor-pointer'>
+              <AiOutlinePlus /> Ajouter
+            </button>
+          </div>
+          <div className='flex-1 flex flex-col justify-between'>
+            {eventsOfDay.length === 0 ? (
+              <div className='text-gray-400 text-center py-8'>
+                Aucun événement pour cette date
+              </div>
+            ) : (
+              <ul className='space-y-2'>
+                {eventsOfDay.map((e, idx) => (
+                  <li
+                    key={idx}
+                    className='bg-gray-50 rounded p-3 text-gray-700 shadow-sm'>
+                    {e.title}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
