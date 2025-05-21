@@ -1,13 +1,55 @@
 import React, { useContext, useState, useCallback, useEffect } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import { AppContext } from "../context/AppContext";
-import { AiOutlinePlus, AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
+import {
+  AiOutlinePlus,
+  AiOutlineEdit,
+  AiOutlineDelete,
+  AiOutlineCalendar,
+  AiOutlineDollarCircle,
+} from "react-icons/ai";
 import { recurrentPaymentApi } from "../utils/api";
+
+// Données factices pour la démo
+const fakePaiements = [
+  {
+    id: 1,
+    description: "Netflix",
+    categorie: "Divertissement",
+    montant: 14.99,
+    frequence: "Mensuel",
+    date: "15/06/2025",
+  },
+  {
+    id: 2,
+    description: "Spotify",
+    categorie: "Divertissement",
+    montant: 9.99,
+    frequence: "Mensuel",
+    date: "20/06/2025",
+  },
+  {
+    id: 3,
+    description: "Salle de sport",
+    categorie: "Sport",
+    montant: 39.99,
+    frequence: "Mensuel",
+    date: "01/07/2025",
+  },
+  {
+    id: 4,
+    description: "Assurance habitation",
+    categorie: "Assurance",
+    montant: 20.5,
+    frequence: "Mensuel",
+    date: "05/07/2025",
+  },
+];
 
 const PaiementRecurrent = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const { primaryColor } = useContext(AppContext);
-  const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
+  const [paiementsRecurrents, setPaiementsRecurrents] = useState(fakePaiements);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -49,6 +91,14 @@ const PaiementRecurrent = () => {
     "Autres",
   ];
 
+  // Calculs totaux
+  const totalMensuel = paiementsRecurrents.reduce(
+    (acc, p) => acc + p.montant,
+    0
+  );
+  const totalAnnuel = totalMensuel * 12;
+  const totalDepenses = totalMensuel;
+
   if (loading) {
     return (
       <div className='p-6'>
@@ -75,195 +125,102 @@ const PaiementRecurrent = () => {
   }
 
   return (
-    <div className='p-6'>
-      <div className='flex justify-between items-center mb-6'>
-        <h1
-          className={`text-2xl font-bold ${
-            isDarkMode ? "text-white" : "text-gray-800"
-          }`}>
-          Paiements récurrents
-        </h1>
-        <button
-          className='flex items-center px-4 py-2 rounded-lg text-white'
-          style={{ backgroundColor: primaryColor }}>
-          <AiOutlinePlus className='mr-2' />
-          Nouveau paiement
-        </button>
-      </div>
+    <div className='bg-[#f8fafc] min-h-screen p-8'>
+      <div className='max-w-6xl mx-auto'>
+        {/* Titre */}
+        <div className='mb-6 flex items-center justify-between'>
+          <h1 className='text-2xl font-bold text-gray-900'>
+            PAIEMENTS RECURRENTS
+          </h1>
+        </div>
 
-      {/* Filtres */}
-      <div
-        className={`p-4 rounded-lg mb-6 ${
-          isDarkMode ? "bg-gray-800" : "bg-white"
-        } shadow-lg`}>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <div>
-            <label
-              className={`block mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              }`}>
-              Catégorie
-            </label>
-            <select
-              className={`w-full p-2 rounded-lg border ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300"
-              }`}>
-              <option value='all'>Toutes</option>
-              {categories.map((categorie) => (
-                <option key={categorie} value={categorie}>
-                  {categorie}
-                </option>
-              ))}
-            </select>
+        {/* Cartes récapitulatives */}
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
+            <div className='bg-blue-100 rounded-full p-3'>
+              <AiOutlineCalendar className='text-blue-500 text-2xl' />
+            </div>
+            <div>
+              <div className='text-gray-500 text-sm font-medium'>
+                Total mensuel
+              </div>
+              <div className='text-xl font-bold text-gray-900'>
+                {totalMensuel.toFixed(2)}€
+              </div>
+            </div>
           </div>
-          <div>
-            <label
-              className={`block mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              }`}>
-              Fréquence
-            </label>
-            <select
-              className={`w-full p-2 rounded-lg border ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300"
-              }`}>
-              <option value='all'>Toutes</option>
-              <option value='mensuel'>Mensuel</option>
-              <option value='trimestriel'>Trimestriel</option>
-              <option value='semestriel'>Semestriel</option>
-              <option value='annuel'>Annuel</option>
-            </select>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
+            <div className='bg-green-100 rounded-full p-3'>
+              <AiOutlineCalendar className='text-green-500 text-2xl' />
+            </div>
+            <div>
+              <div className='text-gray-500 text-sm font-medium'>
+                Total annuel
+              </div>
+              <div className='text-xl font-bold text-gray-900'>
+                {totalAnnuel.toFixed(2)}€
+              </div>
+            </div>
           </div>
-          <div>
-            <label
-              className={`block mb-2 ${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              }`}>
-              Statut
-            </label>
-            <select
-              className={`w-full p-2 rounded-lg border ${
-                isDarkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300"
-              }`}>
-              <option value='all'>Tous</option>
-              <option value='actif'>Actif</option>
-              <option value='inactif'>Inactif</option>
-            </select>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex items-center gap-4'>
+            <div className='bg-orange-100 rounded-full p-3'>
+              <AiOutlineCalendar className='text-orange-500 text-2xl' />
+            </div>
+            <div>
+              <div className='text-gray-500 text-sm font-medium'>Dépenses</div>
+              <div className='text-xl font-bold text-gray-900'>
+                {totalDepenses.toFixed(2)}€
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Liste des paiements récurrents */}
-      <div
-        className={`rounded-lg shadow-lg overflow-hidden ${
-          isDarkMode ? "bg-gray-800" : "bg-white"
-        }`}>
-        <table className='w-full'>
-          <thead>
-            <tr
-              className={`border-b ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              }`}>
-              <th
-                className={`text-left py-3 px-4 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}>
-                Description
-              </th>
-              <th
-                className={`text-left py-3 px-4 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}>
-                Catégorie
-              </th>
-              <th
-                className={`text-left py-3 px-4 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}>
-                Fréquence
-              </th>
-              <th
-                className={`text-left py-3 px-4 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}>
-                Date
-              </th>
-              <th
-                className={`text-right py-3 px-4 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}>
-                Montant
-              </th>
-              <th
-                className={`text-center py-3 px-4 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                }`}>
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {paiementsRecurrents.map((paiement) => (
-              <tr
-                key={paiement.id}
-                className={`border-b ${
-                  isDarkMode ? "border-gray-700" : "border-gray-200"
-                }`}>
-                <td
-                  className={`py-3 px-4 ${
-                    isDarkMode ? "text-white" : "text-gray-800"
-                  }`}>
-                  {paiement.description}
-                </td>
-                <td
-                  className={`py-3 px-4 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  }`}>
-                  {paiement.categorie}
-                </td>
-                <td
-                  className={`py-3 px-4 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  }`}>
-                  {paiement.frequence}
-                </td>
-                <td
-                  className={`py-3 px-4 ${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  }`}>
-                  {paiement.date}
-                </td>
-                <td
-                  className='py-3 px-4 text-right font-medium'
-                  style={{ color: primaryColor }}>
-                  {paiement.montant.toFixed(2)} €
-                </td>
-                <td className='py-3 px-4'>
-                  <div className='flex justify-center space-x-2'>
-                    <button
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-                      }`}>
-                      <AiOutlineEdit className='text-blue-500' />
-                    </button>
-                    <button
-                      className={`p-2 rounded-lg ${
-                        isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
-                      }`}>
-                      <AiOutlineDelete className='text-red-500' />
-                    </button>
-                  </div>
-                </td>
+        {/* Tableau */}
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+          <div className='text-xl font-bold mb-6'>
+            Abonnements et prélèvements
+          </div>
+          <table className='w-full text-sm'>
+            <thead>
+              <tr className='border-b text-gray-500'>
+                <th className='text-left py-2 px-2'>Nom</th>
+                <th className='text-left py-2 px-2'>Catégorie</th>
+                <th className='text-right py-2 px-2'>Montant</th>
+                <th className='text-center py-2 px-2'>Fréquence</th>
+                <th className='text-center py-2 px-2'>Prochaine date</th>
+                <th className='text-center py-2 px-2'>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paiementsRecurrents.map((p) => (
+                <tr key={p.id} className='border-b hover:bg-gray-50'>
+                  <td className='py-2 px-2 font-medium'>{p.description}</td>
+                  <td className='py-2 px-2'>{p.categorie}</td>
+                  <td className='py-2 px-2 text-right'>
+                    {p.montant.toFixed(2)}€
+                  </td>
+                  <td className='py-2 px-2 text-center'>{p.frequence}</td>
+                  <td className='py-2 px-2 text-center'>{p.date}</td>
+                  <td className='py-2 px-2 text-center'>
+                    <button className='text-blue-600 font-medium hover:underline mr-4'>
+                      Modifier
+                    </button>
+                    <button className='text-red-500 font-medium hover:underline'>
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {/* Bouton Ajouter en bas à droite */}
+          <div className='flex justify-end mt-8'>
+            <button className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'>
+              <span className='text-lg font-bold'>+</span>
+              <span>Ajouter un paiement récurrent</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
