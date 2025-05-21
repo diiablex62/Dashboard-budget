@@ -13,8 +13,11 @@ import {
   AiOutlineCalendar,
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
+  AiOutlineEdit,
+  AiOutlineDelete,
 } from "react-icons/ai";
 import { FiEdit, FiTrash } from "react-icons/fi";
+import { ThemeContext } from "../context/ThemeContext";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -25,9 +28,10 @@ import {
 } from "../utils/categoryUtils";
 import { installmentPaymentApi } from "../utils/api";
 
-export default function PaiementEchelonne() {
+const PaiementEchelonne = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AppContext);
+  const { isDarkMode } = useContext(ThemeContext);
+  const { primaryColor } = useContext(AppContext);
   const { user } = useAuth();
   const defaultDebutDate = useMemo(() => {
     const today = new Date();
@@ -66,30 +70,15 @@ export default function PaiementEchelonne() {
   const [_isPending, startTransition] = useTransition();
 
   const fetchPaiements = useCallback(async () => {
-    if (!user) {
-      console.log("Pas d'utilisateur connecté");
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
-      console.log(
-        "Récupération des paiements échelonnés pour l'utilisateur:",
-        user.id
-      );
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Session expirée, veuillez vous reconnecter");
-      }
-
-      const response = await installmentPaymentApi.getByUserId(user.id);
+      const response = await installmentPaymentApi.getInstallmentPayments();
       if (!response) {
         throw new Error("Format de réponse invalide");
       }
 
-      console.log("Paiements échelonnés reçus:", response);
       setPaiements(response);
       setAllPaiements(response);
     } catch (error) {
@@ -97,9 +86,7 @@ export default function PaiementEchelonne() {
         "Erreur lors de la récupération des paiements échelonnés:",
         error
       );
-      if (error.message === "Session expirée, veuillez vous reconnecter") {
-        setError(error.message);
-      } else if (error.response) {
+      if (error.response) {
         setError(
           `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
         );
@@ -113,7 +100,7 @@ export default function PaiementEchelonne() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchPaiements();
@@ -1074,4 +1061,6 @@ export default function PaiementEchelonne() {
       )}
     </div>
   );
-}
+};
+
+export default PaiementEchelonne;

@@ -7,7 +7,6 @@ import {
   AiOutlineDollarCircle,
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
 import {
   PieChart,
   Pie,
@@ -32,7 +31,6 @@ import {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,9 +59,7 @@ export default function Dashboard() {
   const fetchTransactions = useCallback(async () => {
     try {
       const response = await transactionApi.getTransactions();
-      if (!response?.data)
-        throw new Error("Format de réponse invalide pour les transactions");
-      return response.data;
+      return response.data || response;
     } catch (error) {
       console.error("Erreur lors de la récupération des transactions:", error);
       throw error;
@@ -73,11 +69,7 @@ export default function Dashboard() {
   const fetchRecurrentPayments = useCallback(async () => {
     try {
       const response = await recurrentPaymentApi.getRecurrentPayments();
-      if (!response?.data)
-        throw new Error(
-          "Format de réponse invalide pour les paiements récurrents"
-        );
-      return response.data;
+      return response.data || response;
     } catch (error) {
       console.error(
         "Erreur lors de la récupération des paiements récurrents:",
@@ -90,11 +82,7 @@ export default function Dashboard() {
   const fetchInstallmentPayments = useCallback(async () => {
     try {
       const response = await installmentPaymentApi.getInstallmentPayments();
-      if (!response?.data)
-        throw new Error(
-          "Format de réponse invalide pour les paiements échelonnés"
-        );
-      return response.data;
+      return response.data || response;
     } catch (error) {
       console.error(
         "Erreur lors de la récupération des paiements échelonnés:",
@@ -181,19 +169,9 @@ export default function Dashboard() {
   );
 
   const fetchAll = useCallback(async () => {
-    if (!user) {
-      console.log("Pas d'utilisateur connecté");
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Session expirée, veuillez vous reconnecter");
-      }
 
       // Récupération parallèle des données
       const [transactionsData, recurrentsData, echelonnesData] =
@@ -233,26 +211,11 @@ export default function Dashboard() {
       setBudgetData(evolutionData);
     } catch (error) {
       console.error("Erreur lors du chargement des données:", error);
-      if (error.message === "Session expirée, veuillez vous reconnecter") {
-        setError(error.message);
-        navigate("/login");
-      } else if (error.response) {
-        setError(
-          `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
-        );
-      } else if (error.request) {
-        setError(
-          "Impossible de contacter le serveur, veuillez réessayer plus tard"
-        );
-      } else {
-        setError("Erreur lors du chargement des données");
-      }
+      setError("Erreur lors du chargement des données");
     } finally {
       setLoading(false);
     }
   }, [
-    user,
-    navigate,
     fetchTransactions,
     fetchRecurrentPayments,
     fetchInstallmentPayments,

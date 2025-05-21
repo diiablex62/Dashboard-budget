@@ -10,7 +10,6 @@ import {
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
 } from "react-icons/ai";
-import { useAuth } from "../context/AuthContext";
 import {
   getAllEchelonnePayments,
   getAllRecurrentPayments,
@@ -66,54 +65,24 @@ function getMonthMatrix(year, month) {
 }
 
 export default function Agenda() {
-  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchTransactions = useCallback(async () => {
-    if (!user) {
-      console.log("Pas d'utilisateur connecté");
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
-      console.log("Récupération des transactions pour l'utilisateur:", user.id);
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Session expirée, veuillez vous reconnecter");
-      }
-
-      const response = await transactionApi.getByUserId(user.id);
-      if (!response) {
-        throw new Error("Format de réponse invalide");
-      }
-
-      console.log("Transactions reçues:", response);
-      setTransactions(response);
+      const response = await transactionApi.getTransactions();
+      setTransactions(response.data || response);
     } catch (error) {
       console.error("Erreur lors de la récupération des transactions:", error);
-      if (error.message === "Session expirée, veuillez vous reconnecter") {
-        setError(error.message);
-      } else if (error.response) {
-        setError(
-          `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
-        );
-      } else if (error.request) {
-        setError(
-          "Impossible de contacter le serveur, veuillez réessayer plus tard"
-        );
-      } else {
-        setError("Erreur lors de la récupération des transactions");
-      }
+      setError("Erreur lors de la récupération des transactions");
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchTransactions();
@@ -199,7 +168,10 @@ export default function Agenda() {
                     </div>
                     <div className='text-right'>
                       {transaction.type === "depense" ? "-" : "+"}
-                      {transaction.amount.toFixed(2)} €
+                      {transaction.amount
+                        ? transaction.amount.toFixed(2)
+                        : transaction.montant?.toFixed(2) || 0}{" "}
+                      €
                     </div>
                   </div>
                 ))}

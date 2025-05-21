@@ -15,7 +15,6 @@ import { FiEdit, FiTrash } from "react-icons/fi";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-import { useAuth } from "../context/AuthContext";
 import { transactionApi } from "../utils/api";
 import { MONTHS } from "../utils/categoryUtils";
 import TransactionsChart from "../components/TransactionsChart";
@@ -571,7 +570,6 @@ function DepenseModal({
 }
 
 export default function DepensesRevenus() {
-  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -586,33 +584,18 @@ export default function DepensesRevenus() {
   });
 
   const fetchTransactions = useCallback(async () => {
-    if (!user) {
-      console.log("Pas d'utilisateur connecté");
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
-      console.log("Récupération des transactions pour l'utilisateur:", user.id);
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Session expirée, veuillez vous reconnecter");
-      }
-
-      const response = await transactionApi.getByUserId(user.id);
+      const response = await transactionApi.getTransactions();
       if (!response) {
         throw new Error("Format de réponse invalide");
       }
-
       console.log("Transactions reçues:", response);
       setTransactions(response);
     } catch (error) {
       console.error("Erreur lors de la récupération des transactions:", error);
-      if (error.message === "Session expirée, veuillez vous reconnecter") {
-        setError(error.message);
-      } else if (error.response) {
+      if (error.response) {
         setError(
           `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
         );
@@ -626,7 +609,7 @@ export default function DepensesRevenus() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchTransactions();

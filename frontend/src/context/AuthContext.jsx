@@ -22,8 +22,8 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     if (token) {
       fetchUserProfile();
-    } else {
-      setLoading(false);
+          } else {
+        setLoading(false);
     }
   }, []);
 
@@ -59,11 +59,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
-    user,
-    loading,
+        user,
+        loading,
     error,
     login,
-    logout,
+        logout,
     fetchUserProfile,
   };
 
