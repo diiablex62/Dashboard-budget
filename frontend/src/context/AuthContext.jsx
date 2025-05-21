@@ -31,74 +31,24 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await userApi.getProfile();
       setUser(response.data);
+      setError(null);
     } catch (error) {
       console.error("Erreur lors de la récupération du profil:", error);
       setError("Erreur lors de la récupération du profil");
       localStorage.removeItem("token");
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (token) => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Identifiants invalides");
-      }
-
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", token);
       await fetchUserProfile();
     } catch (error) {
       console.error("Erreur lors de la connexion:", error);
-      setError(error.message);
       throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'inscription");
-      }
-
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      await fetchUserProfile();
-    } catch (error) {
-      console.error("Erreur lors de l'inscription:", error);
-      setError(error.message);
-      throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -113,8 +63,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
-    register,
     logout,
+    fetchUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

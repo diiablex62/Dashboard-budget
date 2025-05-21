@@ -1,196 +1,78 @@
-import React, { useEffect, useState, useContext } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { AppContext } from "../context/AppContext";
 
 /**
  * Page de confirmation d'authentification par email
  * Cette page est affichée lorsque l'utilisateur clique sur le lien dans l'email
  */
-const AuthConfirm = () => {
-  const { confirmEmailLogin, resetToken } = useAuth();
-  const appContext = useContext(AppContext);
-  const setIsLoggedIn = appContext?.setIsLoggedIn;
+export default function AuthConfirm() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [status, setStatus] = useState("loading");
-  const [error, setError] = useState(null);
-  const [currentToken, setCurrentToken] = useState(null);
-  const [resetting, setResetting] = useState(false);
-
-  // Détecter si nous sommes en mode développement
-  const isDevelopment =
-    process.env.NODE_ENV === "development" ||
-    window.location.hostname === "localhost";
+  const { fetchUserProfile } = useAuth();
+  const [status, setStatus] = useState("pending");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Extraire le token de l'URL
-    const urlParams = new URLSearchParams(location.search);
-    const token = urlParams.get("token");
-    setCurrentToken(token);
-
-    if (!token) {
-      console.error("Aucun token trouvé dans l'URL");
-      setStatus("error");
-      setError(
-        "Lien invalide. Veuillez demander un nouveau lien de connexion."
-      );
-      return;
-    }
-
-    // Vérifier le token et authentifier l'utilisateur
     const verifyToken = async () => {
-      try {
-        console.log("Vérification du token:", token);
-        const result = await confirmEmailLogin(token);
-
-        if (result.success) {
-          console.log("Authentification réussie:", result.user);
-          // Important: mettre à jour l'état de connexion dans le contexte global s'il est disponible
-          if (setIsLoggedIn) {
-            setIsLoggedIn(true);
-          }
-          setStatus("success");
-
-          // Rediriger vers la page d'accueil après un court délai
-          setTimeout(() => {
-            navigate("/", { replace: true });
-          }, 2000);
-        } else {
-          console.error("Échec de la validation du token:", result.error);
-          setStatus("error");
-          setError(
-            result.error ||
-              "Impossible de vérifier votre identité. Le lien est peut-être expiré."
-          );
-        }
-      } catch (error) {
-        console.error("Erreur lors de la vérification du token:", error);
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      if (!token) {
         setStatus("error");
-        setError(
-          "Une erreur est survenue lors de la vérification du lien. Veuillez réessayer."
+        setError("Lien invalide.");
+        return;
+      }
+      try {
+        const res = await fetch(
+          `${
+            import.meta.env.VITE_API_URL
+          }/auth/confirm-magic-link?token=${token}`
         );
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(
+            data.message || "Erreur lors de la validation du lien."
+          );
+        localStorage.setItem("token", data.token);
+        await fetchUserProfile(); // recharge le profil utilisateur
+        setStatus("success");
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } catch (err) {
+        setStatus("error");
+        setError(err.message || "Erreur lors de la validation du lien.");
       }
     };
-
     verifyToken();
-  }, [confirmEmailLogin, location.search, navigate, setIsLoggedIn]);
-
-  // Fonction pour réinitialiser le token en mode développement
-  const handleResetToken = async () => {
-    if (!currentToken) return;
-
-    try {
-      setResetting(true);
-      const result = await resetToken(currentToken);
-
-      if (result.success) {
-        setStatus("loading");
-        setError(null);
-        // Recharger la page pour tester à nouveau le token
-        window.location.reload();
-      } else {
-        setError("Échec de la réinitialisation: " + result.error);
-      }
-    } catch (error) {
-      setError("Erreur lors de la réinitialisation du token");
-    } finally {
-      setResetting(false);
-    }
-  };
-
-  // Afficher différents messages selon l'état de la vérification
-  const renderContent = () => {
-    switch (status) {
-      case "loading":
-        return (
-          <div className='flex flex-col items-center'>
-            <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4'></div>
-            <p className='text-lg'>Vérification du lien de connexion...</p>
-          </div>
-        );
-
-      case "success":
-        return (
-          <div className='flex flex-col items-center'>
-            <div className='bg-green-100 text-green-800 p-4 rounded-lg mb-4 text-center'>
-              <svg
-                className='h-12 w-12 text-green-500 mx-auto mb-2'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M5 13l4 4L19 7'
-                />
-              </svg>
-              <h2 className='text-xl font-bold mb-2'>Connexion réussie!</h2>
-              <p>Vous êtes maintenant connecté. Redirection en cours...</p>
-            </div>
-          </div>
-        );
-
-      case "error":
-        return (
-          <div className='flex flex-col items-center'>
-            <div className='bg-red-100 text-red-800 p-4 rounded-lg mb-4 text-center'>
-              <svg
-                className='h-12 w-12 text-red-500 mx-auto mb-2'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'>
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M6 18L18 6M6 6l12 12'
-                />
-              </svg>
-              <h2 className='text-xl font-bold mb-2'>
-                Échec de l'authentification
-              </h2>
-              <p>{error}</p>
-
-              {/* Bouton de réinitialisation en mode développement */}
-              {isDevelopment && currentToken && (
-                <button
-                  className='mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded'
-                  onClick={handleResetToken}
-                  disabled={resetting}>
-                  {resetting
-                    ? "Réinitialisation..."
-                    : "Réinitialiser le token (mode dev)"}
-                </button>
-              )}
-
-              <div className='mt-4'>
-                <a
-                  href='/auth'
-                  className='text-blue-500 hover:text-blue-700 underline'>
-                  Retour à la page de connexion
-                </a>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  }, [navigate, fetchUserProfile]);
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100'>
-      <div className='w-full max-w-md p-8 bg-white rounded-lg shadow-md'>
-        <h1 className='text-2xl font-bold text-center mb-6'>
-          Confirmation d'authentification
-        </h1>
-        {renderContent()}
-      </div>
+    <div className='flex flex-col items-center justify-center min-h-screen bg-gray-50'>
+      <h2 className='text-2xl font-bold mb-6'>
+        Confirmation d'authentification
+      </h2>
+      {status === "pending" && (
+        <div className='text-lg'>Validation du lien en cours...</div>
+      )}
+      {status === "success" && (
+        <div className='text-green-600 text-lg'>
+          Connexion réussie ! Redirection...
+        </div>
+      )}
+      {status === "error" && (
+        <div className='bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded text-center'>
+          <div className='text-4xl mb-2'>&#10060;</div>
+          <div className='font-bold text-xl mb-2'>
+            Échec de l'authentification
+          </div>
+          <div className='mb-4'>{error}</div>
+          <button
+            className='mt-2 px-4 py-2 bg-blue-600 text-white rounded'
+            onClick={() => navigate("/auth")}>
+            Retour à la page de connexion
+          </button>
+        </div>
+      )}
     </div>
   );
-};
-
-export default AuthConfirm;
+}

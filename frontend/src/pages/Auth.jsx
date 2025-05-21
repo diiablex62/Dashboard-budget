@@ -1,43 +1,28 @@
 import React, { useState, useContext, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import Google from "../components/Google";
 import GitHub from "../components/GitHub";
+import { sendMagicLink } from "../email/login";
 
 export default function Auth() {
   const { setIsLoggedIn, primaryColor } = useContext(AppContext);
   const {
     loginWithGoogle,
     loginWithGithub,
-    loginWithEmail,
     confirmEmailLogin,
     emailLinkSent,
     emailForSignIn,
     authLoading,
     authError,
-    logout,
   } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Détecter le mode sombre du système
-  useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    );
-    setIsDarkMode(darkModeMediaQuery.matches);
-
-    const handleChange = (e) => setIsDarkMode(e.matches);
-    darkModeMediaQuery.addEventListener("change", handleChange);
-    return () => darkModeMediaQuery.removeEventListener("change", handleChange);
-  }, []);
 
   // Utiliser l'erreur du contexte d'authentification si disponible
   useEffect(() => {
@@ -151,9 +136,10 @@ export default function Auth() {
     e.preventDefault();
     setError(null);
     try {
-      await loginWithEmail(email);
+      await sendMagicLink(email);
+      navigate("/validation", { state: { email } });
     } catch (error) {
-      setError(error.message);
+      setError(error.message || "Erreur lors de l'envoi du lien magique");
     }
   };
 

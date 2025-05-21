@@ -21,81 +21,87 @@ api.interceptors.request.use((config) => {
 
 // API pour les notifications
 export const notificationApi = {
-  getNotifications: () => api.get("/notifications"),
+  getNotifications: () => api.get("/api/notifications"),
   markAsRead: (notificationId) =>
-    api.put(`/notifications/${notificationId}/read`),
+    api.put(`/api/notifications/${notificationId}/read`),
   deleteNotification: (notificationId) =>
-    api.delete(`/notifications/${notificationId}`),
+    api.delete(`/api/notifications/${notificationId}`),
 };
 
 // API pour les utilisateurs
 export const userApi = {
-  deleteAccount: () => api.delete("/users/me"),
-  updateProfile: (data) => api.put("/users/me", data),
-  getProfile: () => api.get("/users/me"),
+  getProfile: () => api.get("/api/users/connected"),
+  updateProfile: (data) => api.put("/api/users/connected", data),
 };
 
 // API pour les transactions
 export const transactionApi = {
-  getTransactions: () => api.get("/transactions"),
-  createTransaction: (data) => api.post("/transactions", data),
-  updateTransaction: (id, data) => api.put(`/transactions/${id}`, data),
-  deleteTransaction: (id) => api.delete(`/transactions/${id}`),
+  getTransactions: () => api.get("/api/transactions"),
+  createTransaction: (data) => api.post("/api/transactions", data),
+  updateTransaction: (id, data) => api.put(`/api/transactions/${id}`, data),
+  deleteTransaction: (id) => api.delete(`/api/transactions/${id}`),
 };
 
 // API pour les catégories
 export const categoryApi = {
-  getCategories: () => api.get("/categories"),
-  createCategory: (data) => api.post("/categories", data),
-  updateCategory: (id, data) => api.put(`/categories/${id}`, data),
-  deleteCategory: (id) => api.delete(`/categories/${id}`),
+  getCategories: () => api.get("/api/categories"),
+  createCategory: (data) => api.post("/api/categories", data),
+  updateCategory: (id, data) => api.put(`/api/categories/${id}`, data),
+  deleteCategory: (id) => api.delete(`/api/categories/${id}`),
 };
 
 // API pour les budgets
 export const budgetApi = {
-  getBudgets: () => api.get("/budgets"),
-  createBudget: (data) => api.post("/budgets", data),
-  updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
-  deleteBudget: (id) => api.delete(`/budgets/${id}`),
+  getBudgets: () => api.get("/api/budgets"),
+  createBudget: (data) => api.post("/api/budgets", data),
+  updateBudget: (id, data) => api.put(`/api/budgets/${id}`, data),
+  deleteBudget: (id) => api.delete(`/api/budgets/${id}`),
 };
 
 // API pour les paiements
 export const paymentApi = {
-  getPayments: () => api.get("/payments"),
-  createPayment: (data) => api.post("/payments", data),
-  updatePayment: (id, data) => api.put(`/payments/${id}`, data),
-  deletePayment: (id) => api.delete(`/payments/${id}`),
-  getPaymentHistory: () => api.get("/payments/history"),
-  getUpcomingPayments: () => api.get("/payments/upcoming"),
-  markAsPaid: (id) => api.put(`/payments/${id}/paid`),
+  getPayments: () => api.get("/api/payments"),
+  createPayment: (data) => api.post("/api/payments", data),
+  updatePayment: (id, data) => api.put(`/api/payments/${id}`, data),
+  deletePayment: (id) => api.delete(`/api/payments/${id}`),
+  getPaymentHistory: () => api.get("/api/payments/history"),
+  getUpcomingPayments: () => api.get("/api/payments/upcoming"),
+  markAsPaid: (id) => api.put(`/api/payments/${id}/paid`),
 };
 
 // API pour les paiements récurrents
 export const recurrentPaymentApi = {
-  getRecurrentPayments: () => api.get("/recurrent-payments"),
-  createRecurrentPayment: (data) => api.post("/recurrent-payments", data),
+  getRecurrentPayments: () => api.get("/api/recurrent-payments"),
+  createRecurrentPayment: (data) => api.post("/api/recurrent-payments", data),
   updateRecurrentPayment: (id, data) =>
-    api.put(`/recurrent-payments/${id}`, data),
-  deleteRecurrentPayment: (id) => api.delete(`/recurrent-payments/${id}`),
-  pauseRecurrentPayment: (id) => api.put(`/recurrent-payments/${id}/pause`),
-  resumeRecurrentPayment: (id) => api.put(`/recurrent-payments/${id}/resume`),
+    api.put(`/api/recurrent-payments/${id}`, data),
+  deleteRecurrentPayment: (id) => api.delete(`/api/recurrent-payments/${id}`),
+  pauseRecurrentPayment: (id) => api.put(`/api/recurrent-payments/${id}/pause`),
+  resumeRecurrentPayment: (id) =>
+    api.put(`/api/recurrent-payments/${id}/resume`),
   getRecurrentPaymentHistory: (id) =>
-    api.get(`/recurrent-payments/${id}/history`),
+    api.get(`/api/recurrent-payments/${id}/history`),
 };
 
 // API pour les paiements échelonnés
 export const installmentPaymentApi = {
-  getInstallmentPayments: () => api.get("/installment-payments"),
-  createInstallmentPayment: (data) => api.post("/installment-payments", data),
+  getInstallmentPayments: () => api.get("/api/installment-payments"),
+  createInstallmentPayment: (data) =>
+    api.post("/api/installment-payments", data),
   updateInstallmentPayment: (id, data) =>
-    api.put(`/installment-payments/${id}`, data),
-  deleteInstallmentPayment: (id) => api.delete(`/installment-payments/${id}`),
-  getInstallmentDetails: (id) => api.get(`/installment-payments/${id}/details`),
+    api.put(`/api/installment-payments/${id}`, data),
+  deleteInstallmentPayment: (id) =>
+    api.delete(`/api/installment-payments/${id}`),
+  getInstallmentDetails: (id) =>
+    api.get(`/api/installment-payments/${id}/details`),
   payInstallment: (id, installmentId) =>
-    api.put(`/installment-payments/${id}/installments/${installmentId}/pay`),
-  getInstallmentHistory: (id) => api.get(`/installment-payments/${id}/history`),
+    api.put(
+      `/api/installment-payments/${id}/installments/${installmentId}/pay`
+    ),
+  getInstallmentHistory: (id) =>
+    api.get(`/api/installment-payments/${id}/history`),
   calculateInstallments: (data) =>
-    api.post("/installment-payments/calculate", data),
+    api.post("/api/installment-payments/calculate", data),
 };
 
 export default api;
