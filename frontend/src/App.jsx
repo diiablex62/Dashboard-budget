@@ -4,7 +4,7 @@ import "./styles/tailwind.css";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import { AppContext } from "./context/AppContext";
-import AppRoutes from "../routes/Routes";
+import AppRoutes from "./routes/Routes";
 
 // Composant principal qui utilise les contextes
 export default function App() {
