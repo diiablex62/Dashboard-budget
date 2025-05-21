@@ -570,7 +570,7 @@ function DepenseModal({
 }
 
 export default function DepensesRevenus() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentTab, setCurrentTab] = useState("depense"); // 'depense' ou 'revenu'
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -620,26 +620,6 @@ export default function DepensesRevenus() {
     window.addEventListener("data-updated", handleDataUpdate);
     return () => window.removeEventListener("data-updated", handleDataUpdate);
   }, [fetchTransactions]);
-
-  const handlePrevMonth = useCallback(() => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(newDate.getMonth() - 1);
-      return newDate;
-    });
-  }, []);
-
-  const handleNextMonth = useCallback(() => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(newDate.getMonth() + 1);
-      return newDate;
-    });
-  }, []);
-
-  const handleToday = useCallback(() => {
-    setCurrentDate(new Date());
-  }, []);
 
   const handleAddRevenu = useCallback(() => {
     setSelectedTransaction(null);
@@ -758,21 +738,10 @@ export default function DepensesRevenus() {
   }, []);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter((transaction) => {
-      const matchesType =
-        filter.type === "all" || transaction.type === filter.type;
-      const matchesCategory =
-        filter.category === "all" || transaction.categorie === filter.category;
-      const matchesSearch =
-        !filter.search ||
-        transaction.nom.toLowerCase().includes(filter.search.toLowerCase()) ||
-        transaction.categorie
-          .toLowerCase()
-          .includes(filter.search.toLowerCase());
-
-      return matchesType && matchesCategory && matchesSearch;
-    });
-  }, [transactions, filter]);
+    return transactions.filter(
+      (transaction) => transaction.type === currentTab
+    );
+  }, [transactions, currentTab]);
 
   const categories = useMemo(() => {
     const allCategories = transactions.map((t) => t.categorie);
@@ -805,118 +774,58 @@ export default function DepensesRevenus() {
   }
 
   return (
-    <div className='max-w-7xl mx-auto p-6'>
+    <div className='max-w-3xl mx-auto p-6'>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg overflow-hidden'>
-        <div className='p-4 border-b flex justify-between items-center'>
-          <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
-            {format(currentDate, "MMMM yyyy", { locale: fr })}
-          </h1>
-          <div className='space-x-2'>
-            <button
-              onClick={handlePrevMonth}
-              className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
-              Précédent
-            </button>
-            <button
-              onClick={handleToday}
-              className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
-              Aujourd'hui
-            </button>
-            <button
-              onClick={handleNextMonth}
-              className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
-              Suivant
-            </button>
-          </div>
+        <div className='p-4 border-b flex gap-2'>
+          <button
+            className={`px-4 py-2 rounded-lg font-semibold ${
+              currentTab === "depense"
+                ? "bg-red-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+            onClick={() => setCurrentTab("depense")}>
+            Dépenses
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg font-semibold ${
+              currentTab === "revenu"
+                ? "bg-green-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+            onClick={() => setCurrentTab("revenu")}>
+            Revenus
+          </button>
         </div>
-        <div className='p-4 border-b'>
-          <div className='flex justify-between items-center mb-4'>
-            <div className='flex space-x-2'>
-              <button
-                onClick={handleAddRevenu}
-                className='px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700'>
-                <AiOutlinePlus className='inline-block mr-2' />
-                Ajouter un revenu
-              </button>
-              <button
-                onClick={handleAddDepense}
-                className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700'>
-                <AiOutlinePlus className='inline-block mr-2' />
-                Ajouter une dépense
-              </button>
+        <div className='p-4 flex flex-col gap-2'>
+          {filteredTransactions.length === 0 && (
+            <div className='text-gray-400 text-center py-8'>
+              Aucune transaction
             </div>
-            <div className='flex space-x-2'>
-              <select
-                name='type'
-                value={filter.type}
-                onChange={handleFilterChange}
-                className='border rounded-md px-3 py-2'>
-                <option value='all'>Tous les types</option>
-                <option value='revenu'>Revenus</option>
-                <option value='depense'>Dépenses</option>
-              </select>
-              <select
-                name='category'
-                value={filter.category}
-                onChange={handleFilterChange}
-                className='border rounded-md px-3 py-2'>
-                <option value='all'>Toutes les catégories</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-              <input
-                type='text'
-                name='search'
-                value={filter.search}
-                onChange={handleFilterChange}
-                placeholder='Rechercher...'
-                className='border rounded-md px-3 py-2'
-              />
-            </div>
-          </div>
-          <TransactionsChart transactions={filteredTransactions} />
-        </div>
-        <div className='p-4'>
-          <div className='space-y-4'>
-            {filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className='flex justify-between items-center p-4 border rounded-lg'>
-                <div>
-                  <div className='font-medium'>{transaction.nom}</div>
-                  <div className='text-sm text-gray-500'>
-                    {transaction.categorie}
-                  </div>
-                </div>
-                <div className='flex items-center space-x-4'>
-                  <div
-                    className={`font-medium ${
-                      transaction.type === "depense"
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}>
-                    {transaction.type === "depense" ? "-" : "+"}
-                    {transaction.montant.toFixed(2)} €
-                  </div>
-                  <div className='flex space-x-2'>
-                    <button
-                      onClick={() => handleEditTransaction(transaction)}
-                      className='text-gray-600 hover:text-gray-900'>
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTransaction(transaction.id)}
-                      className='text-red-600 hover:text-red-900'>
-                      <FiTrash />
-                    </button>
-                  </div>
+          )}
+          {filteredTransactions.map((transaction) => (
+            <div
+              key={transaction.id}
+              className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2'>
+              <div>
+                <div className='font-medium'>{transaction.nom}</div>
+                <div className='text-xs text-gray-400'>
+                  {transaction.categorie}
                 </div>
               </div>
-            ))}
-          </div>
+              <div
+                className={`font-semibold ${
+                  transaction.type === "depense"
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}>
+                {transaction.type === "depense" ? "-" : "+"}
+                {transaction.montant.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                })}
+                €
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       {showRevenuModal && (
