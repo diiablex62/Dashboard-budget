@@ -9,6 +9,8 @@ import {
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
   AiOutlinePlus,
+  AiOutlineDollarCircle,
+  AiOutlineCalendar,
 } from "react-icons/ai";
 import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { FiEdit, FiTrash } from "react-icons/fi";
@@ -30,6 +32,13 @@ import {
   addOrUpdateRevenu,
   deleteTransaction,
 } from "../utils/transactionUtils";
+
+// Données factices pour la démo
+const fakeTransactions = [];
+
+function getMonthName(date) {
+  return date.toLocaleString("fr-FR", { month: "long" });
+}
 
 function RevenuModal({
   onClose,
@@ -570,8 +579,9 @@ function DepenseModal({
 }
 
 export default function DepensesRevenus() {
-  const [currentTab, setCurrentTab] = useState("depense"); // 'depense' ou 'revenu'
-  const [transactions, setTransactions] = useState([]);
+  const [currentTab, setCurrentTab] = useState("depense");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [transactions, setTransactions] = useState(fakeTransactions);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
@@ -738,15 +748,55 @@ export default function DepensesRevenus() {
   }, []);
 
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(
-      (transaction) => transaction.type === currentTab
-    );
-  }, [transactions, currentTab]);
+    return transactions.filter((t) => {
+      const d = new Date(t.date);
+      return (
+        t.type === currentTab &&
+        d.getMonth() === currentDate.getMonth() &&
+        d.getFullYear() === currentDate.getFullYear()
+      );
+    });
+  }, [transactions, currentTab, currentDate]);
 
-  const categories = useMemo(() => {
-    const allCategories = transactions.map((t) => t.categorie);
-    return Array.from(new Set(allCategories));
-  }, [transactions]);
+  const totalRevenus = useMemo(() => {
+    return transactions
+      .filter(
+        (t) =>
+          t.type === "revenu" &&
+          new Date(t.date).getMonth() === currentDate.getMonth() &&
+          new Date(t.date).getFullYear() === currentDate.getFullYear()
+      )
+      .reduce((acc, t) => acc + (parseFloat(t.montant) || 0), 0);
+  }, [transactions, currentDate]);
+
+  const totalDepenses = useMemo(() => {
+    return transactions
+      .filter(
+        (t) =>
+          t.type === "depense" &&
+          new Date(t.date).getMonth() === currentDate.getMonth() &&
+          new Date(t.date).getFullYear() === currentDate.getFullYear()
+      )
+      .reduce((acc, t) => acc + (parseFloat(t.montant) || 0), 0);
+  }, [transactions, currentDate]);
+
+  const solde = totalRevenus - totalDepenses;
+
+  // Navigation mois
+  const handlePrevMonth = () => {
+    setCurrentDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    });
+  };
+  const handleNextMonth = () => {
+    setCurrentDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + 1);
+      return d;
+    });
+  };
 
   if (loading) {
     return (
@@ -774,58 +824,186 @@ export default function DepensesRevenus() {
   }
 
   return (
-    <div className='max-w-3xl mx-auto p-6'>
-      <div className='bg-white dark:bg-black rounded-lg shadow-lg overflow-hidden'>
-        <div className='p-4 border-b flex gap-2'>
-          <button
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              currentTab === "depense"
-                ? "bg-red-600 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-            onClick={() => setCurrentTab("depense")}>
-            Dépenses
-          </button>
-          <button
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              currentTab === "revenu"
-                ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-            onClick={() => setCurrentTab("revenu")}>
-            Revenus
-          </button>
+    <div className='bg-[#f8fafc] min-h-screen p-8'>
+      <div className='max-w-6xl mx-auto'>
+        {/* En-tête et sélecteur de mois */}
+        <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
+          <div>
+            <h1 className='text-2xl font-semibold text-gray-800 mb-1'>
+              Dépenses & Revenus
+            </h1>
+            <div className='text-gray-500 text-base'>
+              Gérez vos dépenses et revenus mensuels.
+            </div>
+          </div>
+          {/* Sélecteur mois/année */}
+          <div className='flex items-center mt-4 md:mt-0'>
+            <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent'>
+              <button
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition'
+                onClick={handlePrevMonth}
+                aria-label='Mois précédent'
+                type='button'>
+                <AiOutlineArrowLeft />
+              </button>
+              <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition'>
+                {getMonthYear(currentDate)}
+              </div>
+              <button
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition'
+                onClick={handleNextMonth}
+                aria-label='Mois suivant'
+                type='button'>
+                <AiOutlineArrowRight />
+              </button>
+            </div>
+          </div>
         </div>
-        <div className='p-4 flex flex-col gap-2'>
-          {filteredTransactions.length === 0 && (
-            <div className='text-gray-400 text-center py-8'>
-              Aucune transaction
+
+        {/* Cartes de statistiques */}
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+          {/* Carte 1: Total Dépenses */}
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-red-600 mb-2'>
+              <AiOutlineDollarCircle className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Total Dépenses</span>
+            </div>
+            <div className='text-2xl text-[#222]'>
+              {totalDepenses.toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+              })}{" "}
+              €
+            </div>
+          </div>
+          {/* Carte 2: Total Revenus */}
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-green-600 mb-2'>
+              <AiOutlineCalendar className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Total Revenus</span>
+            </div>
+            <div className='text-2xl text-[#222]'>
+              {totalRevenus.toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+              })}{" "}
+              €
+            </div>
+          </div>
+          {/* Carte 3: Solde */}
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+            <div className='flex items-center text-blue-600 mb-2'>
+              <AiOutlineDollarCircle className='text-2xl mr-2' />
+              <span className='text-sm font-semibold'>Solde</span>
+            </div>
+            <div className='text-2xl text-[#222]'>
+              {solde.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+            </div>
+          </div>
+        </div>
+
+        {/* Switch Dépenses/Revenus */}
+        <div className='flex justify-center mb-6'>
+          <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1'>
+            <button
+              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+                currentTab === "depense"
+                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
+                  : "bg-transparent text-[#7b849b] font-normal"
+              }`}
+              onClick={() => setCurrentTab("depense")}
+              type='button'>
+              Dépenses
+            </button>
+            <button
+              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+                currentTab === "revenu"
+                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
+                  : "bg-transparent text-[#7b849b] font-normal"
+              }`}
+              onClick={() => setCurrentTab("revenu")}
+              type='button'>
+              Revenus
+            </button>
+          </div>
+        </div>
+
+        {/* Affichage des transactions */}
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+          <div className='flex items-center justify-between mb-6'>
+            <div>
+              <div className='text-2xl font-bold text-[#222]'>
+                {currentTab === "depense"
+                  ? "Dépenses du mois"
+                  : "Revenus du mois"}
+              </div>
+              <div className='text-sm text-gray-500 mt-1'>
+                {currentTab === "depense" ? "Dépenses" : "Revenus"} du mois de{" "}
+                {getMonthYear(currentDate)}
+              </div>
+            </div>
+            {/* Bouton Ajouter - toujours visible ici */}
+            <div className='flex space-x-3'>
+              <button
+                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                onClick={
+                  currentTab === "depense" ? handleAddDepense : handleAddRevenu
+                }>
+                <span className='text-lg font-bold'>+</span>
+                <span>Ajouter</span>
+              </button>
+            </div>
+          </div>
+
+          {filteredTransactions.length === 0 ? (
+            <div className='text-center py-10 text-gray-500'>
+              <p>
+                Aucune {currentTab === "depense" ? "dépense" : "revenu"} pour{" "}
+                {getMonthYear(currentDate)}.
+              </p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 gap-4'>
+              {filteredTransactions.map((transaction, idx) => (
+                <div
+                  key={transaction.id || idx}
+                  className='bg-white rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center'>
+                      <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3'>
+                        <AiOutlineDollarCircle className='text-gray-600 text-xl' />
+                      </div>
+                      <div>
+                        <div className='font-semibold'>
+                          {transaction.nom.charAt(0).toUpperCase() +
+                            transaction.nom.slice(1)}
+                        </div>
+                        <div className='text-xs text-gray-500'>
+                          {transaction.categorie}
+                        </div>
+                      </div>
+                    </div>
+                    <div className='flex flex-col items-end'>
+                      <div
+                        className={`font-bold ${
+                          currentTab === "depense"
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}>
+                        {currentTab === "depense" ? "-" : "+"}
+                        {parseFloat(transaction.montant).toLocaleString(
+                          "fr-FR",
+                          { minimumFractionDigits: 2 }
+                        )}{" "}
+                        €
+                      </div>
+                      <div className='text-xs text-gray-400'>
+                        {new Date(transaction.date).toLocaleDateString("fr-FR")}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-          {filteredTransactions.map((transaction) => (
-            <div
-              key={transaction.id}
-              className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2'>
-              <div>
-                <div className='font-medium'>{transaction.nom}</div>
-                <div className='text-xs text-gray-400'>
-                  {transaction.categorie}
-                </div>
-              </div>
-              <div
-                className={`font-semibold ${
-                  transaction.type === "depense"
-                    ? "text-red-600"
-                    : "text-green-600"
-                }`}>
-                {transaction.type === "depense" ? "-" : "+"}
-                {transaction.montant.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                })}
-                €
-              </div>
-            </div>
-          ))}
         </div>
       </div>
       {showRevenuModal && (
@@ -833,7 +1011,7 @@ export default function DepensesRevenus() {
           onClose={() => setShowRevenuModal(false)}
           onSave={handleSaveRevenu}
           revenu={selectedTransaction}
-          categories={categories}
+          categories={transactions.map((t) => t.categorie)}
         />
       )}
       {showDepenseModal && (
@@ -841,7 +1019,7 @@ export default function DepensesRevenus() {
           onClose={() => setShowDepenseModal(false)}
           onSave={handleSaveDepense}
           depense={selectedTransaction}
-          categories={categories}
+          categories={transactions.map((t) => t.categorie)}
         />
       )}
     </div>
