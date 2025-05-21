@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   AiOutlineCalendar,
   AiOutlineArrowLeft,
@@ -64,47 +70,103 @@ export default function Agenda() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchTransactions();
+  const fetchTransactions = useCallback(async () => {
+    if (!user) {
+      console.log("Pas d'utilisateur connecté");
+      return;
     }
-  }, [user, currentDate]);
 
-  const fetchTransactions = async () => {
     try {
+      setLoading(true);
+      setError(null);
       console.log("Récupération des transactions pour l'utilisateur:", user.id);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Session expirée, veuillez vous reconnecter");
+      }
+
       const response = await transactionApi.getByUserId(user.id);
+      if (!response) {
+        throw new Error("Format de réponse invalide");
+      }
+
       console.log("Transactions reçues:", response);
       setTransactions(response);
     } catch (error) {
       console.error("Erreur lors de la récupération des transactions:", error);
-      setError("Erreur lors de la récupération des transactions");
+      if (error.message === "Session expirée, veuillez vous reconnecter") {
+        setError(error.message);
+      } else if (error.response) {
+        setError(
+          `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
+        );
+      } else if (error.request) {
+        setError(
+          "Impossible de contacter le serveur, veuillez réessayer plus tard"
+        );
+      } else {
+        setError("Erreur lors de la récupération des transactions");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const getTransactionsForDate = (date) => {
-    return transactions.filter((transaction) => {
-      const transactionDate = new Date(transaction.date);
-      return (
-        transactionDate.getDate() === date.getDate() &&
-        transactionDate.getMonth() === date.getMonth() &&
-        transactionDate.getFullYear() === date.getFullYear()
-      );
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  useEffect(() => {
+    const handleDataUpdate = () => fetchTransactions();
+    window.addEventListener("data-updated", handleDataUpdate);
+    return () => window.removeEventListener("data-updated", handleDataUpdate);
+  }, [fetchTransactions]);
+
+  const getTransactionsForDate = useCallback(
+    (date) => {
+      return transactions.filter((transaction) => {
+        const transactionDate = new Date(transaction.date);
+        return (
+          transactionDate.getDate() === date.getDate() &&
+          transactionDate.getMonth() === date.getMonth() &&
+          transactionDate.getFullYear() === date.getFullYear()
+        );
+      });
+    },
+    [transactions]
+  );
+
+  const handlePrevMonth = useCallback(() => {
+    setCurrentDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() - 1);
+      return newDate;
     });
-  };
+  }, []);
 
-  const renderCalendar = () => {
+  const handleNextMonth = useCallback(() => {
+    setCurrentDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + 1);
+      return newDate;
+    });
+  }, []);
+
+  const handleToday = useCallback(() => {
+    setCurrentDate(new Date());
+  }, []);
+
+  const renderCalendar = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
     return (
       <div className='grid grid-cols-7 gap-px bg-gray-200'>
-        {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+        {DAYS.map((day) => (
           <div
             key={day}
             className='bg-gray-100 p-2 text-center text-sm font-semibold text-gray-700'>
@@ -147,20 +209,29 @@ export default function Agenda() {
         })}
       </div>
     );
-  };
+  }, [currentDate, getTransactionsForDate]);
 
   if (loading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='animate-pulse'>
+          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
+          <div className='space-y-4'>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className='h-16 bg-gray-200 rounded'></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='p-4 bg-red-100 border border-red-400 text-red-700 rounded'>
-        {error}
+      <div className='container mx-auto px-4 py-8'>
+        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
+          {error}
+        </div>
       </div>
     );
   }
@@ -174,31 +245,23 @@ export default function Agenda() {
           </h1>
           <div className='space-x-2'>
             <button
-              onClick={() =>
-                setCurrentDate(
-                  new Date(currentDate.setMonth(currentDate.getMonth() - 1))
-                )
-              }
+              onClick={handlePrevMonth}
               className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
               Précédent
             </button>
             <button
-              onClick={() => setCurrentDate(new Date())}
+              onClick={handleToday}
               className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
               Aujourd'hui
             </button>
             <button
-              onClick={() =>
-                setCurrentDate(
-                  new Date(currentDate.setMonth(currentDate.getMonth() + 1))
-                )
-              }
+              onClick={handleNextMonth}
               className='px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
               Suivant
             </button>
           </div>
         </div>
-        {renderCalendar()}
+        {renderCalendar}
       </div>
     </div>
   );

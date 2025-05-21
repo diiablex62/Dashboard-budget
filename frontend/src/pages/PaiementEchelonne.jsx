@@ -26,20 +26,16 @@ import {
 import { installmentPaymentApi } from "../utils/api";
 
 export default function PaiementEchelonne() {
-  const _navigate = useNavigate();
-  const { _isLoggedIn } = useContext(AppContext);
+  const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AppContext);
   const { user } = useAuth();
-  const defaultDebutDate = (() => {
+  const defaultDebutDate = useMemo(() => {
     const today = new Date();
-    return today.toISOString().split("T")[0]; // Format YYYY-MM-DD
-  })();
+    return today.toISOString().split("T")[0];
+  }, []);
 
-  // Ajouter l'état pour la date sélectionnée
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  // État pour contrôler l'affichage du sélecteur de date
   const [showDatePicker, setShowDatePicker] = useState(false);
-
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [newPaiement, setNewPaiement] = useState({
@@ -50,7 +46,11 @@ export default function PaiementEchelonne() {
     categorie: "",
   });
   const [paiements, setPaiements] = useState([]);
-  const [allPaiements, setAllPaiements] = useState([]); // Tous les paiements stockés ici
+  const [allPaiements, setAllPaiements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editIndex, setEditIndex] = useState(null);
+
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
   const mensualitesInputRef = useRef(null);
@@ -58,7 +58,6 @@ export default function PaiementEchelonne() {
   const categorieInputRef = useRef(null);
 
   const [_lastDeleted, _setLastDeleted] = useState(null);
-  const [editIndex, setEditIndex] = useState(null);
 
   // Mode sélection multiple
   const [_isMultiSelectMode, setIsMultiSelectMode] = useState(false);
@@ -66,8 +65,65 @@ export default function PaiementEchelonne() {
 
   const [_isPending, startTransition] = useTransition();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const fetchPaiements = useCallback(async () => {
+    if (!user) {
+      console.log("Pas d'utilisateur connecté");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      console.log(
+        "Récupération des paiements échelonnés pour l'utilisateur:",
+        user.id
+      );
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Session expirée, veuillez vous reconnecter");
+      }
+
+      const response = await installmentPaymentApi.getByUserId(user.id);
+      if (!response) {
+        throw new Error("Format de réponse invalide");
+      }
+
+      console.log("Paiements échelonnés reçus:", response);
+      setPaiements(response);
+      setAllPaiements(response);
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des paiements échelonnés:",
+        error
+      );
+      if (error.message === "Session expirée, veuillez vous reconnecter") {
+        setError(error.message);
+      } else if (error.response) {
+        setError(
+          `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
+        );
+      } else if (error.request) {
+        setError(
+          "Impossible de contacter le serveur, veuillez réessayer plus tard"
+        );
+      } else {
+        setError("Erreur lors de la récupération des paiements échelonnés");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchPaiements();
+  }, [fetchPaiements]);
+
+  useEffect(() => {
+    const handleDataUpdate = () => fetchPaiements();
+    window.addEventListener("data-updated", handleDataUpdate);
+    return () => window.removeEventListener("data-updated", handleDataUpdate);
+  }, [fetchPaiements]);
 
   useEffect(() => {
     if (showModal && step === 1 && nomInputRef.current)
@@ -80,47 +136,185 @@ export default function PaiementEchelonne() {
       debutDateInputRef.current.focus();
   }, [showModal, step]);
 
-  const handleNext = () => setStep((s) => s + 1);
-  const handlePrev = () => setStep((s) => s - 1);
+  const handleNext = useCallback(() => setStep((s) => s + 1), []);
+  const handlePrev = useCallback(() => setStep((s) => s - 1), []);
 
-  const handleChange = (e) => {
-    setNewPaiement({ ...newPaiement, [e.target.name]: e.target.value });
-  };
+  const handleChange = useCallback((e) => {
+    setNewPaiement((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
-  // Charger les paiements depuis Firestore
-  const fetchPaiements = useCallback(async () => {
-    if (!user) return;
-    try {
-      console.log(
-        "Récupération des paiements échelonnés pour l'utilisateur:",
-        user.id
-      );
-      const response = await installmentPaymentApi.getByUserId(user.id);
-      console.log("Paiements échelonnés reçus:", response);
-      setPaiements(response);
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des paiements échelonnés:",
-        error
-      );
-      setError("Erreur lors de la récupération des paiements échelonnés");
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+  const handleAddOrEditPaiement = useCallback(
+    async (e) => {
+      if (e) e.preventDefault();
+
+      if (!user) {
+        setError("Vous devez être connecté pour ajouter un paiement échelonné");
+        return;
+      }
+
+      if (
+        !newPaiement.nom ||
+        !newPaiement.montant ||
+        !newPaiement.mensualites ||
+        !newPaiement.debutDate
+      ) {
+        setError("Tous les champs sont obligatoires");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const paymentData = {
+          ...newPaiement,
+          userId: user.id,
+          montant: parseFloat(newPaiement.montant),
+          mensualites: parseInt(newPaiement.mensualites),
+        };
+
+        if (editIndex !== null) {
+          await installmentPaymentApi.update(editIndex, paymentData);
+          console.log("Paiement échelonné mis à jour:", editIndex);
+        } else {
+          await installmentPaymentApi.create(paymentData);
+          console.log("Nouveau paiement échelonné créé");
+        }
+
+        setNewPaiement({
+          nom: "",
+          montant: "",
+          mensualites: "",
+          debutDate: defaultDebutDate,
+          categorie: "",
+        });
+        setEditIndex(null);
+        setShowModal(false);
+        await fetchPaiements();
+        window.dispatchEvent(new Event("data-updated"));
+      } catch (error) {
+        console.error(
+          "Erreur lors de la sauvegarde du paiement échelonné:",
+          error
+        );
+        if (error.response) {
+          setError(
+            `Erreur serveur: ${
+              error.response.data?.message || "Erreur inconnue"
+            }`
+          );
+        } else {
+          setError("Erreur lors de la sauvegarde du paiement échelonné");
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, newPaiement, editIndex, defaultDebutDate, fetchPaiements]
+  );
+
+  const handleEdit = useCallback((payment) => {
+    setNewPaiement({
+      nom: payment.nom,
+      montant: payment.montant.toString(),
+      mensualites: payment.mensualites.toString(),
+      debutDate: payment.debutDate,
+      categorie: payment.categorie || "",
+    });
+    setEditIndex(payment.id);
+    setShowModal(true);
+  }, []);
+
+  const handleDelete = useCallback(
+    async (id) => {
+      if (
+        !window.confirm(
+          "Êtes-vous sûr de vouloir supprimer ce paiement échelonné ?"
+        )
+      ) {
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        await installmentPaymentApi.delete(id);
+        console.log("Paiement échelonné supprimé:", id);
+        await fetchPaiements();
+        window.dispatchEvent(new Event("data-updated"));
+      } catch (error) {
+        console.error(
+          "Erreur lors de la suppression du paiement échelonné:",
+          error
+        );
+        if (error.response) {
+          setError(
+            `Erreur serveur: ${
+              error.response.data?.message || "Erreur inconnue"
+            }`
+          );
+        } else {
+          setError("Erreur lors de la suppression du paiement échelonné");
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchPaiements]
+  );
+
+  const totalDepenses = useMemo(() => {
+    if (!paiements.length) return 0;
+
+    return paiements.reduce((acc, p) => {
+      if (!p.montant || !p.mensualites) return acc;
+      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
+      return acc + montantMensuel;
+    }, 0);
+  }, [paiements]);
 
   useEffect(() => {
-    if (user) {
-      fetchPaiements();
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "paiementsEchelonnesTotal",
+        totalDepenses.toString()
+      );
+      window.paiementsEchelonnesTotal = totalDepenses;
+      window.dispatchEvent(
+        new CustomEvent("paiements-echelonnes-updated", {
+          detail: { total: totalDepenses },
+        })
+      );
+      console.log("Total paiements échelonnés mis à jour:", totalDepenses);
     }
-  }, [fetchPaiements]);
+  }, [totalDepenses]);
 
-  // Effet pour mettre à jour les données quand le mois change
-  useEffect(() => {
-    if (allPaiements.length > 0) {
-      filterPaiementsByMonth();
-    }
-  }, [selectedDate, allPaiements]);
+  // Calcul de la répartition par catégorie
+  const _categoriesStats = useMemo(() => {
+    if (!paiements.length) return [];
+
+    // Grouper les paiements par catégorie
+    const categoriesMap = paiements.reduce((acc, p) => {
+      const categorie = p.categorie || "Autre";
+      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
+
+      if (!acc[categorie]) {
+        acc[categorie] = {
+          categorie,
+          montant: 0,
+          count: 0,
+        };
+      }
+
+      acc[categorie].montant += montantMensuel;
+      acc[categorie].count += 1;
+
+      return acc;
+    }, {});
+
+    // Convertir en tableau et trier par montant décroissant
+    return Object.values(categoriesMap).sort((a, b) => b.montant - a.montant);
+  }, [paiements]);
 
   // Fonctions pour naviguer entre les mois
   const handlePrevMonth = () => {
@@ -163,302 +357,32 @@ export default function PaiementEchelonne() {
     setShowDatePicker(false);
   };
 
-  // Total Dépenses échelonnées (uniquement la somme des mensualités du mois courant)
-  const totalDepenses = useMemo(() => {
-    if (!paiements.length) return 0;
+  // Optimisation : calcul du pourcentage payé avec useMemo pour chaque paiement
+  const _paiementsAvecPourcentage = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    return paiements.map((item) => {
+      if (!item.debutDate || !item.mensualites)
+        return { ...item, mensualitesPayees: 1, percentPaye: 0 };
+      const [startYear, startMonth] = item.debutDate.split("-").map(Number);
 
-    return paiements.reduce((acc, p) => {
-      if (!p.montant || !p.mensualites) return acc;
-      // Calcul du montant mensuel = montant total / nombre de mensualités
-      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
-      return acc + montantMensuel;
-    }, 0);
-  }, [paiements]);
+      // Calcul du nombre de mensualités déjà passées
+      const moisEcoules =
+        (currentYear - startYear) * 12 + (currentMonth - (startMonth - 1));
 
-  // On expose le montant total des paiements échelonnés pour le tableau de bord
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Stockage dans le localStorage pour une meilleure persistance
-      localStorage.setItem(
-        "paiementsEchelonnesTotal",
-        totalDepenses.toString()
+      let mensualitesPayees = Math.max(
+        1,
+        Math.min(item.mensualites, moisEcoules + 1)
       );
 
-      // Également dans une variable globale pour un accès facile
-      window.paiementsEchelonnesTotal = totalDepenses;
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      const event = new CustomEvent("paiements-echelonnes-updated", {
-        detail: { total: totalDepenses },
-      });
-      window.dispatchEvent(event);
-
-      console.log("Total paiements échelonnés mis à jour:", totalDepenses);
-    }
-  }, [totalDepenses]);
-
-  // Calcul de la répartition par catégorie
-  const _categoriesStats = useMemo(() => {
-    if (!paiements.length) return [];
-
-    // Grouper les paiements par catégorie
-    const categoriesMap = paiements.reduce((acc, p) => {
-      const categorie = p.categorie || "Autre";
-      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
-
-      if (!acc[categorie]) {
-        acc[categorie] = {
-          categorie,
-          montant: 0,
-          count: 0,
-        };
-      }
-
-      acc[categorie].montant += montantMensuel;
-      acc[categorie].count += 1;
-
-      return acc;
-    }, {});
-
-    // Convertir en tableau et trier par montant décroissant
-    return Object.values(categoriesMap).sort((a, b) => b.montant - a.montant);
-  }, [paiements]);
-
-  // Ajout ou modification du paiement échelonné
-  const handleAddOrEditPaiement = async (e) => {
-    if (e) e.preventDefault();
-
-    // Vérification des champs obligatoires
-    if (
-      !newPaiement.nom ||
-      !newPaiement.montant ||
-      !newPaiement.mensualites ||
-      !newPaiement.debutDate
-    ) {
-      console.error("Tous les champs sont obligatoires");
-      alert("Tous les champs sont obligatoires");
-      return;
-    }
-
-    // Vérification de la connexion utilisateur
-    if (!user) {
-      console.error("Utilisateur non connecté");
-      alert("Vous devez être connecté pour ajouter un paiement échelonné.");
-      return;
-    }
-
-    console.log(
-      "Tentative d'ajout/modification d'un paiement échelonné:",
-      newPaiement
-    );
-
-    try {
-      if (editIndex !== null && paiements[editIndex]) {
-        // MODIFICATION
-        try {
-          const paiementId = paiements[editIndex].id;
-          console.log(`Modification du paiement: echelonne/${paiementId}`);
-
-          await installmentPaymentApi.update(paiementId, {
-            ...newPaiement,
-            mensualites: parseInt(newPaiement.mensualites, 10),
-            montant: parseFloat(newPaiement.montant),
-            debutDate: newPaiement.debutDate,
-            categorie: newPaiement.categorie || "Autre",
-          });
-
-          console.log("✅ Modification réussie");
-        } catch (modifError) {
-          console.error("Erreur lors de la modification:", modifError);
-          throw new Error(
-            `Erreur lors de la modification: ${modifError.message}`
-          );
-        }
-
-        // Notification
-        try {
-          await addDoc(collection(db, "notifications"), {
-            type: "echelonne",
-            title: "Paiement échelonné modifié",
-            desc: `Modification de ${
-              newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
-            } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
-            date: new Date().toLocaleDateString("fr-FR"),
-            read: false,
-            createdAt: serverTimestamp(),
-          });
-        } catch (notifError) {
-          console.error(
-            "Erreur lors de l'ajout de notification (non bloquant):",
-            notifError
-          );
-          // On continue même si l'ajout de notification échoue
-        }
-      } else {
-        // AJOUT
-        try {
-          console.log(
-            `Création d'un nouveau paiement échelonné dans echelonne`
-          );
-
-          const paymentData = {
-            ...newPaiement,
-            userId: user.id,
-            montant: parseFloat(newPaiement.montant),
-            mensualites: parseInt(newPaiement.mensualites, 10),
-            montantMensuel: parseFloat(calculateMonthlyPayment()),
-          };
-
-          console.log("Données à ajouter:", paymentData);
-
-          const docRef = await installmentPaymentApi.create(paymentData);
-
-          console.log(`✅ Ajout réussi avec ID: ${docRef.id} dans echelonne`);
-        } catch (ajoutError) {
-          console.error("Erreur lors de l'ajout:", ajoutError);
-          throw new Error(`Erreur lors de l'ajout: ${ajoutError.message}`);
-        }
-
-        // Notification
-        try {
-          await addDoc(collection(db, "notifications"), {
-            type: "echelonne",
-            title: "Nouveau paiement échelonné",
-            desc: `Ajout de ${
-              newPaiement.nom.charAt(0).toUpperCase() + newPaiement.nom.slice(1)
-            } (${parseFloat(newPaiement.montant).toFixed(2)}€)`,
-            date: new Date().toLocaleDateString("fr-FR"),
-            read: false,
-            createdAt: serverTimestamp(),
-          });
-        } catch (notifError) {
-          console.error(
-            "Erreur lors de l'ajout de notification (non bloquant):",
-            notifError
-          );
-          // On continue même si l'ajout de notification échoue
-        }
-      }
-
-      // Mise à jour du dashboard
-      try {
-        // Enregistrer le total mensuel dans une collection séparée pour le dashboard
-        const currentYear = selectedDate.getFullYear();
-        const currentMonth = selectedDate.getMonth() + 1;
-        const periodId = `${currentYear}-${currentMonth}`;
-
-        console.log(`Mise à jour du dashboard pour la période ${periodId}`);
-
-        // Calculer le total des paiements échelonnés pour le mois en cours
-        const updatedPaiements = await getDocs(collection(db, "echelonne"));
-        const userPaiements = updatedPaiements.docs
-          .filter((doc) => doc.data().uid === user.uid)
-          .map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        console.log(
-          `Paiements utilisateur après ajout/modification: ${userPaiements.length}`
-        );
-
-        // Filtrer pour n'avoir que les paiements actifs pour le mois courant
-        const activePaiements = userPaiements.filter((p) => {
-          if (!p.debutDate || !p.mensualites || !p.montant) return false;
-          const [startYear, startMonth] = p.debutDate.split("-").map(Number);
-          const debutDate = new Date(startYear, startMonth - 1);
-          const finDate = new Date(
-            startYear,
-            startMonth - 1 + parseInt(p.mensualites)
-          );
-          const currentDate = new Date(currentYear, currentMonth - 1);
-          return currentDate >= debutDate && currentDate < finDate;
-        });
-
-        console.log(
-          `Paiements actifs pour ${periodId}: ${activePaiements.length}`
-        );
-
-        // Calculer le total mensuel
-        const totalMensuel = activePaiements.reduce((sum, p) => {
-          const mensualite = parseFloat(p.montant) / parseInt(p.mensualites);
-          return sum + mensualite;
-        }, 0);
-
-        // Récupérer ou créer le document pour ce mois
-        const dashboardRef = doc(db, "dashboard", periodId);
-
-        // Vérifier si le document existe déjà
-        const dashboardDoc = await getDoc(dashboardRef);
-
-        if (dashboardDoc.exists()) {
-          // Mettre à jour le document existant
-          await updateDoc(dashboardRef, {
-            echelonneTotal: totalMensuel,
-            updatedAt: serverTimestamp(),
-          });
-        } else {
-          // Créer un nouveau document
-          await setDoc(dashboardRef, {
-            echelonneTotal: totalMensuel,
-            year: currentYear,
-            month: currentMonth,
-            updatedAt: serverTimestamp(),
-            uid: user.uid,
-          });
-        }
-
-        console.log(
-          `Total échelonné pour ${periodId} mis à jour: ${totalMensuel}€`
-        );
-      } catch (dashboardError) {
-        console.error(
-          "Erreur lors de la mise à jour du dashboard (non bloquant):",
-          dashboardError
-        );
-        // On continue même si la mise à jour du dashboard échoue
-      }
-
-      try {
-        // Réinitialiser l'état et fermer la modale
-        await fetchPaiements();
-        setShowModal(false);
-        setStep(1);
-        setNewPaiement({
-          nom: "",
-          montant: "",
-          mensualites: "",
-          debutDate: defaultDebutDate,
-          categorie: "",
-        });
-        setEditIndex(null);
-
-        // Déclencher un événement pour mettre à jour le tableau de bord
-        window.dispatchEvent(new Event("data-updated"));
-      } catch (resetError) {
-        console.error(
-          "Erreur lors de la réinitialisation de l'interface:",
-          resetError
-        );
-      }
-
-      console.log("Processus d'ajout/modification terminé avec succès");
-    } catch (err) {
-      console.error("❌ Erreur Firestore add/update:", err);
-      alert(`Une erreur est survenue: ${err.message || "Erreur inconnue"}`);
-    }
-  };
-
-  // Ajoute ces handlers pour l'exemple (à adapter selon ta logique)
-  const handleEdit = (idx) => {
-    setEditIndex(idx);
-    setNewPaiement({
-      nom: paiements[idx].nom,
-      montant: paiements[idx].montant.toString(),
-      mensualites: paiements[idx].mensualites.toString(),
-      debutDate: paiements[idx].debutDate,
-      categorie: paiements[idx].categorie || "Autre",
+      const percentPaye =
+        item.mensualites && item.mensualites > 0
+          ? (mensualitesPayees / item.mensualites) * 100
+          : 0;
+      return { ...item, mensualitesPayees, percentPaye };
     });
-    setShowModal(true);
-    setStep(1);
-  };
+  }, [paiements]);
 
   // Fonction pour gérer le mode sélection multiple
   const _toggleMultiSelectMode = () => {
@@ -529,142 +453,27 @@ export default function PaiementEchelonne() {
     });
   };
 
-  // Optimisation : calcul du pourcentage payé avec useMemo pour chaque paiement
-  const _paiementsAvecPourcentage = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    return paiements.map((item) => {
-      if (!item.debutDate || !item.mensualites)
-        return { ...item, mensualitesPayees: 1, percentPaye: 0 };
-      const [startYear, startMonth] = item.debutDate.split("-").map(Number);
-
-      // Calcul du nombre de mensualités déjà passées
-      const moisEcoules =
-        (currentYear - startYear) * 12 + (currentMonth - (startMonth - 1));
-
-      let mensualitesPayees = Math.max(
-        1,
-        Math.min(item.mensualites, moisEcoules + 1)
-      );
-
-      const percentPaye =
-        item.mensualites && item.mensualites > 0
-          ? (mensualitesPayees / item.mensualites) * 100
-          : 0;
-      return { ...item, mensualitesPayees, percentPaye };
-    });
-  }, [paiements]);
-
-  // Fonction pour supprimer un paiement sans toast
-  const handleDelete = async (idx) => {
-    if (!user) return;
-    const paiement = paiements[idx];
-    if (!paiement || !paiement.id) return;
-
-    try {
-      console.log(`🔥 SUPPRESSION: echelonne/${paiement.id}`);
-      await installmentPaymentApi.delete(paiement.id);
-      console.log(`✅ Document supprimé avec succès: echelonne/${paiement.id}`);
-
-      setPaiements((prev) => prev.filter((_, i) => i !== idx));
-
-      // Notification suppression paiement échelonné
-      await addDoc(collection(db, "notifications"), {
-        type: "echelonne",
-        title: "Paiement échelonné supprimé",
-        desc: `Suppression de ${
-          paiement.nom.charAt(0).toUpperCase() + paiement.nom.slice(1)
-        } (${parseFloat(paiement.montant).toFixed(2)}€)`,
-        date: new Date().toLocaleDateString("fr-FR"),
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-
-      // Mettre à jour le total dans la collection dashboard
-      const currentYear = selectedDate.getFullYear();
-      const currentMonth = selectedDate.getMonth() + 1;
-      const periodId = `${currentYear}-${currentMonth}`;
-
-      try {
-        // Recalculer le total après suppression
-        const updatedPaiements = await getDocs(collection(db, "echelonne"));
-        const userPaiements = updatedPaiements.docs
-          .filter((doc) => doc.data().uid === user.uid)
-          .map((doc) => doc.data());
-
-        // Filtrer pour n'avoir que les paiements actifs pour le mois courant
-        const activePaiements = userPaiements.filter((p) => {
-          if (!p.debutDate || !p.mensualites || !p.montant) return false;
-          const [startYear, startMonth] = p.debutDate.split("-").map(Number);
-          const debutDate = new Date(startYear, startMonth - 1);
-          const finDate = new Date(
-            startYear,
-            startMonth - 1 + parseInt(p.mensualites)
-          );
-          const currentDate = new Date(currentYear, currentMonth - 1);
-          return currentDate >= debutDate && currentDate < finDate;
-        });
-
-        // Calculer le total mensuel
-        const totalMensuel = activePaiements.reduce((sum, p) => {
-          const mensualite = parseFloat(p.montant) / parseInt(p.mensualites);
-          return sum + mensualite;
-        }, 0);
-
-        // Récupérer ou créer le document pour ce mois
-        const dashboardRef = doc(db, "dashboard", periodId);
-
-        // Vérifier si le document existe déjà
-        const dashboardDoc = await getDoc(dashboardRef);
-
-        if (dashboardDoc.exists()) {
-          // Mettre à jour le document existant
-          await updateDoc(dashboardRef, {
-            echelonneTotal: totalMensuel,
-            updatedAt: serverTimestamp(),
-          });
-        } else {
-          // Créer un nouveau document
-          await setDoc(dashboardRef, {
-            echelonneTotal: totalMensuel,
-            year: currentYear,
-            month: currentMonth,
-            updatedAt: serverTimestamp(),
-            uid: user.uid,
-          });
-        }
-
-        console.log(
-          `Total échelonné pour ${periodId} mis à jour après suppression: ${totalMensuel}€`
-        );
-      } catch (error) {
-        console.error("Erreur lors de la mise à jour du dashboard:", error);
-      }
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
-    } catch (error) {
-      console.error(
-        `❌ ERREUR lors de la suppression: ${error.message || error}`
-      );
-      console.error(error);
-    }
-  };
-
-  const calculateMonthlyPayment = () => {
-    if (newPaiement.montant && newPaiement.mensualites) {
-      const montant = parseFloat(newPaiement.montant);
-      const mensualites = parseInt(newPaiement.mensualites);
-      return (montant / mensualites).toFixed(2);
-    }
-    return "0.00";
-  };
-
   if (loading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='animate-pulse'>
+          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
+          <div className='space-y-4'>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className='h-16 bg-gray-200 rounded'></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='container mx-auto px-4 py-8'>
+        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
+          {error}
+        </div>
       </div>
     );
   }
@@ -966,7 +775,7 @@ export default function PaiementEchelonne() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleEdit(idx);
+                          handleEdit(paiement);
                         }}
                         className='text-blue-500 dark:text-blue-400 mr-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
                         aria-label='Modifier'>
@@ -987,7 +796,7 @@ export default function PaiementEchelonne() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(idx);
+                          handleDelete(paiement.id);
                         }}
                         className='text-red-500 dark:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
                         aria-label='Supprimer'>

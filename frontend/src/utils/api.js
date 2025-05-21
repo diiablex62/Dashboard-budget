@@ -59,4 +59,43 @@ export const budgetApi = {
   deleteBudget: (id) => api.delete(`/budgets/${id}`),
 };
 
+// API pour les paiements
+export const paymentApi = {
+  getPayments: () => api.get("/payments"),
+  createPayment: (data) => api.post("/payments", data),
+  updatePayment: (id, data) => api.put(`/payments/${id}`, data),
+  deletePayment: (id) => api.delete(`/payments/${id}`),
+  getPaymentHistory: () => api.get("/payments/history"),
+  getUpcomingPayments: () => api.get("/payments/upcoming"),
+  markAsPaid: (id) => api.put(`/payments/${id}/paid`),
+};
+
+// API pour les paiements récurrents
+export const recurrentPaymentApi = {
+  getRecurrentPayments: () => api.get("/recurrent-payments"),
+  createRecurrentPayment: (data) => api.post("/recurrent-payments", data),
+  updateRecurrentPayment: (id, data) =>
+    api.put(`/recurrent-payments/${id}`, data),
+  deleteRecurrentPayment: (id) => api.delete(`/recurrent-payments/${id}`),
+  pauseRecurrentPayment: (id) => api.put(`/recurrent-payments/${id}/pause`),
+  resumeRecurrentPayment: (id) => api.put(`/recurrent-payments/${id}/resume`),
+  getRecurrentPaymentHistory: (id) =>
+    api.get(`/recurrent-payments/${id}/history`),
+};
+
+// API pour les paiements échelonnés
+export const installmentPaymentApi = {
+  getInstallmentPayments: () => api.get("/installment-payments"),
+  createInstallmentPayment: (data) => api.post("/installment-payments", data),
+  updateInstallmentPayment: (id, data) =>
+    api.put(`/installment-payments/${id}`, data),
+  deleteInstallmentPayment: (id) => api.delete(`/installment-payments/${id}`),
+  getInstallmentDetails: (id) => api.get(`/installment-payments/${id}/details`),
+  payInstallment: (id, installmentId) =>
+    api.put(`/installment-payments/${id}/installments/${installmentId}/pay`),
+  getInstallmentHistory: (id) => api.get(`/installment-payments/${id}/history`),
+  calculateInstallments: (data) =>
+    api.post("/installment-payments/calculate", data),
+};
+
 export default api;

@@ -21,14 +21,14 @@ const createToken = async (email) => {
     expiresIn: JWT_EXPIRATION,
   });
 
-  const tokenData = {
-    id: tokenId,
-    email,
-    token,
-    createdAt: new Date(),
+      const tokenData = {
+        id: tokenId,
+        email,
+        token,
+        createdAt: new Date(),
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 heures
-    used: false,
-  };
+        used: false,
+      };
 
   mockDb.tokens.set(tokenId, tokenData);
   mockDb.tokenValues.set(token, tokenData);
@@ -57,7 +57,7 @@ const createUser = async (email) => {
   const uid = uuidv4();
   const user = {
     uid,
-    email,
+        email,
     createdAt: new Date(),
   };
 

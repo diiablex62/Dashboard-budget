@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -24,9 +24,11 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
-import TransactionsChart from "../components/TransactionsChart";
-import { transactionApi } from "../utils/api";
+import {
+  transactionApi,
+  recurrentPaymentApi,
+  installmentPaymentApi,
+} from "../utils/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -56,668 +58,374 @@ export default function Dashboard() {
   const [budgetData, setBudgetData] = useState([]);
   const [depensesTotalesData, setDepensesTotalesData] = useState([]);
 
-  useEffect(() => {
-    if (user?._id) {
-      fetchTransactions();
-    }
-  }, [user]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
-      console.log(
-        "Récupération des transactions pour l'utilisateur:",
-        user._id
-      );
-      const data = await transactionApi.getByUserId(user._id);
-      setTransactions(data);
+      const response = await transactionApi.getTransactions();
+      if (!response?.data)
+        throw new Error("Format de réponse invalide pour les transactions");
+      return response.data;
     } catch (error) {
       console.error("Erreur lors de la récupération des transactions:", error);
-      setError("Erreur lors du chargement des données");
-    } finally {
-      setLoading(false);
+      throw error;
     }
-  };
+  }, []);
 
-  const calculateTotals = () => {
-    const totals = {
-      depenses: 0,
-      revenus: 0,
-      balance: 0,
-    };
+  const fetchRecurrentPayments = useCallback(async () => {
+    try {
+      const response = await recurrentPaymentApi.getRecurrentPayments();
+      if (!response?.data)
+        throw new Error(
+          "Format de réponse invalide pour les paiements récurrents"
+        );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des paiements récurrents:",
+        error
+      );
+      throw error;
+    }
+  }, []);
 
-    transactions.forEach((transaction) => {
-      if (transaction.type === "depense") {
-        totals.depenses += parseFloat(transaction.montant);
-      } else if (transaction.type === "revenu") {
-        totals.revenus += parseFloat(transaction.montant);
-      }
+  const fetchInstallmentPayments = useCallback(async () => {
+    try {
+      const response = await installmentPaymentApi.getInstallmentPayments();
+      if (!response?.data)
+        throw new Error(
+          "Format de réponse invalide pour les paiements échelonnés"
+        );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des paiements échelonnés:",
+        error
+      );
+      throw error;
+    }
+  }, []);
+
+  const calculateMonthlyTotals = useCallback((transactionsData) => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const transactionsMoisCourant = transactionsData.filter((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      return (
+        transactionDate.getMonth() === currentMonth &&
+        transactionDate.getFullYear() === currentYear
+      );
     });
 
-    totals.balance = totals.revenus - totals.depenses;
-    return totals;
-  };
+    const depensesMoisCourant = transactionsMoisCourant
+      .filter((t) => t.type === "depense")
+      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
 
-  const totals = calculateTotals();
+    const revenusMoisCourant = transactionsMoisCourant
+      .filter((t) => t.type === "revenu")
+      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
 
-  const fetchAll = async () => {
-    if (!user) return; // Ne tente pas de fetch si non connecté
-    try {
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
-
-      let previousMonth = currentMonth - 1;
-      let previousYear = currentYear;
-      if (previousMonth === 0) {
-        previousMonth = 12;
-        previousYear = currentYear - 1;
-      }
-
-      // Formater les dates pour comparaison
-      const currentMonthStart = new Date(currentYear, currentMonth - 1, 1); // premier jour du mois courant
-      const currentMonthEnd = new Date(currentYear, currentMonth, 0); // dernier jour du mois courant
-
-      const previousMonthStart = new Date(previousYear, previousMonth - 1, 1); // premier jour du mois précédent
-      const previousMonthEnd = new Date(previousYear, previousMonth, 0); // dernier jour du mois précédent
-
-      // Utiliser la nouvelle fonction pour calculer les dépenses totales mensuelles
-      const depensesMensuelles = await calculateMonthlyTotalExpenses(
-        currentMonthStart
-      );
-      const depensesMoisPrecedent = await calculateMonthlyTotalExpenses(
-        previousMonthStart
-      );
-
-      // Mettre à jour les états avec les données détaillées
-      setTotalDepensesMois(depensesMensuelles.total);
-      setTotalDepensesMoisPrecedent(depensesMoisPrecedent.total);
-      setTotalRecurrents(depensesMensuelles.recurrentes);
-      setTotalEchelonnes(depensesMensuelles.echelonnees);
-
-      // Mettre à jour les données du graphique de répartition des dépenses par catégorie
-      setDepensesTotalesData(depensesMensuelles.parCategorie);
-
-      // Récupération des paiements récurrents et échelonnés pour les listes
-      const [recurrentsSnap, echelonnesSnap] = await Promise.all([
-        getDocs(collection(db, "recurrent")),
-        getDocs(collection(db, "echelonne")),
-      ]);
-
-      // Traitement des paiements récurrents pour la liste
-      const paiements = recurrentsSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPaiementsRecurrents(paiements);
-
-      // Traitement des paiements échelonnés du mois courant pour la liste
-      const echelonnes = echelonnesSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Adapter le filtrage pour gérer uniquement le format debutDate
-      const echelonnesDuMois = echelonnes.filter((p) => {
-        if (!p.mensualites) return false;
-
-        // Utiliser debutDate comme format standard
-        if (!p.debutDate) return false;
-
-        const [startYear, startMonth] = p.debutDate.split("-").map(Number);
-        const debut = new Date(startYear, startMonth - 1);
-        const fin = new Date(
-          startYear,
-          startMonth - 1 + Number(p.mensualites) - 1
-        );
-        const nowDate = new Date(currentYear, currentMonth - 1);
-        return nowDate >= debut && nowDate <= fin;
-      });
-      setPaiementsEchelonnes(echelonnesDuMois);
-
-      // Récupération des revenus
-      const revenuSnap = await getDocs(collection(db, "revenu"));
-      const revenus = revenuSnap.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-
-      // Filtrer les revenus du mois actuel
-      const revenusMoisActuel = revenus.filter((r) => {
-        const revenuDate = new Date(r.date);
-        return revenuDate >= currentMonthStart && revenuDate <= currentMonthEnd;
-      });
-
-      // Filtrer les revenus du mois précédent
-      const revenusMoisPrecedent = revenus.filter((r) => {
-        const revenuDate = new Date(r.date);
-        return (
-          revenuDate >= previousMonthStart && revenuDate <= previousMonthEnd
-        );
-      });
-
-      // Calculer le total des revenus du mois actuel
-      const totalRevenusActuel = revenusMoisActuel.reduce(
-        (acc, r) => acc + (parseFloat(r.montant) || 0),
-        0
-      );
-
-      // Calculer le total des revenus du mois précédent
-      const totalRevenusPrecedent = revenusMoisPrecedent.reduce(
-        (acc, r) => acc + (parseFloat(r.montant) || 0),
-        0
-      );
-
-      setTotalRevenusMois(totalRevenusActuel);
-      setTotalRevenusMoisPrecedent(totalRevenusPrecedent);
-
-      // Récupération des données pour le graphique de répartition du budget
-      await fetchBudgetData();
-    } catch (err) {
-      // Affiche l'erreur seulement si connecté
-      if (user) {
-        console.error("Erreur Firestore fetch:", err);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchAll();
-  }, [user]);
-
-  // Fonction pour la mise à jour des données
-  useEffect(() => {
-    // Créer un écouteur d'événements pour les mises à jour
-    const handleDataUpdate = () => {
-      fetchAll();
-    };
-
-    // Ajouter l'écouteur d'événements
-    window.addEventListener("data-updated", handleDataUpdate);
-
-    // Nettoyer l'écouteur
-    return () => {
-      window.removeEventListener("data-updated", handleDataUpdate);
+    return {
+      depensesMoisCourant,
+      revenusMoisCourant,
+      transactionsMoisCourant,
     };
   }, []);
 
-  // Fonction pour récupérer les données de revenus et dépenses par mois
-  const fetchBudgetData = async () => {
-    try {
-      // Récupération des revenus
-      const revenuSnap = await getDocs(collection(db, "revenu"));
-      const revenus = revenuSnap.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-
-      // Récupération des dépenses
-      const depenseSnap = await getDocs(collection(db, "depense"));
-      const depenses = depenseSnap.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-
-      // Créer un objet pour organiser les données par mois
-      const MONTHS = [
-        "Jan",
-        "Fév",
-        "Mar",
-        "Avr",
-        "Mai",
-        "Juin",
-        "Juil",
-        "Août",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Déc",
+  const prepareChartData = useCallback(
+    (transactionsData, transactionsMoisCourant) => {
+      // Données pour le graphique en camembert
+      const categories = [
+        ...new Set(transactionsMoisCourant.map((t) => t.categorie)),
       ];
+      const depensesParCategorie = categories.map((categorie) => ({
+        name: categorie,
+        value: transactionsMoisCourant
+          .filter((t) => t.type === "depense" && t.categorie === categorie)
+          .reduce((acc, t) => acc + parseFloat(t.montant), 0),
+      }));
 
-      // Déterminer les 6 derniers mois dans l'ordre chronologique
-      const derniersMois = [];
-      const maintenant = new Date();
-      const moisActuel = maintenant.getMonth(); // 0-11
-      const anneeActuelle = maintenant.getFullYear();
+      // Données pour le graphique d'évolution
+      const mois = Array.from({ length: 6 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        return date;
+      }).reverse();
 
-      // Calculer les 5 mois précédents et le mois actuel (total: 6 mois)
-      for (let i = 5; i >= 0; i--) {
-        let mois = moisActuel - i;
-        let annee = anneeActuelle;
-
-        // Ajuster l'année si on remonte à l'année précédente
-        if (mois < 0) {
-          mois += 12;
-          annee -= 1;
-        }
-
-        derniersMois.push({
-          date: new Date(annee, mois, 1),
-          name: `${MONTHS[mois]}${annee !== anneeActuelle ? " " + annee : ""}`,
-          month: mois,
-          year: annee,
-          revenus: 0,
-          depenses: 0,
-        });
-      }
-
-      // Calculer les totaux par mois
-      const resultat = derniersMois.map((mois) => {
-        // Revenus du mois
-        const revenusMois = revenus.filter((r) => {
-          const date = new Date(r.date);
+      const evolutionData = mois.map((date) => {
+        const transactionsDuMois = transactionsData.filter((t) => {
+          const transactionDate = new Date(t.date);
           return (
-            date.getMonth() === mois.month && date.getFullYear() === mois.year
-          );
-        });
-
-        // Dépenses du mois (montant est négatif pour les dépenses)
-        const depensesMois = depenses.filter((d) => {
-          const date = new Date(d.date);
-          return (
-            date.getMonth() === mois.month && date.getFullYear() === mois.year
+            transactionDate.getMonth() === date.getMonth() &&
+            transactionDate.getFullYear() === date.getFullYear()
           );
         });
 
         return {
-          ...mois,
-          revenus: revenusMois.reduce(
-            (total, r) => total + (parseFloat(r.montant) || 0),
-            0
-          ),
-          depenses: Math.abs(
-            depensesMois.reduce(
-              (total, d) => total + (parseFloat(d.montant) || 0),
-              0
-            )
-          ),
+          mois: date.toLocaleString("fr-FR", { month: "short" }),
+          depenses: transactionsDuMois
+            .filter((t) => t.type === "depense")
+            .reduce((acc, t) => acc + parseFloat(t.montant), 0),
+          revenus: transactionsDuMois
+            .filter((t) => t.type === "revenu")
+            .reduce((acc, t) => acc + parseFloat(t.montant), 0),
         };
       });
 
-      setBudgetData(resultat);
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des données de budget:",
-        error
-      );
+      return {
+        depensesParCategorie,
+        evolutionData,
+      };
+    },
+    []
+  );
+
+  const fetchAll = useCallback(async () => {
+    if (!user) {
+      console.log("Pas d'utilisateur connecté");
+      return;
     }
-  };
 
-  // Fonction utilitaire pour scroller en haut avant navigation
-  const scrollToTopAndNavigate = (url) => {
-    window.scrollTo({ top: 0, behavior: "auto" });
-    navigate(url);
-  };
+    try {
+      setLoading(true);
+      setError(null);
 
-  // Optimisation: useMemo pour éviter les recalculs inutiles
-  const derniersPaiements = useMemo(
-    () =>
-      [...paiementsRecurrents]
-        .sort(
-          (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
-        )
-        .slice(-3),
-    [paiementsRecurrents]
-  );
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Session expirée, veuillez vous reconnecter");
+      }
 
-  const derniersEchelonnes = useMemo(
-    () =>
-      [...paiementsEchelonnes]
-        .sort(
-          (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
-        )
-        .slice(-3),
-    [paiementsEchelonnes]
-  );
+      // Récupération parallèle des données
+      const [transactionsData, recurrentsData, echelonnesData] =
+        await Promise.all([
+          fetchTransactions(),
+          fetchRecurrentPayments(),
+          fetchInstallmentPayments(),
+        ]);
+
+      setTransactions(transactionsData);
+      setPaiementsRecurrents(recurrentsData);
+      setPaiementsEchelonnes(echelonnesData);
+
+      // Calcul des totaux
+      const {
+        depensesMoisCourant,
+        revenusMoisCourant,
+        transactionsMoisCourant,
+      } = calculateMonthlyTotals(transactionsData);
+
+      setTotalDepensesMois(depensesMoisCourant);
+      setTotalRevenusMois(revenusMoisCourant);
+      setTotalRecurrents(
+        recurrentsData.reduce((acc, p) => acc + parseFloat(p.montant), 0)
+      );
+      setTotalEchelonnes(
+        echelonnesData.reduce((acc, p) => acc + parseFloat(p.montant), 0)
+      );
+
+      // Préparation des données pour les graphiques
+      const { depensesParCategorie, evolutionData } = prepareChartData(
+        transactionsData,
+        transactionsMoisCourant
+      );
+
+      setDepensesTotalesData(depensesParCategorie);
+      setBudgetData(evolutionData);
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      if (error.message === "Session expirée, veuillez vous reconnecter") {
+        setError(error.message);
+        navigate("/login");
+      } else if (error.response) {
+        setError(
+          `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
+        );
+      } else if (error.request) {
+        setError(
+          "Impossible de contacter le serveur, veuillez réessayer plus tard"
+        );
+      } else {
+        setError("Erreur lors du chargement des données");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    user,
+    navigate,
+    fetchTransactions,
+    fetchRecurrentPayments,
+    fetchInstallmentPayments,
+    calculateMonthlyTotals,
+    prepareChartData,
+  ]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  useEffect(() => {
+    const handleDataUpdate = () => fetchAll();
+    window.addEventListener("data-updated", handleDataUpdate);
+    return () => window.removeEventListener("data-updated", handleDataUpdate);
+  }, [fetchAll]);
 
   if (loading) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900'></div>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='animate-pulse'>
+          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className='h-32 bg-gray-200 rounded'></div>
+            ))}
+          </div>
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+            <div className='h-96 bg-gray-200 rounded'></div>
+            <div className='h-96 bg-gray-200 rounded'></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-red-500'>{error}</div>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
+          {error}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
-      <h1 className='text-3xl font-bold mb-8'>Tableau de bord</h1>
+    <div className='container mx-auto px-4 py-8'>
+      <h1 className='text-2xl font-bold mb-6'>Tableau de bord</h1>
 
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
-        <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
-          <h2 className='text-xl font-semibold mb-2'>Dépenses</h2>
-          <p className='text-2xl font-bold text-red-500'>
-            {totals.depenses.toFixed(2)} €
-          </p>
-        </div>
-        <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
-          <h2 className='text-xl font-semibold mb-2'>Revenus</h2>
-          <p className='text-2xl font-bold text-green-500'>
-            {totals.revenus.toFixed(2)} €
-          </p>
-        </div>
-        <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
-          <h2 className='text-xl font-semibold mb-2'>Balance</h2>
-          <p
-            className={`text-2xl font-bold ${
-              totals.balance >= 0 ? "text-green-500" : "text-red-500"
-            }`}>
-            {totals.balance.toFixed(2)} €
-          </p>
-        </div>
-      </div>
-
-      <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
-        <h2 className='text-xl font-semibold mb-4'>
-          Évolution des dépenses et revenus
-        </h2>
-        <div className='h-80'>
-          <LineChart
-            width={800}
-            height={300}
-            data={transactions}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis dataKey='date' />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type='monotone'
-              dataKey='montant'
-              stroke='#8884d8'
-              name='Montant'
-            />
-          </LineChart>
-        </div>
-      </div>
-
-      {/* Cartes du haut */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
-        {/* Total revenus */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Total revenus ce mois-ci
-            </span>
-            <AiOutlineDollarCircle className='text-green-600 dark:text-green-400 text-xl' />
-          </div>
-          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            {totalRevenusMois.toFixed(2)}€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-gray-500'>
-            {totalRevenusMois > totalRevenusMoisPrecedent ? (
-              <span className='text-green-500'>
-                +{(totalRevenusMois - totalRevenusMoisPrecedent).toFixed(2)}€
-              </span>
-            ) : (
-              <span className='text-red-500'>
-                -{(totalRevenusMoisPrecedent - totalRevenusMois).toFixed(2)}€
-              </span>
-            )}{" "}
-            par rapport au mois précédent
+      {/* Cartes de résumé */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
+        <div className='bg-white rounded-lg shadow p-4'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p className='text-gray-500'>Dépenses du mois</p>
+              <p className='text-2xl font-bold'>
+                {totalDepensesMois.toFixed(2)} €
+              </p>
+            </div>
+            <AiOutlineDollarCircle className='text-red-500 text-2xl' />
           </div>
         </div>
 
-        {/* Total dépensé */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Total dépensé ce mois-ci
-            </span>
-            <AiOutlineDollarCircle className='text-blue-600 dark:text-blue-400 text-xl' />
-          </div>
-          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            {totalDepensesMois.toFixed(2)}€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-gray-500'>
-            {totalDepensesMois > totalDepensesMoisPrecedent ? (
-              <span className='text-red-500'>
-                +{(totalDepensesMois - totalDepensesMoisPrecedent).toFixed(2)}€
-              </span>
-            ) : (
-              <span className='text-green-500'>
-                -{(totalDepensesMoisPrecedent - totalDepensesMois).toFixed(2)}€
-              </span>
-            )}{" "}
-            par rapport au mois précédent
+        <div className='bg-white rounded-lg shadow p-4'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p className='text-gray-500'>Revenus du mois</p>
+              <p className='text-2xl font-bold'>
+                {totalRevenusMois.toFixed(2)} €
+              </p>
+            </div>
+            <AiOutlineRise className='text-green-500 text-2xl' />
           </div>
         </div>
 
-        {/* Paiements récurrents */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Paiements récurrents
-            </span>
-            <AiOutlineCalendar className='text-purple-400 dark:text-purple-500 text-xl' />
+        <div className='bg-white rounded-lg shadow p-4'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p className='text-gray-500'>Paiements récurrents</p>
+              <p className='text-2xl font-bold'>
+                {totalRecurrents.toFixed(2)} €
+              </p>
+            </div>
+            <AiOutlineCreditCard className='text-blue-500 text-2xl' />
           </div>
-          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            {totalRecurrents.toFixed(2)}€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-gray-500'>
-            {paiementsRecurrents.length}{" "}
-            {paiementsRecurrents.length === 1 ? "élément" : "éléments"}
-          </div>
-          <button
-            className='mt-3 border dark:border-gray-800 rounded-lg py-1 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition cursor-pointer dark:text-white'
-            onClick={() =>
-              user
-                ? navigate("/paiements-recurrents")
-                : navigate("/auth", { state: { isLogin: true } })
-            }>
-            Gerer →
-          </button>
         </div>
-        {/* Paiements en plusieurs fois */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Paiements échelonnés
-            </span>
-            <AiOutlineCreditCard className='text-green-400 dark:text-green-500 text-xl' />
-          </div>
-          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            {totalEchelonnes.toFixed(2)}€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-gray-500'>
-            {paiementsEchelonnes.length}{" "}
-            {paiementsEchelonnes.length === 1 ? "élément" : "éléments"}
-          </div>
-          <button
-            className='mt-3 border dark:border-gray-800 rounded-lg py-1 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition cursor-pointer dark:text-white'
-            onClick={() =>
-              user
-                ? navigate("/paiements-echelonnes")
-                : navigate("/auth", { state: { isLogin: true } })
-            }>
-            Gerer →
-          </button>
-        </div>
-        {/* Économies */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <div className='flex items-center justify-between mb-2'>
-            <span className='text-sm text-gray-500 dark:text-gray-400'>
-              Économies
-            </span>
-            <AiOutlineRise className='text-orange-400 dark:text-orange-500 text-xl' />
-          </div>
-          <div className='text-2xl mb-1 text-[#222] dark:text-white'>
-            1,258.44€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-gray-500'>
-            +2.5% depuis le mois dernier
+
+        <div className='bg-white rounded-lg shadow p-4'>
+          <div className='flex items-center justify-between'>
+            <div>
+              <p className='text-gray-500'>Paiements échelonnés</p>
+              <p className='text-2xl font-bold'>
+                {totalEchelonnes.toFixed(2)} €
+              </p>
+            </div>
+            <FaCalendarAlt className='text-purple-500 text-2xl' />
           </div>
         </div>
       </div>
 
       {/* Graphiques */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
-        {/* Dépenses mensuelles */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col min-h-[300px]'>
-          <span className='font-semibold mb-2 dark:text-white'>
-            Total des dépenses mensuelles
-          </span>
-          <div className='flex-1 flex items-center justify-center'>
-            {depensesTotalesData.length > 0 ? (
-              <TransactionsChart
-                data={depensesTotalesData.map((item) => ({
-                  categorie: item.name,
-                  montant: item.value,
-                }))}
-                type='depenses'
-              />
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+        {/* Graphique d'évolution */}
+        <div className='bg-white rounded-lg shadow p-4'>
+          <h2 className='text-lg font-semibold mb-4'>
+            Évolution des dépenses et revenus
+          </h2>
+          <div className='h-80'>
+            {budgetData && budgetData.length > 0 ? (
+              <ResponsiveContainer width='100%' height='100%'>
+                <LineChart data={budgetData}>
+                  <CartesianGrid strokeDasharray='3 3' />
+                  <XAxis dataKey='mois' />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type='monotone'
+                    dataKey='depenses'
+                    stroke='#ef4444'
+                    name='Dépenses'
+                  />
+                  <Line
+                    type='monotone'
+                    dataKey='revenus'
+                    stroke='#22c55e'
+                    name='Revenus'
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             ) : (
-              <TransactionsChart
-                data={[
-                  {
-                    categorie: "Factures",
-                    montant:
-                      totalDepensesMois - totalRecurrents - totalEchelonnes,
-                  },
-                  { categorie: "Logement", montant: totalRecurrents },
-                  { categorie: "Transport", montant: totalEchelonnes },
-                ]}
-                type='depenses'
-              />
+              <div className='flex items-center justify-center h-full text-gray-500'>
+                Aucune donnée disponible
+              </div>
             )}
           </div>
         </div>
-        {/* Répartition du budget */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col min-h-[220px]'>
-          <span className='font-semibold mb-2 dark:text-white'>
-            Répartition du budget
-          </span>
-          <div className='flex-1 flex items-center justify-center'>
-            <ResponsiveContainer width='100%' height={220}>
-              <BarChart
-                data={
-                  budgetData.length > 0
-                    ? budgetData
-                    : [
-                        { name: "Jan", revenus: 4000, depenses: 3800 },
-                        { name: "Fév", revenus: 4200, depenses: 3000 },
-                        { name: "Mar", revenus: 3800, depenses: 2000 },
-                        { name: "Avr", revenus: 3900, depenses: 2800 },
-                        { name: "Mai", revenus: 4700, depenses: 1800 },
-                        { name: "Juin", revenus: 3700, depenses: 2400 },
-                      ]
-                }
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray='3 3' vertical={false} />
-                <XAxis dataKey='name' />
-                <YAxis />
-                <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-                <Legend />
-                <Bar
-                  dataKey='revenus'
-                  fill='#10b981'
-                  name='Revenus'
-                  animationBegin={0}
-                  animationDuration={1200}
-                  animationEasing='ease-out'
-                />
-                <Bar
-                  dataKey='depenses'
-                  fill='#f43f5e'
-                  name='Dépenses'
-                  animationBegin={100}
-                  animationDuration={1200}
-                  animationEasing='ease-out'
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
 
-      {/* Listes du bas */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-        {/* Paiements récurrents récents */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <span className='font-semibold mb-4 dark:text-white'>
-            Paiements récurrents récents
-          </span>
-          <div className='space-y-3 mb-4'>
-            {derniersPaiements.length > 0 ? (
-              derniersPaiements.map((p, i) => (
-                <div
-                  key={p.id || i}
-                  className='flex items-center justify-between bg-gray-50 dark:bg-gray-900 rounded-lg px-4 py-3'>
-                  <div className='flex items-center'>
-                    <div className='bg-blue-100 dark:bg-blue-900 text-blue-500 dark:text-blue-400 rounded-full p-2 mr-3'>
-                      <AiOutlineCalendar className='text-xl' />
-                    </div>
-                    <div>
-                      <div className='font-medium dark:text-white'>
-                        {p.nom.charAt(0).toUpperCase() + p.nom.slice(1)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className='font-bold dark:text-white'>
-                    {p.montant ? Number(p.montant).toFixed(2) : "0.00"}€
-                  </div>
-                </div>
-              ))
+        {/* Graphique de répartition des dépenses */}
+        <div className='bg-white rounded-lg shadow p-4'>
+          <h2 className='text-lg font-semibold mb-4'>
+            Répartition des dépenses par catégorie
+          </h2>
+          <div className='h-80'>
+            {depensesTotalesData && depensesTotalesData.length > 0 ? (
+              <ResponsiveContainer width='100%' height='100%'>
+                <PieChart>
+                  <Pie
+                    data={depensesTotalesData}
+                    dataKey='value'
+                    nameKey='name'
+                    cx='50%'
+                    cy='50%'
+                    outerRadius={80}
+                    label>
+                    {depensesTotalesData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={`hsl(${index * 45}, 70%, 50%)`}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
             ) : (
-              <div className='text-gray-400 dark:text-gray-500 text-center text-sm italic'>
-                Aucun paiement récurrent
+              <div className='flex items-center justify-center h-full text-gray-500'>
+                Aucune donnée disponible
               </div>
             )}
           </div>
-          <button
-            className='border dark:border-gray-800 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition cursor-pointer dark:text-white'
-            onClick={() => scrollToTopAndNavigate("/paiements-recurrents")}>
-            Voir tous les paiements récurrents
-          </button>
-        </div>
-        {/* Paiements en plusieurs fois récents */}
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col'>
-          <span className='font-semibold mb-4 dark:text-white'>
-            Paiements en plusieurs fois
-            <button onClick={() => navigate("/paiements-echelonnes")}></button>
-          </span>
-          <div className='space-y-3 mb-4'>
-            {derniersEchelonnes.length > 0 ? (
-              derniersEchelonnes.map((p, i) => (
-                <div
-                  key={p.id || i}
-                  className='flex items-center justify-between bg-gray-50 dark:bg-gray-900 rounded-lg px-4 py-3'>
-                  <div className='flex items-center'>
-                    <div className='bg-green-100 dark:bg-green-900 text-green-500 dark:text-green-400 rounded-full p-2 mr-3'>
-                      <AiOutlineCreditCard className='text-xl' />
-                    </div>
-                    <div>
-                      <div className='font-medium dark:text-white'>
-                        {p.nom.charAt(0).toUpperCase() + p.nom.slice(1)}
-                      </div>
-                      <div className='text-xs text-gray-400 dark:text-gray-500'>
-                        1/{p.mensualites} paiements
-                      </div>
-                    </div>
-                  </div>
-                  <div className='font-bold dark:text-white'>
-                    {(Number(p.montant) / Number(p.mensualites)).toFixed(2)}€
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className='text-gray-400 dark:text-gray-500 text-center text-sm italic'>
-                Aucun paiement échelonné ce mois-ci
-              </div>
-            )}
-          </div>
-          <button
-            className='border dark:border-gray-800 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition cursor-pointer dark:text-white'
-            onClick={() => scrollToTopAndNavigate("/paiements-echelonnes")}>
-            Voir tous les paiements échelonnés
-          </button>
         </div>
       </div>
     </div>
