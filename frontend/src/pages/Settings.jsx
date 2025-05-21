@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { userApi } from "../utils/api";
 
 const Settings = () => {
   const { user, logout } = useAuth();
@@ -31,7 +30,6 @@ const Settings = () => {
     ) {
       try {
         setLoading(true);
-        await userApi.deleteAccount();
         await logout();
         navigate("/auth");
       } catch (error) {

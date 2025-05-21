@@ -1,4 +1,3 @@
-import { transactionApi } from "./api";
 import {
   TRANSACTION_CATEGORIES,
   getMonthYear as getFormattedMonthYear,

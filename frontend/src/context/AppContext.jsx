@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect } from "react";
-import { userApi } from "../utils/api";
 
 export const AppContext = createContext();
 

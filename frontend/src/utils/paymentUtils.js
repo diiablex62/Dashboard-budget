@@ -1,4 +1,4 @@
-import { paymentApi } from "./api";
+// Je retire tout ce qui concerne paymentApi et les appels API, et je laisse uniquement des helpers locaux ou je vide le fichier si tout est inutile.
 
 /**
  * Récupère tous les paiements récurrents

@@ -9,7 +9,6 @@ import SettingsPanel from "./SettingsPanel";
 import Google from "./Google";
 import GitHub from "./GitHub";
 import NotificationBell from "./NotificationBell";
-import { notificationApi } from "../utils/api";
 
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =

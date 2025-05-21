@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { notificationApi } from "../utils/api";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);

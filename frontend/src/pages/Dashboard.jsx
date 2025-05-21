@@ -23,11 +23,6 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import {
-  transactionApi,
-  recurrentPaymentApi,
-  installmentPaymentApi,
-} from "../utils/api";
 
 const COLORS = [
   "#6366F1",
@@ -97,42 +92,6 @@ export default function Dashboard() {
   const totalRecurrents = 451.32;
   const totalEchelonnes = 985.65;
   const totalEconomies = 1258.44;
-
-  const fetchTransactions = useCallback(async () => {
-    try {
-      const response = await transactionApi.getTransactions();
-      return response.data || response;
-    } catch (error) {
-      console.error("Erreur lors de la récupération des transactions:", error);
-      throw error;
-    }
-  }, []);
-
-  const fetchRecurrentPayments = useCallback(async () => {
-    try {
-      const response = await recurrentPaymentApi.getRecurrentPayments();
-      return response.data || response;
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des paiements récurrents:",
-        error
-      );
-      throw error;
-    }
-  }, []);
-
-  const fetchInstallmentPayments = useCallback(async () => {
-    try {
-      const response = await installmentPaymentApi.getInstallmentPayments();
-      return response.data || response;
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des paiements échelonnés:",
-        error
-      );
-      throw error;
-    }
-  }, []);
 
   const calculateMonthlyTotals = useCallback((transactionsData) => {
     const now = new Date();
@@ -218,9 +177,9 @@ export default function Dashboard() {
       // Récupération parallèle des données
       const [transactionsData, recurrentsData, echelonnesData] =
         await Promise.all([
-          fetchTransactions(),
-          fetchRecurrentPayments(),
-          fetchInstallmentPayments(),
+          transactions,
+          paiementsRecurrents,
+          paiementsEchelonnes,
         ]);
 
       setTransactions(transactionsData);
@@ -252,9 +211,9 @@ export default function Dashboard() {
       setLoading(false);
     }
   }, [
-    fetchTransactions,
-    fetchRecurrentPayments,
-    fetchInstallmentPayments,
+    transactions,
+    paiementsRecurrents,
+    paiementsEchelonnes,
     calculateMonthlyTotals,
     prepareChartData,
   ]);

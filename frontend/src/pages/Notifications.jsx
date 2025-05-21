@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { notificationApi } from "../utils/api";
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -12,8 +11,30 @@ const Notifications = () => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const response = await notificationApi.getNotifications();
-        setNotifications(response.data);
+        // Simuler la récupération des notifications
+        setNotifications([
+          {
+            id: 1,
+            title: "Notification 1",
+            message: "Message de la notification 1",
+            createdAt: "2024-04-01T10:00:00",
+            read: false,
+          },
+          {
+            id: 2,
+            title: "Notification 2",
+            message: "Message de la notification 2",
+            createdAt: "2024-04-02T11:00:00",
+            read: false,
+          },
+          {
+            id: 3,
+            title: "Notification 3",
+            message: "Message de la notification 3",
+            createdAt: "2024-04-03T12:00:00",
+            read: false,
+          },
+        ]);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des notifications:",
@@ -32,7 +53,7 @@ const Notifications = () => {
 
   const handleMarkAsRead = async (notificationId) => {
     try {
-      await notificationApi.markAsRead(notificationId);
+      // Simuler le marquage de la notification comme lue
       setNotifications(
         notifications.map((notification) =>
           notification.id === notificationId
@@ -48,7 +69,7 @@ const Notifications = () => {
 
   const handleDeleteNotification = async (notificationId) => {
     try {
-      await notificationApi.deleteNotification(notificationId);
+      // Simuler la suppression de la notification
       setNotifications(
         notifications.filter(
           (notification) => notification.id !== notificationId

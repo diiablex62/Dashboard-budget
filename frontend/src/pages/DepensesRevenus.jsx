@@ -17,7 +17,6 @@ import { FiEdit, FiTrash } from "react-icons/fi";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-import { transactionApi } from "../utils/api";
 import { MONTHS } from "../utils/categoryUtils";
 import TransactionsChart from "../components/TransactionsChart";
 
@@ -57,14 +56,17 @@ import {
   deleteTransaction,
 } from "../utils/transactionUtils";
 
-// Données factices pour la démo
+// Génération dynamique de transactions factices pour le mois courant
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, "0");
 const fakeTransactions = [
   {
     id: 1,
     nom: "Loyer",
     montant: 700,
     categorie: "Logement",
-    date: "2024-06-01",
+    date: `${year}-${month}-01`,
     type: "depense",
   },
   {
@@ -72,7 +74,7 @@ const fakeTransactions = [
     nom: "Courses",
     montant: 220.5,
     categorie: "Alimentation",
-    date: "2024-06-03",
+    date: `${year}-${month}-03`,
     type: "depense",
   },
   {
@@ -80,7 +82,7 @@ const fakeTransactions = [
     nom: "Salaire",
     montant: 2100,
     categorie: "Salaire",
-    date: "2024-06-01",
+    date: `${year}-${month}-01`,
     type: "revenu",
   },
   {
@@ -88,7 +90,7 @@ const fakeTransactions = [
     nom: "Vente Vinted",
     montant: 45,
     categorie: "Ventes",
-    date: "2024-06-10",
+    date: `${year}-${month}-10`,
     type: "revenu",
   },
   {
@@ -96,7 +98,7 @@ const fakeTransactions = [
     nom: "Essence",
     montant: 80,
     categorie: "Transport",
-    date: "2024-06-07",
+    date: `${year}-${month}-07`,
     type: "depense",
   },
   {
@@ -104,7 +106,7 @@ const fakeTransactions = [
     nom: "Remboursement mutuelle",
     montant: 60,
     categorie: "Santé",
-    date: "2024-06-12",
+    date: `${year}-${month}-12`,
     type: "revenu",
   },
 ];
@@ -667,32 +669,10 @@ export default function DepensesRevenus() {
   });
 
   const fetchTransactions = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await transactionApi.getTransactions();
-      if (response && Array.isArray(response) && response.length > 0) {
-        setTransactions(response);
-      } else {
-        setTransactions(fakeTransactions);
-      }
-    } catch (error) {
-      setTransactions(fakeTransactions);
-      console.error("Erreur lors de la récupération des transactions:", error);
-      if (error.response) {
-        setError(
-          `Erreur serveur: ${error.response.data?.message || "Erreur inconnue"}`
-        );
-      } else if (error.request) {
-        setError(
-          "Impossible de contacter le serveur, veuillez réessayer plus tard"
-        );
-      } else {
-        setError("Erreur lors de la récupération des transactions");
-      }
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+    setTransactions(fakeTransactions);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
