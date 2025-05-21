@@ -62,8 +62,8 @@ Dashboard Budget est une application web de gestion de finances personnelles per
 ## Technologies utilisées
 
 - **Frontend**: React, TailwindCSS, React Icons
-- **Backend**: Firebase (Firestore, Authentication)
-- **Déploiement**: Vercel
+- **Backend**: MongoDB, Express
+- **Déploiement**: Netlify puis Render
 
 ## Installation locale
 

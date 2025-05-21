@@ -1,16 +1,4 @@
-import { db } from "../firebaseConfig";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  deleteDoc,
-  updateDoc,
-  query,
-  where,
-  serverTimestamp,
-} from "firebase/firestore";
-import { handleItemOperation } from "./firebaseUtils";
+import { paymentApi } from "./api";
 
 /**
  * Récupère tous les paiements récurrents
@@ -18,18 +6,9 @@ import { handleItemOperation } from "./firebaseUtils";
  */
 export const getAllRecurrentPayments = async () => {
   try {
-    const snapshot = await getDocs(collection(db, "recurrent"));
-    console.log("Récupération de tous les paiements récurrents");
-
-    // Par défaut, si jourPrelevement n'est pas défini, on utilise le 1er du mois
-    return snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        jourPrelevement: data.jourPrelevement || 1,
-      };
-    });
+    console.log("Récupération des paiements récurrents");
+    const response = await paymentApi.getRecurrentPayments();
+    return response.data;
   } catch (error) {
     console.error(
       "Erreur lors de la récupération des paiements récurrents:",
@@ -45,18 +24,15 @@ export const getAllRecurrentPayments = async () => {
  */
 export const getAllEchelonnePayments = async () => {
   try {
-    const snapshot = await getDocs(collection(db, "echelonne"));
-    console.log("PaymentUtils: Utilisation de la collection 'echelonne'");
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    console.log("Récupération des paiements échelonnés");
+    const response = await paymentApi.getEchelonnePayments();
+    return response.data;
   } catch (error) {
     console.error(
       "Erreur lors de la récupération des paiements échelonnés:",
       error
     );
-    return []; // Retourner un tableau vide au lieu de throw pour éviter les crashs
+    throw error;
   }
 };
 

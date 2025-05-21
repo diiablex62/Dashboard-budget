@@ -5,15 +5,11 @@ import {
   AiOutlinePlus,
 } from "react-icons/ai";
 import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
-import { db } from "../firebaseConfig";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  serverTimestamp,
-  query,
-  orderBy,
-} from "firebase/firestore";
+
+import { useAuth } from "../context/AuthContext";
+import { transactionApi } from "../utils/api";
+import { MONTHS } from "../utils/categoryUtils";
+import TransactionsChart from "../components/TransactionsChart";
 
 // Importation des nouvelles fonctions utilitaires
 import {
@@ -26,10 +22,6 @@ import {
   addOrUpdateRevenu,
   deleteTransaction,
 } from "../utils/transactionUtils";
-import { MONTHS } from "../utils/categoryUtils";
-
-// Importation du composant TransactionsChart
-import TransactionsChart from "../components/TransactionsChart";
 
 function RevenuModal({
   onClose,
@@ -93,7 +85,7 @@ function RevenuModal({
     onSave({
       ...form,
       montant: montant,
-      id: form.id, 
+      id: form.id,
     });
     onClose();
   };
@@ -574,1018 +566,492 @@ function DepenseModal({
 }
 
 export default function DepensesRevenus() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tab, setTab] = useState("revenus"); // Par défaut sur revenus au lieu de dépenses
-  const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1);
-  const [newTransaction, setNewTransaction] = useState({
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    type: "depense",
     nom: "",
     montant: "",
     date: new Date().toISOString().split("T")[0],
     categorie: "",
+    description: "",
   });
-  const [depenses, setDepenses] = useState([]);
-  const [revenus, setRevenus] = useState([]);
-  const [showDepenseModal, setShowDepenseModal] = useState(false);
-  const [showRevenuModal, setShowRevenuModal] = useState(false);
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES); // État pour stocker les catégories
-  // Nouvel état pour gérer le filtrage par catégorie
-  const [categoryFilter, setCategoryFilter] = useState(null);
-  // État pour gérer l'animation de chargement des graphiques
-  const [loadingChart, setLoadingChart] = useState(false);
-
-  // Autres états existants
-  const [editTransaction, setEditTransaction] = useState(null);
-
-  // État pour le contenu des modales
-  const [depenseModalVisible, setDepenseModalVisible] = useState(false);
-  const [revenuModalVisible, setRevenuModalVisible] = useState(false);
-
-  // État pour contrôler l'affichage du sélecteur de date
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // États pour la sélection des transactions
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-
-  const nomInputRef = useRef(null);
-  const montantInputRef = useRef(null);
-  const dateInputRef = useRef(null);
-  const categorieInputRef = useRef(null);
-
-  // Chargement des données Firestore
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Récupération des catégories
-        const categoriesSnap = await getDocs(collection(db, "categories"));
-        if (!categoriesSnap.empty) {
-          // Si la collection "categories" existe et contient des documents
-          const categoriesList = categoriesSnap.docs.map(
-            (doc) => doc.data().nom || doc.data().name
-          );
-          if (categoriesList.length > 0) {
-            // Éliminer les doublons avant de mettre à jour l'état
-            const uniqueCategories = Array.from(new Set(categoriesList));
-            setCategories(uniqueCategories);
-          }
-        } else {
-          // Si la collection est vide, on l'initialise avec les catégories par défaut sans doublons
-          await initializeCategories();
-        }
-
-        // Dépenses
-        const depenseSnap = await getDocs(
-          query(collection(db, "depense"), orderBy("date", "desc"))
-        );
-        setDepenses(
-          depenseSnap.docs.map((doc) => ({
-            ...doc.data(),
-            id: doc.id,
-            icon: "€",
-          }))
-        );
-        // Revenus
-        const revenuSnap = await getDocs(
-          query(collection(db, "revenu"), orderBy("date", "desc"))
-        );
-        setRevenus(
-          revenuSnap.docs.map((doc) => ({
-            ...doc.data(),
-            id: doc.id,
-            icon: "€",
-          }))
-        );
-      } catch (err) {
-        console.error("Erreur lors de la récupération des données:", err);
-      }
-    };
-
-    // Fonction pour initialiser les catégories dans Firestore
-    const initializeCategories = async () => {
-      try {
-        console.log("Initialisation des catégories dans Firestore");
-
-        // S'assurer que DEFAULT_CATEGORIES n'a pas de doublons
-        const uniqueDefaultCategories = Array.from(new Set(DEFAULT_CATEGORIES));
-
-        // Ajout des catégories par défaut dans Firestore
-        for (const categorie of uniqueDefaultCategories) {
-          await addDoc(collection(db, "categories"), {
-            nom: categorie,
-            createdAt: serverTimestamp(),
-          });
-        }
-
-        // Mise à jour de l'état local avec les catégories par défaut
-        setCategories(uniqueDefaultCategories);
-      } catch (err) {
-        console.error("Erreur lors de l'initialisation des catégories:", err);
-      }
-    };
-
-    fetchData();
-  }, [showModal]); // recharge après ajout
+  const [editingId, setEditingId] = useState(null);
+  const [filter, setFilter] = useState({
+    type: "all",
+    dateDebut: "",
+    dateFin: "",
+    categorie: "",
+  });
 
   useEffect(() => {
-    if (showModal && step === 1 && nomInputRef.current)
-      nomInputRef.current.focus();
-    if (showModal && step === 2 && montantInputRef.current)
-      montantInputRef.current.focus();
-    if (showModal && step === 3 && dateInputRef.current)
-      dateInputRef.current.focus();
-    if (showModal && step === 4 && categorieInputRef.current)
-      categorieInputRef.current.focus();
-  }, [showModal, step]);
+    if (user) {
+      fetchTransactions();
+    }
+  }, [user]);
 
-  const handleNext = () => setStep((s) => s + 1);
-  const handlePrev = () => setStep((s) => s - 1);
-
-  const handleChange = (e) => {
-    setNewTransaction({ ...newTransaction, [e.target.name]: e.target.value });
+  const fetchTransactions = async () => {
+    try {
+      console.log("Récupération des transactions pour l'utilisateur:", user.id);
+      const response = await transactionApi.getByUserId(user.id);
+      console.log("Transactions reçues:", response);
+      setTransactions(response);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des transactions:", error);
+      setError("Erreur lors de la récupération des transactions");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddTransaction = async (e) => {
-    if (e) e.preventDefault();
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilter((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const collectionName = tab === "depenses" ? "depense" : "revenu";
-      await addDoc(collection(db, collectionName), {
-        nom: newTransaction.nom,
-        montant:
-          tab === "depenses"
-            ? -parseFloat(newTransaction.montant)
-            : parseFloat(newTransaction.montant),
-        date: newTransaction.date,
-        categorie: newTransaction.categorie,
-        createdAt: serverTimestamp(),
-      });
-      setShowModal(false);
-      setStep(1);
-      setNewTransaction({
+      const transactionData = {
+        ...formData,
+        userId: user.id,
+        montant: parseFloat(formData.montant),
+      };
+
+      if (editingId) {
+        await transactionApi.update(editingId, transactionData);
+        console.log("Transaction mise à jour:", editingId);
+      } else {
+        await transactionApi.create(transactionData);
+        console.log("Nouvelle transaction créée");
+      }
+
+      setFormData({
+        type: "depense",
         nom: "",
         montant: "",
         date: new Date().toISOString().split("T")[0],
         categorie: "",
+        description: "",
       });
-
-      // Déclencher un événement pour mettre à jour le tableau de bord
-      window.dispatchEvent(new Event("data-updated"));
-    } catch (err) {
-      console.error("Erreur Firestore add:", err);
+      setEditingId(null);
+      fetchTransactions();
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde de la transaction:", error);
+      setError("Erreur lors de la sauvegarde de la transaction");
     }
   };
 
-  // Filtres sur le mois sélectionné
-  const revenusFiltres = revenus.filter(
-    (r) =>
-      new Date(r.date).getMonth() === selectedDate.getMonth() &&
-      new Date(r.date).getFullYear() === selectedDate.getFullYear()
-  );
-
-  const depensesFiltres = depenses.filter(
-    (d) =>
-      new Date(d.date).getMonth() === selectedDate.getMonth() &&
-      new Date(d.date).getFullYear() === selectedDate.getFullYear()
-  );
-
-  // Appliquer le filtre de catégorie si présent
-  const revenusFiltersWithCategory = categoryFilter
-    ? revenusFiltres.filter((r) => r.categorie === categoryFilter)
-    : revenusFiltres;
-
-  const depensesFiltersWithCategory = categoryFilter
-    ? depensesFiltres.filter((d) => d.categorie === categoryFilter)
-    : depensesFiltres;
-
-  const totalRevenus = revenusFiltres.reduce(
-    (acc, r) => acc + (r.montant || 0),
-    0
-  );
-  const totalDepenses = depensesFiltres.reduce(
-    (acc, d) => acc + Math.abs(d.montant || 0),
-    0
-  );
-  const solde = totalRevenus - totalDepenses;
-
-  const handlePrevMonth = () => {
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() - 1);
-      return d;
+  const handleEdit = (transaction) => {
+    setFormData({
+      type: transaction.type,
+      nom: transaction.nom,
+      montant: transaction.montant.toString(),
+      date: transaction.date,
+      categorie: transaction.categorie || "",
+      description: transaction.description || "",
     });
-  };
-  const handleNextMonth = () => {
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() + 1);
-      return d;
-    });
+    setEditingId(transaction.id);
   };
 
-  // Fonctions pour le sélecteur de date avancé
-  const handleYearSelect = (yearValue) => {
-    console.log(`Année sélectionnée: ${yearValue}`);
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setFullYear(yearValue);
-      return d;
-    });
-  };
-
-  const handleMonthSelect = (monthIndex) => {
-    console.log(`Mois sélectionné: ${MONTHS[monthIndex]} (${monthIndex})`);
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(monthIndex);
-      return d;
-    });
-  };
-
-  const handleDatePickerConfirm = () => {
-    console.log(`Date confirmée: ${getMonthYear(selectedDate)}`);
-    setShowDatePicker(false);
-  };
-
-  // Gestion du filtre par catégorie
-  const handleCategoryClick = (category) => {
-    if (categoryFilter === category) {
-      // Si on clique sur la même catégorie, on désactive le filtre
-      setCategoryFilter(null);
-    } else {
-      // Sinon, on active le filtre sur cette catégorie
-      setCategoryFilter(category);
+  const handleDelete = async (id) => {
+    try {
+      await transactionApi.delete(id);
+      console.log("Transaction supprimée:", id);
+      fetchTransactions();
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la transaction:", error);
+      setError("Erreur lors de la suppression de la transaction");
     }
   };
 
-  const clearCategoryFilter = () => {
-    setCategoryFilter(null);
-  };
-
-  const showEmpty =
-    tab === "revenus"
-      ? revenusFiltersWithCategory.length === 0
-      : depensesFiltersWithCategory.length === 0;
-
-  // Obtenir le mois et l'année correctement depuis la date sélectionnée
-  const moisSelectionne = selectedDate.toLocaleDateString("fr-FR", {
-    month: "long",
-    year: "numeric",
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (filter.type !== "all" && transaction.type !== filter.type) return false;
+    if (
+      filter.dateDebut &&
+      new Date(transaction.date) < new Date(filter.dateDebut)
+    )
+      return false;
+    if (filter.dateFin && new Date(transaction.date) > new Date(filter.dateFin))
+      return false;
+    if (filter.categorie && transaction.categorie !== filter.categorie)
+      return false;
+    return true;
   });
 
-  // Fonction pour supprimer une transaction sans toast
-  const handleDelete = async (transaction) => {
-    if (!transaction || !transaction.id) return;
-
-    try {
-      await deleteTransaction(transaction);
-
-      // Mettre à jour l'état local
-      if (transaction.montant >= 0) {
-        setRevenus((prev) => prev.filter((r) => r.id !== transaction.id));
-      } else {
-        setDepenses((prev) => prev.filter((d) => d.id !== transaction.id));
-      }
-    } catch (error) {
-      console.error(
-        `❌ ERREUR critique lors de la suppression: ${error.message || error}`
-      );
-      console.error(error);
-    }
+  const calculateTotals = () => {
+    const totals = filteredTransactions.reduce(
+      (acc, transaction) => {
+        if (transaction.type === "depense") {
+          acc.depenses += transaction.montant;
+        } else {
+          acc.revenus += transaction.montant;
+        }
+        return acc;
+      },
+      { depenses: 0, revenus: 0 }
+    );
+    totals.balance = totals.revenus - totals.depenses;
+    return totals;
   };
 
-  // Fonction pour ajouter une dépense depuis la modale
-  const handleAddDepense = async (depense) => {
-    try {
-      await addOrUpdateDepense(depense);
-
-      // Rafraîchir les données
-      const updatedDepenses = await getAllDepenses();
-      setDepenses(updatedDepenses);
-    } catch (err) {
-      console.error("Erreur Firestore dépense:", err);
-    }
-  };
-
-  // Fonction pour ajouter un revenu depuis la modale
-  const handleAddRevenu = async (revenu) => {
-    try {
-      await addOrUpdateRevenu(revenu);
-
-      // Rafraîchir les données
-      const updatedRevenus = await getAllRevenus();
-      setRevenus(updatedRevenus);
-    } catch (err) {
-      console.error("Erreur Firestore revenu:", err);
-    }
-  };
-
-  // Fonction pour modifier une transaction
-  const handleEdit = (transaction) => {
-    if (transaction.montant >= 0) {
-      setEditTransaction(transaction);
-      setShowRevenuModal(true);
-    } else {
-      setEditTransaction({
-        ...transaction,
-        montant: Math.abs(transaction.montant),
-      });
-      setShowDepenseModal(true);
-    }
-  };
-
-  // Fonctions de rendu des cartes de transaction
-  const renderTransaction = (transaction) => {
-    const montant = transaction.montant;
-    const montantText =
-      montant >= 0
-        ? `+${Number(montant).toFixed(2)} €`
-        : `${Number(montant).toFixed(2)} €`;
-    const montantColor =
-      montant >= 0
-        ? "text-green-600 dark:text-green-400"
-        : "text-red-600 dark:text-red-400";
-    const dateFormatted = formatDate(transaction.date);
-
+  if (loading) {
     return (
-      <div
-        key={transaction.id}
-        className={`bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200`}>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center'>
-            <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
-              <span className='text-gray-600 dark:text-gray-300'>€</span>
-            </div>
-            <div>
-              <div className='font-semibold dark:text-white'>
-                {transaction.nom.charAt(0).toUpperCase() +
-                  transaction.nom.slice(1)}
-              </div>
-              <div className='text-xs text-gray-500 dark:text-gray-400'>
-                {dateFormatted} • {transaction.categorie}
-              </div>
-            </div>
-          </div>
-          <div className='flex flex-col items-end'>
-            <div className={`font-bold ${montantColor}`}>{montantText}</div>
-          </div>
-        </div>
-
-        <div className='flex justify-end mt-3'>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEdit(transaction);
-            }}
-            className='text-blue-500 dark:text-blue-400 mr-3 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
-            aria-label='Modifier'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              fill='none'
-              viewBox='0 0 24 24'
-              strokeWidth={1.5}
-              stroke='currentColor'
-              className='w-4 h-4'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10'
-              />
-            </svg>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(transaction);
-            }}
-            className='text-red-500 dark:text-red-400 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800'
-            aria-label='Supprimer'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              fill='none'
-              viewBox='0 0 24 24'
-              strokeWidth={1.5}
-              stroke='currentColor'
-              className='w-4 h-4'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0'
-              />
-            </svg>
-          </button>
-        </div>
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
       </div>
     );
-  };
+  }
 
-  // Ajouter une animation de chargement lors du changement d'onglet
-  const handleTabChange = (newTab) => {
-    if (tab !== newTab) {
-      // Démarrer l'animation de chargement
-      console.log(
-        `Changement d'onglet de ${tab} vers ${newTab} - Début du chargement`
-      );
-      setLoadingChart(true);
-      setTab(newTab);
-      setCategoryFilter(null); // Réinitialiser le filtre lors du changement d'onglet
-
-      // Utiliser un délai pour l'animation
-      setTimeout(() => {
-        setLoadingChart(false);
-        console.log(`Changement d'onglet vers ${newTab} - Fin du chargement`);
-      }, 600);
-    }
-  };
-
-  // Composant de chargement pour les graphiques
-  const LoadingSpinner = () => (
-    <div className='flex items-center justify-center h-full'>
-      <div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900 dark:border-white'></div>
-    </div>
-  );
+  const totals = calculateTotals();
 
   return (
-    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
-      <div className='max-w-6xl mx-auto'>
-        {/* Header */}
-        <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
-          <div>
-            <h1 className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
-              Dépenses & Revenus
-            </h1>
-            <div className='text-gray-500 dark:text-gray-400 text-base'>
-              Gérez vos revenus et dépenses mensuels.
-            </div>
-          </div>
-          {/* Sélecteur mois/année style image */}
-          <div className='flex items-center mt-4 md:mt-0'>
-            <div className='flex items-center bg-[#f6f9fb] dark:bg-black rounded-xl px-4 py-2 shadow-none border border-transparent'>
-              <button
-                className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
-                onClick={handlePrevMonth}
-                aria-label='Mois précédent'
-                type='button'>
-                <AiOutlineArrowLeft />
-              </button>
-              <div
-                className='mx-4 text-[#222] dark:text-white text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] dark:hover:bg-gray-900 px-3 py-1 rounded transition'
-                onClick={() => setShowDatePicker(true)}>
-                {getMonthYear(selectedDate)}
-              </div>
-              <button
-                className='text-[#222] dark:text-white text-xl px-2 py-1 rounded hover:bg-[#e9eef2] dark:hover:bg-gray-900 transition'
-                onClick={handleNextMonth}
-                aria-label='Mois suivant'
-                type='button'>
-                <AiOutlineArrowRight />
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className='max-w-7xl mx-auto p-6'>
+      <div className='bg-white rounded-lg shadow-lg overflow-hidden'>
+        <div className='p-6'>
+          <h1 className='text-2xl font-bold text-gray-900 mb-6'>
+            {editingId ? "Modifier la transaction" : "Nouvelle transaction"}
+          </h1>
 
-        {/* Sélecteur de mois et année */}
-        {showDatePicker && (
-          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
-            <div className='bg-white dark:bg-gray-900 rounded-lg shadow-xl p-6 w-80'>
-              <div className='flex justify-between items-center mb-4'>
-                <h3 className='text-lg font-medium text-gray-700 dark:text-gray-300'>
-                  Sélectionner une date
-                </h3>
-                <button
-                  className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
-                  onClick={() => setShowDatePicker(false)}>
-                  &times;
-                </button>
-              </div>
+          {error && (
+            <div className='mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded'>
+              {error}
+            </div>
+          )}
 
-              {/* Sélecteur d'année */}
-              <div className='mb-4'>
-                <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
-                  Année
+          <form onSubmit={handleSubmit} className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div>
+                <label
+                  htmlFor='type'
+                  className='block text-sm font-medium text-gray-700'>
+                  Type
                 </label>
-                <div className='space-y-2'>
-                  {/* Décennies */}
-                  {[2020, 2030, 2040, 2050].map((decennie) => (
-                    <div key={decennie} className='grid grid-cols-5 gap-2 mb-2'>
-                      {[...Array(10)].map((_, i) => {
-                        const yearValue = decennie + i;
-                        return (
-                          <button
-                            key={yearValue}
-                            className={`py-2 px-3 rounded text-sm ${
-                              yearValue === selectedDate.getFullYear()
-                                ? "bg-teal-500 text-white"
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                            }`}
-                            onClick={() => handleYearSelect(yearValue)}>
-                            {yearValue}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
+                <select
+                  id='type'
+                  name='type'
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  required
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'>
+                  <option value='depense'>Dépense</option>
+                  <option value='revenu'>Revenu</option>
+                </select>
               </div>
 
-              {/* Sélecteur de mois */}
-              <div className='mb-4'>
-                <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1'>
-                  Mois
-                </label>
-                <div className='grid grid-cols-3 gap-2'>
-                  {MONTHS.map((monthName, idx) => (
-                    <button
-                      key={idx}
-                      className={`py-2 px-3 rounded ${
-                        idx === selectedDate.getMonth()
-                          ? "bg-teal-500 text-white"
-                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      }`}
-                      onClick={() => handleMonthSelect(idx)}>
-                      {monthName.substring(0, 3)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Boutons d'action */}
-              <div className='flex justify-end space-x-2'>
-                <button
-                  className='px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600'
-                  onClick={() => setShowDatePicker(false)}>
-                  Annuler
-                </button>
-                <button
-                  className='px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600'
-                  onClick={handleDatePickerConfirm}>
-                  Valider
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Filtre actif */}
-        {categoryFilter && (
-          <div className='bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4 flex items-center justify-between'>
-            <div className='flex items-center'>
-              <FaFilter className='text-blue-500 dark:text-blue-400 mr-2' />
-              <span className='text-blue-700 dark:text-blue-300'>
-                Filtré par catégorie: <strong>{categoryFilter}</strong>
-              </span>
-            </div>
-            <button
-              onClick={clearCategoryFilter}
-              className='text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 p-1'
-              aria-label='Supprimer le filtre'>
-              <FaTimes />
-            </button>
-          </div>
-        )}
-
-        {/* Indicateurs et graphique */}
-        <div className='flex flex-col md:flex-row gap-6 mb-4'>
-          {/* Cartes des totaux à gauche */}
-          <div className='md:w-1/2 flex flex-col gap-4'>
-            {/* Total Revenus - affiché uniquement dans l'onglet revenus */}
-            {tab === "revenus" && (
-              <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-                <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
-                  <FaArrowDown className='text-2xl mr-2' />
-                  <span className='text-sm font-semibold'>Total Revenus</span>
-                </div>
-                <div className='text-2xl text-[#222] dark:text-white'>
-                  {totalRevenus.toFixed(2)} €
-                </div>
-              </div>
-            )}
-            {/* Total Dépenses - affiché uniquement dans l'onglet dépenses */}
-            {tab === "depenses" && (
-              <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-                <div className='flex items-center text-red-600 dark:text-red-400 mb-2'>
-                  <FaArrowUp className='text-2xl mr-2' />
-                  <span className='text-sm font-semibold'>Total Dépenses</span>
-                </div>
-                <div className='text-2xl text-[#222] dark:text-white'>
-                  {totalDepenses.toFixed(2)} €
-                </div>
-              </div>
-            )}
-            {/* Solde - toujours affiché */}
-            <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
-              <div className='flex items-center mb-2'>
-                <span className='text-2xl text-gray-700 dark:text-gray-300 font-bold mr-2'>
-                  €
-                </span>
-                <span className='text-sm font-semibold text-gray-600 dark:text-gray-400'>
-                  Solde
-                </span>
-              </div>
-              <div
-                className={`text-2xl ${
-                  solde >= 0
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}>
-                {solde.toFixed(2)} €
-              </div>
-            </div>
-          </div>
-
-          {/* Graphique à droite - conteneur avec hauteur fixe */}
-          <div className='md:w-1/2 relative h-[400px]'>
-            {/* Graphique des revenus */}
-            <div
-              className={`absolute inset-0 transition-opacity duration-300 h-full ${
-                tab === "revenus" ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}>
-              {loadingChart ? (
-                <div className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full flex items-center justify-center'>
-                  <LoadingSpinner />
-                </div>
-              ) : (
-                <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
-                  <TransactionsChart data={revenusFiltres} type='revenus' />
-                </div>
-              )}
-            </div>
-
-            {/* Graphique des dépenses */}
-            <div
-              className={`absolute inset-0 transition-opacity duration-300 h-full ${
-                tab === "depenses" ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}>
-              {loadingChart ? (
-                <div className='bg-white dark:bg-gray-900 rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full flex items-center justify-center'>
-                  <LoadingSpinner />
-                </div>
-              ) : (
-                <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 h-full'>
-                  <TransactionsChart data={depensesFiltres} type='depenses' />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        {/* Switch revenus/dépenses style image */}
-        <div className='flex justify-center mt-6 mb-2'>
-          <div className='flex w-full max-w-xl bg-[#f3f6fa] dark:bg-black rounded-xl p-1'>
-            <button
-              className={`flex-1 py-3 rounded-lg font-semibold text-lg transition text-center
-                ${
-                  tab === "revenus"
-                    ? "bg-white dark:bg-black text-[#111827] dark:text-white shadow font-semibold border border-[#e5eaf1] dark:border-gray-800"
-                    : "bg-transparent text-[#7b849b] dark:text-gray-400 font-normal"
-                }
-              `}
-              onClick={() => handleTabChange("revenus")}
-              type='button'>
-              Revenus
-            </button>
-            <button
-              className={`flex-1 py-3 rounded-lg font-semibold text-lg transition text-center
-                ${
-                  tab === "depenses"
-                    ? "bg-white dark:bg-black text-[#111827] dark:text-white shadow font-semibold border border-[#e5eaf1] dark:border-gray-800"
-                    : "bg-transparent text-[#7b849b] dark:text-gray-400 font-normal"
-                }
-              `}
-              onClick={() => handleTabChange("depenses")}
-              type='button'>
-              Dépenses
-            </button>
-          </div>
-        </div>
-        {/* Contenu revenus/dépenses */}
-        {tab === "depenses" && (
-          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
-            <div className='flex items-center justify-between mb-6'>
               <div>
-                <div className='text-2xl font-bold text-[#222] dark:text-white'>
-                  Dépenses du mois
-                  {categoryFilter && (
-                    <span className='ml-2 text-lg text-gray-500 dark:text-gray-400'>
-                      ({categoryFilter})
-                    </span>
-                  )}
-                </div>
-                <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Liste de toutes vos dépenses pour {moisSelectionne}
-                </div>
-              </div>
-              {!showEmpty && (
-                <div className='flex space-x-3'>
-                  <button
-                    className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                    onClick={() => setShowDepenseModal(true)}>
-                    <span className='text-lg font-bold'>+</span>
-                    <span>Ajouter</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {showEmpty && (
-              <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
-                <p>
-                  {categoryFilter
-                    ? `Aucune dépense dans la catégorie "${categoryFilter}" pour cette période.`
-                    : "Aucune dépense à afficher pour cette période."}
-                </p>
-                <button
-                  onClick={() => setShowDepenseModal(true)}
-                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
-                  <span className='text-lg font-bold'>+</span>
-                  <span>Ajouter une dépense</span>
-                </button>
-              </div>
-            )}
-
-            {depensesFiltersWithCategory.length === 0 ? null : (
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                {depensesFiltersWithCategory.map(renderTransaction)}
-              </div>
-            )}
-
-            {showDepenseModal && (
-              <DepenseModal
-                onClose={() => {
-                  setShowDepenseModal(false);
-                  setEditTransaction(null);
-                }}
-                onSave={handleAddDepense}
-                categories={categories}
-                depense={editTransaction || {}}
-              />
-            )}
-          </div>
-        )}
-
-        {tab === "revenus" && (
-          <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-8 mt-2'>
-            <div className='flex items-center justify-between mb-6'>
-              <div>
-                <div className='text-2xl font-bold text-[#222] dark:text-white'>
-                  Revenus du mois
-                  {categoryFilter && (
-                    <span className='ml-2 text-lg text-gray-500 dark:text-gray-400'>
-                      ({categoryFilter})
-                    </span>
-                  )}
-                </div>
-                <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Liste de tous vos revenus pour {moisSelectionne}
-                </div>
-              </div>
-              {!showEmpty && (
-                <div className='flex space-x-3'>
-                  <button
-                    className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                    onClick={() => setShowRevenuModal(true)}>
-                    <span className='text-lg font-bold'>+</span>
-                    <span>Ajouter</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {showEmpty && (
-              <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
-                <p>
-                  {categoryFilter
-                    ? `Aucun revenu dans la catégorie "${categoryFilter}" pour cette période.`
-                    : "Aucun revenu à afficher pour cette période."}
-                </p>
-                <button
-                  onClick={() => setShowRevenuModal(true)}
-                  className='mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium flex items-center gap-2 mx-auto'>
-                  <span className='text-lg font-bold'>+</span>
-                  <span>Ajouter un revenu</span>
-                </button>
-              </div>
-            )}
-
-            {revenusFiltersWithCategory.length === 0 ? null : (
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                {revenusFiltersWithCategory.map(renderTransaction)}
-              </div>
-            )}
-
-            {showRevenuModal && (
-              <RevenuModal
-                onClose={() => {
-                  setShowRevenuModal(false);
-                  setEditTransaction(null);
-                }}
-                onSave={handleAddRevenu}
-                categories={categories}
-                revenu={editTransaction || {}}
-              />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Modal */}
-      {showModal && (
-        <div
-          className='fixed inset-0 z-[9999] flex items-center justify-center'
-          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-          <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
-            <button
-              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-              onClick={() => {
-                setShowModal(false);
-                setStep(1);
-                setNewTransaction({
-                  nom: "",
-                  montant: "",
-                  date: new Date().toISOString().split("T")[0],
-                  categorie: "",
-                });
-              }}
-              aria-label='Fermer'>
-              ✕
-            </button>
-            <div className='mb-6 text-lg font-semibold dark:text-white'>
-              Ajouter {tab === "depenses" ? "une dépense" : "un revenu"}
-            </div>
-            {/* Récapitulatif dynamique */}
-            <div className='mb-4 dark:text-gray-300'>
-              {newTransaction.nom && (
-                <div>
-                  <span className='font-medium'>Libellé :</span>{" "}
-                  {newTransaction.nom.charAt(0).toUpperCase() +
-                    newTransaction.nom.slice(1)}
-                </div>
-              )}
-              {step > 1 && newTransaction.montant && (
-                <div>
-                  <span className='font-medium'>Montant :</span>{" "}
-                  {parseFloat(newTransaction.montant).toFixed(2)} €
-                </div>
-              )}
-              {step > 2 && newTransaction.date && (
-                <div>
-                  <span className='font-medium'>Date :</span>{" "}
-                  {new Date(newTransaction.date).toLocaleDateString("fr-FR")}
-                </div>
-              )}
-              {step > 3 && newTransaction.categorie && (
-                <div>
-                  <span className='font-medium'>Catégorie :</span>{" "}
-                  {newTransaction.categorie}
-                </div>
-              )}
-            </div>
-            {/* Étapes */}
-            {step === 1 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Nom de la transaction
+                <label
+                  htmlFor='nom'
+                  className='block text-sm font-medium text-gray-700'>
+                  Nom
                 </label>
                 <input
                   type='text'
+                  id='nom'
                   name='nom'
-                  value={newTransaction.nom}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  placeholder='Ex: Courses'
-                  ref={nomInputRef}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newTransaction.nom) handleNext();
-                  }}
+                  value={formData.nom}
+                  onChange={handleInputChange}
+                  required
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
                 />
-                <div className='flex justify-end'>
-                  <button
-                    className='bg-green-600 text-white px-4 py-2 rounded'
-                    disabled={!newTransaction.nom}
-                    onClick={handleNext}>
-                    Suivant
-                  </button>
-                </div>
               </div>
-            )}
-            {step === 2 && (
+
               <div>
-                <label className='block mb-2 font-medium dark:text-white'>
+                <label
+                  htmlFor='montant'
+                  className='block text-sm font-medium text-gray-700'>
                   Montant (€)
                 </label>
                 <input
                   type='number'
+                  id='montant'
                   name='montant'
-                  value={newTransaction.montant}
-                  onChange={(e) => {
-                    // Vérifier que la valeur est positive
-                    const value = parseFloat(e.target.value);
-                    if (!isNaN(value) && value > 0) {
-                      handleChange(e);
-                    } else if (e.target.value === "") {
-                      handleChange(e);
-                    }
-                  }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  min='0.01'
+                  value={formData.montant}
+                  onChange={handleInputChange}
+                  required
+                  min='0'
                   step='0.01'
-                  placeholder='Ex: 99.99'
-                  ref={montantInputRef}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      parseFloat(newTransaction.montant) > 0
-                    )
-                      handleNext();
-                  }}
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
                 />
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-green-600 text-white px-4 py-2 rounded'
-                    disabled={!newTransaction.montant}
-                    onClick={handleNext}>
-                    Suivant
-                  </button>
-                </div>
               </div>
-            )}
-            {step === 3 && (
+
               <div>
-                <label className='block mb-2 font-medium dark:text-white'>
+                <label
+                  htmlFor='date'
+                  className='block text-sm font-medium text-gray-700'>
                   Date
                 </label>
                 <input
                   type='date'
+                  id='date'
                   name='date'
-                  value={newTransaction.date}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  ref={dateInputRef}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newTransaction.date) handleNext();
-                  }}
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  required
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
                 />
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-green-600 text-white px-4 py-2 rounded'
-                    disabled={!newTransaction.date}
-                    onClick={handleNext}>
-                    Suivant
-                  </button>
-                </div>
               </div>
-            )}
-            {step === 4 && (
+
               <div>
-                <label className='block mb-2 font-medium dark:text-white'>
+                <label
+                  htmlFor='categorie'
+                  className='block text-sm font-medium text-gray-700'>
                   Catégorie
                 </label>
-                <select
+                <input
+                  type='text'
+                  id='categorie'
                   name='categorie'
-                  value={newTransaction.categorie}
-                  onChange={(e) => {
-                    handleChange(e);
-                    // Passage automatique après sélection d'une catégorie (mais pas la valeur vide)
-                    if (e.target.value && e.target.value !== "") {
-                      setTimeout(() => handleAddTransaction(), 300);
-                    }
+                  value={formData.categorie}
+                  onChange={handleInputChange}
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor='description'
+                  className='block text-sm font-medium text-gray-700'>
+                  Description
+                </label>
+                <textarea
+                  id='description'
+                  name='description'
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows='3'
+                  className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                />
+              </div>
+            </div>
+
+            <div className='flex justify-end space-x-3'>
+              {editingId && (
+                <button
+                  type='button'
+                  onClick={() => {
+                    setEditingId(null);
+                    setFormData({
+                      type: "depense",
+                      nom: "",
+                      montant: "",
+                      date: new Date().toISOString().split("T")[0],
+                      categorie: "",
+                      description: "",
+                    });
                   }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                  ref={categorieInputRef}
-                  autoFocus>
-                  <option value=''>Sélectionner une catégorie</option>
-                  {/* Utiliser Array.from(new Set(categories)) pour éliminer les doublons */}
-                  {Array.from(new Set(categories)).map((cat, index) => (
-                    <option key={index} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-green-600 text-white px-4 py-2 rounded'
-                    disabled={!newTransaction.categorie}
-                    onClick={handleAddTransaction}>
-                    Ajouter
-                  </button>
+                  className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50'>
+                  Annuler
+                </button>
+              )}
+              <button
+                type='submit'
+                className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700'>
+                {editingId ? "Mettre à jour" : "Créer"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className='border-t border-gray-200'>
+          <div className='p-6'>
+            <div className='mb-6'>
+              <h2 className='text-lg font-medium text-gray-900 mb-4'>
+                Filtres
+              </h2>
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+                <div>
+                  <label
+                    htmlFor='filterType'
+                    className='block text-sm font-medium text-gray-700'>
+                    Type
+                  </label>
+                  <select
+                    id='filterType'
+                    name='type'
+                    value={filter.type}
+                    onChange={handleFilterChange}
+                    className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'>
+                    <option value='all'>Tous</option>
+                    <option value='depense'>Dépenses</option>
+                    <option value='revenu'>Revenus</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='dateDebut'
+                    className='block text-sm font-medium text-gray-700'>
+                    Date de début
+                  </label>
+                  <input
+                    type='date'
+                    id='dateDebut'
+                    name='dateDebut'
+                    value={filter.dateDebut}
+                    onChange={handleFilterChange}
+                    className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='dateFin'
+                    className='block text-sm font-medium text-gray-700'>
+                    Date de fin
+                  </label>
+                  <input
+                    type='date'
+                    id='dateFin'
+                    name='dateFin'
+                    value={filter.dateFin}
+                    onChange={handleFilterChange}
+                    className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor='filterCategorie'
+                    className='block text-sm font-medium text-gray-700'>
+                    Catégorie
+                  </label>
+                  <input
+                    type='text'
+                    id='filterCategorie'
+                    name='categorie'
+                    value={filter.categorie}
+                    onChange={handleFilterChange}
+                    className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
+                  />
                 </div>
               </div>
-            )}
+            </div>
+
+            <div className='mb-6 grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='p-4 bg-red-50 rounded-lg'>
+                <h3 className='text-sm font-medium text-red-800'>
+                  Dépenses totales
+                </h3>
+                <p className='text-2xl font-bold text-red-600'>
+                  {totals.depenses.toFixed(2)} €
+                </p>
+              </div>
+              <div className='p-4 bg-green-50 rounded-lg'>
+                <h3 className='text-sm font-medium text-green-800'>
+                  Revenus totaux
+                </h3>
+                <p className='text-2xl font-bold text-green-600'>
+                  {totals.revenus.toFixed(2)} €
+                </p>
+              </div>
+              <div
+                className={`p-4 rounded-lg ${
+                  totals.balance >= 0 ? "bg-green-50" : "bg-red-50"
+                }`}>
+                <h3 className='text-sm font-medium text-gray-800'>Solde</h3>
+                <p
+                  className={`text-2xl font-bold ${
+                    totals.balance >= 0 ? "text-green-600" : "text-red-600"
+                  }`}>
+                  {totals.balance.toFixed(2)} €
+                </p>
+              </div>
+            </div>
+
+            <h2 className='text-lg font-medium text-gray-900 mb-4'>
+              Transactions
+            </h2>
+            <div className='overflow-x-auto'>
+              <table className='min-w-full divide-y divide-gray-200'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Date
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Type
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Nom
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Catégorie
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Montant
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Description
+                    </th>
+                    <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className='bg-white divide-y divide-gray-200'>
+                  {filteredTransactions.map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                        {new Date(transaction.date).toLocaleDateString()}
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm'>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            transaction.type === "depense"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          }`}>
+                          {transaction.type === "depense"
+                            ? "Dépense"
+                            : "Revenu"}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>
+                        {transaction.nom}
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                        {transaction.categorie}
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                        {transaction.montant.toFixed(2)} €
+                      </td>
+                      <td className='px-6 py-4 text-sm text-gray-500'>
+                        {transaction.description}
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium'>
+                        <button
+                          onClick={() => handleEdit(transaction)}
+                          className='text-indigo-600 hover:text-indigo-900 mr-4'>
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDelete(transaction.id)}
+                          className='text-red-600 hover:text-red-900'>
+                          Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

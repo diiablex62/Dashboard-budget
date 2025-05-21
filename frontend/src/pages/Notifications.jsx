@@ -1,167 +1,131 @@
-import React, { useEffect, useState } from "react";
-import {
-  AiOutlineCreditCard,
-  AiOutlineCalendar,
-  AiOutlineExclamationCircle,
-} from "react-icons/ai";
-import { FiBell } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import {
-  getAllNotifications,
-  markNotificationAsRead,
-  deleteAllNotifications,
-} from "../utils/firebaseUtils";
+import { notificationApi } from "../utils/api";
 
-export default function Notifications() {
+const Notifications = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
-  const [hoveredId, setHoveredId] = useState(null);
-  const { user, mainAccountId } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Marquer toutes les notifications comme lues (fonction conservée mais non utilisée automatiquement)
-  const markAllAsRead = async () => {
-    if (!mainAccountId) return;
-    const unread = notifications.filter((n) => !n.read);
-
-    // Mettre à jour les notifications non lues
-    for (const notif of unread) {
-      await markNotificationAsRead(notif.id);
-    }
-
-    // Mettre à jour l'état local
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
-  };
-
-  // Marquer une notification comme lue au clic
-  const handleMarkAsRead = async (notifId) => {
-    if (!mainAccountId) return;
-    await markNotificationAsRead(notifId);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notifId ? { ...n, read: true } : n))
-    );
-  };
-
-  // Charger les notifications
   useEffect(() => {
-    if (!mainAccountId) {
-      setNotifications([]);
-      return;
-    }
-
     const fetchNotifications = async () => {
       try {
-        console.log(
-          `Chargement des notifications pour l'utilisateur: ${mainAccountId}`
-        );
-        const notifs = await getAllNotifications(mainAccountId);
-        setNotifications(notifs);
-        // Les notifications ne sont plus marquées comme lues automatiquement
+        setLoading(true);
+        const response = await notificationApi.getNotifications();
+        setNotifications(response.data);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des notifications:",
           error
         );
+        setError("Erreur lors de la récupération des notifications");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchNotifications();
-  }, [mainAccountId]);
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
 
-  // Supprimer toutes les notifications
-  const handleDeleteAll = async () => {
-    if (!mainAccountId) return;
+  const handleMarkAsRead = async (notificationId) => {
     try {
-      await deleteAllNotifications(mainAccountId);
-      setNotifications([]);
+      await notificationApi.markAsRead(notificationId);
+      setNotifications(
+        notifications.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, read: true }
+            : notification
+        )
+      );
     } catch (error) {
-      console.error("Erreur lors de la suppression des notifications:", error);
+      console.error("Erreur lors du marquage de la notification:", error);
+      setError("Erreur lors du marquage de la notification");
     }
   };
 
-  // Choix de l'icône selon le type de notification
-  const getNotifIcon = (notif) => {
-    if (notif.type === "recurrent") {
-      return <AiOutlineCalendar className='text-2xl text-[#a259e6]' />;
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await notificationApi.deleteNotification(notificationId);
+      setNotifications(
+        notifications.filter(
+          (notification) => notification.id !== notificationId
+        )
+      );
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la notification:", error);
+      setError("Erreur lors de la suppression de la notification");
     }
-    if (notif.type === "echelonne") {
-      return <AiOutlineCreditCard className='text-2xl text-[#ff7ca3]' />;
-    }
-    // Icône par défaut
-    return <FiBell className='text-2xl text-[#5b8efc]' />;
   };
 
-  // Fonction utilitaire pour formater la date
-  const formatNotifDate = (dateStr) => {
-    if (!dateStr) return "";
-    const today = new Date();
-    const notifDate = new Date(dateStr.split("/").reverse().join("-"));
-    const diffTime =
-      today.setHours(0, 0, 0, 0) - notifDate.setHours(0, 0, 0, 0);
-    if (diffTime === 0) return "Aujourd'hui";
-    if (diffTime === 86400000) return "Hier";
-    return dateStr;
-  };
+  if (loading) {
+    return (
+      <div className='container mx-auto px-4 py-8'>
+        <div className='animate-pulse'>
+          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
+          <div className='space-y-4'>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className='h-20 bg-gray-200 rounded'></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className='min-h-screen bg-[#f5f6fa] dark:bg-black flex items-start justify-center p-8'>
-      <div className='w-full max-w-3xl'>
-        <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800'>
-          {notifications.length === 0 && (
-            <div className='text-gray-400 dark:text-gray-500 text-center text-sm italic py-8'>
-              Aucune notification
-            </div>
-          )}
-          {notifications.map((notif, idx) => (
+    <div className='container mx-auto px-4 py-8'>
+      <h1 className='text-2xl font-bold mb-6'>Notifications</h1>
+
+      {error && (
+        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4'>
+          {error}
+        </div>
+      )}
+
+      {notifications.length === 0 ? (
+        <div className='text-center text-gray-500 py-8'>
+          Aucune notification
+        </div>
+      ) : (
+        <div className='space-y-4'>
+          {notifications.map((notification) => (
             <div
-              key={notif.id || idx}
-              className={`flex items-start gap-4 px-6 py-6 ${
-                idx !== notifications.length - 1
-                  ? "border-b border-[#e6eaf1] dark:border-gray-800"
-                  : ""
-              }`}
-              onMouseEnter={() => setHoveredId(notif.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              onClick={() => {
-                if (!notif.read) handleMarkAsRead(notif.id);
-              }}
-              style={{ cursor: !notif.read ? "pointer" : "default" }}>
-              <div
-                className={`flex-shrink-0 bg-[#eaf1ff] dark:bg-gray-900 rounded-full w-12 h-12 flex items-center justify-center`}>
-                {getNotifIcon(notif)}
-              </div>
-              <div className='flex-1'>
-                <div className='font-semibold text-[#222] dark:text-white mb-1'>
-                  {notif.title}
+              key={notification.id}
+              className={`bg-white shadow rounded-lg p-4 ${
+                !notification.read ? "border-l-4 border-blue-500" : ""
+              }`}>
+              <div className='flex justify-between items-start'>
+                <div>
+                  <h3 className='font-semibold'>{notification.title}</h3>
+                  <p className='text-gray-600'>{notification.message}</p>
+                  <p className='text-sm text-gray-500 mt-2'>
+                    {new Date(notification.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <div className='text-[#7b849b] dark:text-gray-400 text-base'>
-                  {notif.desc}
+                <div className='flex space-x-2'>
+                  {!notification.read && (
+                    <button
+                      onClick={() => handleMarkAsRead(notification.id)}
+                      className='text-blue-500 hover:text-blue-700'>
+                      Marquer comme lu
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteNotification(notification.id)}
+                    className='text-red-500 hover:text-red-700'>
+                    Supprimer
+                  </button>
                 </div>
-              </div>
-              <div className='flex flex-col items-end mt-1'>
-                <div className='text-[#b0b8c9] dark:text-gray-500 text-sm whitespace-nowrap'>
-                  {formatNotifDate(notif.date)}
-                </div>
-                {!notif.read && hoveredId === notif.id && (
-                  <span className='text-xs text-blue-600 mt-1'>
-                    Marquer comme lu
-                  </span>
-                )}
-                {!notif.read && (
-                  <span className='ml-2 mt-2 inline-block w-3 h-3 rounded-full bg-red-500'></span>
-                )}
               </div>
             </div>
           ))}
-          {notifications.length > 0 && (
-            <div className='flex justify-center py-4'>
-              <button
-                className='bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 dark:hover:bg-red-700 transition cursor-pointer'
-                onClick={handleDeleteAll}>
-                Tout supprimer
-              </button>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
-}
+};
+
+export default Notifications;

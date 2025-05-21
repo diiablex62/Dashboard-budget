@@ -8,8 +8,6 @@ import {
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { db } from "../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
 import {
   PieChart,
   Pie,
@@ -23,13 +21,19 @@ import {
   YAxis,
   Bar,
   Sector,
+  LineChart,
+  Line,
 } from "recharts";
 import { calculateMonthlyTotalExpenses } from "../utils/transactionUtils";
 import TransactionsChart from "../components/TransactionsChart";
+import { transactionApi } from "../utils/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Paiements récurrents
   const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
@@ -51,6 +55,49 @@ export default function Dashboard() {
   // Variables d'état pour les graphiques
   const [budgetData, setBudgetData] = useState([]);
   const [depensesTotalesData, setDepensesTotalesData] = useState([]);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchTransactions();
+    }
+  }, [user]);
+
+  const fetchTransactions = async () => {
+    try {
+      console.log(
+        "Récupération des transactions pour l'utilisateur:",
+        user._id
+      );
+      const data = await transactionApi.getByUserId(user._id);
+      setTransactions(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des transactions:", error);
+      setError("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateTotals = () => {
+    const totals = {
+      depenses: 0,
+      revenus: 0,
+      balance: 0,
+    };
+
+    transactions.forEach((transaction) => {
+      if (transaction.type === "depense") {
+        totals.depenses += parseFloat(transaction.montant);
+      } else if (transaction.type === "revenu") {
+        totals.revenus += parseFloat(transaction.montant);
+      }
+    });
+
+    totals.balance = totals.revenus - totals.depenses;
+    return totals;
+  };
+
+  const totals = calculateTotals();
 
   const fetchAll = async () => {
     if (!user) return; // Ne tente pas de fetch si non connecté
@@ -322,8 +369,75 @@ export default function Dashboard() {
     [paiementsEchelonnes]
   );
 
+  if (loading) {
+    return (
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900'></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='text-red-500'>{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-6'>
+      <h1 className='text-3xl font-bold mb-8'>Tableau de bord</h1>
+
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+        <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
+          <h2 className='text-xl font-semibold mb-2'>Dépenses</h2>
+          <p className='text-2xl font-bold text-red-500'>
+            {totals.depenses.toFixed(2)} €
+          </p>
+        </div>
+        <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
+          <h2 className='text-xl font-semibold mb-2'>Revenus</h2>
+          <p className='text-2xl font-bold text-green-500'>
+            {totals.revenus.toFixed(2)} €
+          </p>
+        </div>
+        <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
+          <h2 className='text-xl font-semibold mb-2'>Balance</h2>
+          <p
+            className={`text-2xl font-bold ${
+              totals.balance >= 0 ? "text-green-500" : "text-red-500"
+            }`}>
+            {totals.balance.toFixed(2)} €
+          </p>
+        </div>
+      </div>
+
+      <div className='bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md'>
+        <h2 className='text-xl font-semibold mb-4'>
+          Évolution des dépenses et revenus
+        </h2>
+        <div className='h-80'>
+          <LineChart
+            width={800}
+            height={300}
+            data={transactions}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray='3 3' />
+            <XAxis dataKey='date' />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line
+              type='monotone'
+              dataKey='montant'
+              stroke='#8884d8'
+              name='Montant'
+            />
+          </LineChart>
+        </div>
+      </div>
+
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
         {/* Total revenus */}

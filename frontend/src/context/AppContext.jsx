@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { userApi } from "../utils/api";
 
 export const AppContext = createContext();
 
@@ -12,24 +11,39 @@ export function AppProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Écouter les changements d'état d'authentification de Firebase
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
+    // Vérifier si l'utilisateur est connecté via le localStorage
+    const checkAuthStatus = async () => {
+      const savedUser = localStorage.getItem("authUser");
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        try {
+          // Vérifier si l'utilisateur existe toujours dans la base de données
+          const user = await userApi.getByEmail(userData.email);
+          if (user) {
+            setIsLoggedIn(true);
+          } else {
+            setIsLoggedIn(false);
+            localStorage.removeItem("authUser");
+          }
+        } catch (error) {
+          console.error(
+            "Erreur lors de la vérification de l'authentification:",
+            error
+          );
+          setIsLoggedIn(false);
+          localStorage.removeItem("authUser");
+        }
       }
-    });
+    };
 
-    // Appliquez la couleur stockée dans le localStorage
+    checkAuthStatus();
+
+    // Appliquer la couleur stockée dans le localStorage
     const savedColor = localStorage.getItem("primaryColor");
     if (savedColor) {
       setPrimaryColor(savedColor);
       applyColorToDocument(savedColor);
     }
-
-    // Nettoyage de l'abonnement
-    return () => unsubscribe();
   }, []);
 
   const applyColorToDocument = (color) => {

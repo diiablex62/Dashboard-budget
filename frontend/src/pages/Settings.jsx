@@ -1,226 +1,86 @@
-import React, { useState, useContext, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
-import bleuImage from "../assets/img/auth-bleu.png";
-import orangeImage from "../assets/img/auth-orange.jpg";
-import Google from "../components/Google";
-import { AppContext } from "../context/AppContext";
-import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
-import {
-  GithubAuthProvider,
-  OAuthProvider,
-  TwitterAuthProvider,
-  FacebookAuthProvider,
-} from "firebase/auth";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { userApi } from "../utils/api";
 
-export default function Auth() {
-  const { setIsLoggedIn } = useContext(AppContext);
+const Settings = () => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const [isLogin, setIsLogin] = useState(location.state?.isLogin ?? true);
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [email, setEmail] = useState("");
-
-  const handleAuthProvider = async (provider, providerName) => {
+  const handleLogout = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ email: user.email, displayName: user.displayName })
-      );
-      console.log(`Bienvenue ${user.displayName} !`);
-      setIsLoggedIn(true);
-      navigate("/");
+      setLoading(true);
+      await logout();
+      navigate("/auth");
     } catch (error) {
-      console.error(`Erreur lors de la connexion avec ${providerName}:`, error);
+      console.error("Erreur lors de la déconnexion:", error);
+      setError("Erreur lors de la déconnexion");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (error.code === "auth/internal-error") {
-        if (!navigator.cookieEnabled) {
-          console.error(
-            `Les cookies tiers sont désactivés dans votre navigateur. Veuillez les activer pour utiliser ${providerName}.`
-          );
-        } else {
-          console.error(
-            `Échec de la connexion avec ${providerName}. Assurez-vous que les cookies tiers sont activés.`
-          );
-        }
-      } else {
-        console.error(
-          `Échec de la connexion avec ${providerName}. Vérifiez votre configuration.`
-        );
+  const handleDeleteAccount = async () => {
+    if (
+      window.confirm(
+        "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
+      )
+    ) {
+      try {
+        setLoading(true);
+        await userApi.deleteAccount();
+        await logout();
+        navigate("/auth");
+      } catch (error) {
+        console.error("Erreur lors de la suppression du compte:", error);
+        setError("Erreur lors de la suppression du compte");
+      } finally {
+        setLoading(false);
       }
     }
   };
 
-  const handleEmailSubmit = (e) => {
-    e.preventDefault();
-    console.log("Un lien magique a été envoyé à votre adresse e-mail !");
-    setShowEmailForm(false);
-  };
-
-  useEffect(() => {
-    if (location.state?.isLogin !== undefined) {
-      setIsLogin(location.state.isLogin);
-    }
-  }, [location.state]);
-
   return (
-    <div className='flex min-h-screen relative'>
-      <div
-        className={`absolute inset-y-0 w-1/2 ${
-          isLogin ? "left-0" : "translate-x-full"
-        } bg-[var(--primary-color)] flex items-center justify-center transition-transform duration-500`}>
-        <img
-          src={isLogin ? bleuImage : orangeImage}
-          alt='Illustration'
-          className='w-full h-screen object-cover'
-        />
-      </div>
-      <div
-        className={`absolute inset-y-0 w-1/2 ${
-          isLogin ? "translate-x-full" : "left-0"
-        } flex items-center justify-center bg-white transition-transform duration-500`}>
-        <div className='bg-white p-8 rounded-lg shadow-lg max-w-md w-full'>
-          <a
-            href='/'
-            className='mb-4 flex items-center text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] text-sm font-medium transition duration-300 cursor-pointer'>
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              className='h-4 w-4 mr-2'
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-              strokeWidth={2}>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M15 19l-7-7 7-7'
-              />
-            </svg>
-            Retour au dashboard
-          </a>
-          <h2 className='text-2xl font-bold text-center mb-6'>
-            {isLogin ? "Content de te revoir." : "Rejoignez-nous."}
-          </h2>
-          {!showEmailForm ? (
-            <div className='space-y-4'>
-              <button
-                onClick={() => handleAuthProvider(googleProvider, "Google")}
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <Google className='w-5 h-5 mr-2' />
-                Connectez-vous avec Google
-              </button>
-              <button
-                onClick={() =>
-                  handleAuthProvider(new GithubAuthProvider(), "GitHub")
-                }
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg'
-                  alt='GitHub'
-                  className='w-5 h-5 mr-2'
-                />
-                Connectez-vous avec GitHub
-              </button>
-              <button
-                onClick={() => {
-                  const facebookProvider = new FacebookAuthProvider();
-                  facebookProvider.setCustomParameters({
-                    redirect_uri:
-                      "https://budget-e4f90.firebaseapp.com/__/auth/handler",
-                  });
-                  handleAuthProvider(facebookProvider, "Facebook");
-                }}
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg'
-                  alt='Facebook'
-                  className='w-5 h-5 mr-2'
-                />
-                Connectez-vous avec Facebook
-              </button>
-              <button
-                onClick={() =>
-                  handleAuthProvider(new OAuthProvider("apple.com"), "Apple")
-                }
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'
-                  alt='Apple'
-                  className='w-5 h-5 mr-2'
-                />
-                Connectez-vous avec Apple
-              </button>
-              <button
-                onClick={() => setShowEmailForm(true)}
-                className='flex items-center justify-center w-full border border-gray-300 rounded-full py-2 hover:bg-gray-100'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/4/4e/Mail_%28iOS%29.svg'
-                  alt='Email'
-                  className='w-5 h-5 mr-2'
-                />
-                Connectez-vous avec votre e-mail
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleEmailSubmit} className='space-y-4'>
-              <h3 className='text-lg font-semibold text-center'>
-                Connectez-vous avec votre e-mail
-              </h3>
-              <p className='text-sm text-center text-gray-600'>
-                Saisissez l'adresse e-mail associée à votre compte et nous vous
-                enverrons un lien magique dans votre boîte de réception.
-              </p>
-              <input
-                type='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder='Votre email'
-                required
-                className='w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]'
-              />
-              <button
-                type='submit'
-                className='w-full bg-[var(--primary-color)] text-white py-2 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300'>
-                Continuer
-              </button>
-            </form>
-          )}
-          <p className='text-center text-sm text-gray-600 mt-6'>
-            {isLogin ? (
-              <>
-                Pas de compte ?{" "}
-                <button
-                  onClick={() => setIsLogin(false)}
-                  className='text-green-600 font-semibold hover:underline'>
-                  Inscrivez-vous
-                </button>
-              </>
-            ) : (
-              <>
-                Vous avez déjà un compte ?{" "}
-                <button
-                  onClick={() => setIsLogin(true)}
-                  className='text-green-600 font-semibold hover:underline'>
-                  Connectez-vous
-                </button>
-              </>
-            )}
-          </p>
-          <p className='text-center text-xs text-gray-500 mt-4'>
-            Cliquez sur « Se connecter » pour accepter les{" "}
-            <a href='/terms' className='text-blue-500 hover:underline'>
-              conditions d'utilisation
-            </a>{" "}
-            et la{" "}
-            <a href='/privacy' className='text-blue-500 hover:underline'>
-              politique de confidentialité
-            </a>
-            .
-          </p>
+    <div className='container mx-auto px-4 py-8'>
+      <h1 className='text-2xl font-bold mb-6'>Paramètres</h1>
+
+      {error && (
+        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4'>
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className='bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4'>
+          {success}
+        </div>
+      )}
+
+      <div className='bg-white shadow rounded-lg p-6'>
+        <h2 className='text-xl font-semibold mb-4'>Compte</h2>
+        <p className='mb-4'>Email: {user?.email}</p>
+
+        <div className='space-y-4'>
+          <button
+            onClick={handleLogout}
+            disabled={loading}
+            className='w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-200'>
+            {loading ? "Déconnexion en cours..." : "Se déconnecter"}
+          </button>
+
+          <button
+            onClick={handleDeleteAccount}
+            disabled={loading}
+            className='w-full bg-red-800 hover:bg-red-900 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-200'>
+            {loading ? "Suppression en cours..." : "Supprimer mon compte"}
+          </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Settings;

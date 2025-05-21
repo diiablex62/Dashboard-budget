@@ -1,401 +1,192 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { db } from "../firebaseConfig";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { FaSearch, FaCamera } from "react-icons/fa";
-import { updateProfile } from "firebase/auth";
-import { auth } from "../firebaseConfig";
-import UserAccountInfo from "../components/UserAccountInfo";
-import { MigrationButton } from "../utils/dataMigration";
-
-const CLOUDINARY_CLOUD_NAME = "dulclkp2k";
-const CLOUDINARY_UPLOAD_PRESET = "ml_default";
-const CLOUDINARY_API_KEY = import.meta.env.VITE_CLOUDINARY_API_KEY;
+import { userApi } from "../utils/api";
 
 export default function Profil() {
-  const { user, mainAccountId, refreshUser } = useAuth();
-  const [userData, setUserData] = useState({
-    prenom: "",
-    nom: "",
+  const { user, logout } = useAuth();
+  const [formData, setFormData] = useState({
+    displayName: "",
     email: "",
-    telephone: "",
-    adresse: "",
     photoURL: "",
   });
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const fileInputRef = useRef(null);
-
-  // Ajoute un effet pour synchroniser userData.photoURL dès que user.photoURL change (Navbar à Profil)
-  useEffect(() => {
-    if (user && user.photoURL && user.photoURL !== userData.photoURL) {
-      setUserData((prev) => ({
-        ...prev,
-        photoURL: user.photoURL,
-      }));
-    }
-    // eslint-disable-next-line
-  }, [user?.photoURL]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!mainAccountId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        console.log(
-          `Chargement des données utilisateur pour: ${mainAccountId}`
-        );
-        // Utilise l'ID de compte principal pour charger les données utilisateur
-        const userDoc = await getDoc(doc(db, "users", mainAccountId));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserData({
-            ...data,
-            // Prend la photo la plus récente (Firebase Auth > Firestore)
-            photoURL: auth.currentUser?.photoURL || data.photoURL || "",
-          });
-          setSearchQuery(data.adresse || "");
-        } else {
-          const defaultData = {
-            prenom: user.displayName?.split(" ")[0] || "",
-            nom: user.displayName?.split(" ")[1] || "",
-            email: user.email || "",
-            telephone: "",
-            adresse: "",
-            photoURL: auth.currentUser?.photoURL || user.photoURL || "",
-          };
-          await setDoc(doc(db, "users", mainAccountId), defaultData);
-          setUserData(defaultData);
-          setSearchQuery(defaultData.adresse || "");
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération des données:", error);
-        if (error.code === "permission-denied") {
-          console.error("Erreur d'autorisation. Veuillez vous reconnecter.");
-        } else {
-          console.error("Erreur lors de la récupération des données");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [mainAccountId, user]);
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Vérification du type de fichier
-    if (!file.type.startsWith("image/")) {
-      console.error("Veuillez sélectionner une image valide");
-      return;
+    if (user) {
+      setFormData({
+        displayName: user.displayName || "",
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+      });
     }
+  }, [user]);
 
-    try {
-      setLoading(true);
-
-      // Upload sur Cloudinary
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error(
-          "L'image dépasse 10 Mo, veuillez choisir une image plus petite."
-        );
-      }
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      const data = await response.json();
-
-      if (!response.ok || !data.secure_url) {
-        const msg =
-          data.error?.message || "Erreur lors de l'upload sur Cloudinary";
-        throw new Error(msg);
-      }
-
-      const photoURL = data.secure_url;
-
-      // Utilise l'objet natif Firebase Auth pour updateProfile
-      const firebaseUser = auth.currentUser;
-
-      if (firebaseUser && typeof updateProfile === "function") {
-        await updateProfile(firebaseUser, { photoURL });
-        if (typeof refreshUser === "function") {
-          await refreshUser(); // Met à jour le contexte et donc la navbar
-        }
-      }
-
-      // Mise à jour des données utilisateur dans Firestore (la BDD)
-      const updatedData = { ...userData, photoURL };
-      await setDoc(doc(db, "users", mainAccountId), updatedData);
-
-      // Mets à jour l'état local avec la photo la plus récente (Firebase Auth)
-      setUserData((prev) => ({
-        ...prev,
-        photoURL: firebaseUser.photoURL || photoURL,
-      }));
-
-      // Ajout : retire le hover après upload réussi
-      setIsHovering(false);
-
-      console.log("Photo de profil mise à jour avec succès");
-    } catch (error) {
-      console.error("Erreur lors de l'upload de la photo:", error);
-      console.error(
-        error.message || "Erreur lors de la mise à jour de la photo"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const searchAddress = async (query) => {
-    if (query.length < 3) {
-      setAddressSuggestions([]);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
-          query
-        )}&limit=5`
-      );
-      const data = await response.json();
-      setAddressSuggestions(data.features || []);
-    } catch (error) {
-      console.error("Erreur lors de la recherche d'adresse:", error);
-    }
-  };
-
-  const handleAddressChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    searchAddress(value);
-    setShowSuggestions(true);
-    setHasChanges(true);
-  };
-
-  const handleAddressSelect = (address) => {
-    setUserData((prev) => ({
-      ...prev,
-      adresse: address.properties.label,
-    }));
-    setSearchQuery(address.properties.label);
-    setShowSuggestions(false);
-    setHasChanges(true);
-  };
-
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === "adresse") {
-      handleAddressChange(e);
-    } else {
-      setUserData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-      setHasChanges(true);
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!mainAccountId) return;
+    setError("");
+    setSuccess("");
 
     try {
-      await setDoc(doc(db, "users", mainAccountId), userData);
-      console.log("Profil mis à jour avec succès");
-      setHasChanges(false);
+      console.log("Mise à jour du profil utilisateur:", formData);
+      const updatedUser = await userApi.createOrUpdate({
+        ...user,
+        ...formData,
+      });
+      console.log("Profil mis à jour avec succès:", updatedUser);
+      setSuccess("Profil mis à jour avec succès");
+      setIsEditing(false);
     } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
-      console.error("Erreur lors de la mise à jour du profil");
+      console.error("Erreur lors de la mise à jour du profil:", error);
+      setError("Erreur lors de la mise à jour du profil");
     }
   };
 
-  if (loading) {
-    return (
-      <div className='p-8 bg-[#f8fafc] dark:bg-black min-h-screen flex items-center justify-center'>
-        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary-color)]'></div>
-      </div>
-    );
-  }
-
   return (
-    <div className='p-8 bg-[#f8fafc] dark:bg-black min-h-screen'>
-      <h1 className='text-3xl font-bold mb-8 dark:text-white'>PROFIL</h1>
-      <div className='flex flex-col md:flex-row gap-8'>
-        {/* Colonne de gauche: Carte profil + Infos compte */}
-        <div className='flex flex-col w-full md:w-1/3 gap-6'>
-          {/* Carte profil */}
-          <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-8 flex flex-col items-center'>
-            <div
-              className='relative w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900 mb-4 cursor-pointer group'
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
-              onClick={() => fileInputRef.current?.click()}>
-              {userData.photoURL ? (
-                <img
-                  src={userData.photoURL}
-                  alt='Photo de profil'
-                  className='w-full h-full rounded-full object-cover'
-                />
-              ) : (
-                <span className='text-2xl font-bold text-blue-500 flex items-center justify-center h-full'>
-                  {userData.prenom.charAt(0)}
-                  {userData.nom.charAt(0)}
-                </span>
-              )}
-              {isHovering && (
-                <div className='absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center'>
-                  <FaCamera className='text-white text-2xl' />
-                </div>
-              )}
-              <input
-                type='file'
-                ref={fileInputRef}
-                onChange={handlePhotoUpload}
-                accept='image/*'
-                className='hidden'
-              />
-            </div>
-            <div className='text-xl font-semibold mb-1 dark:text-white'>
-              {userData.prenom} {userData.nom}
-            </div>
-            <div className='text-gray-500 dark:text-gray-400 mb-6'>
-              {userData.email}
-            </div>
+    <div className='max-w-4xl mx-auto p-6'>
+      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6'>
+        <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-6'>
+          Mon Profil
+        </h1>
+
+        {error && (
+          <div className='mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded'>
+            {error}
           </div>
+        )}
 
-          {/* Informations du compte (nouveau composant) */}
-          <UserAccountInfo />
+        {success && (
+          <div className='mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded'>
+            {success}
+          </div>
+        )}
 
-          {/* Bouton de migration des données */}
-          <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-6'>
-            <h2 className='text-lg font-semibold mb-4 dark:text-white'>
-              Gestion des données
+        <div className='flex items-center space-x-6 mb-8'>
+          <div className='h-24 w-24 rounded-full overflow-hidden bg-gray-200'>
+            {formData.photoURL ? (
+              <img
+                src={formData.photoURL}
+                alt='Photo de profil'
+                className='h-full w-full object-cover'
+              />
+            ) : (
+              <div className='h-full w-full flex items-center justify-center text-gray-400'>
+                <svg
+                  className='h-12 w-12'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth='2'
+                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+          <div>
+            <h2 className='text-xl font-semibold text-gray-900 dark:text-white'>
+              {formData.displayName || "Utilisateur"}
             </h2>
-            <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
-              Si vous avez des données qui ne sont pas associées à votre compte,
-              vous pouvez les migrer ici.
-            </p>
-            <div className='flex justify-center'>
-              <MigrationButton userId={mainAccountId} />
-            </div>
+            <p className='text-gray-600 dark:text-gray-300'>{formData.email}</p>
           </div>
         </div>
 
-        {/* Formulaire infos */}
-        <div className='bg-white dark:bg-black rounded-xl shadow border border-gray-200 dark:border-gray-800 p-8 flex-1'>
-          <div className='flex justify-between items-center mb-6'>
-            <h2 className='text-lg font-semibold dark:text-white'>
-              Informations personnelles
-            </h2>
-            {hasChanges && (
+        <form onSubmit={handleSubmit} className='space-y-6'>
+          <div>
+            <label
+              htmlFor='displayName'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
+              Nom d'affichage
+            </label>
+            <input
+              type='text'
+              id='displayName'
+              name='displayName'
+              value={formData.displayName}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor='email'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
+              Email
+            </label>
+            <input
+              type='email'
+              id='email'
+              name='email'
+              value={formData.email}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor='photoURL'
+              className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
+              URL de la photo de profil
+            </label>
+            <input
+              type='url'
+              id='photoURL'
+              name='photoURL'
+              value={formData.photoURL}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'
+            />
+          </div>
+
+          <div className='flex justify-end space-x-4'>
+            {isEditing ? (
+              <>
+                <button
+                  type='button'
+                  onClick={() => setIsEditing(false)}
+                  className='px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                  Annuler
+                </button>
+                <button
+                  type='submit'
+                  className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                  Enregistrer
+                </button>
+              </>
+            ) : (
               <button
-                onClick={handleSubmit}
-                className='bg-[var(--primary-color)] text-white px-6 py-2 rounded-lg font-medium hover:bg-[var(--primary-hover-color)] transition'>
-                Sauvegarder
+                type='button'
+                onClick={() => setIsEditing(true)}
+                className='px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'>
+                Modifier
               </button>
             )}
           </div>
-          <form onSubmit={handleSubmit} className='space-y-6'>
-            <div className='flex gap-4'>
-              <div className='flex-1'>
-                <label className='block text-sm font-medium mb-1 dark:text-white'>
-                  Prénom
-                </label>
-                <input
-                  type='text'
-                  name='prenom'
-                  value={userData.prenom}
-                  onChange={handleChange}
-                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
-                />
-              </div>
-              <div className='flex-1'>
-                <label className='block text-sm font-medium mb-1 dark:text-white'>
-                  Nom
-                </label>
-                <input
-                  type='text'
-                  name='nom'
-                  value={userData.nom}
-                  onChange={handleChange}
-                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
-                />
-              </div>
-            </div>
-            <div>
-              <label className='block text-sm font-medium mb-1 dark:text-white'>
-                Email
-              </label>
-              <input
-                type='email'
-                name='email'
-                value={userData.email}
-                onChange={handleChange}
-                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
-              />
-            </div>
-            <div>
-              <label className='block text-sm font-medium mb-1 dark:text-white'>
-                Téléphone
-              </label>
-              <input
-                type='tel'
-                name='telephone'
-                value={userData.telephone}
-                onChange={handleChange}
-                className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
-              />
-            </div>
-            <div className='relative'>
-              <label className='block text-sm font-medium mb-1 dark:text-white'>
-                Adresse
-              </label>
-              <div className='relative'>
-                <input
-                  type='text'
-                  name='adresse'
-                  value={searchQuery}
-                  onChange={handleAddressChange}
-                  placeholder='Rechercher une adresse...'
-                  className='w-full border border-gray-200 dark:border-gray-800 dark:bg-gray-900 dark:text-white rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100'
-                />
-                <FaSearch className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500' />
-              </div>
-              {showSuggestions && addressSuggestions.length > 0 && (
-                <div className='absolute z-10 mt-1 bg-white dark:bg-gray-900 shadow-lg rounded-lg w-full max-h-60 overflow-auto border border-gray-200 dark:border-gray-800'>
-                  {addressSuggestions.map((address, index) => (
-                    <div
-                      key={index}
-                      className='px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white'
-                      onClick={() => handleAddressSelect(address)}>
-                      {address.properties.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </form>
+        </form>
+
+        <div className='mt-8 pt-6 border-t border-gray-200'>
+          <button
+            onClick={logout}
+            className='w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'>
+            Se déconnecter
+          </button>
         </div>
       </div>
     </div>

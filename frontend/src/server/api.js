@@ -9,11 +9,11 @@ import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import {
-  createAuthSession,
-  verifyAuthToken,
-  createFirebaseToken,
-  validateEmail,
-  firebaseMockDb,
+  createToken,
+  verifyToken,
+  createUser,
+  getUserByEmail,
+  mockDb,
 } from "./emailAuth.js";
 
 const app = express();
@@ -106,124 +106,76 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
-// Route pour demander un lien magique
-app.post("/api/auth/email-login", async (req, res) => {
+// Routes d'authentification
+app.post("/auth/email", async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("Demande de connexion reçue pour:", email);
+    console.log("Demande de connexion pour:", email);
 
-    if (!email) {
-      return res.status(400).json({ success: false, error: "Email requis" });
+    // Créer un token d'authentification
+    const token = await createToken(email);
+
+    // Vérifier si l'utilisateur existe, sinon le créer
+    let user = await getUserByEmail(email);
+    if (!user) {
+      user = await createUser(email);
     }
 
-    // Validation de l'email
-    if (!validateEmail(email)) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Format d'email invalide" });
-    }
-
-    // Récupérer l'origine de la requête pour créer le lien magique
-    const origin = req.get("Origin") || `http://localhost:5173`;
-    console.log("Origine de la requête:", origin);
-
-    // Créer la session d'authentification et envoyer l'email
-    const emailSent = await createAuthSession(email, origin);
-
-    if (emailSent) {
-      return res.status(200).json({
-        success: true,
-        message: "Email de connexion envoyé",
-        email,
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        error: "Impossible d'envoyer l'email",
-      });
-    }
+    res.json({ success: true, token, user });
   } catch (error) {
-    console.error("Erreur lors de la demande de connexion par email:", error);
-    res.status(500).json({
-      success: false,
-      error: "Erreur serveur",
-      details:
-        process.env.NODE_ENV === "development" ? error.message : undefined,
-    });
+    console.error("Erreur lors de la création du token:", error);
+    res.status(500).json({ error: "Erreur lors de la création du token" });
   }
 });
 
-// Route pour valider un token magique
-app.post("/api/auth/verify-token", async (req, res) => {
+app.post("/auth/verify", async (req, res) => {
   try {
     const { token } = req.body;
-    console.log(
-      "Vérification du token reçue:",
-      token ? token.substring(0, 10) + "..." : "null"
-    );
+    console.log("Vérification du token");
 
-    if (!token) {
-      return res.status(400).json({ success: false, error: "Token requis" });
+    const decoded = await verifyToken(token);
+    const user = await getUserByToken(decoded.email);
+
+    if (!user) {
+      throw new Error("Utilisateur non trouvé");
     }
 
-    // Vérifier la validité du token
-    const { valid, email } = await verifyAuthToken(token);
-    console.log("Résultat de la vérification:", { valid, email });
-
-    if (!valid || !email) {
-      return res.status(400).json({
-        success: false,
-        error: "Token invalide ou expiré",
-      });
-    }
-
-    // Générer un token Firebase pour l'authentification côté client
-    const firebaseToken = await createFirebaseToken(email);
-    console.log("Firebase token généré avec succès");
-
-    // Créer un JWT avec des données supplémentaires et une date d'expiration
-    const now = Math.floor(Date.now() / 1000);
-    const jwtExpiresIn = 60 * 60 * 24; // 24 heures en secondes
-
-    const jwtToken = jwt.sign(
-      {
-        email,
-        authenticated: true,
-        iat: now, // Issued At - quand le token a été émis
-        exp: now + jwtExpiresIn, // Expiration - quand le token expire
-        jti: crypto.randomBytes(16).toString("hex"), // JWT ID - identifiant unique du token
-      },
-      JWT_SECRET
-    );
-
-    const cookieMaxAge = 24 * 60 * 60 * 1000; // 24 heures en millisecondes
-
-    // Définir le cookie avec le JWT, avec des options de sécurité appropriées
-    res.cookie("token", jwtToken, {
-      httpOnly: true, // Empêche l'accès au cookie via JavaScript côté client
-      secure: process.env.NODE_ENV === "production", // Sécurisé en production (HTTPS)
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // En production, pour les domaines croisés
-      maxAge: cookieMaxAge,
-      path: "/", // Important pour que le cookie soit accessible sur tout le site
-    });
-
-    console.log("Cookie JWT défini, durée: 24h");
-
-    return res.status(200).json({
-      success: true,
-      message: "Authentification réussie",
-      firebaseToken,
-      email,
-      expiresIn: jwtExpiresIn, // Informer le client de la durée de validité
-    });
+    res.json({ success: true, user });
   } catch (error) {
     console.error("Erreur lors de la vérification du token:", error);
-    res.status(500).json({
-      success: false,
-      error: "Erreur serveur",
-      details:
-        process.env.NODE_ENV === "development" ? error.message : undefined,
+    res.status(401).json({ error: "Token invalide" });
+  }
+});
+
+// Route pour obtenir les statistiques des tokens
+app.get("/auth/stats", async (req, res) => {
+  try {
+    const tokensArray = Array.from(mockDb.tokens.entries()).map(
+      ([id, data]) => ({
+        id,
+        email: data.email,
+        createdAt: data.createdAt,
+        expiresAt: data.expiresAt,
+        used: data.used,
+      })
+    );
+
+    const tokenValuesArray = Array.from(mockDb.tokenValues.keys());
+
+    res.json({
+      success: true,
+      stats: {
+        tokens: tokensArray,
+        tokenValues: tokenValuesArray,
+        tokenValuesCount: mockDb.tokenValues.size,
+        tokensCount: mockDb.tokens.size,
+      },
     });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des statistiques:", error);
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la récupération des statistiques" });
   }
 });
 
@@ -259,285 +211,6 @@ app.get("/api/health", (req, res) => {
     .status(200)
     .json({ status: "OK", message: "Le serveur fonctionne correctement" });
 });
-
-// Route de développement pour réinitialiser un token (uniquement en mode développement)
-if (process.env.NODE_ENV !== "production") {
-  app.post("/api/auth/reset-token", async (req, res) => {
-    try {
-      const { token } = req.body;
-
-      if (!token) {
-        return res.status(400).json({ success: false, error: "Token requis" });
-      }
-
-      // Cette route n'a de sens qu'en mode émulateur
-      if (!process.env.FIREBASE_PRIVATE_KEY) {
-        // Vérifier si le token existe
-        if (!firebaseMockDb.tokenValues.has(token)) {
-          return res
-            .status(404)
-            .json({ success: false, error: "Token introuvable" });
-        }
-
-        // Réinitialiser le token
-        const tokenData = firebaseMockDb.tokenValues.get(token);
-        tokenData.used = false;
-        tokenData.usedAt = null;
-
-        // Mettre à jour la date d'expiration pour 15 minutes à partir de maintenant
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-        tokenData.expiresAt = expiresAt;
-
-        // Mettre à jour dans les deux maps
-        firebaseMockDb.tokens.set(tokenData.id, tokenData);
-        firebaseMockDb.tokenValues.set(token, tokenData);
-
-        console.log("Token réinitialisé:", {
-          id: tokenData.id,
-          email: tokenData.email,
-          expiresAt: tokenData.expiresAt,
-          used: tokenData.used,
-        });
-
-        return res.status(200).json({
-          success: true,
-          message: "Token réinitialisé avec succès",
-          email: tokenData.email,
-        });
-      }
-
-      return res.status(400).json({
-        success: false,
-        error:
-          "Cette fonctionnalité n'est disponible qu'en mode développement avec l'émulateur",
-      });
-    } catch (error) {
-      console.error("Erreur lors de la réinitialisation du token:", error);
-      res.status(500).json({
-        success: false,
-        error: "Erreur serveur",
-        details: error.message,
-      });
-    }
-  });
-
-  // Route de debug pour voir tous les tokens stockés (uniquement en mode développement)
-  app.get("/api/auth/debug/tokens", (req, res) => {
-    if (!process.env.FIREBASE_PRIVATE_KEY) {
-      // Convertir les Maps en objets pour la réponse JSON
-      const tokensArray = Array.from(firebaseMockDb.tokens.entries()).map(
-        ([id, data]) => ({
-          id,
-          ...data,
-          token: data.token ? data.token.substring(0, 8) + "..." : null,
-        })
-      );
-
-      const tokenValuesArray = Array.from(
-        firebaseMockDb.tokenValues.keys()
-      ).map((token) => ({
-        token: token.substring(0, 8) + "...",
-      }));
-
-      return res.status(200).json({
-        success: true,
-        tokens: tokensArray,
-        tokenValues: tokenValuesArray,
-        tokenValuesCount: firebaseMockDb.tokenValues.size,
-        tokensCount: firebaseMockDb.tokens.size,
-      });
-    }
-
-    return res.status(400).json({
-      success: false,
-      error:
-        "Cette fonctionnalité n'est disponible qu'en mode développement avec l'émulateur",
-    });
-  });
-
-  // Route pour créer un token de test (uniquement en mode développement)
-  app.post("/api/auth/debug/create-token", async (req, res) => {
-    if (!process.env.FIREBASE_PRIVATE_KEY) {
-      try {
-        const { email } = req.body;
-
-        if (!email) {
-          return res.status(400).json({
-            success: false,
-            error: "Email requis pour créer un token de test",
-          });
-        }
-
-        // Générer un token aléatoire
-        const crypto = await import("crypto");
-        const token = crypto.randomBytes(32).toString("hex");
-
-        // Créer une date d'expiration (15 minutes)
-        const expiresAt = new Date();
-        expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
-        // Créer un ID pour le token
-        const tokenId = crypto.randomBytes(16).toString("hex");
-
-        // Stocker le token dans les deux maps
-        const tokenData = {
-          id: tokenId,
-          email,
-          token,
-          createdAt: new Date(),
-          expiresAt,
-          used: false,
-          usedAt: null,
-        };
-
-        // Ajouter aux deux maps
-        firebaseMockDb.tokens.set(tokenId, tokenData);
-        firebaseMockDb.tokenValues.set(token, tokenData);
-
-        console.log("Token de test créé:", {
-          email,
-          token: token.substring(0, 8) + "...",
-          id: tokenId,
-        });
-
-        return res.status(200).json({
-          success: true,
-          message: "Token de test créé avec succès",
-          token,
-          email,
-          expiresAt,
-        });
-      } catch (error) {
-        console.error("Erreur lors de la création du token de test:", error);
-        return res.status(500).json({
-          success: false,
-          error: "Erreur lors de la création du token de test",
-          details: error.message,
-        });
-      }
-    }
-
-    return res.status(400).json({
-      success: false,
-      error:
-        "Cette fonctionnalité n'est disponible qu'en mode développement avec l'émulateur",
-    });
-  });
-
-  // Route pour tester la création et la validation d'un JWT (uniquement en mode développement)
-  app.post("/api/auth/debug/jwt-test", (req, res) => {
-    if (process.env.NODE_ENV === "production") {
-      return res
-        .status(404)
-        .json({ error: "Route non disponible en production" });
-    }
-
-    try {
-      const { email = "test@example.com" } = req.body;
-
-      // Créer un token JWT avec une durée de validité de 1 heure
-      const now = Math.floor(Date.now() / 1000);
-      const expiresIn = 60 * 60; // 1 heure en secondes
-
-      const token = jwt.sign(
-        {
-          email,
-          authenticated: true,
-          iat: now, // Issued At - quand le token a été émis
-          exp: now + expiresIn, // Expiration - quand le token expire
-          jti: crypto.randomBytes(16).toString("hex"), // JWT ID - identifiant unique du token
-        },
-        JWT_SECRET
-      );
-
-      // Décoder le token pour afficher son contenu
-      const decoded = jwt.decode(token);
-
-      // Envoyer le token dans un cookie pour tester
-      res.cookie("jwt_test", token, {
-        httpOnly: true,
-        secure: false, // Pour le test en local
-        maxAge: expiresIn * 1000,
-        path: "/",
-      });
-
-      res.status(200).json({
-        success: true,
-        message: "JWT créé et validé avec succès",
-        token,
-        decoded,
-        expiresAt: new Date(decoded.exp * 1000).toISOString(),
-        cookieSet: true,
-      });
-    } catch (error) {
-      console.error("Erreur lors du test JWT:", error);
-      res.status(500).json({
-        success: false,
-        error: "Erreur lors du test JWT",
-        details: error.message,
-      });
-    }
-  });
-
-  // Route pour vérifier un JWT de test (uniquement en mode développement)
-  app.get("/api/auth/debug/jwt-verify", (req, res) => {
-    if (process.env.NODE_ENV === "production") {
-      return res
-        .status(404)
-        .json({ error: "Route non disponible en production" });
-    }
-
-    try {
-      // Récupérer le token du cookie ou du paramètre token
-      const token = req.cookies.jwt_test || req.query.token;
-
-      if (!token) {
-        return res.status(400).json({
-          success: false,
-          error: "Aucun token trouvé",
-        });
-      }
-
-      try {
-        // Vérifier le token
-        const decoded = jwt.verify(token, JWT_SECRET);
-
-        // Vérifier l'expiration
-        const now = Math.floor(Date.now() / 1000);
-        if (decoded.exp < now) {
-          return res.status(401).json({
-            success: false,
-            error: "Token expiré",
-            expiresAt: new Date(decoded.exp * 1000).toISOString(),
-            now: new Date(now * 1000).toISOString(),
-          });
-        }
-
-        return res.status(200).json({
-          success: true,
-          message: "Token valide",
-          decoded,
-          expiresAt: new Date(decoded.exp * 1000).toISOString(),
-          remainingTime: Math.floor(decoded.exp - now) + " secondes",
-        });
-      } catch (error) {
-        return res.status(401).json({
-          success: false,
-          error: "Token invalide",
-          details: error.message,
-        });
-      }
-    } catch (error) {
-      console.error("Erreur lors de la vérification du JWT:", error);
-      res.status(500).json({
-        success: false,
-        error: "Erreur lors de la vérification du JWT",
-        details: error.message,
-      });
-    }
-  });
-}
 
 // Démarrer le serveur
 app.listen(PORT, () => {

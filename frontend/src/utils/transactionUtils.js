@@ -1,6 +1,4 @@
-import { db } from "../firebaseConfig";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { handleItemOperation } from "./firebaseUtils";
+import { transactionApi } from "./api";
 import {
   TRANSACTION_CATEGORIES,
   getMonthYear as getFormattedMonthYear,
@@ -207,128 +205,44 @@ export const deleteTransaction = async (transaction) => {
 };
 
 /**
- * Calcule le total des dépenses mensuelles en combinant toutes les sources
- * @param {Date} date - Date pour laquelle calculer le total (par défaut le mois courant)
- * @returns {Promise<Object>} - Objet contenant les détails des dépenses mensuelles
+ * Récupère toutes les transactions
+ * @returns {Promise<Array>} - Tableau des transactions
  */
-export const calculateMonthlyTotalExpenses = async (date = new Date()) => {
+export const getAllTransactions = async () => {
   try {
-    const year = date.getFullYear();
-    const month = date.getMonth();
+    console.log("Récupération de toutes les transactions");
+    const response = await transactionApi.getAllTransactions();
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des transactions:", error);
+    throw error;
+  }
+};
 
-    // Définir les limites du mois
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0);
+/**
+ * Calcule le total des dépenses mensuelles
+ * @param {Array} transactions - Tableau des transactions
+ * @returns {number} - Total des dépenses mensuelles
+ */
+export const calculateMonthlyTotalExpenses = (transactions) => {
+  try {
+    console.log("Calcul du total des dépenses mensuelles");
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
 
-    // Récupérer toutes les données des dépenses et paiements récurrents
-    const [depensesSnap, recurrentsSnap] = await Promise.all([
-      getDocs(collection(db, "depense")),
-      getDocs(collection(db, "recurrent")),
-    ]);
-
-    // Récupérer les paiements échelonnés avec gestion des erreurs
-    let echelonnesSnap;
-    try {
-      echelonnesSnap = await getDocs(collection(db, "echelonne"));
-      console.log(
-        "Utilisation de la collection 'echelonne' pour les paiements échelonnés"
-      );
-    } catch (echelonneError) {
-      console.error("Erreur avec collection 'echelonne':", echelonneError);
-      // Si la collection échoue, créer un snapshot vide
-      echelonnesSnap = { docs: [] };
-    }
-
-    // 1. Traiter les dépenses régulières du mois
-    const depenses = depensesSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    const depensesDuMois = depenses.filter((d) => {
-      const depenseDate = new Date(d.date);
-      return depenseDate >= startDate && depenseDate <= endDate;
-    });
-
-    const totalDepensesRegulieres = Math.abs(
-      depensesDuMois.reduce((acc, d) => acc + (parseFloat(d.montant) || 0), 0)
-    );
-
-    // 2. Traiter les paiements récurrents
-    const paiementsRecurrents = recurrentsSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    const totalRecurrents = paiementsRecurrents.reduce(
-      (acc, p) => acc + (parseFloat(p.montant) || 0),
-      0
-    );
-
-    // 3. Traiter les paiements échelonnés actifs ce mois-ci
-    const paiementsEchelonnes = echelonnesSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    // Filtrer les paiements échelonnés actifs ce mois-ci (avec prise en charge standard debutDate)
-    const echelonnesActifs = paiementsEchelonnes.filter((p) => {
-      // Vérifier si nous avons les champs nécessaires
-      if (!p.mensualites || !p.debutDate) return false;
-
-      // Extraire l'année et le mois du début
-      const [startYear, startMonth] = p.debutDate.split("-").map(Number);
-      const debut = new Date(startYear, startMonth - 1);
-
-      // Calculer la date de fin
-      const fin = new Date(
-        startYear,
-        startMonth - 1 + Number(p.mensualites) - 1
-      );
-
-      // Vérifier si le mois actuel est dans la période active
-      return startDate >= debut && startDate <= fin;
-    });
-
-    // Calculer le total des mensualités échelonnées
-    const totalEchelonnes = echelonnesActifs.reduce((acc, p) => {
-      if (!p.montant || !p.mensualites) return acc;
-      return acc + Number(p.montant) / Number(p.mensualites);
-    }, 0);
-
-    // 4. Calculer le total général
-    const totalGeneral =
-      totalDepensesRegulieres + totalRecurrents + totalEchelonnes;
-
-    // Retourner un objet avec les détails
-    return {
-      total: totalGeneral,
-      regulieres: totalDepensesRegulieres,
-      recurrentes: totalRecurrents,
-      echelonnees: totalEchelonnes,
-      nombreDepenses: depensesDuMois.length,
-      nombreRecurrentes: paiementsRecurrents.length,
-      nombreEchelonnees: echelonnesActifs.length,
-      // Ajouter les données par catégorie également
-      parCategorie: categorizeExpenses(
-        depensesDuMois,
-        paiementsRecurrents,
-        echelonnesActifs
-      ),
-    };
+    return transactions
+      .filter((transaction) => {
+        const transactionDate = new Date(transaction.date);
+        return (
+          transactionDate.getMonth() === currentMonth &&
+          transactionDate.getFullYear() === currentYear &&
+          transaction.type === "depense"
+        );
+      })
+      .reduce((total, transaction) => total + transaction.montant, 0);
   } catch (error) {
     console.error("Erreur lors du calcul des dépenses mensuelles:", error);
-    // Retourner un objet vide mais structuré en cas d'erreur pour éviter les crashs
-    return {
-      total: 0,
-      regulieres: 0,
-      recurrentes: 0,
-      echelonnees: 0,
-      nombreDepenses: 0,
-      nombreRecurrentes: 0,
-      nombreEchelonnees: 0,
-      parCategorie: [],
-    };
+    return 0;
   }
 };
 
