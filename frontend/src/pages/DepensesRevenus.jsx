@@ -11,6 +11,7 @@ import {
   AiOutlinePlus,
   AiOutlineDollarCircle,
   AiOutlineCalendar,
+  AiOutlineInfoCircle,
 } from "react-icons/ai";
 import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { FiEdit, FiTrash } from "react-icons/fi";
@@ -56,17 +57,14 @@ import {
   deleteTransaction,
 } from "../utils/transactionUtils";
 
-// Génération dynamique de transactions factices pour le mois courant
-const now = new Date();
-const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, "0");
+// Génération dynamique de transactions factices pour le mois de mai 2025
 const fakeTransactions = [
   {
     id: 1,
     nom: "Loyer",
     montant: 700,
     categorie: "Logement",
-    date: `${year}-${month}-01`,
+    date: "2025-05-01",
     type: "depense",
   },
   {
@@ -74,7 +72,7 @@ const fakeTransactions = [
     nom: "Courses",
     montant: 220.5,
     categorie: "Alimentation",
-    date: `${year}-${month}-03`,
+    date: "2025-05-03",
     type: "depense",
   },
   {
@@ -82,7 +80,7 @@ const fakeTransactions = [
     nom: "Salaire",
     montant: 2100,
     categorie: "Salaire",
-    date: `${year}-${month}-01`,
+    date: "2025-05-01",
     type: "revenu",
   },
   {
@@ -90,7 +88,7 @@ const fakeTransactions = [
     nom: "Vente Vinted",
     montant: 45,
     categorie: "Ventes",
-    date: `${year}-${month}-10`,
+    date: "2025-05-10",
     type: "revenu",
   },
   {
@@ -98,7 +96,7 @@ const fakeTransactions = [
     nom: "Essence",
     montant: 80,
     categorie: "Transport",
-    date: `${year}-${month}-07`,
+    date: "2025-05-07",
     type: "depense",
   },
   {
@@ -106,7 +104,7 @@ const fakeTransactions = [
     nom: "Remboursement mutuelle",
     montant: 60,
     categorie: "Santé",
-    date: `${year}-${month}-12`,
+    date: "2025-05-12",
     type: "revenu",
   },
 ];
@@ -854,10 +852,17 @@ export default function DepensesRevenus() {
         {/* Cartes de statistiques */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
           {/* Carte 1: Total Dépenses */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center relative'>
             <div className='flex items-center text-red-600 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>Total Dépenses</span>
+              <div className='relative group ml-2'>
+                <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+                <div className='absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+                  Ce total correspond uniquement aux transactions de type
+                  dépense, hors paiements récurrents et échelonnés.
+                </div>
+              </div>
             </div>
             <div className='text-2xl text-[#222]'>
               {totalDepenses.toLocaleString("fr-FR", {

@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
   AiOutlineCreditCard,
   AiOutlineRise,
   AiOutlineDollarCircle,
+  AiOutlineInfoCircle,
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
 import {
@@ -45,7 +46,7 @@ const fakeTransactions = [
     nom: "Loyer",
     montant: 700,
     categorie: "Logement",
-    date: `${year}-${month}-01`,
+    date: "2025-05-01",
     type: "depense",
   },
   {
@@ -53,16 +54,16 @@ const fakeTransactions = [
     nom: "Courses",
     montant: 220.5,
     categorie: "Alimentation",
-    date: `${year}-${month}-03`,
+    date: "2025-05-03",
     type: "depense",
   },
   {
     id: 3,
-    nom: "Salaire",
-    montant: 2100,
-    categorie: "Salaire",
-    date: `${year}-${month}-01`,
-    type: "revenu",
+    nom: "Essence",
+    montant: 80,
+    categorie: "Transport",
+    date: "2025-05-07",
+    type: "depense",
   },
   {
     id: 4,
@@ -105,35 +106,68 @@ const fakePaiements = [
   },
 ];
 
-// Données factices pour les paiements échelonnés
+// Données factices pour les paiements échelonnés (synchronisées avec la page PaiementEchelonne.jsx)
 const fakePaiementsEchelonnes = [
   {
     id: 1,
-    nom: "iPhone 13",
-    categorie: "Électronique",
-    montant: 83.25,
-    frequence: "Mensuel",
-    date: `${year}-${month}-05`,
+    nom: "Smartphone Samsung",
+    montant: 3599.8,
+    mensualites: 24,
+    debutDate: "2024-01-01",
+    categorie: "High-Tech",
     type: "depense",
-    progression: "3/12",
   },
   {
     id: 2,
-    nom: "MacBook Pro",
-    categorie: "Électronique",
-    montant: 166.5,
-    frequence: "Mensuel",
-    date: `${year}-${month}-10`,
+    nom: "Assurance Auto",
+    montant: 720,
+    mensualites: 12,
+    debutDate: "2024-02-01",
+    categorie: "Assurance",
     type: "depense",
-    progression: "2/24",
+  },
+  {
+    id: 3,
+    nom: "Crédit Mobilier",
+    montant: 995,
+    mensualites: 10,
+    debutDate: "2024-03-01",
+    categorie: "Crédit",
+    type: "depense",
+  },
+  {
+    id: 4,
+    nom: "Électroménagers",
+    montant: 722.7,
+    mensualites: 6,
+    debutDate: "2024-04-01",
+    categorie: "Maison",
+    type: "depense",
   },
 ];
+
+// Ajout d'un helper pour le mois courant
+const monthNames = [
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
+];
+const moisEnCours = monthNames[now.getMonth()] + " " + now.getFullYear();
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState(null);
 
   // Paiements récurrents
   const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
@@ -142,17 +176,82 @@ export default function Dashboard() {
   const [paiementsEchelonnes, setPaiementsEchelonnes] = useState([]);
 
   // Dépenses
-  const [totalDepensesMois, setTotalDepensesMois] = useState(0);
-  const [totalDepensesMoisPrecedent, setTotalDepensesMoisPrecedent] =
-    useState(0);
+  // const [totalDepensesMois, setTotalDepensesMois] = useState(0);
+  // const [totalDepensesMoisPrecedent, setTotalDepensesMoisPrecedent] = useState(0);
 
   // Revenus
-  const [totalRevenusMois, setTotalRevenusMois] = useState(0);
-  const [totalRevenusMoisPrecedent, setTotalRevenusMoisPrecedent] = useState(0);
+  // const [totalRevenusMois, setTotalRevenusMois] = useState(0);
+  // const [totalRevenusMoisPrecedent, setTotalRevenusMoisPrecedent] = useState(0);
 
   // Variables d'état pour les graphiques
-  const [budgetData, setBudgetData] = useState([]);
-  const [depensesTotalesData, setDepensesTotalesData] = useState([]);
+  // const [budgetData, setBudgetData] = useState([]);
+  // const [depensesTotalesData, setDepensesTotalesData] = useState([]);
+
+  // Calcul du total dépensé (dépenses + récurrents + échelonnés)
+  const totalDepense = useMemo(() => {
+    const depensesMois = transactions
+      .filter((t) => t.type === "depense")
+      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+
+    const recurrentsMois = paiementsRecurrents
+      .filter((p) => p.type === "depense")
+      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+
+    const echelonnesMois = paiementsEchelonnes
+      .filter((e) => e.type === "depense")
+      .reduce(
+        (acc, e) => acc + parseFloat(e.montant) / parseInt(e.mensualites),
+        0
+      );
+
+    return depensesMois + recurrentsMois + echelonnesMois;
+  }, [transactions, paiementsRecurrents, paiementsEchelonnes]);
+
+  // Calcul de la différence avec le mois dernier
+  const differenceMoisPrecedent = useMemo(() => {
+    // Pour la démo, on utilise une valeur fixe
+    // Dans une vraie application, il faudrait calculer la vraie différence
+    return 245.67;
+  }, []);
+
+  // Calcul du total des paiements récurrents (dépenses) du mois
+  const totalRecurrents = useMemo(() => {
+    return paiementsRecurrents
+      .filter((p) => p.type === "depense")
+      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+  }, [paiementsRecurrents]);
+
+  // Calcul du total des paiements échelonnés (dépenses) du mois
+  const totalEchelonnes = useMemo(() => {
+    return paiementsEchelonnes
+      .filter((e) => e.type === "depense")
+      .reduce(
+        (acc, e) => acc + parseFloat(e.montant) / parseInt(e.mensualites),
+        0
+      );
+  }, [paiementsEchelonnes]);
+
+  // Calcul du total des revenus (transactions + récurrents)
+  const totalRevenus = useMemo(() => {
+    const revenusTransactions = transactions
+      .filter((t) => t.type === "revenu")
+      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+    const revenusRecurrents = paiementsRecurrents
+      .filter((p) => p.type === "revenu")
+      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+    return revenusTransactions + revenusRecurrents;
+  }, [transactions, paiementsRecurrents]);
+
+  // Calcul des économies (revenus - tout ce qui sort)
+  const totalEconomies = useMemo(() => {
+    return totalRevenus - totalDepense;
+  }, [totalRevenus, totalDepense]);
+
+  // Différence économies mois précédent (démonstration)
+  const differenceEconomiesMoisPrecedent = useMemo(() => {
+    // Pour la démo, valeur fixe
+    return -50.25;
+  }, []);
 
   // Données factices pour les listes du bas (à remplacer par API si besoin)
   const paiementsRecurrentsRecents = [
@@ -182,86 +281,8 @@ export default function Dashboard() {
   ];
 
   // Données factices pour les cartes (à remplacer par calculs réels si besoin)
-  const totalDepense = 2456.78;
-  const totalRecurrents = 451.32;
-  const totalEchelonnes = 985.65;
-  const totalEconomies = 1258.44;
-
-  const calculateMonthlyTotals = useCallback((transactionsData) => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const transactionsMoisCourant = transactionsData.filter((transaction) => {
-      const transactionDate = new Date(transaction.date);
-      return (
-        transactionDate.getMonth() === currentMonth &&
-        transactionDate.getFullYear() === currentYear
-      );
-    });
-
-    const depensesMoisCourant = transactionsMoisCourant
-      .filter((t) => t.type === "depense")
-      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-
-    const revenusMoisCourant = transactionsMoisCourant
-      .filter((t) => t.type === "revenu")
-      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-
-    return {
-      depensesMoisCourant,
-      revenusMoisCourant,
-      transactionsMoisCourant,
-    };
-  }, []);
-
-  const prepareChartData = useCallback(
-    (transactionsData, transactionsMoisCourant) => {
-      // Données pour le graphique en camembert
-      const categories = [
-        ...new Set(transactionsMoisCourant.map((t) => t.categorie)),
-      ];
-      const depensesParCategorie = categories.map((categorie) => ({
-        name: categorie,
-        value: transactionsMoisCourant
-          .filter((t) => t.type === "depense" && t.categorie === categorie)
-          .reduce((acc, t) => acc + parseFloat(t.montant), 0),
-      }));
-
-      // Données pour le graphique d'évolution
-      const mois = Array.from({ length: 6 }, (_, i) => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        return date;
-      }).reverse();
-
-      const evolutionData = mois.map((date) => {
-        const transactionsDuMois = transactionsData.filter((t) => {
-          const transactionDate = new Date(t.date);
-          return (
-            transactionDate.getMonth() === date.getMonth() &&
-            transactionDate.getFullYear() === date.getFullYear()
-          );
-        });
-
-        return {
-          mois: date.toLocaleString("fr-FR", { month: "short" }),
-          depenses: transactionsDuMois
-            .filter((t) => t.type === "depense")
-            .reduce((acc, t) => acc + parseFloat(t.montant), 0),
-          revenus: transactionsDuMois
-            .filter((t) => t.type === "revenu")
-            .reduce((acc, t) => acc + parseFloat(t.montant), 0),
-        };
-      });
-
-      return {
-        depensesParCategorie,
-        evolutionData,
-      };
-    },
-    []
-  );
+  // const totalEchelonnes = 985.65; // <-- supprimée pour éviter le doublon
+  // const totalEconomies = 1258.44; // <-- supprimée pour éviter le doublon
 
   const fetchData = useCallback(() => {
     setTransactions(fakeTransactions);
@@ -279,55 +300,101 @@ export default function Dashboard() {
     return () => window.removeEventListener("data-updated", handleDataUpdate);
   }, [fetchData]);
 
-  if (loading) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='animate-pulse'>
-          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className='h-32 bg-gray-200 rounded'></div>
-            ))}
-          </div>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
-            <div className='h-96 bg-gray-200 rounded'></div>
-            <div className='h-96 bg-gray-200 rounded'></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const depensesMois = transactions
+      .filter((t) => t.type === "depense")
+      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+    const recurrentsMois = paiementsRecurrents
+      .filter((p) => p.type === "depense")
+      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+    const echelonnesMois = paiementsEchelonnes
+      .filter((e) => e.type === "depense")
+      .reduce(
+        (acc, e) => acc + parseFloat(e.montant) / parseInt(e.mensualites),
+        0
+      );
 
-  if (error) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
-          {error}
-        </div>
-      </div>
+    console.log(
+      `[Dashboard] Total dépensé ${(
+        depensesMois +
+        recurrentsMois +
+        echelonnesMois
+      ).toFixed(2)}€ = Dépenses ${depensesMois.toFixed(
+        2
+      )}€ + Récurrents ${recurrentsMois.toFixed(
+        2
+      )}€ + Échelonnés ${echelonnesMois.toFixed(2)}€`
     );
-  }
+    console.log(
+      `[Dashboard] Paiements récurrents : ${recurrentsMois.toFixed(2)}€`
+    );
+    console.log(
+      `[Dashboard] Paiements échelonnés : ${echelonnesMois.toFixed(2)}€`
+    );
+  }, [transactions, paiementsRecurrents, paiementsEchelonnes]);
 
   return (
     <div className='p-6 bg-gray-50 min-h-screen'>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2'>
+        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>Total dépensé</span>
-            <span className='bg-blue-100 text-blue-600 rounded px-2 py-1 text-xs font-bold'>
-              1
+            <span className='text-gray-500 font-medium'>
+              Total dépensé en {moisEnCours}
             </span>
+            <AiOutlineDollarCircle className='text-red-600 text-xl' />
           </div>
-          <div className='text-2xl font-bold'>
-            {totalDepense.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
-            €
-          </div>
+          <div className='text-2xl font-bold'>{totalDepense.toFixed(2)}€</div>
           <div className='text-xs text-gray-400'>
-            7+ 3.2% depuis le mois dernier
+            +{" "}
+            {differenceMoisPrecedent.toLocaleString("fr-FR", {
+              minimumFractionDigits: 2,
+            })}{" "}
+            € par rapport au mois dernier
+          </div>
+          {/* Tooltip des dépenses */}
+          <div className='absolute bottom-2 right-2 group'>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+            <div className='absolute -right-32 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+              <p className='font-semibold mb-1'>Détail du calcul :</p>
+              <ul className='list-disc list-inside space-y-1'>
+                <li>
+                  Dépenses du mois :{" "}
+                  {transactions
+                    .filter((t) => t.type === "depense")
+                    .reduce((acc, t) => acc + parseFloat(t.montant), 0)
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li>
+                  Paiements récurrents :{" "}
+                  {paiementsRecurrents
+                    .filter((p) => p.type === "depense")
+                    .reduce((acc, p) => acc + parseFloat(p.montant), 0)
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li>
+                  Paiements échelonnés :{" "}
+                  {paiementsEchelonnes
+                    .filter((e) => e.type === "depense")
+                    .reduce(
+                      (acc, e) =>
+                        acc + parseFloat(e.montant) / parseInt(e.mensualites),
+                      0
+                    )
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+              </ul>
+              <div className='mt-2 text-[11px] text-gray-300'>
+                Ce total inclut toutes les dépenses, les paiements récurrents et
+                les paiements échelonnés du mois.
+              </div>
+            </div>
           </div>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2'>
+        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Paiements récurrents
@@ -335,51 +402,79 @@ export default function Dashboard() {
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
           <div className='text-2xl font-bold'>
-            {totalRecurrents.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}
-            €
+            {totalRecurrents.toFixed(2)}€
           </div>
-          <div className='text-xs text-gray-400'>-1.4% le mois dernier</div>
-          <button className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50'>
-            Gerer →
+          <div className='text-xs text-gray-400'>Ce mois-ci</div>
+          <button
+            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50'
+            onClick={() => navigate("/recurrents")}>
+            Gérer →
           </button>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2'>
+        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
-              Paiements en plusieurs fois
+              Paiements échelonnés
             </span>
-            <span className='bg-green-100 text-green-600 rounded px-2 py-1 text-xl'>
-              <AiOutlineCreditCard />
-            </span>
+            <AiOutlineCreditCard className='text-green-600 text-xl' />
           </div>
           <div className='text-2xl font-bold'>
-            {totalEchelonnes.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}
-            €
+            {totalEchelonnes.toFixed(2)}€
           </div>
-          <div className='text-xs text-gray-400'>+5.7% le mois dernier</div>
-          <button className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50'>
-            Gerer →
+          <div className='text-xs text-gray-400'>Ce mois-ci</div>
+          <button
+            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50'
+            onClick={() => navigate("/echelonne")}>
+            Gérer →
           </button>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2'>
+        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>Économies</span>
-            <span className='bg-orange-100 text-orange-600 rounded px-2 py-1 text-xl'>
-              <AiOutlineRise />
-            </span>
+            <AiOutlineRise className='text-orange-600 text-xl' />
           </div>
           <div className='text-2xl font-bold'>
-            {totalEconomies.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}
-            €
+            <span
+              className={
+                totalEconomies >= 0 ? "text-green-600" : "text-red-600"
+              }>
+              {totalEconomies >= 0 ? "+" : "-"}
+              {Math.abs(totalEconomies).toFixed(2)}€
+            </span>
           </div>
           <div className='text-xs text-gray-400'>
-            +2.5% depuis le mois dernier
+            {differenceEconomiesMoisPrecedent >= 0 ? "+" : "-"}
+            {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
+              "fr-FR",
+              { minimumFractionDigits: 2 }
+            )}{" "}
+            € par rapport au mois dernier
+          </div>
+          {/* Tooltip des économies */}
+          <div className='absolute bottom-2 right-2 group'>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+            <div className='absolute right-0 bottom-14 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+              <p className='font-semibold mb-1'>Détail du calcul :</p>
+              <ul className='list-disc list-inside space-y-1'>
+                <li>
+                  Revenu :{" "}
+                  {totalRevenus.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </li>
+                <li>
+                  Dépense :{" "}
+                  {totalDepense.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </li>
+              </ul>
+              <div className='mt-2 text-[11px] text-gray-300'>
+                Économies = Revenu - Dépense
+              </div>
+            </div>
           </div>
         </div>
       </div>
