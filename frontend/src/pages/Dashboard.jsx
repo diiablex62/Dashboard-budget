@@ -35,10 +35,104 @@ const COLORS = [
   "#14B8A6",
 ];
 
+// Données factices pour les transactions
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, "0");
+const fakeTransactions = [
+  {
+    id: 1,
+    nom: "Loyer",
+    montant: 700,
+    categorie: "Logement",
+    date: `${year}-${month}-01`,
+    type: "depense",
+  },
+  {
+    id: 2,
+    nom: "Courses",
+    montant: 220.5,
+    categorie: "Alimentation",
+    date: `${year}-${month}-03`,
+    type: "depense",
+  },
+  {
+    id: 3,
+    nom: "Salaire",
+    montant: 2100,
+    categorie: "Salaire",
+    date: `${year}-${month}-01`,
+    type: "revenu",
+  },
+  {
+    id: 4,
+    nom: "Vente Vinted",
+    montant: 45,
+    categorie: "Ventes",
+    date: `${year}-${month}-10`,
+    type: "revenu",
+  },
+];
+
+// Données factices pour les paiements récurrents
+const fakePaiements = [
+  {
+    id: 1,
+    nom: "Netflix",
+    categorie: "Divertissement",
+    montant: 14.99,
+    frequence: "Mensuel",
+    date: `${year}-${month}-15`,
+    type: "depense",
+  },
+  {
+    id: 2,
+    nom: "Spotify",
+    categorie: "Divertissement",
+    montant: 9.99,
+    frequence: "Mensuel",
+    date: `${year}-${month}-20`,
+    type: "depense",
+  },
+  {
+    id: 3,
+    nom: "Salaire principal",
+    categorie: "Salaire",
+    montant: 2200,
+    frequence: "Mensuel",
+    date: `${year}-${month}-01`,
+    type: "revenu",
+  },
+];
+
+// Données factices pour les paiements échelonnés
+const fakePaiementsEchelonnes = [
+  {
+    id: 1,
+    nom: "iPhone 13",
+    categorie: "Électronique",
+    montant: 83.25,
+    frequence: "Mensuel",
+    date: `${year}-${month}-05`,
+    type: "depense",
+    progression: "3/12",
+  },
+  {
+    id: 2,
+    nom: "MacBook Pro",
+    categorie: "Électronique",
+    montant: 166.5,
+    frequence: "Mensuel",
+    date: `${year}-${month}-10`,
+    type: "depense",
+    progression: "2/24",
+  },
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Paiements récurrents
@@ -169,64 +263,21 @@ export default function Dashboard() {
     []
   );
 
-  const fetchAll = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Récupération parallèle des données
-      const [transactionsData, recurrentsData, echelonnesData] =
-        await Promise.all([
-          transactions,
-          paiementsRecurrents,
-          paiementsEchelonnes,
-        ]);
-
-      setTransactions(transactionsData);
-      setPaiementsRecurrents(recurrentsData);
-      setPaiementsEchelonnes(echelonnesData);
-
-      // Calcul des totaux
-      const {
-        depensesMoisCourant,
-        revenusMoisCourant,
-        transactionsMoisCourant,
-      } = calculateMonthlyTotals(transactionsData);
-
-      setTotalDepensesMois(depensesMoisCourant);
-      setTotalRevenusMois(revenusMoisCourant);
-
-      // Préparation des données pour les graphiques
-      const { depensesParCategorie, evolutionData } = prepareChartData(
-        transactionsData,
-        transactionsMoisCourant
-      );
-
-      setDepensesTotalesData(depensesParCategorie);
-      setBudgetData(evolutionData);
-    } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
-      setError("Erreur lors du chargement des données");
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    transactions,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    calculateMonthlyTotals,
-    prepareChartData,
-  ]);
+  const fetchData = useCallback(() => {
+    setTransactions(fakeTransactions);
+    setPaiementsRecurrents(fakePaiements);
+    setPaiementsEchelonnes(fakePaiementsEchelonnes);
+  }, []);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
-    const handleDataUpdate = () => fetchAll();
+    const handleDataUpdate = () => fetchData();
     window.addEventListener("data-updated", handleDataUpdate);
     return () => window.removeEventListener("data-updated", handleDataUpdate);
-  }, [fetchAll]);
+  }, [fetchData]);
 
   if (loading) {
     return (

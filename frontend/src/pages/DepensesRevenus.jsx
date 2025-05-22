@@ -657,7 +657,7 @@ export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState(fakeTransactions);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [showDepenseModal, setShowDepenseModal] = useState(false);
@@ -668,11 +668,8 @@ export default function DepensesRevenus() {
     search: "",
   });
 
-  const fetchTransactions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchTransactions = useCallback(() => {
     setTransactions(fakeTransactions);
-    setLoading(false);
   }, []);
 
   useEffect(() => {
