@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -34,6 +34,8 @@ import CustomBarTooltip from "../components/graphiques/CustomBarTooltip";
 import CustomSingleBarTooltip from "../components/graphiques/CustomSingleBarTooltip";
 import RenderActiveShape from "../components/graphiques/RenderActiveShape";
 import * as calculs from "../utils/calcul";
+import BarChartComponent from "../components/graphiques/BarChartComponent";
+import PieChartComponent from "../components/graphiques/PieChartComponent";
 
 // -------------------
 // Constantes globales
@@ -158,10 +160,6 @@ export default function Dashboard() {
     CATEGORY_PALETTE
   );
 
-  const [activeIndex, setActiveIndex] = useState(null);
-  const onPieEnter = (_, index) => setActiveIndex(index);
-  const onPieLeave = () => setActiveIndex(null);
-
   // Préparation des données pour le graphique à barres (6 derniers mois)
   const barChartData = calculs.calculBarChartData(
     depenseRevenu,
@@ -169,78 +167,10 @@ export default function Dashboard() {
     paiementsEchelonnes
   );
 
-  const [barHover, setBarHover] = useState({
-    mois: null,
-    type: null,
-    value: null,
-  });
-
   const totalRecurrents = useMemo(
     () => calculs.calculTotalRecurrentsMois(paiementsRecurrents),
     [paiementsRecurrents]
   );
-
-  // Fonction pour afficher le prix en € sur chaque segment du camembert
-  const renderPieLabel = ({
-    value,
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    index,
-  }) => {
-    if (activeIndex !== index) return null;
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    // Dimensions harmonisées avec le tooltip
-    const width = 110;
-    const height = 40;
-    const rx = 16;
-
-    return (
-      <g>
-        <filter id='pie-shadow' x='-50%' y='-50%' width='200%' height='200%'>
-          <feDropShadow
-            dx='0'
-            dy='2'
-            stdDeviation='4'
-            floodColor='#000'
-            floodOpacity='0.10'
-          />
-        </filter>
-        <rect
-          x={x - width / 2}
-          y={y - height / 2}
-          width={width}
-          height={height}
-          rx={rx}
-          fill='white'
-          stroke='#f3f4f6'
-          strokeWidth={1}
-          opacity={0.9}
-          filter='url(#pie-shadow)'
-        />
-        <text
-          x={x}
-          y={y}
-          fill='#222'
-          textAnchor='middle'
-          dominantBaseline='central'
-          fontSize={20}
-          fontWeight={700}
-          style={{ fontFamily: "inherit" }}>
-          {value.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
-          <tspan fontSize={18} fontWeight={700} dx={8}>
-            €
-          </tspan>
-        </text>
-      </g>
-    );
-  };
 
   return (
     <div className='p-6 bg-gray-50 min-h-screen'>
@@ -454,112 +384,13 @@ export default function Dashboard() {
           <div className='font-semibold mb-2 text-center'>
             Total des dépenses mensuelles par catégories
           </div>
-          <div className='flex-1 flex flex-col items-center justify-center min-h-[340px] bg-gray-50 rounded-lg text-gray-400'>
-            <ResponsiveContainer width='100%' height={300}>
-              <PieChart>
-                <Pie
-                  data={depensesParCategorie}
-                  cx='50%'
-                  cy='50%'
-                  innerRadius={60}
-                  outerRadius={90}
-                  dataKey='value'
-                  activeIndex={activeIndex}
-                  activeShape={
-                    activeIndex !== null ? RenderActiveShape : undefined
-                  }
-                  onMouseEnter={onPieEnter}
-                  onMouseLeave={onPieLeave}
-                  onMouseOut={onPieLeave}
-                  paddingAngle={2}
-                  label={renderPieLabel}
-                  labelLine={false}>
-                  {depensesParCategorie.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            {/* Légende dynamique au survol, ou placeholder invisible pour garder la hauteur */}
-            {activeIndex !== null && depensesParCategorie[activeIndex] ? (
-              <div className='flex items-center gap-2 min-h-[24px]'>
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
-                    background: depensesParCategorie[activeIndex].color,
-                  }}
-                />
-                <span
-                  className='font-semibold'
-                  style={{ color: depensesParCategorie[activeIndex].color }}>
-                  {depensesParCategorie[activeIndex].name}
-                </span>
-                <span className='text-gray-500'>
-                  {depensesParCategorie[activeIndex].percent}%
-                </span>
-              </div>
-            ) : (
-              <div className='min-h-[24px]'></div>
-            )}
-          </div>
+          <PieChartComponent data={depensesParCategorie} />
         </div>
         <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
           <div className='font-semibold mb-2 text-center'>
             Répartition des dépenses par mois
           </div>
-          <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400'>
-            <ResponsiveContainer width='100%' height={200}>
-              <BarChart
-                data={barChartData}
-                margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray='3 3' />
-                <XAxis dataKey='mois' tick={{ fill: "#888" }} />
-                <YAxis tick={{ fill: "#888" }} />
-                <Bar
-                  dataKey='depenses'
-                  fill='#EF4444'
-                  name='Dépenses'
-                  barSize={24}
-                  onMouseOver={(_, idx) => {
-                    const d = barChartData[idx];
-                    setBarHover({
-                      mois: d.mois,
-                      type: "depenses",
-                      value: d.depenses,
-                      x: window.event?.clientX,
-                      y: window.event?.clientY - 40,
-                    });
-                  }}
-                  onMouseOut={() =>
-                    setBarHover({ mois: null, type: null, value: null })
-                  }
-                />
-                <Bar
-                  dataKey='revenus'
-                  fill='#22C55E'
-                  name='Revenus'
-                  barSize={24}
-                  onMouseOver={(_, idx) => {
-                    const d = barChartData[idx];
-                    setBarHover({
-                      mois: d.mois,
-                      type: "revenus",
-                      value: d.revenus,
-                      x: window.event?.clientX,
-                      y: window.event?.clientY - 40,
-                    });
-                  }}
-                  onMouseOut={() =>
-                    setBarHover({ mois: null, type: null, value: null })
-                  }
-                />
-              </BarChart>
-            </ResponsiveContainer>
-            <CustomSingleBarTooltip barHover={barHover} />
-          </div>
+          <BarChartComponent data={barChartData} />
         </div>
       </div>
 
