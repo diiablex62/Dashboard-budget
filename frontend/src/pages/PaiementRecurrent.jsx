@@ -15,7 +15,10 @@ import {
 import DatePickerModal from "../components/ui/DatePickerModal";
 import { fakePaiementsRecurrents } from "../utils/fakeData";
 import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
-import { calculTotalRecurrentsMois, calculTotalRevenus } from "../utils/calcul";
+import {
+  calculTotalRecurrentsMois,
+  totalRevenusGlobalMois,
+} from "../utils/calcul";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -109,7 +112,7 @@ const PaiementRecurrent = () => {
     [paiementsRecurrents]
   );
   const totalRevenus = useMemo(
-    () => calculTotalRevenus([], paiementsRecurrents),
+    () => totalRevenusGlobalMois([], paiementsRecurrents),
     [paiementsRecurrents]
   );
 

@@ -90,14 +90,15 @@ export default function Dashboard() {
   // Calcul des économies (revenus - tout ce qui sort)
   const totalRevenus = calculs.totalRevenusGlobalMois(
     transactions,
-    paiementsRecurrents
+    paiementsRecurrents,
+    paiementsEchelonnes
   );
-  const totalDepense = calculs.totalDepensesGlobalesMois(
+  const totalDepense = calculs.calculTotalDepensesMois(
     transactions,
     paiementsRecurrents,
     paiementsEchelonnes
   );
-  const totalEconomies = totalRevenus - totalDepense;
+  const totalEconomies = calculs.calculEconomies(totalRevenus, totalDepense);
 
   // Différence économies mois précédent (démonstration)
   const differenceEconomiesMoisPrecedent = useMemo(() => {
@@ -157,6 +158,11 @@ export default function Dashboard() {
     type: null,
     value: null,
   });
+
+  const totalRecurrents = useMemo(
+    () => calculs.calculTotalRecurrentsMois(paiementsRecurrents),
+    [paiementsRecurrents]
+  );
 
   // Fonction pour afficher le prix en € sur chaque segment du camembert
   const renderPieLabel = ({
@@ -247,29 +253,22 @@ export default function Dashboard() {
               <ul className='list-disc list-inside space-y-1'>
                 <li>
                   Dépenses du mois :{" "}
-                  {transactions
-                    .filter((t) => t.type === "depense")
-                    .reduce((acc, t) => acc + parseFloat(t.montant), 0)
+                  {calculs
+                    .totalDepensesMois(transactions)
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>
                 <li>
                   Paiements récurrents :{" "}
-                  {paiementsRecurrents
-                    .filter((p) => p.type === "depense")
-                    .reduce((acc, p) => acc + parseFloat(p.montant), 0)
+                  {calculs
+                    .calculTotalRecurrentsMois(paiementsRecurrents)
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>
                 <li>
                   Paiements échelonnés :{" "}
-                  {paiementsEchelonnes
-                    .filter((e) => e.type === "depense")
-                    .reduce(
-                      (acc, e) =>
-                        acc + parseFloat(e.montant) / parseInt(e.mensualites),
-                      0
-                    )
+                  {calculs
+                    .calculTotalEchelonnesMois(paiementsEchelonnes)
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>
@@ -289,7 +288,7 @@ export default function Dashboard() {
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
           <div className='text-2xl font-bold'>
-            {calculs.totalRecurrentsMois(paiementsRecurrents).toFixed(2)}€
+            {totalRecurrents.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button

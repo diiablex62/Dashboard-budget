@@ -57,7 +57,7 @@ export const fakePaiementsRecurrents = [
     nom: "Loyer",
     montant: 800,
     categorie: "Logement",
-    date: "2024-03-01",
+    date: "2025-05-01",
     type: "depense",
     frequence: "mensuel",
   },
@@ -66,7 +66,7 @@ export const fakePaiementsRecurrents = [
     nom: "Salaire",
     montant: 2500,
     categorie: "Salaire",
-    date: "2024-03-05",
+    date: "2025-05-05",
     type: "revenu",
     frequence: "mensuel",
   },
@@ -75,13 +75,13 @@ export const fakePaiementsRecurrents = [
     nom: "Électricité",
     montant: 120,
     categorie: "Factures",
-    date: "2024-03-10",
+    date: "2025-05-10",
     type: "depense",
     frequence: "mensuel",
   },
 ];
 
-// Paiements échelonnés (tous commencent en mai 2025)
+// Paiements échelonnés (tous commencent en 2025)
 export const fakePaiementsEchelonnes = [
   {
     id: 1,
@@ -89,7 +89,7 @@ export const fakePaiementsEchelonnes = [
     montant: 15000,
     mensualites: 36,
     mensualitesPayees: 12,
-    debutDate: "2024-01-01",
+    debutDate: "2025-01-01",
     categorie: "Crédit auto",
     type: "depense",
   },
@@ -99,7 +99,7 @@ export const fakePaiementsEchelonnes = [
     montant: 3000,
     mensualites: 12,
     mensualitesPayees: 6,
-    debutDate: "2024-02-01",
+    debutDate: "2025-02-01",
     categorie: "Formation",
     type: "depense",
   },
@@ -109,7 +109,7 @@ export const fakePaiementsEchelonnes = [
     montant: 2000,
     mensualites: 10,
     mensualitesPayees: 3,
-    debutDate: "2024-03-01",
+    debutDate: "2025-03-01",
     categorie: "Équipement",
     type: "depense",
   },

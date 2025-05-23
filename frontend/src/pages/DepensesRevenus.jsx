@@ -39,8 +39,8 @@ import {
 
 import {
   calculTotalDepensesMois,
-  calculTotalRevenus,
-  calculTotalEconomies,
+  totalRevenusGlobalMois,
+  calculEconomies,
 } from "../utils/calcul";
 
 // Génération dynamique de transactions factices pour le mois de mai 2025
@@ -655,11 +655,11 @@ export default function DepensesRevenus() {
     [transactions, currentDate]
   );
   const totalRevenus = useMemo(
-    () => calculTotalRevenus(transactions, []),
-    [transactions]
+    () => totalRevenusGlobalMois(transactions, [], currentDate),
+    [transactions, currentDate]
   );
   const solde = useMemo(
-    () => calculTotalEconomies(totalRevenus, totalDepenses),
+    () => calculEconomies(totalRevenus, totalDepenses),
     [totalRevenus, totalDepenses]
   );
 

@@ -12,6 +12,7 @@ export function calculTotalDepensesMois(
   paiementsEchelonnes,
   date = new Date()
 ) {
+  // Transactions du mois
   const depensesMois = transactions
     .filter(
       (t) =>
@@ -21,6 +22,7 @@ export function calculTotalDepensesMois(
     )
     .reduce((acc, t) => acc + parseFloat(t.montant), 0);
 
+  // Paiements récurrents du mois
   const recurrentsMois = paiementsRecurrents
     .filter(
       (p) =>
@@ -30,22 +32,19 @@ export function calculTotalDepensesMois(
     )
     .reduce((acc, p) => acc + parseFloat(p.montant), 0);
 
+  // Paiements échelonnés du mois
   const echelonnesMois = paiementsEchelonnes
     .filter((e) => e.type === "depense")
     .reduce((acc, e) => {
       const debutDate = new Date(e.debutDate);
-      const debutYear = debutDate.getFullYear();
-      const debutMonth = debutDate.getMonth();
-      const nbMensualites = parseInt(e.mensualites, 10);
       const finDate = new Date(debutDate);
-      finDate.setMonth(finDate.getMonth() + nbMensualites - 1);
-      const finYear = finDate.getFullYear();
-      const finMonth = finDate.getMonth();
-      const current = date.getFullYear() * 12 + date.getMonth();
-      const start = debutYear * 12 + debutMonth;
-      const end = finYear * 12 + finMonth;
-      if (current >= start && current <= end) {
-        return acc + parseFloat(e.montant) / nbMensualites;
+      finDate.setMonth(finDate.getMonth() + parseInt(e.mensualites) - 1);
+
+      const moisActuel = new Date(date.getFullYear(), date.getMonth(), 1);
+      const moisFin = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+      if (moisActuel <= finDate && moisFin >= debutDate) {
+        return acc + parseFloat(e.montant) / parseInt(e.mensualites);
       }
       return acc;
     }, 0);
@@ -54,9 +53,17 @@ export function calculTotalDepensesMois(
 }
 
 // total calcul paiements récurrents du mois : [calculTotalRecurrentsMois]
-export function calculTotalRecurrentsMois(paiementsRecurrents) {
+export function calculTotalRecurrentsMois(
+  paiementsRecurrents,
+  date = new Date()
+) {
   return paiementsRecurrents
-    .filter((p) => p.type === "depense")
+    .filter(
+      (p) =>
+        p.type === "depense" &&
+        new Date(p.date).getFullYear() === date.getFullYear() &&
+        new Date(p.date).getMonth() === date.getMonth()
+    )
     .reduce((acc, p) => acc + parseFloat(p.montant), 0);
 }
 
@@ -71,27 +78,20 @@ export function calculTotalEchelonnesMois(
       const debutDate = new Date(e.debutDate);
       const finDate = new Date(debutDate);
       finDate.setMonth(finDate.getMonth() + parseInt(e.mensualites) - 1);
+
+      // Vérifie si le mois actuel est dans la période de paiement
       const moisActuel = new Date(date.getFullYear(), date.getMonth(), 1);
-      if (moisActuel >= debutDate && moisActuel <= finDate) {
+      const moisFin = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+      if (moisActuel <= finDate && moisFin >= debutDate) {
         return acc + parseFloat(e.montant) / parseInt(e.mensualites);
       }
       return acc;
     }, 0);
 }
 
-// total calcul revenus (transactions + récurrents) : [calculTotalRevenus]
-export function calculTotalRevenus(transactions, paiementsRecurrents) {
-  const revenusTransactions = transactions
-    .filter((t) => t.type === "revenu")
-    .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-  const revenusRecurrents = paiementsRecurrents
-    .filter((p) => p.type === "revenu")
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-  return revenusTransactions + revenusRecurrents;
-}
-
-// total calcul économies (revenus - dépenses) : [calculTotalEconomies]
-export function calculTotalEconomies(totalRevenus, totalDepense) {
+// total calcul économies (revenus - dépenses) : [calculEconomies]
+export function calculEconomies(totalRevenus, totalDepense) {
   return totalRevenus - totalDepense;
 }
 
@@ -186,11 +186,6 @@ export function calculBarChartData(
 }
 
 // =====================
-// AUTRES CALCULS À VENIR
-// =====================
-// Ajoute ici d'autres helpers métiers, statistiques, etc.
-
-// =====================
 // DÉPENSES & REVENUS PAR MOIS (SÉPARÉS)
 // =====================
 
@@ -246,30 +241,21 @@ export function totalEchelonnesMois(paiementsEchelonnes, date = new Date()) {
   }, 0);
 }
 
-// total général des dépenses (transactions + récurrents + échelonnés) pour un mois donné : [totalDepensesGlobalesMois]
-export function totalDepensesGlobalesMois(
-  transactions,
-  paiementsRecurrents,
-  paiementsEchelonnes,
-  date = new Date()
-) {
-  return (
-    totalDepensesMois(transactions, date) +
-    totalRecurrentsMois(paiementsRecurrents, date) +
-    totalEchelonnesMois(paiementsEchelonnes, date)
-  );
-}
-
-// total général des revenus (transactions + récurrents) pour un mois donné : [totalRevenusGlobalMois]
+// total général des revenus (transactions + récurrents + échelonnés) pour un mois donné : [totalRevenusGlobalMois]
 export function totalRevenusGlobalMois(
   transactions,
   paiementsRecurrents,
+  paiementsEchelonnes = [],
   date = new Date()
 ) {
   return (
     totalRevenusMois(transactions, date) +
     totalRecurrentsMois(
       paiementsRecurrents.filter((p) => p.type === "revenu"),
+      date
+    ) +
+    totalEchelonnesMois(
+      paiementsEchelonnes.filter((e) => e.type === "revenu"),
       date
     )
   );
