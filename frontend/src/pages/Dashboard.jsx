@@ -73,7 +73,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   // Données factices utilisées directement
-  const transactions = fakeTransactions;
+  const depenseRevenu = fakeTransactions;
   const paiementsRecurrents = fakePaiementsRecurrents;
   const paiementsEchelonnes = fakePaiementsEchelonnes;
 
@@ -89,12 +89,12 @@ export default function Dashboard() {
 
   // Calcul des économies (revenus - tout ce qui sort)
   const totalRevenus = calculs.totalRevenusGlobalMois(
-    transactions,
+    depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes
   );
   const totalDepense = calculs.calculTotalDepensesMois(
-    transactions,
+    depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes
   );
@@ -138,7 +138,7 @@ export default function Dashboard() {
   // const totalEconomies = 1258.44; // <-- supprimée pour éviter le doublon
 
   const depensesParCategorie = calculs.calculDepensesParCategorie(
-    transactions,
+    depenseRevenu,
     CATEGORY_PALETTE
   );
 
@@ -148,7 +148,7 @@ export default function Dashboard() {
 
   // Préparation des données pour le graphique à barres (6 derniers mois)
   const barChartData = calculs.calculBarChartData(
-    transactions,
+    depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes
   );
@@ -254,7 +254,7 @@ export default function Dashboard() {
                 <li>
                   Dépenses du mois :{" "}
                   {calculs
-                    .totalDepensesMois(transactions)
+                    .totalDepensesMois(depenseRevenu)
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>

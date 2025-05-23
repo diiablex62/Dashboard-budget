@@ -7,13 +7,13 @@
 
 // total calcul depense par mois : [calculTotalDepensesMois]
 export function calculTotalDepensesMois(
-  transactions,
+  depenseRevenu,
   paiementsRecurrents,
   paiementsEchelonnes,
   date = new Date()
 ) {
-  // Transactions du mois
-  const depensesMois = transactions
+  // Dépenses du mois
+  const depensesMois = depenseRevenu
     .filter(
       (t) =>
         t.type === "depense" &&
@@ -100,8 +100,8 @@ export function calculEconomies(totalRevenus, totalDepense) {
 // =====================
 
 // calcul des dépenses par catégorie : [calculDepensesParCategorie]
-export function calculDepensesParCategorie(transactions, CATEGORY_PALETTE) {
-  const depenses = transactions.filter((t) => t.type === "depense");
+export function calculDepensesParCategorie(depenseRevenu, CATEGORY_PALETTE) {
+  const depenses = depenseRevenu.filter((t) => t.type === "depense");
   const categories = {};
   depenses.forEach((t) => {
     if (!categories[t.categorie]) categories[t.categorie] = 0;
@@ -118,7 +118,7 @@ export function calculDepensesParCategorie(transactions, CATEGORY_PALETTE) {
 
 // calcul des données du bar chart (6 derniers mois) : [calculBarChartData]
 export function calculBarChartData(
-  transactions,
+  depenseRevenu,
   paiementsRecurrents,
   paiementsEchelonnes
 ) {
@@ -133,7 +133,7 @@ export function calculBarChartData(
     };
   });
   return months.map(({ label, year, month }) => {
-    const depensesMois = transactions
+    const depensesMois = depenseRevenu
       .filter(
         (t) =>
           t.type === "depense" &&
@@ -169,7 +169,7 @@ export function calculBarChartData(
         return acc;
       }, 0);
     const depenses = depensesMois + recurrentsMois + echelonnesMois;
-    const revenus = transactions
+    const revenus = depenseRevenu
       .filter(
         (t) =>
           t.type === "revenu" &&
@@ -189,9 +189,9 @@ export function calculBarChartData(
 // DÉPENSES & REVENUS PAR MOIS (SÉPARÉS)
 // =====================
 
-// total des dépenses (transactions uniquement) pour un mois donné : [totalDepensesMois]
-export function totalDepensesMois(transactions, date = new Date()) {
-  return transactions
+// total des dépenses (depense&revenu uniquement) pour un mois donné : [totalDepensesMois]
+export function totalDepensesMois(depenseRevenu, date = new Date()) {
+  return depenseRevenu
     .filter(
       (t) =>
         t.type === "depense" &&
@@ -201,9 +201,9 @@ export function totalDepensesMois(transactions, date = new Date()) {
     .reduce((acc, t) => acc + parseFloat(t.montant), 0);
 }
 
-// total des revenus (transactions uniquement) pour un mois donné : [totalRevenusMois]
-export function totalRevenusMois(transactions, date = new Date()) {
-  return transactions
+// total des revenus (depense&revenu uniquement) pour un mois donné : [totalRevenusMois]
+export function totalRevenusMois(depenseRevenu, date = new Date()) {
+  return depenseRevenu
     .filter(
       (t) =>
         t.type === "revenu" &&
@@ -241,15 +241,15 @@ export function totalEchelonnesMois(paiementsEchelonnes, date = new Date()) {
   }, 0);
 }
 
-// total général des revenus (transactions + récurrents + échelonnés) pour un mois donné : [totalRevenusGlobalMois]
+// total général des revenus (depense&revenu + récurrents + échelonnés) pour un mois donné : [totalRevenusGlobalMois]
 export function totalRevenusGlobalMois(
-  transactions,
+  depenseRevenu,
   paiementsRecurrents,
   paiementsEchelonnes = [],
   date = new Date()
 ) {
   return (
-    totalRevenusMois(transactions, date) +
+    totalRevenusMois(depenseRevenu, date) +
     totalRecurrentsMois(
       paiementsRecurrents.filter((p) => p.type === "revenu"),
       date
