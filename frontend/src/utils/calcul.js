@@ -317,3 +317,30 @@ export function calculRevenusMoisPrecedent(
     dateMoisPrecedent
   );
 }
+
+// Calcul de la différence des économies entre le mois actuel et le mois précédent
+export function calculDifferenceEconomiesMoisPrecedent(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  totalRevenus,
+  totalDepense,
+  date = new Date()
+) {
+  const economieMoisActuel = calculEconomies(totalRevenus, totalDepense);
+  const economieMoisPrecedent = calculEconomies(
+    calculRevenusMoisPrecedent(
+      depenseRevenu,
+      paiementsRecurrents,
+      paiementsEchelonnes,
+      date
+    ),
+    calculTotalDepensesMois(
+      depenseRevenu,
+      paiementsRecurrents,
+      paiementsEchelonnes,
+      new Date(date.getFullYear(), date.getMonth() - 1, 1)
+    )
+  );
+  return economieMoisActuel - economieMoisPrecedent;
+}

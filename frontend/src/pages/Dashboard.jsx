@@ -102,26 +102,15 @@ export default function Dashboard() {
   );
   const totalEconomies = calculs.calculEconomies(totalRevenus, totalDepense);
 
-  // Différence économies mois précédent (démonstration)
+  // Différence économies mois précédent
   const differenceEconomiesMoisPrecedent = useMemo(() => {
-    const economieMoisActuel = calculs.calculEconomies(
+    return calculs.calculDifferenceEconomiesMoisPrecedent(
+      depenseRevenu,
+      paiementsRecurrents,
+      paiementsEchelonnes,
       totalRevenus,
       totalDepense
     );
-    const economieMoisPrecedent = calculs.calculEconomies(
-      calculs.calculRevenusMoisPrecedent(
-        depenseRevenu,
-        paiementsRecurrents,
-        paiementsEchelonnes
-      ),
-      calculs.calculTotalDepensesMois(
-        depenseRevenu,
-        paiementsRecurrents,
-        paiementsEchelonnes,
-        new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
-      )
-    );
-    return economieMoisActuel - economieMoisPrecedent;
   }, [
     depenseRevenu,
     paiementsRecurrents,
