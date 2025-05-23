@@ -361,7 +361,7 @@ export default function Dashboard() {
             {paiementsRecurrentsTries.slice(0, 3).map((item) => (
               <div
                 key={item.id}
-                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-white'>
+                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 dark:bg-black dark:text-white'>
                 <div className='flex items-center gap-3'>
                   <span className='bg-blue-100 text-blue-600 rounded-full p-2'>
                     <AiOutlineCalendar />
@@ -395,7 +395,7 @@ export default function Dashboard() {
             {paiementsEchelonnesTries.slice(0, 3).map((item) => (
               <div
                 key={item.id}
-                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-white'>
+                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 dark:bg-black dark:text-white'>
                 <div className='flex items-center gap-3'>
                   <span className='bg-green-100 text-green-600 rounded-full p-2'>
                     <AiOutlineCreditCard />
