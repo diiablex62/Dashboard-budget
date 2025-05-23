@@ -24,8 +24,8 @@ export default function Sidebar() {
 
   return (
     <div className='w-72 h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md'>
-      <h2 className='text-3xl font-bold p-8 border-b border-gray-200 dark:border-gray-800'>
-        Gestion de budget
+      <h2 className='text-3xl font-bold p-8 border-b border-gray-200 dark:border-gray-800 uppercase text-center'>
+        Futurio
       </h2>
       <nav className='flex-1'>
         <ul className='space-y-4'>
