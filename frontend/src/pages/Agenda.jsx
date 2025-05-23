@@ -130,35 +130,39 @@ export default function Agenda() {
   };
 
   return (
-    <div className='bg-[#f8fafc] min-h-screen p-8'>
+    <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div className='max-w-7xl mx-auto flex gap-8'>
         {/* Partie gauche : calendrier */}
-        <div className='w-3/5 bg-white rounded-2xl shadow border border-[#ececec] p-8'>
+        <div className='w-3/5 bg-white rounded-2xl shadow border border-[#ececec] p-8 dark:bg-black dark:text-white dark:border-gray-800'>
           <div className='mb-2'>
-            <h1 className='text-2xl font-bold text-gray-900'>Mon agenda</h1>
-            <div className='text-gray-500 text-base'>
+            <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+              Mon agenda
+            </h1>
+            <div className='text-gray-500 text-base dark:text-gray-300'>
               Visualisez vos paiements
             </div>
           </div>
           <div className='flex items-center justify-end mb-4'>
-            <button className='flex items-center gap-2 border rounded px-3 py-1 text-gray-700 bg-white shadow-sm cursor-pointer'>
+            <button className='flex items-center gap-2 border rounded px-3 py-1 text-gray-700 bg-white shadow-sm cursor-pointer dark:bg-gray-900 dark:text-white dark:border-gray-700'>
               <AiOutlineCalendar className='text-lg' />
               {getMonthYear(currentDate)}
             </button>
             <button
               onClick={handlePrevMonth}
-              className='ml-2 text-gray-400 hover:text-gray-700 text-xl cursor-pointer'>
+              className='ml-2 text-gray-400 hover:text-gray-700 text-xl cursor-pointer dark:text-gray-500 dark:hover:text-white'>
               &#8592;
             </button>
             <button
               onClick={handleNextMonth}
-              className='ml-1 text-gray-400 hover:text-gray-700 text-xl cursor-pointer'>
+              className='ml-1 text-gray-400 hover:text-gray-700 text-xl cursor-pointer dark:text-gray-500 dark:hover:text-white'>
               &#8594;
             </button>
           </div>
           <div className='grid grid-cols-7 gap-y-2 mb-4'>
             {DAYS.map((day) => (
-              <div key={day} className='text-center text-gray-500 font-medium'>
+              <div
+                key={day}
+                className='text-center text-gray-500 font-medium dark:text-gray-400'>
                 {day}
               </div>
             ))}
@@ -170,15 +174,15 @@ export default function Agenda() {
                     key={i + "-" + j}
                     className={`h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-all ${
                       currentDay === selectedDay
-                        ? "bg-teal-100"
-                        : "hover:bg-gray-100"
+                        ? "bg-teal-100 dark:bg-gray-800"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-900"
                     }`}
                     onClick={() => currentDay && setSelectedDay(currentDay)}>
                     <span
                       className={`text-lg ${
                         currentDay === selectedDay
-                          ? "font-bold text-gray-900"
-                          : "text-gray-700"
+                          ? "font-bold text-gray-900 dark:text-white"
+                          : "text-gray-700 dark:text-gray-300"
                       }`}>
                       {currentDay || ""}
                     </span>
@@ -291,8 +295,8 @@ export default function Agenda() {
           </div>
         </div>
         {/* Partie droite : événements du mois */}
-        <div className='w-2/5 flex flex-col bg-white rounded-2xl shadow border border-[#ececec] p-8'>
-          <h2 className='text-xl font-bold mb-8'>
+        <div className='w-2/5 flex flex-col bg-white rounded-2xl shadow border border-[#ececec] p-8 dark:bg-black dark:text-white dark:border-gray-800'>
+          <h2 className='text-xl font-bold mb-8 dark:text-white'>
             Événements de {getMonthYear(currentDate)}
           </h2>
           {console.log(

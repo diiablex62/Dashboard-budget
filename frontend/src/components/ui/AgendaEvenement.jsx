@@ -139,8 +139,10 @@ export default function AgendaEvenement({
         return (
           <div
             key={cat.key}
-            className={`border rounded-xl p-4 flex flex-col items-start transition-all duration-150 ${
-              isSelected ? `border-2 ${borderColor} bg-gray-50` : ""
+            className={`border rounded-2xl p-4 flex flex-col items-start transition-all duration-150 bg-white border-[#ececec] dark:bg-black dark:border-gray-800 ${
+              isSelected
+                ? `border-2 ${borderColor} bg-gray-50 dark:bg-gray-900`
+                : ""
             }`}>
             <div className='flex items-center mb-2'>
               <span className={`w-3 h-3 rounded-full ${cat.color} mr-2`}></span>
@@ -160,7 +162,7 @@ export default function AgendaEvenement({
                 Aucun {cat.label.toLowerCase()} ce mois-ci
               </span>
             ) : (
-              <ul className='text-sm text-gray-700 space-y-1'>
+              <ul className='text-sm text-gray-700 space-y-1 dark:text-gray-200'>
                 {events.map((e) => {
                   let isEventSelected = false;
                   if (isSelected && selectionEvenement) {
@@ -193,7 +195,11 @@ export default function AgendaEvenement({
                   return (
                     <li
                       key={e.id || e.nom}
-                      className={isEventSelected ? "font-bold text-black" : ""}
+                      className={
+                        isEventSelected
+                          ? "font-bold text-black dark:text-white"
+                          : ""
+                      }
                       style={{ display: "flex", alignItems: "center" }}>
                       <span className='overflow-hidden text-ellipsis whitespace-nowrap max-w-[120px] block'>
                         {e.nom || e.categorie}
