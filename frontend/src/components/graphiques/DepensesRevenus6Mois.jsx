@@ -16,7 +16,7 @@ export default function DepensesRevenus6Mois({ data }) {
   });
 
   return (
-    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 relative'>
+    <div className='flex-1 flex flex-col items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400'>
       <ResponsiveContainer width='100%' height={200}>
         <BarChart
           data={data}
@@ -29,6 +29,9 @@ export default function DepensesRevenus6Mois({ data }) {
             fill='#EF4444'
             name='Dépenses'
             barSize={24}
+            opacity={
+              barHover.type === null || barHover.type === "depenses" ? 1 : 0.5
+            }
             onMouseOver={(_, idx) => {
               const d = data[idx];
               setBarHover({
@@ -46,6 +49,9 @@ export default function DepensesRevenus6Mois({ data }) {
             fill='#22C55E'
             name='Revenus'
             barSize={24}
+            opacity={
+              barHover.type === null || barHover.type === "revenus" ? 1 : 0.5
+            }
             onMouseOver={(_, idx) => {
               const d = data[idx];
               setBarHover({
@@ -61,20 +67,22 @@ export default function DepensesRevenus6Mois({ data }) {
         </BarChart>
       </ResponsiveContainer>
       {barHover.mois && (
-        <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg'>
-          <span
-            className='w-3 h-3 rounded-full'
-            style={{
-              backgroundColor:
-                barHover.type === "depenses" ? "#EF4444" : "#22C55E",
-            }}
-          />
-          <span className='font-semibold text-gray-700'>
-            {barHover.value.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €
-          </span>
+        <div className='w-full flex justify-center mt-2'>
+          <div className='flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg'>
+            <span
+              className='w-3 h-3 rounded-full'
+              style={{
+                backgroundColor:
+                  barHover.type === "depenses" ? "#EF4444" : "#22C55E",
+              }}
+            />
+            <span className='font-semibold text-gray-700'>
+              {barHover.value.toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+              })}{" "}
+              €
+            </span>
+          </div>
         </div>
       )}
     </div>
