@@ -778,33 +778,31 @@ export default function DepensesRevenus() {
         </div>
 
         {/* Switch Dépenses/Revenus */}
-        <div className='flex justify-center mb-6'>
-          <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1'>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "depense"
-                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1] dark:bg-black dark:text-white dark:border-gray-700"
-                  : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("depense")}
-              type='button'>
-              Dépenses
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "revenu"
-                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1] dark:bg-black dark:text-white dark:border-gray-700"
-                  : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("revenu")}
-              type='button'>
-              Revenus
-            </button>
-          </div>
+        <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "depense"
+                ? "bg-[#222] text-white shadow font-semibold border border-gray-200 dark:bg-black dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("depense")}
+            type='button'>
+            Dépenses
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "revenu"
+                ? "bg-[#222] text-white shadow font-semibold border border-gray-200 dark:bg-black dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("revenu")}
+            type='button'>
+            Revenus
+          </button>
         </div>
 
         {/* Affichage des dépenses & revenus */}
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-8 mt-2'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-8 mt-2 '>
           <div className='flex items-center justify-between mb-6'>
             <div>
               <div className='text-2xl font-bold text-[#222] dark:text-white'>
@@ -825,7 +823,7 @@ export default function DepensesRevenus() {
                   currentTab === "depense" ? handleAddDepense : handleAddRevenu
                 }>
                 <span className='text-lg font-bold'>+</span>
-                <span>Ajouter</span>
+                <span className='cursor-pointer'>Ajouter</span>
               </button>
             </div>
           </div>
