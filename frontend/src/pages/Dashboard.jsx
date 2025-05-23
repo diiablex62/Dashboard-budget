@@ -153,14 +153,16 @@ export default function Dashboard() {
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Total dépensé en {moisEnCours}
             </span>
             <AiOutlineDollarCircle className='text-red-600 text-xl' />
           </div>
-          <div className='text-2xl font-bold'>{totalDepense.toFixed(2)}€</div>
+          <div className='text-2xl font-bold dark:text-white'>
+            {totalDepense.toFixed(2)}€
+          </div>
           <div className='text-xs text-gray-400'>
             {differenceMoisPrecedent >= 0 ? "+" : "-"}{" "}
             {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
@@ -219,47 +221,49 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Paiements récurrents
             </span>
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
-          <div className='text-2xl font-bold'>
+          <div className='text-2xl font-bold dark:text-white'>
             {totalRecurrents.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
-            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
+            className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/recurrents")}>
             Gérer →
           </button>
         </div>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow-lg p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Paiements échelonnés
             </span>
-            <AiOutlineCreditCard className='text-green-600 text-xl' />
+            <AiOutlineCreditCard className='text-green-600 text-xl dark:text-white' />
           </div>
-          <div className='text-2xl font-bold'>
+          <div className='text-2xl font-bold dark:text-white'>
             {totalEchelonnes.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
-            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
+            className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/echelonnes")}>
             Gérer →
           </button>
         </div>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>Économies</span>
             <AiOutlineRise className='text-blue-600 text-xl' />
           </div>
-          <div className='text-2xl font-bold'>{totalEconomies.toFixed(2)}€</div>
-          <div className='text-xs text-gray-400'>
+          <div className='text-2xl font-bold dark:text-white'>
+            {totalEconomies.toFixed(2)}€
+          </div>
+          <div className='text-xs text-gray-400 dark:text-'>
             {differenceEconomiesMoisPrecedent >= 0 ? "+" : "-"}{" "}
             {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
               "fr-FR",
@@ -331,7 +335,7 @@ export default function Dashboard() {
 
       {/* Graphiques */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 dark:text-white  '>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 dark:text-white  '>
           <h2 className='text-lg font-semibold mb-4 text-center'>
             Dépenses du mois par catégorie
           </h2>
@@ -339,7 +343,7 @@ export default function Dashboard() {
             <DepensesParCategorieChart data={depensesParCategorie} />
           </div>
         </div>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 dark:text-white '>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 dark:text-white '>
           <h2 className='text-lg font-semibold mb-4 text-center'>
             Dépenses et revenus des 6 derniers mois
           </h2>
@@ -351,13 +355,13 @@ export default function Dashboard() {
 
       {/* Listes du bas */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col'>
           <div className='font-semibold mb-4'>Paiements récurrents récents</div>
           <div className='flex flex-col gap-2 mb-4'>
             {paiementsRecurrentsTries.slice(0, 3).map((item) => (
               <div
                 key={item.id}
-                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2'>
+                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-white'>
                 <div className='flex items-center gap-3'>
                   <span className='bg-blue-100 text-blue-600 rounded-full p-2'>
                     <AiOutlineCalendar />
@@ -380,18 +384,18 @@ export default function Dashboard() {
             ))}
           </div>
           <button
-            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
+            className='w-full border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/recurrents")}>
             Voir tous les paiements récurrents
           </button>
         </div>
-        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col'>
           <div className='font-semibold mb-4'>Paiements échelonnés récents</div>
           <div className='flex flex-col gap-2 mb-4'>
             {paiementsEchelonnesTries.slice(0, 3).map((item) => (
               <div
                 key={item.id}
-                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2'>
+                className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 dark:bg-gray-800 dark:text-white'>
                 <div className='flex items-center gap-3'>
                   <span className='bg-green-100 text-green-600 rounded-full p-2'>
                     <AiOutlineCreditCard />
@@ -413,7 +417,7 @@ export default function Dashboard() {
             ))}
           </div>
           <button
-            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
+            className='w-full border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/echelonnes")}>
             Voir tous les paiements échelonnés
           </button>
