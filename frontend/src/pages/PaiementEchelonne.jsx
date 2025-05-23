@@ -255,7 +255,7 @@ const PaiementEchelonne = () => {
                   setStep(1);
                 }}>
                 <span className='text-lg font-bold'>+</span>
-                <span>Ajouter un paiement échelonné</span>
+                <span>Ajouter</span>
               </button>
             </div>
           </div>
