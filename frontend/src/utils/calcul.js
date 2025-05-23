@@ -64,7 +64,7 @@ export function calculTotalRecurrentsMois(
         new Date(p.date).getFullYear() === date.getFullYear() &&
         new Date(p.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
 }
 
 // total calcul paiements échelonnés du mois : [calculTotalEchelonnesMois]
@@ -84,7 +84,7 @@ export function calculTotalEchelonnesMois(
       const moisFin = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
       if (moisActuel <= finDate && moisFin >= debutDate) {
-        return acc + parseFloat(e.montant) / parseInt(e.mensualites);
+        return acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites);
       }
       return acc;
     }, 0);
@@ -105,7 +105,7 @@ export function calculDepensesParCategorie(depenseRevenu, CATEGORY_PALETTE) {
   const categories = {};
   depenses.forEach((t) => {
     if (!categories[t.categorie]) categories[t.categorie] = 0;
-    categories[t.categorie] += parseFloat(t.montant);
+    categories[t.categorie] += Math.abs(parseFloat(t.montant));
   });
   const total = Object.values(categories).reduce((a, b) => a + b, 0);
   return Object.entries(categories).map(([cat, value]) => ({
@@ -140,7 +140,7 @@ export function calculBarChartData(
           new Date(t.date).getFullYear() === year &&
           new Date(t.date).getMonth() === month
       )
-      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+      .reduce((acc, t) => acc + Math.abs(parseFloat(t.montant)), 0);
     const recurrentsMois = paiementsRecurrents
       .filter(
         (p) =>
@@ -148,7 +148,7 @@ export function calculBarChartData(
           new Date(p.date).getFullYear() === year &&
           new Date(p.date).getMonth() === month
       )
-      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+      .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
     const echelonnesMois = paiementsEchelonnes
       .filter((e) => e.type === "depense")
       .reduce((acc, e) => {
@@ -164,7 +164,7 @@ export function calculBarChartData(
         const start = debutYear * 12 + debutMonth;
         const end = finYear * 12 + finMonth;
         if (current >= start && current <= end) {
-          return acc + parseFloat(e.montant) / nbMensualites;
+          return acc + Math.abs(parseFloat(e.montant)) / nbMensualites;
         }
         return acc;
       }, 0);
@@ -198,7 +198,7 @@ export function totalDepensesMois(depenseRevenu, date = new Date()) {
         new Date(t.date).getFullYear() === date.getFullYear() &&
         new Date(t.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+    .reduce((acc, t) => acc + Math.abs(parseFloat(t.montant)), 0);
 }
 
 // total des revenus (depense&revenu uniquement) pour un mois donné : [totalRevenusMois]
@@ -221,7 +221,7 @@ export function totalRecurrentsMois(paiementsRecurrents, date = new Date()) {
         new Date(p.date).getFullYear() === date.getFullYear() &&
         new Date(p.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
 }
 
 // total des paiements échelonnés pour un mois donné (mensualité due) : [totalEchelonnesMois]
@@ -235,7 +235,7 @@ export function totalEchelonnesMois(paiementsEchelonnes, date = new Date()) {
     const start = debutDate.getFullYear() * 12 + debutDate.getMonth();
     const end = finDate.getFullYear() * 12 + finDate.getMonth();
     if (current >= start && current <= end) {
-      return acc + parseFloat(e.montant) / nbMensualites;
+      return acc + Math.abs(parseFloat(e.montant)) / nbMensualites;
     }
     return acc;
   }, 0);
