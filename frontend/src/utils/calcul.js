@@ -20,7 +20,7 @@ export function calculTotalDepensesMois(
         new Date(t.date).getFullYear() === date.getFullYear() &&
         new Date(t.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+    .reduce((acc, t) => acc + Math.abs(parseFloat(t.montant)), 0);
 
   // Paiements récurrents du mois
   const recurrentsMois = paiementsRecurrents
@@ -30,7 +30,7 @@ export function calculTotalDepensesMois(
         new Date(p.date).getFullYear() === date.getFullYear() &&
         new Date(p.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
 
   // Paiements échelonnés du mois
   const echelonnesMois = paiementsEchelonnes
@@ -44,7 +44,7 @@ export function calculTotalDepensesMois(
       const moisFin = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
       if (moisActuel <= finDate && moisFin >= debutDate) {
-        return acc + parseFloat(e.montant) / parseInt(e.mensualites);
+        return acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites);
       }
       return acc;
     }, 0);

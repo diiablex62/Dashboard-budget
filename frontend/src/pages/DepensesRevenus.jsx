@@ -29,13 +29,13 @@ import { fakeTransactions } from "../utils/fakeData";
 // Importation des nouvelles fonctions utilitaires
 import {
   formatDate,
-  DEFAULT_CATEGORIES, // Ces catégories proviennent maintenant du fichier categoryUtils.js
+  DEFAULT_CATEGORIES,
   getAllDepenses,
   getAllRevenus,
   addOrUpdateDepense,
   addOrUpdateRevenu,
-  deleteTransaction,
-} from "../utils/transactionUtils";
+  deleteDepenseRevenu,
+} from "../utils/depenseRevenuUtils";
 
 import {
   calculTotalDepensesMois,
@@ -586,37 +586,37 @@ function DepenseModal({
 export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [transactions, setTransactions] = useState(fakeTransactions);
+  const [depenseRevenu, setDepenseRevenu] = useState(fakeTransactions);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [showDepenseModal, setShowDepenseModal] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [selectedDepenseRevenu, setSelectedDepenseRevenu] = useState(null);
 
-  const fetchTransactions = useCallback(() => {
-    setTransactions(fakeTransactions);
+  const fetchDepenseRevenu = useCallback(() => {
+    setDepenseRevenu(fakeTransactions);
   }, []);
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    fetchDepenseRevenu();
+  }, [fetchDepenseRevenu]);
 
   useEffect(() => {
-    const handleDataUpdate = () => fetchTransactions();
+    const handleDataUpdate = () => fetchDepenseRevenu();
     window.addEventListener("data-updated", handleDataUpdate);
     return () => window.removeEventListener("data-updated", handleDataUpdate);
-  }, [fetchTransactions]);
+  }, [fetchDepenseRevenu]);
 
   const handleAddRevenu = useCallback(() => {
-    setSelectedTransaction(null);
+    setSelectedDepenseRevenu(null);
     setShowRevenuModal(true);
   }, []);
 
   const handleAddDepense = useCallback(() => {
-    setSelectedTransaction(null);
+    setSelectedDepenseRevenu(null);
     setShowDepenseModal(true);
   }, []);
 
   const handleSaveRevenu = useCallback(async (revenu) => {
-    setTransactions((prev) => {
+    setDepenseRevenu((prev) => {
       if (revenu.id) {
         // Edition locale
         return prev.map((t) => (t.id === revenu.id ? { ...revenu } : t));
@@ -628,7 +628,7 @@ export default function DepensesRevenus() {
   }, []);
 
   const handleSaveDepense = useCallback(async (depense) => {
-    setTransactions((prev) => {
+    setDepenseRevenu((prev) => {
       if (depense.id) {
         // Edition locale
         return prev.map((t) => (t.id === depense.id ? { ...depense } : t));
@@ -639,8 +639,8 @@ export default function DepensesRevenus() {
     });
   }, []);
 
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter((t) => {
+  const filteredDepenseRevenu = useMemo(() => {
+    return depenseRevenu.filter((t) => {
       const d = new Date(t.date);
       return (
         t.type === currentTab &&
@@ -648,15 +648,15 @@ export default function DepensesRevenus() {
         d.getFullYear() === currentDate.getFullYear()
       );
     });
-  }, [transactions, currentTab, currentDate]);
+  }, [depenseRevenu, currentTab, currentDate]);
 
   const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(transactions, [], [], currentDate),
-    [transactions, currentDate]
+    () => calculTotalDepensesMois(depenseRevenu, [], [], currentDate),
+    [depenseRevenu, currentDate]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(transactions, [], [], currentDate),
-    [transactions, currentDate]
+    () => totalRevenusGlobalMois(depenseRevenu, [], [], currentDate),
+    [depenseRevenu, currentDate]
   );
   const solde = useMemo(
     () => calculEconomies(totalRevenus, totalDepenses),
@@ -828,7 +828,7 @@ export default function DepensesRevenus() {
             </div>
           </div>
 
-          {filteredTransactions.length === 0 ? (
+          {filteredDepenseRevenu.length === 0 ? (
             <div className='text-center py-10 text-gray-500'>
               <p>
                 Aucune {currentTab === "depense" ? "dépense" : "revenu"} pour{" "}
@@ -837,7 +837,7 @@ export default function DepensesRevenus() {
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
-              {filteredTransactions.map((transaction, idx) => (
+              {filteredDepenseRevenu.map((transaction, idx) => (
                 <div
                   key={transaction.id || idx}
                   className='bg-white rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200'>
@@ -885,7 +885,7 @@ export default function DepensesRevenus() {
         <RevenuModal
           onClose={() => setShowRevenuModal(false)}
           onSave={handleSaveRevenu}
-          revenu={selectedTransaction}
+          revenu={selectedDepenseRevenu}
           categories={REVENUS_CATEGORIES}
         />
       )}
@@ -893,7 +893,7 @@ export default function DepensesRevenus() {
         <DepenseModal
           onClose={() => setShowDepenseModal(false)}
           onSave={handleSaveDepense}
-          depense={selectedTransaction || {}}
+          depense={selectedDepenseRevenu || {}}
           categories={DEPENSES_CATEGORIES}
         />
       )}

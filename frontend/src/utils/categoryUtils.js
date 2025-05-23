@@ -84,9 +84,9 @@ export const MONTHS = [
 ];
 
 /**
- * Catégories globales pour toutes les transactions (dépenses + revenus)
+ * Catégories globales pour toutes les dépenses et revenus
  */
-export const TRANSACTION_CATEGORIES = uniqueArray([
+export const DEPENSE_REVENU_CATEGORIES = uniqueArray([
   ...DEPENSES_CATEGORIES,
   ...REVENUS_CATEGORIES,
 ]);
