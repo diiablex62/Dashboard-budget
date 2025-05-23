@@ -782,8 +782,8 @@ export default function DepensesRevenus() {
           <button
             className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
               currentTab === "depense"
-                ? "bg-[#222] text-white shadow font-semibold border border-gray-200 dark:bg-black dark:border-gray-700"
-                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
+                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
             } cursor-pointer`}
             onClick={() => setCurrentTab("depense")}
             type='button'>
@@ -792,8 +792,8 @@ export default function DepensesRevenus() {
           <button
             className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
               currentTab === "revenu"
-                ? "bg-[#222] text-white shadow font-semibold border border-gray-200 dark:bg-black dark:border-gray-700"
-                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
+                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
             } cursor-pointer`}
             onClick={() => setCurrentTab("revenu")}
             type='button'>
@@ -818,7 +818,7 @@ export default function DepensesRevenus() {
             {/* Bouton Ajouter - toujours visible ici */}
             <div className='flex space-x-3'>
               <button
-                className='flex items-center gap-2 bg-white border border-gray-200 text-gray-800 hover:bg-gray-100 rounded-lg px-4 py-2 font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
+                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
                 onClick={
                   currentTab === "depense" ? handleAddDepense : handleAddRevenu
                 }>

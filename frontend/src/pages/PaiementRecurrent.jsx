@@ -132,23 +132,23 @@ const PaiementRecurrent = () => {
   }
 
   return (
-    <div className='bg-[#f8fafc] min-h-screen p-8'>
+    <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div className='max-w-6xl mx-auto'>
         {/* Titre */}
         <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-900'>
+          <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
             Paiements Récurrents
           </h1>
         </div>
         {/* Cartes de statistiques */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
           {/* Carte 1: Total Dépenses */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
             <div className='flex items-center text-red-600 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>Total Dépenses</span>
             </div>
-            <div className='text-2xl text-[#222]'>
+            <div className='text-2xl text-[#222] dark:text-white'>
               {totalDepenses.toLocaleString("fr-FR", {
                 minimumFractionDigits: 2,
               })}{" "}
@@ -156,12 +156,12 @@ const PaiementRecurrent = () => {
             </div>
           </div>
           {/* Carte 2: Total Revenus */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
             <div className='flex items-center text-green-600 mb-2'>
               <AiOutlineCalendar className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>Total Revenus</span>
             </div>
-            <div className='text-2xl text-[#222]'>
+            <div className='text-2xl text-[#222] dark:text-white'>
               {totalRevenus.toLocaleString("fr-FR", {
                 minimumFractionDigits: 2,
               })}{" "}
@@ -171,40 +171,38 @@ const PaiementRecurrent = () => {
           {/* Carte 3: Solde supprimée */}
         </div>
         {/* Switch Dépenses/Revenus */}
-        <div className='flex justify-center mb-6'>
-          <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1'>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "depense"
-                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
-                  : "bg-transparent text-[#7b849b] font-normal"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("depense")}
-              type='button'>
-              Dépenses
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "revenu"
-                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
-                  : "bg-transparent text-[#7b849b] font-normal"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("revenu")}
-              type='button'>
-              Revenus
-            </button>
-          </div>
+        <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "depense"
+                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("depense")}
+            type='button'>
+            Dépenses
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "revenu"
+                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("revenu")}
+            type='button'>
+            Revenus
+          </button>
         </div>
         {/* Affichage des paiements récurrents filtrés */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2 dark:bg-black dark:text-white dark:border-gray-700'>
           <div className='flex items-center justify-between mb-6'>
             <div>
-              <div className='text-2xl font-bold text-[#222]'>
+              <div className='text-2xl font-bold text-[#222] dark:text-white'>
                 {currentTab === "depense"
                   ? "Dépenses récurrentes"
                   : "Revenus récurrents"}
               </div>
-              <div className='text-sm text-gray-500 mt-1'>
+              <div className='text-sm text-gray-500 mt-1 dark:text-white'>
                 {currentTab === "depense" ? "Dépenses" : "Revenus"} récurrents
               </div>
             </div>
@@ -242,7 +240,7 @@ const PaiementRecurrent = () => {
               {paiementsFiltres.map((p) => (
                 <div
                   key={p.id}
-                  className='bg-white rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200'>
+                  className='bg-gray-50 rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200 dark:bg-black dark:text-white dark:border-gray-700'>
                   <div className='flex items-center justify-between'>
                     <div className='flex items-center'>
                       <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3'>
@@ -252,7 +250,7 @@ const PaiementRecurrent = () => {
                         <div className='font-semibold'>
                           {p.nom?.charAt(0).toUpperCase() + p.nom?.slice(1)}
                         </div>
-                        <div className='text-xs text-gray-500'>
+                        <div className='text-xs text-gray-500 dark:text-gray-300'>
                           {p.categorie} - {p.frequence}
                         </div>
                       </div>
@@ -261,8 +259,8 @@ const PaiementRecurrent = () => {
                       <div
                         className={`font-bold ${
                           currentTab === "depense"
-                            ? "text-red-600"
-                            : "text-green-600"
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-green-600 dark:text-green-400"
                         }`}>
                         {currentTab === "depense" ? "-" : "+"}
                         {parseFloat(p.montant).toLocaleString("fr-FR", {
@@ -270,12 +268,14 @@ const PaiementRecurrent = () => {
                         })}{" "}
                         €
                       </div>
-                      <div className='text-xs text-gray-400'>{p.date}</div>
+                      <div className='text-xs text-gray-400 dark:text-gray-300'>
+                        {p.date}
+                      </div>
                     </div>
                   </div>
                   <div className='flex justify-end mt-2'>
                     <button
-                      className='text-blue-600 font-medium hover:underline mr-4 cursor-pointer'
+                      className='text-blue-600 font-medium hover:underline mr-4 cursor-pointer dark:text-blue-400'
                       onClick={() => {
                         setNewPaiement(p);
                         setEditIndex(
@@ -289,7 +289,7 @@ const PaiementRecurrent = () => {
                       Modifier
                     </button>
                     <button
-                      className='text-red-500 font-medium hover:underline cursor-pointer'
+                      className='text-red-500 font-medium hover:underline cursor-pointer dark:text-red-400'
                       onClick={() => handleDelete(p.id)}>
                       Supprimer
                     </button>

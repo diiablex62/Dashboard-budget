@@ -199,29 +199,27 @@ const PaiementEchelonne = () => {
         </div>
 
         {/* Switch Dépenses/Revenus */}
-        <div className='flex justify-center mb-6'>
-          <div className='flex w-full max-w-xl bg-[#f3f6fa] dark:bg-black rounded-xl p-1'>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                !isRevenus
-                  ? "bg-white dark:bg-black text-[#111827] dark:text-white shadow font-semibold border border-[#e5eaf1] dark:border-gray-800 cursor-pointer"
-                  : "bg-transparent text-[#7b849b] dark:text-gray-400 font-normal cursor-pointer"
-              }`}
-              onClick={() => setIsRevenus(false)}
-              type='button'>
-              Dépenses
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                isRevenus
-                  ? "bg-white dark:bg-black text-[#111827] dark:text-white shadow font-semibold border border-[#e5eaf1] dark:border-gray-800 cursor-pointer"
-                  : "bg-transparent text-[#7b849b] dark:text-gray-400 font-normal cursor-pointer"
-              }`}
-              onClick={() => setIsRevenus(true)}
-              type='button'>
-              Revenus
-            </button>
-          </div>
+        <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              !isRevenus
+                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+            } cursor-pointer`}
+            onClick={() => setIsRevenus(false)}
+            type='button'>
+            Dépenses
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              isRevenus
+                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+            } cursor-pointer`}
+            onClick={() => setIsRevenus(true)}
+            type='button'>
+            Revenus
+          </button>
         </div>
 
         {/* Affichage des paiements échelonnés */}
