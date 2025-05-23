@@ -34,7 +34,7 @@ export default function NotificationBell() {
     <div className='relative'>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className='relative p-2 text-gray-600 hover:text-gray-800 focus:outline-none'>
+        className='relative p-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white focus:outline-none'>
         <svg
           className='w-6 h-6'
           fill='none'
@@ -55,23 +55,23 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className='absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg overflow-hidden z-50'>
-          <div className='p-4 border-b'>
-            <h3 className='text-lg font-semibold text-gray-900'>
+        <div className='absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden z-50 border border-gray-200 dark:border-gray-700'>
+          <div className='p-4 border-b dark:border-gray-700'>
+            <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
               Notifications
             </h3>
           </div>
           <div className='max-h-96 overflow-y-auto'>
             {notifications.length === 0 ? (
-              <div className='p-4 text-center text-gray-500'>
+              <div className='p-4 text-center text-gray-500 dark:text-gray-400'>
                 Aucune notification
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                    !notification.read ? "bg-blue-50" : ""
+                  className={`p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
+                    !notification.read ? "bg-blue-50 dark:bg-blue-900/30" : ""
                   }`}
                   onClick={() => {
                     // Marquer comme lu et naviguer si nécessaire
@@ -79,10 +79,10 @@ export default function NotificationBell() {
                       navigate(notification.link);
                     }
                   }}>
-                  <p className='text-sm text-gray-900'>
+                  <p className='text-sm text-gray-900 dark:text-white'>
                     {notification.message}
                   </p>
-                  <p className='text-xs text-gray-500 mt-1'>
+                  <p className='text-xs text-gray-500 mt-1 dark:text-gray-400'>
                     {new Date(notification.createdAt).toLocaleString()}
                   </p>
                 </div>

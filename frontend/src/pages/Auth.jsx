@@ -8,7 +8,7 @@ import GitHub from "../components/icones/GitHub";
 import { sendMagicLink } from "../email/login";
 
 export default function Auth() {
-  const { setIsLoggedIn, primaryColor } = useContext(AppContext);
+  const { primaryColor } = useContext(AppContext);
   const {
     loginWithGoogle,
     loginWithGithub,
@@ -45,7 +45,6 @@ export default function Auth() {
 
           if (result.success) {
             console.log("Authentification par email réussie !");
-            setIsLoggedIn(true);
             navigate("/");
           } else {
             console.error("Échec de la validation du token:", result.error);
@@ -64,7 +63,7 @@ export default function Auth() {
     };
 
     checkUrlToken();
-  }, [confirmEmailLogin, navigate, setIsLoggedIn]);
+  }, [confirmEmailLogin, navigate]);
 
   // Appliquez immédiatement la couleur primaire au DOM avant le rendu
   useEffect(() => {

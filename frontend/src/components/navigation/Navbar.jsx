@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { AppContext } from "../../context/AppContext";
@@ -20,38 +20,14 @@ const ROUTE_TITLES = {
 };
 
 export default function Navbar() {
-  const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
-    useContext(AppContext);
-  const { user, logout, reloadUser } = useAuth();
+  const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
+  const { user, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const searchRef = useRef(null);
 
   // Détermination du titre courant
   const currentTitle = ROUTE_TITLES[location.pathname] || "";
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSearchResults(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -59,30 +35,6 @@ export default function Navbar() {
       navigate("/auth");
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
-    }
-  };
-
-  const handleSearch = async (e) => {
-    const value = e.target.value;
-    setSearchText(value);
-    setIsSearching(true);
-
-    if (value.trim() === "") {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      setIsSearching(false);
-      return;
-    }
-
-    try {
-      // Ici, vous devrez implémenter la recherche avec votre backend
-      // Pour l'instant, nous retournons un tableau vide
-      setSearchResults([]);
-      setShowSearchResults(true);
-    } catch (error) {
-      console.error("Erreur lors de la recherche:", error);
-    } finally {
-      setIsSearching(false);
     }
   };
 
@@ -116,7 +68,7 @@ export default function Navbar() {
               </button>
             </div>
 
-            {isLoggedIn && (
+            {user && (
               <>
                 <div className='ml-4 flex items-center'>
                   <NotificationBell />

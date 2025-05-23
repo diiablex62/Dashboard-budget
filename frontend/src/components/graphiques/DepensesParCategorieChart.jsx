@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import AnimationDepensesParCategorieChart from "./AnimationDepensesParCategorieChart";
 
 export default function DepensesParCategorieChart({ data }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(null);
 
   // Trier les données par montant décroissant
   const sortedData = [...data].sort((a, b) => b.value - a.value);
@@ -27,10 +27,10 @@ export default function DepensesParCategorieChart({ data }) {
 
   // Calculer le total pour les pourcentages
   const total = sortedData.reduce((sum, item) => sum + item.value, 0);
-  const activePercentage = (
-    (sortedData[activeIndex]?.value / total) *
-    100
-  ).toFixed(1);
+  const activePercentage =
+    activeIndex !== null && sortedData[activeIndex]
+      ? ((sortedData[activeIndex].value / total) * 100).toFixed(1)
+      : null;
 
   return (
     <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 bg-white dark:bg-black '>
@@ -59,11 +59,13 @@ export default function DepensesParCategorieChart({ data }) {
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center'>
-            <span className='text-2xl font-bold text-gray-700 dark:text-white'>
-              {activePercentage}%
-            </span>
-          </div>
+          {activePercentage && (
+            <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center'>
+              <span className='text-2xl font-bold text-gray-700 dark:text-white'>
+                {activePercentage}%
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Liste des catégories à droite */}

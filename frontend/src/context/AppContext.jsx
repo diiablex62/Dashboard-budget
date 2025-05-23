@@ -7,36 +7,8 @@ export function AppProvider({ children }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [sidebarType, setSidebarType] = useState("white");
   const [primaryColor, setPrimaryColor] = useState("#007BFF");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté via le localStorage
-    const checkAuthStatus = async () => {
-      const savedUser = localStorage.getItem("authUser");
-      if (savedUser) {
-        const userData = JSON.parse(savedUser);
-        try {
-          // Vérifier si l'utilisateur existe toujours dans la base de données
-          const user = await userApi.getByEmail(userData.email);
-          if (user) {
-            setIsLoggedIn(true);
-          } else {
-            setIsLoggedIn(false);
-            localStorage.removeItem("authUser");
-          }
-        } catch (error) {
-          console.error(
-            "Erreur lors de la vérification de l'authentification:",
-            error
-          );
-          setIsLoggedIn(false);
-          localStorage.removeItem("authUser");
-        }
-      }
-    };
-
-    checkAuthStatus();
-
     // Appliquer la couleur stockée dans le localStorage
     const savedColor = localStorage.getItem("primaryColor");
     if (savedColor) {
@@ -119,8 +91,6 @@ export function AppProvider({ children }) {
         setSidebarType,
         primaryColor,
         setPrimaryColor,
-        isLoggedIn,
-        setIsLoggedIn,
       }}>
       {children}
     </AppContext.Provider>
