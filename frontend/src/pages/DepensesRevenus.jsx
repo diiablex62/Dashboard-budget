@@ -655,7 +655,7 @@ export default function DepensesRevenus() {
     [transactions, currentDate]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(transactions, [], currentDate),
+    () => totalRevenusGlobalMois(transactions, [], [], currentDate),
     [transactions, currentDate]
   );
   const solde = useMemo(
