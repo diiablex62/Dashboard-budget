@@ -41,8 +41,6 @@ import {
   calculEconomies,
 } from "../utils/calcul";
 
-import DepenseRevenuChart from "../components/graphiques/DepenseRevenuChart";
-
 function RevenuModal({
   onClose,
   onSave,

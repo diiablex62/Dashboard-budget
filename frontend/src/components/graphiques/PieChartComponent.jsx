@@ -3,73 +3,97 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import RenderActiveShape from "./RenderActiveShape";
 
 export default function PieChartComponent({ data }) {
-  const [activeIndex, setActiveIndex] = useState(null);
-  const onPieEnter = (_, index) => setActiveIndex(index);
-  const onPieLeave = () => setActiveIndex(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Trier les données par montant décroissant
+  const sortedData = [...data].sort((a, b) => b.value - a.value);
+
+  const onPieEnter = (_, index) => {
+    setActiveIndex(index);
+  };
+
+  const COLORS = [
+    "#FF6B6B",
+    "#4ECDC4",
+    "#45B7D1",
+    "#96CEB4",
+    "#FFEEAD",
+    "#D4A5A5",
+    "#9B59B6",
+    "#3498DB",
+    "#E67E22",
+    "#2ECC71",
+  ];
+
+  // Calculer le total pour les pourcentages
+  const total = sortedData.reduce((sum, item) => sum + item.value, 0);
+  const activePercentage = (
+    (sortedData[activeIndex]?.value / total) *
+    100
+  ).toFixed(1);
 
   return (
-    <div className='flex-1 flex flex-col items-center justify-center min-h-[340px] bg-gray-50 rounded-lg text-gray-400'>
-      <ResponsiveContainer width='100%' height={300}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx='50%'
-            cy='50%'
-            innerRadius={60}
-            outerRadius={90}
-            dataKey='value'
-            activeIndex={activeIndex}
-            activeShape={activeIndex !== null ? RenderActiveShape : undefined}
-            onMouseEnter={onPieEnter}
-            onMouseLeave={onPieLeave}
-            onMouseOut={onPieLeave}
-            paddingAngle={2}
-            labelLine={false}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          {activeIndex !== null && (
-            <text
-              x='50%'
-              y='50%'
-              textAnchor='middle'
-              dominantBaseline='central'
-              fill='#222'
-              fontSize={24}
-              fontWeight={700}
-              style={{ fontFamily: "inherit" }}>
-              {data[activeIndex].percent}%
-            </text>
-          )}
-        </PieChart>
-      </ResponsiveContainer>
-      {activeIndex !== null && data[activeIndex] ? (
-        <div className='flex items-center gap-2 min-h-[24px]'>
-          <span
-            style={{
-              display: "inline-block",
-              width: 16,
-              height: 16,
-              borderRadius: "50%",
-              background: data[activeIndex].color,
-            }}
-          />
-          <span
-            className='font-semibold'
-            style={{ color: data[activeIndex].color }}>
-            {data[activeIndex].name}
-          </span>
-          <span className='text-gray-500'>
-            {data[activeIndex].value.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €
-          </span>
+    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400'>
+      <div className='flex w-full h-full'>
+        {/* Graphique à gauche */}
+        <div className='w-1/2 h-full flex items-center justify-center relative'>
+          <ResponsiveContainer width='100%' height={200}>
+            <PieChart>
+              <Pie
+                activeIndex={activeIndex}
+                activeShape={RenderActiveShape}
+                data={sortedData}
+                cx='50%'
+                cy='50%'
+                innerRadius={60}
+                outerRadius={80}
+                fill='#8884d8'
+                dataKey='value'
+                onMouseEnter={onPieEnter}>
+                {sortedData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center'>
+            <span className='text-2xl font-bold text-gray-700'>
+              {activePercentage}%
+            </span>
+          </div>
         </div>
-      ) : (
-        <div className='min-h-[24px]'></div>
-      )}
+
+        {/* Liste des catégories à droite */}
+        <div className='w-1/2 h-full p-4 overflow-y-auto'>
+          <div className='space-y-2'>
+            {sortedData.map((item, index) => (
+              <div
+                key={item.name}
+                className='flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer'
+                onMouseEnter={() => setActiveIndex(index)}>
+                <div className='flex items-center gap-2'>
+                  <div
+                    className='w-3 h-3 rounded-full'
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  />
+                  <span className='text-sm font-medium text-gray-700'>
+                    {item.name}
+                  </span>
+                </div>
+                <span className='text-sm text-gray-600'>
+                  {item.value.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

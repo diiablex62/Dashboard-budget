@@ -8,31 +8,12 @@ import {
   AiOutlineInfoCircle,
 } from "react-icons/ai";
 import { FaCalendarAlt } from "react-icons/fa";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Bar,
-  Sector,
-  LineChart,
-  Line,
-} from "recharts";
 import CATEGORY_PALETTE from "../styles/categoryPalette";
 import {
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
   fakeDepenseRevenu,
 } from "../utils/fakeData";
-import CustomBarTooltip from "../components/graphiques/CustomBarTooltip";
-import CustomSingleBarTooltip from "../components/graphiques/CustomSingleBarTooltip";
-import RenderActiveShape from "../components/graphiques/RenderActiveShape";
 import * as calculs from "../utils/calcul";
 import BarChartComponent from "../components/graphiques/BarChartComponent";
 import PieChartComponent from "../components/graphiques/PieChartComponent";
@@ -79,6 +60,32 @@ export default function Dashboard() {
   const paiementsRecurrents = fakePaiementsRecurrents;
   const paiementsEchelonnes = fakePaiementsEchelonnes;
 
+  // Tri des paiements récurrents du plus récent au plus ancien
+  const paiementsRecurrentsTries = useMemo(() => {
+    return [...paiementsRecurrents].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      // Si les dates sont dans le même mois, on compare les jours
+      if (
+        dateA.getMonth() === dateB.getMonth() &&
+        dateA.getFullYear() === dateB.getFullYear()
+      ) {
+        return dateB.getDate() - dateA.getDate();
+      }
+      // Sinon on compare les mois
+      return dateB - dateA;
+    });
+  }, [paiementsRecurrents]);
+
+  // Tri des paiements échelonnés du plus récent au plus ancien
+  const paiementsEchelonnesTries = useMemo(() => {
+    return [...paiementsEchelonnes].sort((a, b) => {
+      const dateA = new Date(a.debutDate);
+      const dateB = new Date(b.debutDate);
+      return dateB - dateA;
+    });
+  }, [paiementsEchelonnes]);
+
   // Calcul de la différence avec le mois dernier
   const differenceMoisPrecedent = useMemo(() => {
     return calculs.calculDifferenceDepensesMoisPrecedent(
@@ -121,43 +128,13 @@ export default function Dashboard() {
     totalDepense,
   ]);
 
-  // Données factices pour les listes du bas (à remplacer par API si besoin)
-  const paiementsRecurrentsRecents = [
-    {
-      id: 1,
-      nom: "Netflix",
-      description: "Abonnement mensuel",
-      montant: 14.99,
-    },
-    {
-      id: 2,
-      nom: "Netflix",
-      description: "Abonnement mensuel",
-      montant: 14.99,
-    },
-    {
-      id: 3,
-      nom: "Netflix",
-      description: "Abonnement mensuel",
-      montant: 14.99,
-    },
-  ];
-  const paiementsEchelonnesRecents = [
-    { id: 1, nom: "iPhone 13", description: "3/12 paiements", montant: 83.25 },
-    { id: 2, nom: "iPhone 13", description: "3/12 paiements", montant: 83.25 },
-    { id: 3, nom: "iPhone 13", description: "3/12 paiements", montant: 83.25 },
-  ];
-
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
-  const toutesDepenses = [
-    ...depenseRevenu.filter((d) => d.type === "depense"),
-    ...paiementsRecurrents.filter((d) => d.type === "depense"),
-    ...paiementsEchelonnes.filter((d) => d.type === "depense"),
-  ];
-
   const depensesParCategorie = calculs.calculDepensesParCategorie(
-    toutesDepenses,
-    CATEGORY_PALETTE
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    CATEGORY_PALETTE,
+    new Date()
   );
 
   // Préparation des données pour le graphique à barres (6 derniers mois)
@@ -272,125 +249,46 @@ export default function Dashboard() {
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
             className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
-            onClick={() => navigate("/echelonne")}>
+            onClick={() => navigate("/echelonnes")}>
             Gérer →
           </button>
         </div>
         <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>Économies</span>
-            <AiOutlineRise className='text-orange-600 text-xl' />
+            <AiOutlineRise className='text-blue-600 text-xl' />
           </div>
-          <div className='text-2xl font-bold'>
-            <span
-              className={
-                totalEconomies >= 0 ? "text-green-600" : "text-red-600"
-              }>
-              {totalEconomies >= 0 ? "+" : "-"}
-              {Math.abs(totalEconomies).toFixed(2)}€
-            </span>
-          </div>
+          <div className='text-2xl font-bold'>{totalEconomies.toFixed(2)}€</div>
           <div className='text-xs text-gray-400'>
-            {differenceEconomiesMoisPrecedent >= 0 ? "+" : "-"}
+            {differenceEconomiesMoisPrecedent >= 0 ? "+" : "-"}{" "}
             {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
               "fr-FR",
-              { minimumFractionDigits: 2 }
+              {
+                minimumFractionDigits: 2,
+              }
             )}{" "}
             € par rapport au mois dernier
-          </div>
-          {/* Tooltip des économies */}
-          <div className='absolute bottom-2 right-2 group'>
-            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-            <div className='absolute right-0 bottom-14 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-              <p className='font-semibold mb-1'>Détail du calcul :</p>
-              <ul className='list-disc list-inside space-y-1'>
-                <li>
-                  Revenu :{" "}
-                  {totalRevenus.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-                <li>
-                  Dépense :{" "}
-                  {totalDepense.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-                <li className='mt-2 text-gray-400'>Mois précédent :</li>
-                <li className='ml-4'>
-                  Revenu :{" "}
-                  {calculs
-                    .calculRevenusMoisPrecedent(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes
-                    )
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-                <li className='ml-4'>
-                  Dépense :{" "}
-                  {calculs
-                    .calculTotalDepensesMois(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes,
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth() - 1,
-                        1
-                      )
-                    )
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-                <li className='ml-4'>
-                  Économies :{" "}
-                  {calculs
-                    .calculEconomies(
-                      calculs.calculRevenusMoisPrecedent(
-                        depenseRevenu,
-                        paiementsRecurrents,
-                        paiementsEchelonnes
-                      ),
-                      calculs.calculTotalDepensesMois(
-                        depenseRevenu,
-                        paiementsRecurrents,
-                        paiementsEchelonnes,
-                        new Date(
-                          new Date().getFullYear(),
-                          new Date().getMonth() - 1,
-                          1
-                        )
-                      )
-                    )
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-              </ul>
-              <div className='mt-2 text-[11px] text-gray-300'>
-                Économies = Revenu - Dépense
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Graphiques centraux */}
+      {/* Graphiques */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
-          <div className='font-semibold mb-2 text-center'>
-            Total des dépenses mensuelles par catégories
+        <div className='bg-white rounded-xl shadow p-6'>
+          <h2 className='text-lg font-semibold mb-4 text-center'>
+            Dépenses du mois par catégorie
+          </h2>
+          <div className='h-[300px]'>
+            <PieChartComponent data={depensesParCategorie} />
           </div>
-          <PieChartComponent data={depensesParCategorie} />
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
-          <div className='font-semibold mb-2 text-center'>
-            Répartition des dépenses par mois
+        <div className='bg-white rounded-xl shadow p-6'>
+          <h2 className='text-lg font-semibold mb-4 text-center'>
+            Dépenses et revenus des 6 derniers mois
+          </h2>
+          <div className='h-[300px]'>
+            <BarChartComponent data={barChartData} />
           </div>
-          <BarChartComponent data={barChartData} />
         </div>
       </div>
 
@@ -399,7 +297,7 @@ export default function Dashboard() {
         <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
           <div className='font-semibold mb-4'>Paiements récurrents récents</div>
           <div className='flex flex-col gap-2 mb-4'>
-            {paiementsRecurrentsRecents.map((item) => (
+            {paiementsRecurrentsTries.slice(0, 3).map((item) => (
               <div
                 key={item.id}
                 className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2'>
@@ -410,7 +308,8 @@ export default function Dashboard() {
                   <div>
                     <div className='font-medium'>{item.nom}</div>
                     <div className='text-xs text-gray-400'>
-                      {item.description}
+                      {item.frequence} -{" "}
+                      {new Date(item.date).toLocaleDateString("fr-FR")}
                     </div>
                   </div>
                 </div>
@@ -423,14 +322,16 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'>
+          <button
+            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
+            onClick={() => navigate("/recurrents")}>
             Voir tous les paiements récurrents
           </button>
         </div>
         <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
-          <div className='font-semibold mb-4'>Paiements en plusieurs fois</div>
+          <div className='font-semibold mb-4'>Paiements échelonnés récents</div>
           <div className='flex flex-col gap-2 mb-4'>
-            {paiementsEchelonnesRecents.map((item) => (
+            {paiementsEchelonnesTries.slice(0, 3).map((item) => (
               <div
                 key={item.id}
                 className='flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2'>
@@ -441,12 +342,12 @@ export default function Dashboard() {
                   <div>
                     <div className='font-medium'>{item.nom}</div>
                     <div className='text-xs text-gray-400'>
-                      {item.description}
+                      {item.mensualitesPayees}/{item.mensualites} paiements
                     </div>
                   </div>
                 </div>
                 <div className='font-semibold'>
-                  {item.montant.toLocaleString("fr-FR", {
+                  {(item.montant / item.mensualites).toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                   })}
                   €
@@ -454,8 +355,10 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'>
-            Voir tous les paiements en plusieurs fois
+          <button
+            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
+            onClick={() => navigate("/echelonnes")}>
+            Voir tous les paiements échelonnés
           </button>
         </div>
       </div>

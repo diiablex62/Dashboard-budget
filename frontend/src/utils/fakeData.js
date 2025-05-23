@@ -9,14 +9,6 @@ const currentMonth = `${year}-${month}`;
 // Dépenses & Revenus (uniquement mai 2025)
 export const fakeDepenseRevenu = [
   {
-    id: 1,
-    nom: "Loyer",
-    montant: 800,
-    categorie: "Logement",
-    date: `${currentMonth}-01`,
-    type: "depense",
-  },
-  {
     id: 2,
     nom: "Salaire",
     montant: 2500,

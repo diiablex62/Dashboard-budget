@@ -100,13 +100,57 @@ export function calculEconomies(totalRevenus, totalDepense) {
 // =====================
 
 // calcul des dépenses par catégorie : [calculDepensesParCategorie]
-export function calculDepensesParCategorie(depenseRevenu, CATEGORY_PALETTE) {
-  const depenses = depenseRevenu.filter((d) => d.type === "depense");
+export function calculDepensesParCategorie(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  CATEGORY_PALETTE,
+  date = new Date()
+) {
+  // Filtrer les dépenses du mois en cours
+  const depensesMois = depenseRevenu.filter(
+    (d) =>
+      d.type === "depense" &&
+      new Date(d.date).getFullYear() === date.getFullYear() &&
+      new Date(d.date).getMonth() === date.getMonth()
+  );
+
+  // Filtrer les paiements récurrents du mois en cours
+  const recurrentsMois = paiementsRecurrents.filter(
+    (p) =>
+      p.type === "depense" &&
+      new Date(p.date).getFullYear() === date.getFullYear() &&
+      new Date(p.date).getMonth() === date.getMonth()
+  );
+
+  // Filtrer les paiements échelonnés du mois en cours
+  const echelonnesMois = paiementsEchelonnes.filter((e) => {
+    if (e.type !== "depense") return false;
+    const debutDate = new Date(e.debutDate);
+    const finDate = new Date(debutDate);
+    finDate.setMonth(finDate.getMonth() + parseInt(e.mensualites) - 1);
+    const moisActuel = new Date(date.getFullYear(), date.getMonth(), 1);
+    const moisFin = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return moisActuel <= finDate && moisFin >= debutDate;
+  });
+
+  // Fusionner toutes les dépenses
+  const toutesDepenses = [
+    ...depensesMois,
+    ...recurrentsMois,
+    ...echelonnesMois.map((e) => ({
+      ...e,
+      montant: Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+    })),
+  ];
+
+  // Calculer le total par catégorie
   const categories = {};
-  depenses.forEach((d) => {
+  toutesDepenses.forEach((d) => {
     if (!categories[d.categorie]) categories[d.categorie] = 0;
     categories[d.categorie] += Math.abs(parseFloat(d.montant));
   });
+
   const total = Object.values(categories).reduce((a, b) => a + b, 0);
   return Object.entries(categories).map(([cat, value]) => ({
     name: cat,
