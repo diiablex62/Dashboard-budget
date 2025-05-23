@@ -1,5 +1,11 @@
 // Données factices centralisées et helpers
 
+// Récupère le mois courant au format AAAA-MM
+const now = new Date();
+const year = now.getFullYear();
+const month = String(now.getMonth() + 1).padStart(2, "0");
+const currentMonth = `${year}-${month}`;
+
 // Transactions (uniquement mai 2025)
 export const fakeTransactions = [
   {
@@ -7,7 +13,7 @@ export const fakeTransactions = [
     nom: "Loyer",
     montant: 800,
     categorie: "Logement",
-    date: "2024-03-01",
+    date: `${currentMonth}-01`,
     type: "depense",
   },
   {
@@ -15,7 +21,7 @@ export const fakeTransactions = [
     nom: "Salaire",
     montant: 2500,
     categorie: "Salaire",
-    date: "2024-03-05",
+    date: `${currentMonth}-05`,
     type: "revenu",
   },
   {
@@ -23,7 +29,7 @@ export const fakeTransactions = [
     nom: "Courses",
     montant: 150,
     categorie: "Alimentation",
-    date: "2024-03-10",
+    date: `${currentMonth}-10`,
     type: "depense",
   },
   {
@@ -31,7 +37,7 @@ export const fakeTransactions = [
     nom: "Freelance",
     montant: 800,
     categorie: "Freelance",
-    date: "2024-03-15",
+    date: `${currentMonth}-15`,
     type: "revenu",
   },
   {
@@ -39,7 +45,7 @@ export const fakeTransactions = [
     nom: "Électricité",
     montant: 120,
     categorie: "Factures",
-    date: "2024-03-20",
+    date: `${currentMonth}-20`,
     type: "depense",
   },
 ];

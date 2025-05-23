@@ -26,7 +26,11 @@ import {
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
 import TransactionsChart from "../components/graphiques/TransactionsChart";
-import { fakeTransactions } from "../utils/fakeData";
+import {
+  fakeTransactions,
+  fakePaiementsRecurrents,
+  fakePaiementsEchelonnes,
+} from "../utils/fakeData";
 
 // Importation des nouvelles fonctions utilitaires
 import {
@@ -828,8 +832,20 @@ export default function DepensesRevenus() {
               <AiOutlineDollarCircle className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>Solde</span>
             </div>
-            <div className='text-2xl text-[#222]'>
-              {solde.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+            <div
+              className={`text-2xl font-bold ${
+                solde > 0
+                  ? "text-green-600"
+                  : solde < 0
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}>
+              {solde > 0 && "+"}
+              {solde < 0 && "-"}
+              {Math.abs(solde).toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+              })}{" "}
+              €
             </div>
           </div>
         </div>

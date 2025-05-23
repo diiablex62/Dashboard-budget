@@ -160,7 +160,6 @@ const PaiementEchelonne = () => {
           detail: { total: totalDepenses },
         })
       );
-      console.log("Total paiements échelonnés mis à jour:", totalDepenses);
     }
   }, [totalDepenses]);
 
