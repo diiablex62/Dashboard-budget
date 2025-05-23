@@ -14,8 +14,15 @@ const DepenseRevenuChart = ({ data, type }) => {
   const [total, setTotal] = useState(0);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [hoveredTooltip, setHoveredTooltip] = useState({
+    x: 0,
+    y: 0,
+    montant: null,
+    categorie: null,
+  });
   const [key, setKey] = useState(0); // Clé unique pour forcer le remontage du composant
   const [loading, setLoading] = useState(true);
+  const [hideTooltipTimer, setHideTooltipTimer] = useState(null);
 
   // Fonction pour afficher le montant avec le bon formatage
   const formatMontant = (montant) => {
@@ -122,6 +129,16 @@ const DepenseRevenuChart = ({ data, type }) => {
     setChartData(processedData);
   }, [data, type]);
 
+  // Ajout d'une fonction utilitaire pour calculer la position du tooltip
+  function getTooltipPosition(cx, cy, r, startAngle, endAngle) {
+    const midAngle = (startAngle + endAngle) / 2;
+    const rad = (midAngle - 90) * (Math.PI / 180);
+    return {
+      x: cx + r * Math.cos(rad),
+      y: cy + r * Math.sin(rad),
+    };
+  }
+
   // Rendu du graphique
   const renderChart = () => {
     if (chartData.length === 0) {
@@ -154,7 +171,19 @@ const DepenseRevenuChart = ({ data, type }) => {
             role='img'
             aria-label={`Graphique des ${
               type === "revenus" ? "revenus" : "dépenses"
-            } par catégorie`}>
+            } par catégorie`}
+            onMouseLeave={() => {
+              const timer = setTimeout(() => {
+                setHoveredCategory(null);
+                setHoveredTooltip({
+                  x: 0,
+                  y: 0,
+                  montant: null,
+                  categorie: null,
+                });
+              }, 100);
+              setHideTooltipTimer(timer);
+            }}>
             <svg
               ref={svgRef}
               viewBox='0 0 100 100'
@@ -162,7 +191,16 @@ const DepenseRevenuChart = ({ data, type }) => {
               height='100%'
               className={
                 type === "depenses" ? "depenses-chart" : "revenus-chart"
-              }>
+              }
+              onMouseLeave={() => {
+                setHoveredCategory(null);
+                setHoveredTooltip({
+                  x: 0,
+                  y: 0,
+                  montant: null,
+                  categorie: null,
+                });
+              }}>
               {/* Cercle complet pour le segment unique */}
               <circle
                 cx='50'
@@ -245,35 +283,39 @@ const DepenseRevenuChart = ({ data, type }) => {
           role='img'
           aria-label={`Graphique des ${
             type === "revenus" ? "revenus" : "dépenses"
-          } par catégorie`}>
+          } par catégorie`}
+          onMouseLeave={() => {
+            const timer = setTimeout(() => {
+              setHoveredCategory(null);
+              setHoveredTooltip({ x: 0, y: 0, montant: null, categorie: null });
+            }, 100);
+            setHideTooltipTimer(timer);
+          }}>
           <svg
             ref={svgRef}
             viewBox='0 0 100 100'
             width='100%'
             height='100%'
-            className={
-              type === "depenses" ? "depenses-chart" : "revenus-chart"
-            }>
+            className={type === "depenses" ? "depenses-chart" : "revenus-chart"}
+            onMouseLeave={() => {
+              setHoveredCategory(null);
+              setHoveredTooltip({ x: 0, y: 0, montant: null, categorie: null });
+            }}>
             {chartData.map((item, index) => {
               // Calculer les angles pour créer les portions du camembert
               const totalPercentage = chartData
                 .slice(0, index)
                 .reduce((sum, slice) => sum + slice.percentage, 0);
-
-              // Appliquer l'animation
               const animatedPercentage = item.percentage * animationProgress;
-
-              const startAngle =
-                (totalPercentage / 100) * 2 * Math.PI - Math.PI / 2;
+              const startAngle = (totalPercentage / 100) * 360;
               const endAngle =
-                ((totalPercentage + animatedPercentage) / 100) * 2 * Math.PI -
-                Math.PI / 2;
+                ((totalPercentage + animatedPercentage) / 100) * 360;
 
               // Calculer les coordonnées
-              const startX = 50 + 40 * Math.cos(startAngle);
-              const startY = 50 + 40 * Math.sin(startAngle);
-              const endX = 50 + 40 * Math.cos(endAngle);
-              const endY = 50 + 40 * Math.sin(endAngle);
+              const startX = 50 + 40 * Math.cos(startAngle * (Math.PI / 180));
+              const startY = 50 + 40 * Math.sin(startAngle * (Math.PI / 180));
+              const endX = 50 + 40 * Math.cos(endAngle * (Math.PI / 180));
+              const endY = 50 + 40 * Math.sin(endAngle * (Math.PI / 180));
 
               // Déterminer si c'est un arc long (plus de 180°)
               const largeArcFlag = endAngle - startAngle > Math.PI ? 1 : 0;
@@ -293,8 +335,8 @@ const DepenseRevenuChart = ({ data, type }) => {
               const isHovered = hoveredCategory === item.categorie;
               const hoverScale = isHovered ? 1.05 : 1;
               const transform = isHovered
-                ? `translate(${Math.cos(midAngle) * 2}, ${
-                    Math.sin(midAngle) * 2
+                ? `translate(${Math.cos(midAngle * (Math.PI / 180)) * 2}, ${
+                    Math.sin(midAngle * (Math.PI / 180)) * 2
                   }) scale(${hoverScale})`
                 : "";
 
@@ -304,6 +346,7 @@ const DepenseRevenuChart = ({ data, type }) => {
                 }, Pourcentage: ${item.percentage.toFixed(1)}%`
               );
 
+              // Affichage du tooltip SVG au centre du segment survolé
               return (
                 <g key={index}>
                   <path
@@ -316,38 +359,75 @@ const DepenseRevenuChart = ({ data, type }) => {
                       transformOrigin: "center",
                       transition: "transform 0.2s ease-out",
                     }}
-                    onMouseEnter={() => setHoveredCategory(item.categorie)}
-                    onMouseLeave={() => setHoveredCategory(null)}
+                    onMouseEnter={(e) => {
+                      if (hideTooltipTimer) {
+                        clearTimeout(hideTooltipTimer);
+                        setHideTooltipTimer(null);
+                      }
+                      setHoveredCategory(item.categorie);
+                      setHoveredTooltip({
+                        x: e.clientX,
+                        y: e.clientY,
+                        montant: item.montant,
+                        categorie: item.categorie,
+                      });
+                    }}
+                    onMouseMove={(e) => {
+                      if (hoveredCategory === item.categorie) {
+                        setHoveredTooltip((prev) => ({
+                          ...prev,
+                          x: e.clientX,
+                          y: e.clientY,
+                        }));
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredCategory(null);
+                      setHoveredTooltip({
+                        x: 0,
+                        y: 0,
+                        montant: null,
+                        categorie: null,
+                      });
+                    }}
                     role='presentation'
                     aria-label={`${item.categorie}: ${item.percentage.toFixed(
                       1
                     )}%`}
                     className=''
                   />
-
-                  {/* Afficher le prix au survol */}
-                  {isHovered && (
+                  {hoveredCategory === item.categorie && (
                     <g>
-                      {/* Position du tooltip près du segment survolé */}
-                      <rect
-                        x='30'
-                        y='45'
-                        width='40'
-                        height='10'
-                        rx='2'
-                        fill='rgba(0,0,0,0.7)'
-                        className='dark:fill-gray-800'
-                      />
-                      <text
-                        x='50'
-                        y='50'
-                        textAnchor='middle'
-                        dominantBaseline='middle'
-                        fontSize='4'
-                        fill='white'
-                        className='text-white'>
-                        {formatMontant(item.montant)}
-                      </text>
+                      {(() => {
+                        const pos = getTooltipPosition(
+                          50,
+                          50,
+                          55,
+                          startAngle,
+                          endAngle
+                        );
+                        return (
+                          <>
+                            <rect
+                              x={pos.x - 18}
+                              y={pos.y - 10}
+                              width='36'
+                              height='20'
+                              rx='6'
+                              fill='rgba(0,0,0,0.85)'
+                            />
+                            <text
+                              x={pos.x}
+                              y={pos.y + 4}
+                              textAnchor='middle'
+                              fontSize='7'
+                              fill='#fff'
+                              fontWeight='bold'>
+                              {formatMontant(item.montant)}
+                            </text>
+                          </>
+                        );
+                      })()}
                     </g>
                   )}
                 </g>
@@ -422,6 +502,27 @@ const DepenseRevenuChart = ({ data, type }) => {
           )}
         </div>
       </div>
+
+      {hoveredCategory && hoveredTooltip.montant !== null && (
+        <div
+          style={{
+            position: "fixed",
+            left: hoveredTooltip.x + 12,
+            top: hoveredTooltip.y - 24,
+            background: "rgba(0,0,0,0.85)",
+            color: "#fff",
+            padding: "8px 16px",
+            borderRadius: "8px",
+            pointerEvents: "none",
+            zIndex: 9999,
+            fontSize: 15,
+            fontWeight: "bold",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            whiteSpace: "nowrap",
+          }}>
+          {hoveredTooltip.categorie} : {formatMontant(hoveredTooltip.montant)}
+        </div>
+      )}
     </div>
   );
 };

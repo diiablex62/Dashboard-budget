@@ -178,7 +178,7 @@ const PaiementRecurrent = () => {
                 currentTab === "depense"
                   ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
                   : "bg-transparent text-[#7b849b] font-normal"
-              }`}
+              } cursor-pointer`}
               onClick={() => setCurrentTab("depense")}
               type='button'>
               Dépenses
@@ -188,7 +188,7 @@ const PaiementRecurrent = () => {
                 currentTab === "revenu"
                   ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
                   : "bg-transparent text-[#7b849b] font-normal"
-              }`}
+              } cursor-pointer`}
               onClick={() => setCurrentTab("revenu")}
               type='button'>
               Revenus
@@ -275,7 +275,7 @@ const PaiementRecurrent = () => {
                   </div>
                   <div className='flex justify-end mt-2'>
                     <button
-                      className='text-blue-600 font-medium hover:underline mr-4'
+                      className='text-blue-600 font-medium hover:underline mr-4 cursor-pointer'
                       onClick={() => {
                         setNewPaiement(p);
                         setEditIndex(
@@ -289,7 +289,7 @@ const PaiementRecurrent = () => {
                       Modifier
                     </button>
                     <button
-                      className='text-red-500 font-medium hover:underline'
+                      className='text-red-500 font-medium hover:underline cursor-pointer'
                       onClick={() => handleDelete(p.id)}>
                       Supprimer
                     </button>
@@ -308,7 +308,7 @@ const PaiementRecurrent = () => {
           style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
           <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
             <button
-              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer'
               onClick={() => {
                 setShowModal(false);
                 setStep(1);
@@ -378,13 +378,13 @@ const PaiementRecurrent = () => {
                   name='type'
                   value={newPaiement.type}
                   onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'>
                   <option value='depense'>Dépense</option>
                   <option value='revenu'>Revenu</option>
                 </select>
                 <div className='flex justify-end'>
                   <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                     disabled={!newPaiement.type}
                     onClick={() => {
                       if (!newPaiement.type) {
@@ -409,7 +409,7 @@ const PaiementRecurrent = () => {
                   name='nom'
                   value={newPaiement.nom}
                   onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                   placeholder='Ex: Crédit auto'
                   ref={nomInputRef}
                   autoFocus
@@ -419,12 +419,12 @@ const PaiementRecurrent = () => {
                 />
                 <div className='flex justify-between'>
                   <button
-                    className='text-gray-600 dark:text-gray-400'
+                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
                     onClick={handlePrev}>
                     Précédent
                   </button>
                   <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                     disabled={!newPaiement.nom}
                     onClick={() => {
                       if (!newPaiement.nom) {
@@ -449,7 +449,7 @@ const PaiementRecurrent = () => {
                   name='montant'
                   value={newPaiement.montant}
                   onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                   placeholder='Ex: 9999'
                   min='0.01'
                   step='0.01'
@@ -461,12 +461,12 @@ const PaiementRecurrent = () => {
                 />
                 <div className='flex justify-between'>
                   <button
-                    className='text-gray-600 dark:text-gray-400'
+                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
                     onClick={handlePrev}>
                     Précédent
                   </button>
                   <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                     disabled={!newPaiement.montant}
                     onClick={() => {
                       if (!newPaiement.montant) {
@@ -495,7 +495,7 @@ const PaiementRecurrent = () => {
                       setTimeout(() => handleNext(), 100);
                     }
                   }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                   ref={frequenceInputRef}
                   autoFocus
                   onKeyDown={(e) => {
@@ -511,12 +511,12 @@ const PaiementRecurrent = () => {
                 </select>
                 <div className='flex justify-between'>
                   <button
-                    className='text-gray-600 dark:text-gray-400'
+                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
                     onClick={handlePrev}>
                     Précédent
                   </button>
                   <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                     disabled={!newPaiement.frequence}
                     onClick={() => {
                       if (!newPaiement.frequence) {
@@ -554,12 +554,12 @@ const PaiementRecurrent = () => {
                 </div>
                 <div className='flex justify-between mt-4'>
                   <button
-                    className='text-gray-600 dark:text-gray-400 px-4 py-2'
+                    className='text-gray-600 dark:text-gray-400 cursor-pointer px-4 py-2'
                     onClick={handlePrev}>
                     Précédent
                   </button>
                   <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded'
+                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                     disabled={!newPaiement.debutDate}
                     onClick={() => {
                       if (!newPaiement.debutDate) {
@@ -598,7 +598,7 @@ const PaiementRecurrent = () => {
                       setTimeout(() => handleAddOrEditPaiement(), 100);
                     }
                   }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                   ref={categorieInputRef}
                   autoFocus
                   onKeyDown={(e) => {
@@ -616,12 +616,12 @@ const PaiementRecurrent = () => {
                 </select>
                 <div className='flex justify-between mt-4'>
                   <button
-                    className='text-gray-600 dark:text-gray-400 px-4 py-2'
+                    className='text-gray-600 dark:text-gray-400 cursor-pointer px-4 py-2'
                     onClick={handlePrev}>
                     Précédent
                   </button>
                   <button
-                    className='bg-gray-900 text-white px-6 py-2 rounded-lg font-medium'
+                    className='bg-gray-900 text-white px-6 py-2 rounded-lg font-medium cursor-pointer'
                     disabled={!newPaiement.categorie}
                     onClick={handleAddOrEditPaiement}>
                     {editIndex !== null

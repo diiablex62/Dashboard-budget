@@ -118,7 +118,7 @@ function RevenuModal({
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
         <button
-          className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer'
           onClick={onClose}
           aria-label='Fermer'>
           ✕
@@ -167,7 +167,7 @@ function RevenuModal({
                 name='nom'
                 value={form.nom}
                 onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 placeholder='Ex: Salaire'
                 autoFocus
                 onKeyDown={(e) => {
@@ -176,7 +176,7 @@ function RevenuModal({
               />
               <div className='flex justify-end'>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   disabled={!form.nom}
                   type='button'
                   onClick={handleNext}>
@@ -199,7 +199,7 @@ function RevenuModal({
                     setTimeout(() => handleNext(), 100);
                   }
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && form.categorie) {
@@ -216,13 +216,13 @@ function RevenuModal({
               </select>
               <div className='flex justify-between'>
                 <button
-                  className='text-gray-600 dark:text-gray-400'
+                  className='text-gray-600 dark:text-gray-400 cursor-pointer'
                   type='button'
                   onClick={handlePrev}>
                   Précédent
                 </button>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   disabled={!form.categorie}
                   type='button'
                   onClick={handleNext}>
@@ -248,7 +248,7 @@ function RevenuModal({
                     handleChange(e);
                   }
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 min='0.01'
                 step='0.01'
                 placeholder='Ex: 2000'
@@ -260,13 +260,13 @@ function RevenuModal({
               />
               <div className='flex justify-between'>
                 <button
-                  className='text-gray-600 dark:text-gray-400'
+                  className='text-gray-600 dark:text-gray-400 cursor-pointer'
                   type='button'
                   onClick={handlePrev}>
                   Précédent
                 </button>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   disabled={!form.montant}
                   type='button'
                   onClick={handleNext}>
@@ -285,7 +285,7 @@ function RevenuModal({
                 name='date'
                 value={form.date}
                 onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 ref={dateInputRef}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && form.date) handleSubmit(e);
@@ -293,13 +293,13 @@ function RevenuModal({
               />
               <div className='flex justify-between'>
                 <button
-                  className='text-gray-600 dark:text-gray-400'
+                  className='text-gray-600 dark:text-gray-400 cursor-pointer'
                   type='button'
                   onClick={handlePrev}>
                   Précédent
                 </button>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   type='submit'>
                   Enregistrer
                 </button>
@@ -387,7 +387,7 @@ function DepenseModal({
       style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
         <button
-          className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+          className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer'
           onClick={onClose}
           aria-label='Fermer'>
           ✕
@@ -436,7 +436,7 @@ function DepenseModal({
                 name='nom'
                 value={form.nom}
                 onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 placeholder='Ex: Loyer'
                 autoFocus
                 onKeyDown={(e) => {
@@ -445,7 +445,7 @@ function DepenseModal({
               />
               <div className='flex justify-end'>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   disabled={!form.nom}
                   type='button'
                   onClick={handleNext}>
@@ -468,7 +468,7 @@ function DepenseModal({
                     setTimeout(() => handleNext(), 100);
                   }
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && form.categorie) {
@@ -485,13 +485,13 @@ function DepenseModal({
               </select>
               <div className='flex justify-between'>
                 <button
-                  className='text-gray-600 dark:text-gray-400'
+                  className='text-gray-600 dark:text-gray-400 cursor-pointer'
                   type='button'
                   onClick={handlePrev}>
                   Précédent
                 </button>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   disabled={!form.categorie}
                   type='button'
                   onClick={handleNext}>
@@ -517,7 +517,7 @@ function DepenseModal({
                     handleChange(e);
                   }
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 min='0.01'
                 step='0.01'
                 placeholder='Ex: 500'
@@ -529,13 +529,13 @@ function DepenseModal({
               />
               <div className='flex justify-between'>
                 <button
-                  className='text-gray-600 dark:text-gray-400'
+                  className='text-gray-600 dark:text-gray-400 cursor-pointer'
                   type='button'
                   onClick={handlePrev}>
                   Précédent
                 </button>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   disabled={!form.montant}
                   type='button'
                   onClick={handleNext}>
@@ -554,7 +554,7 @@ function DepenseModal({
                 name='date'
                 value={form.date}
                 onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 ref={dateInputRef}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && form.date) handleSubmit(e);
@@ -562,13 +562,13 @@ function DepenseModal({
               />
               <div className='flex justify-between'>
                 <button
-                  className='text-gray-600 dark:text-gray-400'
+                  className='text-gray-600 dark:text-gray-400 cursor-pointer'
                   type='button'
                   onClick={handlePrev}>
                   Précédent
                 </button>
                 <button
-                  className='bg-gray-900 text-white px-4 py-2 rounded'
+                  className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                   type='submit'>
                   Enregistrer
                 </button>
@@ -694,7 +694,7 @@ export default function DepensesRevenus() {
           <div className='flex items-center mt-4 md:mt-0'>
             <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent'>
               <button
-                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition'
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer'
                 onClick={handlePrevMonth}
                 aria-label='Mois précédent'
                 type='button'>
@@ -704,7 +704,7 @@ export default function DepensesRevenus() {
                 {getMonthYear(currentDate)}
               </div>
               <button
-                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition'
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer'
                 onClick={handleNextMonth}
                 aria-label='Mois suivant'
                 type='button'>
@@ -781,7 +781,7 @@ export default function DepensesRevenus() {
                 currentTab === "depense"
                   ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
                   : "bg-transparent text-[#7b849b] font-normal"
-              }`}
+              } cursor-pointer`}
               onClick={() => setCurrentTab("depense")}
               type='button'>
               Dépenses
@@ -791,7 +791,7 @@ export default function DepensesRevenus() {
                 currentTab === "revenu"
                   ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
                   : "bg-transparent text-[#7b849b] font-normal"
-              }`}
+              } cursor-pointer`}
               onClick={() => setCurrentTab("revenu")}
               type='button'>
               Revenus

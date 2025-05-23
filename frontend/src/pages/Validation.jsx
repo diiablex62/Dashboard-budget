@@ -40,7 +40,7 @@ export default function Validation({ onResend }) {
         Si vous n'avez rien reçu, vérifiez vos spams ou renvoyez le lien&nbsp;:
       </p>
       <button
-        className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'
+        className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition cursor-pointer'
         onClick={handleResend}
         disabled={resent || loading}>
         {loading

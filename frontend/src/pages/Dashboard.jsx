@@ -137,8 +137,15 @@ export default function Dashboard() {
   // const totalEchelonnes = 985.65; // <-- supprimée pour éviter le doublon
   // const totalEconomies = 1258.44; // <-- supprimée pour éviter le doublon
 
+  // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
+  const toutesDepenses = [
+    ...depenseRevenu.filter((d) => d.type === "depense"),
+    ...paiementsRecurrents.filter((d) => d.type === "depense"),
+    ...paiementsEchelonnes.filter((d) => d.type === "depense"),
+  ];
+
   const depensesParCategorie = calculs.calculDepensesParCategorie(
-    depenseRevenu,
+    toutesDepenses,
     CATEGORY_PALETTE
   );
 
@@ -292,7 +299,7 @@ export default function Dashboard() {
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
-            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50'
+            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
             onClick={() => navigate("/recurrents")}>
             Gérer →
           </button>
@@ -309,7 +316,7 @@ export default function Dashboard() {
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
-            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50'
+            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
             onClick={() => navigate("/echelonne")}>
             Gérer →
           </button>
@@ -509,7 +516,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'>
+          <button className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'>
             Voir tous les paiements récurrents
           </button>
         </div>
@@ -540,7 +547,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <button className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50'>
+          <button className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'>
             Voir tous les paiements en plusieurs fois
           </button>
         </div>

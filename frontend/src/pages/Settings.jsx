@@ -65,14 +65,14 @@ const Settings = () => {
           <button
             onClick={handleLogout}
             disabled={loading}
-            className='w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-200'>
+            className='w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-200 cursor-pointer'>
             {loading ? "Déconnexion en cours..." : "Se déconnecter"}
           </button>
 
           <button
             onClick={handleDeleteAccount}
             disabled={loading}
-            className='w-full bg-red-800 hover:bg-red-900 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-200'>
+            className='w-full bg-red-800 hover:bg-red-900 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors duration-200 cursor-pointer'>
             {loading ? "Suppression en cours..." : "Supprimer mon compte"}
           </button>
         </div>

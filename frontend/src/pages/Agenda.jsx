@@ -95,18 +95,18 @@ export default function Agenda() {
             </div>
           </div>
           <div className='flex items-center justify-end mb-4'>
-            <button className='flex items-center gap-2 border rounded px-3 py-1 text-gray-700 bg-white shadow-sm'>
+            <button className='flex items-center gap-2 border rounded px-3 py-1 text-gray-700 bg-white shadow-sm cursor-pointer'>
               <AiOutlineCalendar className='text-lg' />
               {getMonthYear(currentDate)}
             </button>
             <button
               onClick={handlePrevMonth}
-              className='ml-2 text-gray-400 hover:text-gray-700 text-xl'>
+              className='ml-2 text-gray-400 hover:text-gray-700 text-xl cursor-pointer'>
               &#8592;
             </button>
             <button
               onClick={handleNextMonth}
-              className='ml-1 text-gray-400 hover:text-gray-700 text-xl'>
+              className='ml-1 text-gray-400 hover:text-gray-700 text-xl cursor-pointer'>
               &#8594;
             </button>
           </div>

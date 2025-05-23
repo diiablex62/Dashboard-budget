@@ -130,13 +130,13 @@ const Notifications = () => {
                   {!notification.read && (
                     <button
                       onClick={() => handleMarkAsRead(notification.id)}
-                      className='text-blue-500 hover:text-blue-700'>
+                      className='text-blue-500 hover:text-blue-700 cursor-pointer'>
                       Marquer comme lu
                     </button>
                   )}
                   <button
                     onClick={() => handleDeleteNotification(notification.id)}
-                    className='text-red-500 hover:text-red-700'>
+                    className='text-red-500 hover:text-red-700 cursor-pointer'>
                     Supprimer
                   </button>
                 </div>

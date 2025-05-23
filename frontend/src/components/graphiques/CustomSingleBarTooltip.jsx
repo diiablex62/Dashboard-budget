@@ -1,19 +1,30 @@
 import React from "react";
 
-export default function CustomSingleBarTooltip({ barHover }) {
+export default function CustomSingleBarTooltip({ barHover, containerRef }) {
   if (!barHover) return null;
-  if (barHover.mois && barHover.type && barHover.value !== null) {
+  if (
+    barHover.mois &&
+    barHover.type &&
+    barHover.value !== null &&
+    containerRef &&
+    containerRef.current
+  ) {
     const tooltipWidth = 110;
-    const screenW = window.innerWidth;
-    let left = barHover.x - tooltipWidth / 2;
-    if (left + tooltipWidth > screenW - 8) left = screenW - tooltipWidth - 8;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    let left = barHover.x - containerRect.left - tooltipWidth / 2;
+    let top = barHover.y - containerRect.top - 40; // 40px au-dessus de la souris
+    // Limites pour ne pas sortir du cadre
+    if (left + tooltipWidth > containerRect.width - 8)
+      left = containerRect.width - tooltipWidth - 8;
     if (left < 8) left = 8;
+    if (top < 8) top = 8;
+    if (top > containerRect.height - 40) top = containerRect.height - 40;
     return (
       <div
         style={{
           position: "absolute",
           left,
-          top: barHover.y,
+          top,
           pointerEvents: "none",
           zIndex: 50,
           transition: "all 0.15s cubic-bezier(.4,0,.2,1)",
