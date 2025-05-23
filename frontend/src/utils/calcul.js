@@ -260,3 +260,60 @@ export function totalRevenusGlobalMois(
     )
   );
 }
+
+// =====================
+// CALCULS DE DIFFÉRENCE
+// =====================
+
+// Calcul de la différence des dépenses entre le mois actuel et le mois précédent
+export function calculDifferenceDepensesMoisPrecedent(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  // Calcul des dépenses du mois actuel
+  const depensesMoisActuel = calculTotalDepensesMois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    date
+  );
+
+  // Calcul des dépenses du mois précédent
+  const dateMoisPrecedent = new Date(
+    date.getFullYear(),
+    date.getMonth() - 1,
+    1
+  );
+  const depensesMoisPrecedent = calculTotalDepensesMois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+
+  // Calcul de la différence
+  return depensesMoisActuel - depensesMoisPrecedent;
+}
+
+// Calcul des revenus du mois précédent
+export function calculRevenusMoisPrecedent(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  const dateMoisPrecedent = new Date(
+    date.getFullYear(),
+    date.getMonth() - 1,
+    1
+  );
+
+  return totalRevenusGlobalMois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+}

@@ -79,10 +79,12 @@ export default function Dashboard() {
 
   // Calcul de la différence avec le mois dernier
   const differenceMoisPrecedent = useMemo(() => {
-    // Pour la démo, on utilise une valeur fixe
-    // Dans une vraie application, il faudrait calculer la vraie différence
-    return 245.67;
-  }, []);
+    return calculs.calculDifferenceDepensesMoisPrecedent(
+      depenseRevenu,
+      paiementsRecurrents,
+      paiementsEchelonnes
+    );
+  }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   // Calcul du total des paiements échelonnés (dépenses) du mois
   const totalEchelonnes = calculs.totalEchelonnesMois(paiementsEchelonnes);
@@ -102,9 +104,31 @@ export default function Dashboard() {
 
   // Différence économies mois précédent (démonstration)
   const differenceEconomiesMoisPrecedent = useMemo(() => {
-    // Pour la démo, valeur fixe
-    return -50.25;
-  }, []);
+    const economieMoisActuel = calculs.calculEconomies(
+      totalRevenus,
+      totalDepense
+    );
+    const economieMoisPrecedent = calculs.calculEconomies(
+      calculs.calculRevenusMoisPrecedent(
+        depenseRevenu,
+        paiementsRecurrents,
+        paiementsEchelonnes
+      ),
+      calculs.calculTotalDepensesMois(
+        depenseRevenu,
+        paiementsRecurrents,
+        paiementsEchelonnes,
+        new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
+      )
+    );
+    return economieMoisActuel - economieMoisPrecedent;
+  }, [
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    totalRevenus,
+    totalDepense,
+  ]);
 
   // Données factices pour les listes du bas (à remplacer par API si besoin)
   const paiementsRecurrentsRecents = [
@@ -132,10 +156,6 @@ export default function Dashboard() {
     { id: 2, nom: "iPhone 13", description: "3/12 paiements", montant: 83.25 },
     { id: 3, nom: "iPhone 13", description: "3/12 paiements", montant: 83.25 },
   ];
-
-  // Données factices pour les cartes (à remplacer par calculs réels si besoin)
-  // const totalEchelonnes = 985.65; // <-- supprimée pour éviter le doublon
-  // const totalEconomies = 1258.44; // <-- supprimée pour éviter le doublon
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
   const toutesDepenses = [
@@ -246,8 +266,8 @@ export default function Dashboard() {
           </div>
           <div className='text-2xl font-bold'>{totalDepense.toFixed(2)}€</div>
           <div className='text-xs text-gray-400'>
-            +{" "}
-            {differenceMoisPrecedent.toLocaleString("fr-FR", {
+            {differenceMoisPrecedent >= 0 ? "+" : "-"}{" "}
+            {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
               minimumFractionDigits: 2,
             })}{" "}
             € par rapport au mois dernier
@@ -276,6 +296,22 @@ export default function Dashboard() {
                   Paiements échelonnés :{" "}
                   {calculs
                     .calculTotalEchelonnesMois(paiementsEchelonnes)
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li>
+                  Mois précédent :{" "}
+                  {calculs
+                    .calculTotalDepensesMois(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes,
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() - 1,
+                        1
+                      )
+                    )
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>
@@ -361,6 +397,57 @@ export default function Dashboard() {
                   {totalDepense.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                   })}{" "}
+                  €
+                </li>
+                <li className='mt-2 text-gray-400'>Mois précédent :</li>
+                <li className='ml-4'>
+                  Revenu :{" "}
+                  {calculs
+                    .calculRevenusMoisPrecedent(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes
+                    )
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li className='ml-4'>
+                  Dépense :{" "}
+                  {calculs
+                    .calculTotalDepensesMois(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes,
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() - 1,
+                        1
+                      )
+                    )
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li className='ml-4'>
+                  Économies :{" "}
+                  {calculs
+                    .calculEconomies(
+                      calculs.calculRevenusMoisPrecedent(
+                        depenseRevenu,
+                        paiementsRecurrents,
+                        paiementsEchelonnes
+                      ),
+                      calculs.calculTotalDepensesMois(
+                        depenseRevenu,
+                        paiementsRecurrents,
+                        paiementsEchelonnes,
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() - 1,
+                          1
+                        )
+                      )
+                    )
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>
               </ul>
