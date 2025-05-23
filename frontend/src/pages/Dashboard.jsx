@@ -26,9 +26,9 @@ import {
 } from "recharts";
 import CATEGORY_PALETTE from "../styles/categoryPalette";
 import {
-  fakeTransactions,
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
+  fakeDepenseRevenu,
 } from "../utils/fakeData";
 import CustomBarTooltip from "../components/graphiques/CustomBarTooltip";
 import CustomSingleBarTooltip from "../components/graphiques/CustomSingleBarTooltip";
@@ -73,7 +73,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   // Données factices utilisées directement
-  const depenseRevenu = fakeTransactions;
+  const depenseRevenu = fakeDepenseRevenu;
   const paiementsRecurrents = fakePaiementsRecurrents;
   const paiementsEchelonnes = fakePaiementsEchelonnes;
 

@@ -23,8 +23,7 @@ import {
   getMonthYear,
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
-import TransactionsChart from "../components/graphiques/TransactionsChart";
-import { fakeTransactions } from "../utils/fakeData";
+import { fakeDepenseRevenu } from "../utils/fakeData";
 
 // Importation des nouvelles fonctions utilitaires
 import {
@@ -34,7 +33,6 @@ import {
   getAllRevenus,
   addOrUpdateDepense,
   addOrUpdateRevenu,
-  deleteDepenseRevenu,
 } from "../utils/depenseRevenuUtils";
 
 import {
@@ -43,7 +41,7 @@ import {
   calculEconomies,
 } from "../utils/calcul";
 
-// Génération dynamique de transactions factices pour le mois de mai 2025
+import DepenseRevenuChart from "../components/graphiques/DepenseRevenuChart";
 
 function RevenuModal({
   onClose,
@@ -586,13 +584,13 @@ function DepenseModal({
 export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [depenseRevenu, setDepenseRevenu] = useState(fakeTransactions);
+  const [depenseRevenu, setDepenseRevenu] = useState(fakeDepenseRevenu);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [selectedDepenseRevenu, setSelectedDepenseRevenu] = useState(null);
 
   const fetchDepenseRevenu = useCallback(() => {
-    setDepenseRevenu(fakeTransactions);
+    setDepenseRevenu(fakeDepenseRevenu);
   }, []);
 
   useEffect(() => {
@@ -801,7 +799,7 @@ export default function DepensesRevenus() {
           </div>
         </div>
 
-        {/* Affichage des transactions */}
+        {/* Affichage des dépenses & revenus */}
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
           <div className='flex items-center justify-between mb-6'>
             <div>
@@ -837,9 +835,9 @@ export default function DepensesRevenus() {
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
-              {filteredDepenseRevenu.map((transaction, idx) => (
+              {filteredDepenseRevenu.map((depenseRevenuItem, idx) => (
                 <div
-                  key={transaction.id || idx}
+                  key={depenseRevenuItem.id || idx}
                   className='bg-white rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200'>
                   <div className='flex items-center justify-between'>
                     <div className='flex items-center'>
@@ -848,11 +846,11 @@ export default function DepensesRevenus() {
                       </div>
                       <div>
                         <div className='font-semibold'>
-                          {transaction.nom.charAt(0).toUpperCase() +
-                            transaction.nom.slice(1)}
+                          {depenseRevenuItem.nom.charAt(0).toUpperCase() +
+                            depenseRevenuItem.nom.slice(1)}
                         </div>
                         <div className='text-xs text-gray-500'>
-                          {transaction.categorie}
+                          {depenseRevenuItem.categorie}
                         </div>
                       </div>
                     </div>
@@ -864,14 +862,16 @@ export default function DepensesRevenus() {
                             : "text-green-600"
                         }`}>
                         {currentTab === "depense" ? "-" : "+"}
-                        {parseFloat(transaction.montant).toLocaleString(
+                        {parseFloat(depenseRevenuItem.montant).toLocaleString(
                           "fr-FR",
                           { minimumFractionDigits: 2 }
                         )}{" "}
                         €
                       </div>
                       <div className='text-xs text-gray-400'>
-                        {new Date(transaction.date).toLocaleDateString("fr-FR")}
+                        {new Date(depenseRevenuItem.date).toLocaleDateString(
+                          "fr-FR"
+                        )}
                       </div>
                     </div>
                   </div>

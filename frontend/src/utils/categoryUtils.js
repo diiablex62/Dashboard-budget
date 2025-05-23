@@ -92,13 +92,13 @@ export const DEPENSE_REVENU_CATEGORIES = uniqueArray([
 ]);
 
 /**
- * Récupère les catégories adaptées au type de transaction
- * @param {string} type - Type de transaction ("transaction", "recurrent", ou "echelonne")
+ * Récupère les catégories adaptées au type de dépense & revenu
+ * @param {string} type - Type ('depenseRevenu', 'recurrent', ou 'echelonne')
  * @returns {Array} - Liste des catégories appropriées
  */
 export const getCategoriesByType = (type) => {
   switch (type) {
-    case "transaction":
+    case "depenseRevenu":
       return DEPENSES_CATEGORIES.concat(REVENUS_CATEGORIES);
     case "recurrent":
       return RECURRENT_CATEGORIES;

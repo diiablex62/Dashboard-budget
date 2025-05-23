@@ -2,15 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import * as categoryUtils from "../../utils/categoryUtils";
 
 /**
- * Composant affichant un graphique en camembert pour visualiser
- * la répartition des transactions par catégorie
- *
- * @param {Object} props - Propriétés du composant
- * @param {Array} props.data - Données des transactions
- * @param {string} props.type - Type de transactions ('revenus' ou 'depenses')
+ * Affiche la répartition des dépenses & revenus par catégorie
+ * @param {Array} props.data - Données des dépenses & revenus
+ * @param {string} props.type - Type ('revenus' ou 'depenses')
  */
-const TransactionsChart = ({ data, type }) => {
-  console.log(`TransactionsChart rendu avec type: ${type}, données: `, data);
+const DepenseRevenuChart = ({ data, type }) => {
+  console.log(`DepenseRevenuChart rendu avec type: ${type}, données: `, data);
 
   const svgRef = useRef(null);
   const [chartData, setChartData] = useState([]);
@@ -429,4 +426,4 @@ const TransactionsChart = ({ data, type }) => {
   );
 };
 
-export default TransactionsChart;
+export default DepenseRevenuChart;

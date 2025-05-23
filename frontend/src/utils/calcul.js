@@ -15,12 +15,12 @@ export function calculTotalDepensesMois(
   // Dépenses du mois
   const depensesMois = depenseRevenu
     .filter(
-      (t) =>
-        t.type === "depense" &&
-        new Date(t.date).getFullYear() === date.getFullYear() &&
-        new Date(t.date).getMonth() === date.getMonth()
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date).getFullYear() === date.getFullYear() &&
+        new Date(d.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, t) => acc + Math.abs(parseFloat(t.montant)), 0);
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
 
   // Paiements récurrents du mois
   const recurrentsMois = paiementsRecurrents
@@ -101,11 +101,11 @@ export function calculEconomies(totalRevenus, totalDepense) {
 
 // calcul des dépenses par catégorie : [calculDepensesParCategorie]
 export function calculDepensesParCategorie(depenseRevenu, CATEGORY_PALETTE) {
-  const depenses = depenseRevenu.filter((t) => t.type === "depense");
+  const depenses = depenseRevenu.filter((d) => d.type === "depense");
   const categories = {};
-  depenses.forEach((t) => {
-    if (!categories[t.categorie]) categories[t.categorie] = 0;
-    categories[t.categorie] += Math.abs(parseFloat(t.montant));
+  depenses.forEach((d) => {
+    if (!categories[d.categorie]) categories[d.categorie] = 0;
+    categories[d.categorie] += Math.abs(parseFloat(d.montant));
   });
   const total = Object.values(categories).reduce((a, b) => a + b, 0);
   return Object.entries(categories).map(([cat, value]) => ({
@@ -135,12 +135,12 @@ export function calculBarChartData(
   return months.map(({ label, year, month }) => {
     const depensesMois = depenseRevenu
       .filter(
-        (t) =>
-          t.type === "depense" &&
-          new Date(t.date).getFullYear() === year &&
-          new Date(t.date).getMonth() === month
+        (d) =>
+          d.type === "depense" &&
+          new Date(d.date).getFullYear() === year &&
+          new Date(d.date).getMonth() === month
       )
-      .reduce((acc, t) => acc + Math.abs(parseFloat(t.montant)), 0);
+      .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
     const recurrentsMois = paiementsRecurrents
       .filter(
         (p) =>
@@ -171,12 +171,12 @@ export function calculBarChartData(
     const depenses = depensesMois + recurrentsMois + echelonnesMois;
     const revenus = depenseRevenu
       .filter(
-        (t) =>
-          t.type === "revenu" &&
-          new Date(t.date).getFullYear() === year &&
-          new Date(t.date).getMonth() === month
+        (d) =>
+          d.type === "revenu" &&
+          new Date(d.date).getFullYear() === year &&
+          new Date(d.date).getMonth() === month
       )
-      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+      .reduce((acc, d) => acc + parseFloat(d.montant), 0);
     return {
       mois: label.charAt(0).toUpperCase() + label.slice(1),
       depenses,
@@ -193,24 +193,24 @@ export function calculBarChartData(
 export function totalDepensesMois(depenseRevenu, date = new Date()) {
   return depenseRevenu
     .filter(
-      (t) =>
-        t.type === "depense" &&
-        new Date(t.date).getFullYear() === date.getFullYear() &&
-        new Date(t.date).getMonth() === date.getMonth()
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date).getFullYear() === date.getFullYear() &&
+        new Date(d.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, t) => acc + Math.abs(parseFloat(t.montant)), 0);
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
 }
 
 // total des revenus (depense&revenu uniquement) pour un mois donné : [totalRevenusMois]
 export function totalRevenusMois(depenseRevenu, date = new Date()) {
   return depenseRevenu
     .filter(
-      (t) =>
-        t.type === "revenu" &&
-        new Date(t.date).getFullYear() === date.getFullYear() &&
-        new Date(t.date).getMonth() === date.getMonth()
+      (d) =>
+        d.type === "revenu" &&
+        new Date(d.date).getFullYear() === date.getFullYear() &&
+        new Date(d.date).getMonth() === date.getMonth()
     )
-    .reduce((acc, t) => acc + parseFloat(t.montant), 0);
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
 }
 
 // total des paiements récurrents pour un mois donné : [totalRecurrentsMois]
