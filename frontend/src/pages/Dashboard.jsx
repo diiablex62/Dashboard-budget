@@ -269,6 +269,56 @@ export default function Dashboard() {
             )}{" "}
             € par rapport au mois dernier
           </div>
+          {/* Tooltip des économies */}
+          <div className='absolute bottom-2 right-2 group'>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+            <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+              <p className='font-semibold mb-1'>Détail du calcul :</p>
+              <ul className='list-disc list-inside space-y-1'>
+                <li>
+                  Total revenus :{" "}
+                  {totalRevenus.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </li>
+                <li>
+                  Total dépenses :{" "}
+                  {totalDepense.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </li>
+                <li>
+                  Mois précédent :{" "}
+                  {calculs
+                    .calculEconomies(
+                      calculs.calculRevenusMoisPrecedent(
+                        depenseRevenu,
+                        paiementsRecurrents,
+                        paiementsEchelonnes
+                      ),
+                      calculs.calculTotalDepensesMois(
+                        depenseRevenu,
+                        paiementsRecurrents,
+                        paiementsEchelonnes,
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() - 1,
+                          1
+                        )
+                      )
+                    )
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+              </ul>
+              <div className='mt-2 text-[11px] text-gray-300'>
+                Les économies sont calculées en soustrayant le total des
+                dépenses du total des revenus.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
