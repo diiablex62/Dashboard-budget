@@ -34,6 +34,19 @@ export default function App() {
     }
   }, [setPrimaryColor]);
 
+  useEffect(() => {
+    const titles = [
+      "Futurio : Gestion de budget",
+      "Futurio : Gérez votre budget facilement",
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      document.title = titles[idx % titles.length];
+      idx++;
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const generateHoverColor = (color) => {
     const hexToHSL = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16) / 255;
