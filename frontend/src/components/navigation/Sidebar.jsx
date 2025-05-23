@@ -23,7 +23,7 @@ export default function Sidebar() {
   }
 
   return (
-    <div className='w-72 h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md'>
+    <div className='w-72 h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md  border-r border-gray-200 dark:border-gray-800'>
       <h2 className='text-3xl font-bold p-8 uppercase text-center'>
         Futurio
       </h2>
