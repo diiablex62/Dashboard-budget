@@ -551,6 +551,7 @@ export default function Dashboard() {
                   }
                   onMouseEnter={onPieEnter}
                   onMouseLeave={onPieLeave}
+                  onMouseOut={onPieLeave}
                   paddingAngle={2}
                   label={renderPieLabel}
                   labelLine={false}>
