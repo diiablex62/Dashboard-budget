@@ -231,7 +231,7 @@ export default function Dashboard() {
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
-            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
+            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
             onClick={() => navigate("/recurrents")}>
             Gérer →
           </button>
@@ -248,7 +248,7 @@ export default function Dashboard() {
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button
-            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
+            className='mt-2 border rounded-lg px-3 py-1 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
             onClick={() => navigate("/echelonnes")}>
             Gérer →
           </button>
@@ -380,7 +380,7 @@ export default function Dashboard() {
             ))}
           </div>
           <button
-            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
+            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
             onClick={() => navigate("/recurrents")}>
             Voir tous les paiements récurrents
           </button>
@@ -413,7 +413,7 @@ export default function Dashboard() {
             ))}
           </div>
           <button
-            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer'
+            className='w-full border rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-black hover:text-white cursor-pointer'
             onClick={() => navigate("/echelonnes")}>
             Voir tous les paiements échelonnés
           </button>

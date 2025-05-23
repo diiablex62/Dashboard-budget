@@ -10,6 +10,15 @@ import Google from "../icones/Google";
 import GitHub from "../icones/GitHub";
 import NotificationBell from "../icones/NotificationBell";
 
+// Mapping route -> titre
+const ROUTE_TITLES = {
+  "/depenses-revenus": "Revenus et dépenses",
+  "/dashboard": "Dashboard",
+  "/recurrents": "Paiements récurrents",
+  "/echelonne": "Paiements échelonnés",
+  "/agenda": "Mon agenda",
+};
+
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =
     useContext(AppContext);
@@ -24,6 +33,9 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
+
+  // Détermination du titre courant
+  const currentTitle = ROUTE_TITLES[location.pathname] || "";
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,15 +89,18 @@ export default function Navbar() {
   return (
     <nav className='bg-white dark:bg-gray-800 shadow-md'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='flex justify-between h-16'>
-          <div className='flex'>
-            <div className='flex-shrink-0 flex items-center'>
-              <button
-                onClick={() => navigate("/")}
-                className='text-gray-800 dark:text-white hover:text-gray-600 dark:hover:text-gray-300'>
-                <AiOutlineHome className='h-6 w-6' />
-              </button>
-            </div>
+        <div className='flex justify-between h-16 items-center'>
+          {/* Breadcrumb centré */}
+          <div className='flex-1 flex items-center'>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className='text-gray-800 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 flex items-center'>
+              <AiOutlineHome className='h-6 w-6' />
+            </button>
+            <span className='mx-2 text-gray-400'>/</span>
+            <span className='text-lg font-semibold text-gray-800 dark:text-white'>
+              {currentTitle}
+            </span>
           </div>
 
           <div className='flex items-center'>
