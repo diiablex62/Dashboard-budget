@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getCategoryColor } from "../utils/categoryUtils";
+import * as categoryUtils from "../../utils/categoryUtils";
 
 /**
  * Composant affichant un graphique en camembert pour visualiser
@@ -110,7 +110,7 @@ const TransactionsChart = ({ data, type }) => {
     // Convertir en tableau pour l'affichage et trier par montant décroissant
     const processedData = Object.entries(dataByCat)
       .map(([cat, amount]) => {
-        const color = getCategoryColor(cat);
+        const color = categoryUtils.getCategoryColor(cat);
         console.log(`Catégorie: ${cat}, Montant: ${amount}, Couleur: ${color}`);
         return {
           categorie: cat,

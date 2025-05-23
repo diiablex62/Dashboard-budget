@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 import { MONTHS } from "../utils/categoryUtils";
-import TransactionsChart from "../components/TransactionsChart";
+import TransactionsChart from "../components/graphiques/TransactionsChart";
 
 // Catégories par défaut pour les dépenses et revenus
 const DEPENSES_CATEGORIES = [

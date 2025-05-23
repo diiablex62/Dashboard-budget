@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { AppContext } from "../context/AppContext";
-import { ThemeContext } from "../context/ThemeContext";
-import { useAuth } from "../context/AuthContext";
+import { AppContext } from "../../context/AppContext";
+import { ThemeContext } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   FaGoogle,
   FaEnvelope,

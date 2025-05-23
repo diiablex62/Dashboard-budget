@@ -14,7 +14,7 @@ import {
   AiOutlineCalendar,
   AiOutlineDollarCircle,
 } from "react-icons/ai";
-import DatePickerModal from "../components/DatePickerModal";
+import DatePickerModal from "../components/ui/DatePickerModal";
 
 // Données factices pour la démo
 const fakePaiements = [

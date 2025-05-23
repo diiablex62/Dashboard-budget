@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
-import Google from "../components/Google";
-import GitHub from "../components/GitHub";
+import Google from "../components/icones/Google";
+import GitHub from "../components/icones/GitHub";
 import { sendMagicLink } from "../email/login";
 
 export default function Auth() {

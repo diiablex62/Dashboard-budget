@@ -1,14 +1,14 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { AiOutlineBell, AiOutlineHome } from "react-icons/ai";
 import { FiSun, FiMoon } from "react-icons/fi";
-import { AppContext } from "../context/AppContext";
-import { ThemeContext } from "../context/ThemeContext";
-import { useAuth } from "../context/AuthContext";
+import { AppContext } from "../../context/AppContext";
+import { ThemeContext } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import SettingsPanel from "./SettingsPanel";
-import Google from "./Google";
-import GitHub from "./GitHub";
-import NotificationBell from "./NotificationBell";
+import SettingsPanel from "../ui/SettingsPanel";
+import Google from "../icones/Google";
+import GitHub from "../icones/GitHub";
+import NotificationBell from "../icones/NotificationBell";
 
 export default function Navbar() {
   const { isSettingsOpen, setIsSettingsOpen, isLoggedIn, setIsLoggedIn } =

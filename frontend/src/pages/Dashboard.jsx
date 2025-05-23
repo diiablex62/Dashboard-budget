@@ -30,10 +30,9 @@ import {
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
 } from "../fakeData";
-import CustomBarTooltip from "../components/CustomBarTooltip";
-import CustomSingleBarTooltip from "../components/CustomSingleBarTooltip";
-import RenderActiveShape from "../components/RenderActiveShape";
-import * as calculs from "../calcul";
+import CustomBarTooltip from "../components/graphiques/CustomBarTooltip";
+import CustomSingleBarTooltip from "../components/graphiques/CustomSingleBarTooltip";
+import RenderActiveShape from "../components/graphiques/RenderActiveShape";
 
 // -------------------
 // Constantes globales
@@ -575,7 +574,7 @@ export default function Dashboard() {
                 />
               </BarChart>
             </ResponsiveContainer>
-            <CustomSingleBarTooltip />
+            <CustomSingleBarTooltip barHover={barHover} />
           </div>
         </div>
       </div>

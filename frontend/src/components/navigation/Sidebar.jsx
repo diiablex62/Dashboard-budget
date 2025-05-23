@@ -1,7 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import "../styles/tailwind.css";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   AiOutlineHome,
   AiOutlinePieChart,
@@ -10,6 +9,9 @@ import {
   AiOutlineLogin,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
+import { AppContext } from "../../context/AppContext";
+import SettingsPanel from "../ui/SettingsPanel";
+import { ThemeContext } from "../../context/ThemeContext";
 
 export default function Sidebar() {
   const { user, loading } = useAuth();

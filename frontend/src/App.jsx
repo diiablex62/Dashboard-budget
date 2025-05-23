@@ -1,8 +1,8 @@
 import React, { useContext, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import "./styles/tailwind.css";
-import Sidebar from "./components/Sidebar";
-import Navbar from "./components/Navbar";
+import Sidebar from "./components/navigation/Sidebar";
+import Navbar from "./components/navigation/Navbar";
 import { AppContext } from "./context/AppContext";
 import AppRoutes from "./routes/Routes";
 
