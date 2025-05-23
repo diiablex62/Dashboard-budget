@@ -289,25 +289,32 @@ export default function Dashboard() {
                   })}{" "}
                   €
                 </li>
+              </ul>
+              <div className='font-semibold mt-2 mb-1'>Mois précédent :</div>
+              <ul className='list-disc list-inside space-y-1'>
                 <li>
-                  Mois précédent :{" "}
+                  Dépenses :{" "}
                   {calculs
-                    .calculEconomies(
-                      calculs.calculRevenusMoisPrecedent(
-                        depenseRevenu,
-                        paiementsRecurrents,
-                        paiementsEchelonnes
-                      ),
-                      calculs.calculTotalDepensesMois(
-                        depenseRevenu,
-                        paiementsRecurrents,
-                        paiementsEchelonnes,
-                        new Date(
-                          new Date().getFullYear(),
-                          new Date().getMonth() - 1,
-                          1
-                        )
+                    .calculTotalDepensesMois(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes,
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() - 1,
+                        1
                       )
+                    )
+                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li>
+                  Revenu :{" "}
+                  {calculs
+                    .calculRevenusMoisPrecedent(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes
                     )
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
