@@ -1,5 +1,4 @@
 import React, {
-  useContext,
   useState,
   useCallback,
   useEffect,
@@ -122,8 +121,6 @@ const PaiementRecurrent = () => {
       .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
   }, [paiementsRecurrents]);
 
-  const solde = totalRevenus - totalDepenses;
-
   // Filtrage des paiements selon le type
   const paiementsFiltres = useMemo(() => {
     return paiementsRecurrents.filter((p) => p.type === currentTab);
@@ -176,16 +173,7 @@ const PaiementRecurrent = () => {
               €
             </div>
           </div>
-          {/* Carte 3: Solde */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
-            <div className='flex items-center text-blue-600 mb-2'>
-              <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Solde</span>
-            </div>
-            <div className='text-2xl text-[#222]'>
-              {solde.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
-            </div>
-          </div>
+          {/* Carte 3: Solde supprimée */}
         </div>
         {/* Switch Dépenses/Revenus */}
         <div className='flex justify-center mb-6'>
