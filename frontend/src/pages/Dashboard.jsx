@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -30,7 +30,14 @@ import {
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
 } from "../fakeData";
+import CustomBarTooltip from "../components/CustomBarTooltip";
+import CustomSingleBarTooltip from "../components/CustomSingleBarTooltip";
+import RenderActiveShape from "../components/RenderActiveShape";
+import * as calculs from "../calcul";
 
+// -------------------
+// Constantes globales
+// -------------------
 const COLORS = [
   "#6366F1",
   "#22C55E",
@@ -42,7 +49,6 @@ const COLORS = [
   "#14B8A6",
 ];
 
-// Ajout d'un helper pour le mois courant
 const monthNames = [
   "janvier",
   "février",
@@ -60,27 +66,13 @@ const monthNames = [
 const moisEnCours =
   monthNames[new Date().getMonth()] + " " + new Date().getFullYear();
 
-// Tooltip personnalisé pour le BarChart
-function CustomBarTooltip({ active, payload, label }) {
-  if (active && payload && payload.length === 1) {
-    const entry = payload[0];
-    return (
-      <div className='bg-white border border-gray-200 rounded px-3 py-2 shadow text-xs text-gray-800'>
-        <div className='font-semibold mb-1'>{label}</div>
-        <div style={{ color: entry.color }}>
-          {entry.name} :{" "}
-          {entry.value.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
+// -------------------
+// Composant principal
+// -------------------
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // Remplacer les hooks par les données factices
+  // Données factices utilisées directement
   const transactions = fakeTransactions;
   const paiementsRecurrents = fakePaiementsRecurrents;
   const paiementsEchelonnes = fakePaiementsEchelonnes;
@@ -243,24 +235,6 @@ export default function Dashboard() {
   const onPieEnter = (_, index) => setActiveIndex(index);
   const onPieLeave = () => setActiveIndex(null);
 
-  function renderActiveShape(props) {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
-      props;
-    return (
-      <g>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 8}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-        />
-      </g>
-    );
-  }
-
   // Préparation des données pour le graphique à barres (6 derniers mois)
   const barChartData = useMemo(() => {
     const now = new Date();
@@ -347,50 +321,6 @@ export default function Dashboard() {
     type: null,
     value: null,
   });
-
-  // Tooltip individuel personnalisé
-  function CustomSingleBarTooltip() {
-    if (barHover.mois && barHover.type && barHover.value !== null) {
-      // Largeur estimée du tooltip (en px)
-      const tooltipWidth = 110;
-      // Largeur de l'écran
-      const screenW = window.innerWidth;
-      // Décalage pour centrer le tooltip
-      let left = barHover.x - tooltipWidth / 2;
-      // Si le tooltip dépasse à droite, on le ramène
-      if (left + tooltipWidth > screenW - 8) left = screenW - tooltipWidth - 8;
-      // Si le tooltip dépasse à gauche, on le ramène
-      if (left < 8) left = 8;
-      return (
-        <div
-          style={{
-            position: "absolute",
-            left,
-            top: barHover.y,
-            pointerEvents: "none",
-            zIndex: 50,
-            transition: "all 0.15s cubic-bezier(.4,0,.2,1)",
-          }}>
-          <div
-            className='bg-white/90 border border-gray-100 rounded-xl px-3 py-2 shadow-lg flex items-center justify-center gap-2 text-lg font-bold text-center'
-            style={{
-              color: barHover.type === "depenses" ? "#EF4444" : "#22C55E",
-              minWidth: 60,
-            }}>
-            <span>
-              {barHover.value.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}
-            </span>
-            <span style={{ fontSize: 18, fontWeight: 700, marginLeft: 4 }}>
-              €
-            </span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
 
   return (
     <div className='p-6 bg-gray-50 min-h-screen'>
@@ -556,7 +486,7 @@ export default function Dashboard() {
                   dataKey='value'
                   activeIndex={activeIndex}
                   activeShape={
-                    activeIndex !== null ? renderActiveShape : undefined
+                    activeIndex !== null ? RenderActiveShape : undefined
                   }
                   onMouseEnter={onPieEnter}
                   onMouseLeave={onPieLeave}
