@@ -15,8 +15,6 @@ import {
 } from "react-icons/ai";
 import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { FiEdit, FiTrash } from "react-icons/fi";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 // Import des catégories et données centralisées
 import {
@@ -26,11 +24,7 @@ import {
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
 import TransactionsChart from "../components/graphiques/TransactionsChart";
-import {
-  fakeTransactions,
-  fakePaiementsRecurrents,
-  fakePaiementsEchelonnes,
-} from "../utils/fakeData";
+import { fakeTransactions } from "../utils/fakeData";
 
 // Importation des nouvelles fonctions utilitaires
 import {
@@ -43,11 +37,13 @@ import {
   deleteTransaction,
 } from "../utils/transactionUtils";
 
-// Génération dynamique de transactions factices pour le mois de mai 2025
+import {
+  calculTotalDepensesMois,
+  calculTotalRevenus,
+  calculTotalEconomies,
+} from "../utils/calcul";
 
-function getMonthName(date) {
-  return date.toLocaleString("fr-FR", { month: "long" });
-}
+// Génération dynamique de transactions factices pour le mois de mai 2025
 
 function RevenuModal({
   onClose,
@@ -591,22 +587,9 @@ export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState(fakeTransactions);
-  const [paiementsRecurrents, setPaiementsRecurrents] = useState(
-    fakePaiementsRecurrents
-  );
-  const [paiementsEchelonnes, setPaiementsEchelonnes] = useState(
-    fakePaiementsEchelonnes
-  );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [filter, setFilter] = useState({
-    type: "all",
-    category: "all",
-    search: "",
-  });
 
   const fetchTransactions = useCallback(() => {
     setTransactions(fakeTransactions);
@@ -630,23 +613,6 @@ export default function DepensesRevenus() {
   const handleAddDepense = useCallback(() => {
     setSelectedTransaction(null);
     setShowDepenseModal(true);
-  }, []);
-
-  const handleEditTransaction = useCallback((transaction) => {
-    setSelectedTransaction(transaction);
-    if (transaction.type === "revenu") {
-      setShowRevenuModal(true);
-    } else {
-      setShowDepenseModal(true);
-    }
-  }, []);
-
-  const handleDeleteTransaction = useCallback(async (id) => {
-    if (
-      !window.confirm("Êtes-vous sûr de vouloir supprimer cette transaction ?")
-    )
-      return;
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const handleSaveRevenu = useCallback(async (revenu) => {
@@ -673,11 +639,6 @@ export default function DepensesRevenus() {
     });
   }, []);
 
-  const handleFilterChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFilter((prev) => ({ ...prev, [name]: value }));
-  }, []);
-
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
       const d = new Date(t.date);
@@ -689,29 +650,18 @@ export default function DepensesRevenus() {
     });
   }, [transactions, currentTab, currentDate]);
 
-  const totalRevenus = useMemo(() => {
-    return transactions
-      .filter(
-        (t) =>
-          t.type === "revenu" &&
-          new Date(t.date).getMonth() === currentDate.getMonth() &&
-          new Date(t.date).getFullYear() === currentDate.getFullYear()
-      )
-      .reduce((acc, t) => acc + (parseFloat(t.montant) || 0), 0);
-  }, [transactions, currentDate]);
-
-  const totalDepenses = useMemo(() => {
-    return transactions
-      .filter(
-        (t) =>
-          t.type === "depense" &&
-          new Date(t.date).getMonth() === currentDate.getMonth() &&
-          new Date(t.date).getFullYear() === currentDate.getFullYear()
-      )
-      .reduce((acc, t) => acc + (parseFloat(t.montant) || 0), 0);
-  }, [transactions, currentDate]);
-
-  const solde = totalRevenus - totalDepenses;
+  const totalDepenses = useMemo(
+    () => calculTotalDepensesMois(transactions, [], [], currentDate),
+    [transactions, currentDate]
+  );
+  const totalRevenus = useMemo(
+    () => calculTotalRevenus(transactions, []),
+    [transactions]
+  );
+  const solde = useMemo(
+    () => calculTotalEconomies(totalRevenus, totalDepenses),
+    [totalRevenus, totalDepenses]
+  );
 
   // Navigation mois
   const handlePrevMonth = () => {
@@ -728,31 +678,6 @@ export default function DepensesRevenus() {
       return d;
     });
   };
-
-  if (loading) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='animate-pulse'>
-          <div className='h-8 bg-gray-200 rounded w-1/4 mb-4'></div>
-          <div className='space-y-4'>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className='h-16 bg-gray-200 rounded'></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
-          {error}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8'>

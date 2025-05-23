@@ -50,34 +50,34 @@ export const fakeTransactions = [
   },
 ];
 
-// Paiements récurrents (uniquement mai 2025)
+// Paiements récurrents (dates en brut)
 export const fakePaiementsRecurrents = [
   {
     id: 1,
     nom: "Loyer",
     montant: 800,
-    categorie: "Loyer",
+    categorie: "Logement",
     date: "2024-03-01",
-    frequence: "mensuel",
     type: "depense",
+    frequence: "mensuel",
   },
   {
     id: 2,
-    nom: "Électricité",
-    montant: 120,
-    categorie: "Électricité",
-    date: "2024-03-15",
+    nom: "Salaire",
+    montant: 2500,
+    categorie: "Salaire",
+    date: "2024-03-05",
+    type: "revenu",
     frequence: "mensuel",
-    type: "depense",
   },
   {
     id: 3,
-    nom: "Internet",
-    montant: 40,
-    categorie: "Internet",
-    date: "2024-03-20",
-    frequence: "mensuel",
+    nom: "Électricité",
+    montant: 120,
+    categorie: "Factures",
+    date: "2024-03-10",
     type: "depense",
+    frequence: "mensuel",
   },
 ];
 

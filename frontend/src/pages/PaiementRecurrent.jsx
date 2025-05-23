@@ -5,12 +5,8 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { ThemeContext } from "../context/ThemeContext";
-import { AppContext } from "../context/AppContext";
 import {
   AiOutlinePlus,
-  AiOutlineEdit,
-  AiOutlineDelete,
   AiOutlineCalendar,
   AiOutlineDollarCircle,
   AiOutlineArrowLeft,
@@ -18,13 +14,12 @@ import {
 } from "react-icons/ai";
 import DatePickerModal from "../components/ui/DatePickerModal";
 import { fakePaiementsRecurrents } from "../utils/fakeData";
-import { RECURRENT_CATEGORIES, CATEGORY_COLORS } from "../utils/categoryUtils";
+import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
     fakePaiementsRecurrents
   );
-  const [error, setError] = useState(null);
   const [newPaiement, setNewPaiement] = useState({
     nom: "",
     montant: "",
@@ -35,9 +30,10 @@ const PaiementRecurrent = () => {
   });
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [step, setStep] = useState(1);
   const [currentTab, setCurrentTab] = useState("depense");
+  const [error, setError] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
@@ -64,7 +60,6 @@ const PaiementRecurrent = () => {
       ...prev,
       debutDate: date.toISOString().split("T")[0],
     }));
-    setShowDatePicker(false);
   };
 
   const handleNext = useCallback(() => setStep((s) => s + 1), []);
@@ -101,7 +96,6 @@ const PaiementRecurrent = () => {
     });
     setStep(1);
     setEditIndex(null);
-    setError(null);
   };
 
   const handleDelete = (id) => {
@@ -326,7 +320,6 @@ const PaiementRecurrent = () => {
                   type: "depense",
                 });
                 setEditIndex(null);
-                setError(null);
               }}
               aria-label='Fermer'>
               ✕
