@@ -15,6 +15,7 @@ import {
 import DatePickerModal from "../components/ui/DatePickerModal";
 import { fakePaiementsRecurrents } from "../utils/fakeData";
 import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
+import { calculTotalRecurrentsMois, calculTotalRevenus } from "../utils/calcul";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -103,17 +104,14 @@ const PaiementRecurrent = () => {
   };
 
   // Calcul des totaux
-  const totalDepenses = useMemo(() => {
-    return paiementsRecurrents
-      .filter((p) => p.type === "depense")
-      .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
-  }, [paiementsRecurrents]);
-
-  const totalRevenus = useMemo(() => {
-    return paiementsRecurrents
-      .filter((p) => p.type === "revenu")
-      .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
-  }, [paiementsRecurrents]);
+  const totalDepenses = useMemo(
+    () => calculTotalRecurrentsMois(paiementsRecurrents),
+    [paiementsRecurrents]
+  );
+  const totalRevenus = useMemo(
+    () => calculTotalRevenus([], paiementsRecurrents),
+    [paiementsRecurrents]
+  );
 
   // Filtrage des paiements selon le type
   const paiementsFiltres = useMemo(() => {

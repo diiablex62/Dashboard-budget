@@ -21,6 +21,7 @@ import {
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
 import { fakePaiementsEchelonnes } from "../utils/fakeData";
+import { calculTotalEchelonnesMois } from "../utils/calcul";
 
 const PaiementEchelonne = () => {
   const defaultDebutDate = useMemo(() => {
@@ -139,14 +140,10 @@ const PaiementEchelonne = () => {
     setPaiementsEchelonnes((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  const totalDepenses = useMemo(() => {
-    if (!paiementsEchelonnes.length) return 0;
-    return paiementsEchelonnes.reduce((acc, p) => {
-      if (!p.montant || !p.mensualites) return acc;
-      const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
-      return acc + montantMensuel;
-    }, 0);
-  }, [paiementsEchelonnes]);
+  const totalDepenses = useMemo(
+    () => calculTotalEchelonnesMois(paiementsEchelonnes),
+    [paiementsEchelonnes]
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
