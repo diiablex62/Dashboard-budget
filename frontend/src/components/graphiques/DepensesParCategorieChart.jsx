@@ -60,7 +60,7 @@ export default function DepensesParCategorieChart({ data }) {
             </PieChart>
           </ResponsiveContainer>
           <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center'>
-            <span className='text-2xl font-bold text-gray-700'>
+            <span className='text-2xl font-bold text-gray-700 dark:text-white'>
               {activePercentage}%
             </span>
           </div>
@@ -79,11 +79,11 @@ export default function DepensesParCategorieChart({ data }) {
                     className='w-3 h-3 rounded-full'
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
-                  <span className='text-sm font-medium text-gray-700'>
+                  <span className='text-sm font-medium text-gray-700 dark:text-white'>
                     {item.name}
                   </span>
                 </div>
-                <span className='text-sm text-gray-600'>
+                <span className='text-sm text-gray-600 dark:text-white'>
                   {item.value.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                   })}{" "}
