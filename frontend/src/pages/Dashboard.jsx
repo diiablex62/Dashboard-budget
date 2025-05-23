@@ -29,7 +29,7 @@ import {
   fakeTransactions,
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
-} from "../fakeData";
+} from "../utils/fakeData";
 import CustomBarTooltip from "../components/graphiques/CustomBarTooltip";
 import CustomSingleBarTooltip from "../components/graphiques/CustomSingleBarTooltip";
 import RenderActiveShape from "../components/graphiques/RenderActiveShape";
@@ -321,6 +321,68 @@ export default function Dashboard() {
     value: null,
   });
 
+  // Fonction pour afficher le prix en € sur chaque segment du camembert
+  const renderPieLabel = ({
+    value,
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    index,
+  }) => {
+    if (activeIndex !== index) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // Dimensions harmonisées avec le tooltip
+    const width = 110;
+    const height = 40;
+    const rx = 16;
+
+    return (
+      <g>
+        <filter id='pie-shadow' x='-50%' y='-50%' width='200%' height='200%'>
+          <feDropShadow
+            dx='0'
+            dy='2'
+            stdDeviation='4'
+            floodColor='#000'
+            floodOpacity='0.10'
+          />
+        </filter>
+        <rect
+          x={x - width / 2}
+          y={y - height / 2}
+          width={width}
+          height={height}
+          rx={rx}
+          fill='white'
+          stroke='#f3f4f6'
+          strokeWidth={1}
+          opacity={0.9}
+          filter='url(#pie-shadow)'
+        />
+        <text
+          x={x}
+          y={y}
+          fill='#222'
+          textAnchor='middle'
+          dominantBaseline='central'
+          fontSize={20}
+          fontWeight={700}
+          style={{ fontFamily: "inherit" }}>
+          {value.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+          <tspan fontSize={18} fontWeight={700} dx={8}>
+            €
+          </tspan>
+        </text>
+      </g>
+    );
+  };
+
   return (
     <div className='p-6 bg-gray-50 min-h-screen'>
       {/* Cartes du haut */}
@@ -489,7 +551,9 @@ export default function Dashboard() {
                   }
                   onMouseEnter={onPieEnter}
                   onMouseLeave={onPieLeave}
-                  paddingAngle={2}>
+                  paddingAngle={2}
+                  label={renderPieLabel}
+                  labelLine={false}>
                   {depensesParCategorie.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
