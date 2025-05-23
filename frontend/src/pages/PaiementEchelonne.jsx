@@ -1,5 +1,4 @@
 import React, {
-  useContext,
   useState,
   useRef,
   useEffect,
@@ -15,66 +14,21 @@ import {
   AiOutlineEdit,
   AiOutlineDelete,
 } from "react-icons/ai";
-import { ThemeContext } from "../context/ThemeContext";
-import { AppContext } from "../context/AppContext";
-import { useNavigate } from "react-router-dom";
 import {
   ECHELONNE_CATEGORIES,
   getMonthYear,
   MONTHS,
+  CATEGORY_COLORS,
 } from "../utils/categoryUtils";
-
-// Données factices pour la démo
-const fakeEchelonnes = [
-  {
-    id: 1,
-    nom: "Smartphone Samsung",
-    montant: 3599.8,
-    mensualites: 24,
-    debutDate: "2024-01-01",
-    categorie: "High-Tech",
-    type: "depense",
-  },
-  {
-    id: 2,
-    nom: "Assurance Auto",
-    montant: 720,
-    mensualites: 12,
-    debutDate: "2024-02-01",
-    categorie: "Assurance",
-    type: "depense",
-  },
-  {
-    id: 3,
-    nom: "Crédit Mobilier",
-    montant: 995,
-    mensualites: 10,
-    debutDate: "2024-03-01",
-    categorie: "Crédit",
-    type: "depense",
-  },
-  {
-    id: 4,
-    nom: "Électroménagers",
-    montant: 722.7,
-    mensualites: 6,
-    debutDate: "2024-04-01",
-    categorie: "Maison",
-    type: "depense",
-  },
-];
+import { fakePaiementsEchelonnes } from "../utils/fakeData";
 
 const PaiementEchelonne = () => {
-  const navigate = useNavigate();
-  const { isDarkMode } = useContext(ThemeContext);
-  const { primaryColor } = useContext(AppContext);
   const defaultDebutDate = useMemo(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   }, []);
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [newPaiement, setNewPaiement] = useState({
@@ -85,7 +39,9 @@ const PaiementEchelonne = () => {
     categorie: "",
     type: "depense",
   });
-  const [paiements, setPaiements] = useState(fakeEchelonnes);
+  const [paiementsEchelonnes, setPaiementsEchelonnes] = useState(
+    fakePaiementsEchelonnes
+  );
   const [error, setError] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRevenus, setIsRevenus] = useState(false);
@@ -133,15 +89,18 @@ const PaiementEchelonne = () => {
 
     if (editIndex !== null) {
       // Edition locale
-      setPaiements((prev) =>
+      setPaiementsEchelonnes((prev) =>
         prev.map((p) =>
           p.id === editIndex ? { ...paymentData, id: editIndex } : p
         )
       );
     } else {
       // Ajout local
-      const newId = Math.max(...paiements.map((p) => p.id), 0) + 1;
-      setPaiements((prev) => [...prev, { ...paymentData, id: newId }]);
+      const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
+      setPaiementsEchelonnes((prev) => [
+        ...prev,
+        { ...paymentData, id: newId },
+      ]);
     }
 
     setNewPaiement({
@@ -155,7 +114,7 @@ const PaiementEchelonne = () => {
     setEditIndex(null);
     setShowModal(false);
     setError(null);
-  }, [newPaiement, editIndex, defaultDebutDate, paiements]);
+  }, [newPaiement, editIndex, defaultDebutDate, paiementsEchelonnes]);
 
   const handleEdit = useCallback((payment) => {
     setNewPaiement({
@@ -177,17 +136,17 @@ const PaiementEchelonne = () => {
       )
     )
       return;
-    setPaiements((prev) => prev.filter((p) => p.id !== id));
+    setPaiementsEchelonnes((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
   const totalDepenses = useMemo(() => {
-    if (!paiements.length) return 0;
-    return paiements.reduce((acc, p) => {
+    if (!paiementsEchelonnes.length) return 0;
+    return paiementsEchelonnes.reduce((acc, p) => {
       if (!p.montant || !p.mensualites) return acc;
       const montantMensuel = parseFloat(p.montant) / parseFloat(p.mensualites);
       return acc + montantMensuel;
     }, 0);
-  }, [paiements]);
+  }, [paiementsEchelonnes]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -204,49 +163,6 @@ const PaiementEchelonne = () => {
       console.log("Total paiements échelonnés mis à jour:", totalDepenses);
     }
   }, [totalDepenses]);
-
-  // Fonctions pour naviguer entre les mois
-  const handlePrevMonth = () => {
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() - 1);
-      return d;
-    });
-  };
-
-  const handleNextMonth = () => {
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() + 1);
-      return d;
-    });
-  };
-
-  // Fonctions pour le sélecteur de date avancé
-  const handleYearSelect = (yearValue) => {
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setFullYear(yearValue);
-      return d;
-    });
-  };
-
-  const handleMonthSelect = (monthIndex) => {
-    setSelectedDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(monthIndex);
-      return d;
-    });
-  };
-
-  const handleDatePickerConfirm = () => {
-    setShowDatePicker(false);
-  };
-
-  // Filtrage des paiements échelonnés en fonction de isRevenus
-  const filteredPaiements = paiements.filter(
-    (p) => p.type === (isRevenus ? "revenu" : "depense")
-  );
 
   return (
     <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
@@ -281,7 +197,7 @@ const PaiementEchelonne = () => {
               <span className='text-sm font-semibold'>Paiements Actifs</span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
-              {paiements.length} paiements
+              {paiementsEchelonnes.length} paiements
             </div>
           </div>
         </div>
@@ -348,7 +264,9 @@ const PaiementEchelonne = () => {
             </div>
           </div>
 
-          {filteredPaiements.length === 0 ? (
+          {paiementsEchelonnes.filter(
+            (p) => p.type === (isRevenus ? "revenu" : "depense")
+          ).length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
               <p>
                 Aucun paiement échelonné {isRevenus ? "revenu" : "dépense"} pour{" "}
@@ -357,71 +275,73 @@ const PaiementEchelonne = () => {
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
-              {filteredPaiements.map((paiement) => (
-                <div
-                  key={paiement.id}
-                  className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center'>
-                      <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
-                        <AiOutlineDollarCircle className='text-gray-600 dark:text-gray-300 text-xl' />
-                      </div>
-                      <div>
-                        <div className='font-semibold dark:text-white'>
-                          {paiement.nom.charAt(0).toUpperCase() +
-                            paiement.nom.slice(1)}
+              {paiementsEchelonnes
+                .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
+                .map((paiement) => (
+                  <div
+                    key={paiement.id}
+                    className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center'>
+                        <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
+                          <AiOutlineDollarCircle className='text-gray-600 dark:text-gray-300 text-xl' />
                         </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-400'>
-                          {paiement.categorie}
+                        <div>
+                          <div className='font-semibold dark:text-white'>
+                            {paiement.nom.charAt(0).toUpperCase() +
+                              paiement.nom.slice(1)}
+                          </div>
+                          <div className='text-xs text-gray-500 dark:text-gray-400'>
+                            {paiement.categorie}
+                          </div>
+                        </div>
+                      </div>
+                      <div className='flex flex-col items-end'>
+                        <div className='font-bold text-green-600 dark:text-green-400'>
+                          {(
+                            parseFloat(paiement.montant) /
+                            parseFloat(paiement.mensualites)
+                          ).toFixed(2)}{" "}
+                          €/mois
+                        </div>
+                        <div className='text-xs text-gray-400'>
+                          {paiement.mensualites} mensualités
                         </div>
                       </div>
                     </div>
-                    <div className='flex flex-col items-end'>
-                      <div className='font-bold text-green-600 dark:text-green-400'>
-                        {(
-                          parseFloat(paiement.montant) /
-                          parseFloat(paiement.mensualites)
-                        ).toFixed(2)}{" "}
-                        €/mois
-                      </div>
-                      <div className='text-xs text-gray-400'>
-                        {paiement.mensualites} mensualités
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className='mt-4'>
-                    <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
-                      <div
-                        className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
-                        style={{
-                          width: `${
-                            (paiement.mensualitesPayees /
-                              paiement.mensualites) *
-                            100
-                          }%`,
-                        }}></div>
+                    <div className='mt-4'>
+                      <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
+                        <div
+                          className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
+                          style={{
+                            width: `${
+                              (paiement.mensualitesPayees /
+                                paiement.mensualites) *
+                              100
+                            }%`,
+                          }}></div>
+                      </div>
+                      <div className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+                        Mensualité {paiement.mensualitesPayees || 1}/
+                        {paiement.mensualites}
+                      </div>
                     </div>
-                    <div className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
-                      Mensualité {paiement.mensualitesPayees || 1}/
-                      {paiement.mensualites}
-                    </div>
-                  </div>
 
-                  <div className='flex justify-end mt-4'>
-                    <button
-                      className='text-blue-600 dark:text-blue-400 font-medium hover:underline mr-4'
-                      onClick={() => handleEdit(paiement)}>
-                      Modifier
-                    </button>
-                    <button
-                      className='text-red-500 dark:text-red-400 font-medium hover:underline'
-                      onClick={() => handleDelete(paiement.id)}>
-                      Supprimer
-                    </button>
+                    <div className='flex justify-end mt-4'>
+                      <button
+                        className='text-blue-600 dark:text-blue-400 font-medium hover:underline mr-4'
+                        onClick={() => handleEdit(paiement)}>
+                        Modifier
+                      </button>
+                      <button
+                        className='text-red-500 dark:text-red-400 font-medium hover:underline'
+                        onClick={() => handleDelete(paiement.id)}>
+                        Supprimer
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
@@ -628,14 +548,10 @@ const PaiementEchelonne = () => {
                     value={newPaiement.debutDate}
                     readOnly
                     className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 pr-10 mb-4 cursor-pointer'
-                    onClick={() => setShowDatePicker(true)}
                     ref={debutDateInputRef}
                     autoFocus
                   />
-                  <AiOutlineCalendar
-                    className='absolute right-3 top-3 text-xl text-gray-400 cursor-pointer'
-                    onClick={() => setShowDatePicker(true)}
-                  />
+                  <AiOutlineCalendar className='absolute right-3 top-3 text-xl text-gray-400 cursor-pointer' />
                 </div>
                 <div className='flex justify-between'>
                   <button

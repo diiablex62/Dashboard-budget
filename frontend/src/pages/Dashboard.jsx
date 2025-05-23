@@ -33,6 +33,7 @@ import {
 import CustomBarTooltip from "../components/graphiques/CustomBarTooltip";
 import CustomSingleBarTooltip from "../components/graphiques/CustomSingleBarTooltip";
 import RenderActiveShape from "../components/graphiques/RenderActiveShape";
+import * as calculs from "../utils/calcul";
 
 // -------------------
 // Constantes globales
@@ -76,57 +77,6 @@ export default function Dashboard() {
   const paiementsRecurrents = fakePaiementsRecurrents;
   const paiementsEchelonnes = fakePaiementsEchelonnes;
 
-  // Calcul du total dépensé (dépenses + récurrents + échelonnés) pour la carte 1
-  const totalDepense = useMemo(() => {
-    // Dépenses du mois (transactions)
-    const depensesMois = transactions
-      .filter(
-        (t) =>
-          t.type === "depense" &&
-          new Date(t.date).getFullYear() === new Date().getFullYear() &&
-          new Date(t.date).getMonth() === new Date().getMonth()
-      )
-      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-
-    // Paiements récurrents du mois
-    const recurrentsMois = paiementsRecurrents
-      .filter(
-        (p) =>
-          p.type === "depense" &&
-          new Date(p.date).getFullYear() === new Date().getFullYear() &&
-          new Date(p.date).getMonth() === new Date().getMonth()
-      )
-      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-
-    // Paiements échelonnés du mois (mensualité due ce mois)
-    const echelonnesMois = paiementsEchelonnes
-      .filter((e) => e.type === "depense")
-      .reduce((acc, e) => {
-        const debutDate = new Date(e.debutDate);
-        const debutYear = debutDate.getFullYear();
-        const debutMonth = debutDate.getMonth();
-        const nbMensualites = parseInt(e.mensualites, 10);
-        const finDate = new Date(debutDate);
-        finDate.setMonth(finDate.getMonth() + nbMensualites - 1);
-        const finYear = finDate.getFullYear();
-        const finMonth = finDate.getMonth();
-
-        const current = new Date().getFullYear() * 12 + new Date().getMonth();
-        const start = debutYear * 12 + debutMonth;
-        const end = finYear * 12 + finMonth;
-
-        // LOG DEBUG
-        // console.log('current:', current, 'start:', start, 'end:', end);
-
-        if (current >= start && current <= end) {
-          return acc + parseFloat(e.montant) / nbMensualites;
-        }
-        return acc;
-      }, 0);
-
-    return depensesMois + recurrentsMois + echelonnesMois;
-  }, [transactions, paiementsRecurrents, paiementsEchelonnes]);
-
   // Calcul de la différence avec le mois dernier
   const differenceMoisPrecedent = useMemo(() => {
     // Pour la démo, on utilise une valeur fixe
@@ -134,48 +84,20 @@ export default function Dashboard() {
     return 245.67;
   }, []);
 
-  // Calcul du total des paiements récurrents (dépenses) du mois
-  const totalRecurrents = useMemo(() => {
-    return paiementsRecurrents
-      .filter((p) => p.type === "depense")
-      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-  }, [paiementsRecurrents]);
-
   // Calcul du total des paiements échelonnés (dépenses) du mois
-  const totalEchelonnes = useMemo(() => {
-    return paiementsEchelonnes
-      .filter((e) => e.type === "depense")
-      .reduce((acc, e) => {
-        const debutDate = new Date(e.debutDate);
-        const finDate = new Date(debutDate);
-        finDate.setMonth(finDate.getMonth() + parseInt(e.mensualites) - 1);
-        const moisActuel = new Date(
-          new Date().getFullYear(),
-          new Date().getMonth(),
-          1
-        );
-        if (moisActuel >= debutDate && moisActuel <= finDate) {
-          return acc + parseFloat(e.montant) / parseInt(e.mensualites);
-        }
-        return acc;
-      }, 0);
-  }, [paiementsEchelonnes]);
-
-  // Calcul du total des revenus (transactions + récurrents)
-  const totalRevenus = useMemo(() => {
-    const revenusTransactions = transactions
-      .filter((t) => t.type === "revenu")
-      .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-    const revenusRecurrents = paiementsRecurrents
-      .filter((p) => p.type === "revenu")
-      .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-    return revenusTransactions + revenusRecurrents;
-  }, [transactions, paiementsRecurrents]);
+  const totalEchelonnes = calculs.totalEchelonnesMois(paiementsEchelonnes);
 
   // Calcul des économies (revenus - tout ce qui sort)
-  const totalEconomies = useMemo(() => {
-    return totalRevenus - totalDepense;
-  }, [totalRevenus, totalDepense]);
+  const totalRevenus = calculs.totalRevenusGlobalMois(
+    transactions,
+    paiementsRecurrents
+  );
+  const totalDepense = calculs.totalDepensesGlobalesMois(
+    transactions,
+    paiementsRecurrents,
+    paiementsEchelonnes
+  );
+  const totalEconomies = totalRevenus - totalDepense;
 
   // Différence économies mois précédent (démonstration)
   const differenceEconomiesMoisPrecedent = useMemo(() => {
@@ -214,106 +136,21 @@ export default function Dashboard() {
   // const totalEchelonnes = 985.65; // <-- supprimée pour éviter le doublon
   // const totalEconomies = 1258.44; // <-- supprimée pour éviter le doublon
 
-  const depensesParCategorie = useMemo(() => {
-    const depenses = transactions.filter((t) => t.type === "depense");
-    const categories = {};
-    depenses.forEach((t) => {
-      if (!categories[t.categorie]) categories[t.categorie] = 0;
-      categories[t.categorie] += parseFloat(t.montant);
-    });
-    const total = Object.values(categories).reduce((a, b) => a + b, 0);
-    return Object.entries(categories).map(([cat, value]) => ({
-      name: cat,
-      value,
-      percent: total ? Math.round((value / total) * 100) : 0,
-      color: CATEGORY_PALETTE[cat] || "#8884d8", // couleur par défaut si non trouvée
-    }));
-  }, [transactions]);
+  const depensesParCategorie = calculs.calculDepensesParCategorie(
+    transactions,
+    CATEGORY_PALETTE
+  );
 
   const [activeIndex, setActiveIndex] = useState(null);
   const onPieEnter = (_, index) => setActiveIndex(index);
   const onPieLeave = () => setActiveIndex(null);
 
   // Préparation des données pour le graphique à barres (6 derniers mois)
-  const barChartData = useMemo(() => {
-    const now = new Date();
-    // Générer les 6 derniers mois
-    const months = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-      return {
-        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
-        label: d.toLocaleString("fr-FR", { month: "short" }),
-        year: d.getFullYear(),
-        month: d.getMonth(),
-      };
-    });
-
-    const data = months.map(({ label, year, month }) => {
-      // Calcul des dépenses du mois (transactions)
-      const depensesMois = transactions
-        .filter(
-          (t) =>
-            t.type === "depense" &&
-            new Date(t.date).getFullYear() === year &&
-            new Date(t.date).getMonth() === month
-        )
-        .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-
-      // Calcul des paiements récurrents du mois
-      const recurrentsMois = paiementsRecurrents
-        .filter(
-          (p) =>
-            p.type === "depense" &&
-            new Date(p.date).getFullYear() === year &&
-            new Date(p.date).getMonth() === month
-        )
-        .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-
-      // Calcul des paiements échelonnés du mois (robuste)
-      const echelonnesMois = paiementsEchelonnes
-        .filter((e) => e.type === "depense")
-        .reduce((acc, e) => {
-          const debutDate = new Date(e.debutDate);
-          const debutYear = debutDate.getFullYear();
-          const debutMonth = debutDate.getMonth();
-          const nbMensualites = parseInt(e.mensualites, 10);
-          const finDate = new Date(debutDate);
-          finDate.setMonth(finDate.getMonth() + nbMensualites - 1);
-          const finYear = finDate.getFullYear();
-          const finMonth = finDate.getMonth();
-
-          const current = year * 12 + month;
-          const start = debutYear * 12 + debutMonth;
-          const end = finYear * 12 + finMonth;
-
-          if (current >= start && current <= end) {
-            return acc + parseFloat(e.montant) / nbMensualites;
-          }
-          return acc;
-        }, 0);
-
-      // Total des dépenses du mois
-      const depenses = depensesMois + recurrentsMois + echelonnesMois;
-
-      // Calcul des revenus du mois
-      const revenus = transactions
-        .filter(
-          (t) =>
-            t.type === "revenu" &&
-            new Date(t.date).getFullYear() === year &&
-            new Date(t.date).getMonth() === month
-        )
-        .reduce((acc, t) => acc + parseFloat(t.montant), 0);
-
-      return {
-        mois: label.charAt(0).toUpperCase() + label.slice(1),
-        depenses,
-        revenus,
-      };
-    });
-
-    return data;
-  }, [transactions, paiementsRecurrents, paiementsEchelonnes]);
+  const barChartData = calculs.calculBarChartData(
+    transactions,
+    paiementsRecurrents,
+    paiementsEchelonnes
+  );
 
   const [barHover, setBarHover] = useState({
     mois: null,
@@ -452,7 +289,7 @@ export default function Dashboard() {
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
           <div className='text-2xl font-bold'>
-            {totalRecurrents.toFixed(2)}€
+            {calculs.totalRecurrentsMois(paiementsRecurrents).toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>Ce mois-ci</div>
           <button

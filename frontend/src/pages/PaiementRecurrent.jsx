@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useRef,
+  useMemo,
 } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import { AppContext } from "../context/AppContext";
@@ -13,59 +14,23 @@ import {
   AiOutlineDelete,
   AiOutlineCalendar,
   AiOutlineDollarCircle,
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
 } from "react-icons/ai";
 import DatePickerModal from "../components/ui/DatePickerModal";
-
-// Données factices pour la démo
-const fakePaiements = [
-  {
-    id: 1,
-    nom: "Netflix",
-    categorie: "Divertissement",
-    montant: 14.99,
-    frequence: "Mensuel",
-    date: "2024-06-15",
-    type: "depense",
-  },
-  {
-    id: 2,
-    nom: "Spotify",
-    categorie: "Divertissement",
-    montant: 9.99,
-    frequence: "Mensuel",
-    date: "2024-06-20",
-    type: "depense",
-  },
-  {
-    id: 3,
-    nom: "Salaire principal",
-    categorie: "Salaire",
-    montant: 2200,
-    frequence: "Mensuel",
-    date: "2024-06-01",
-    type: "revenu",
-  },
-  {
-    id: 4,
-    nom: "APL",
-    categorie: "Allocations",
-    montant: 180,
-    frequence: "Mensuel",
-    date: "2024-06-05",
-    type: "revenu",
-  },
-];
+import { fakePaiementsRecurrents } from "../utils/fakeData";
+import { RECURRENT_CATEGORIES, CATEGORY_COLORS } from "../utils/categoryUtils";
 
 const PaiementRecurrent = () => {
-  const { isDarkMode } = useContext(ThemeContext);
-  const { primaryColor } = useContext(AppContext);
-  const [paiementsRecurrents, setPaiementsRecurrents] = useState(fakePaiements);
+  const [paiementsRecurrents, setPaiementsRecurrents] = useState(
+    fakePaiementsRecurrents
+  );
   const [error, setError] = useState(null);
   const [newPaiement, setNewPaiement] = useState({
     nom: "",
     montant: "",
-    frequence: "",
-    date: new Date().toISOString().split("T")[0],
+    frequence: "mensuel",
+    debutDate: new Date().toISOString().split("T")[0],
     categorie: "",
     type: "depense",
   });
@@ -81,24 +46,14 @@ const PaiementRecurrent = () => {
   const dateInputRef = useRef(null);
   const categorieInputRef = useRef(null);
 
-  // Calculs totaux filtrés
-  const paiementsFiltres = paiementsRecurrents.filter(
-    (p) => p.type === currentTab
-  );
-  const totalRevenus = paiementsRecurrents
-    .filter((p) => p.type === "revenu")
-    .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
-  const totalDepenses = paiementsRecurrents
-    .filter((p) => p.type === "depense")
-    .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
-  const solde = totalRevenus - totalDepenses;
+  const defaultDebutDate = useMemo(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  }, []);
 
   useEffect(() => {
     console.log("Paiements récurrents:", paiementsRecurrents);
-    console.log("Paiements filtrés:", paiementsFiltres);
-    console.log("Total revenus:", totalRevenus);
-    console.log("Total dépenses:", totalDepenses);
-  }, [paiementsRecurrents, paiementsFiltres, totalRevenus, totalDepenses]);
+  }, [paiementsRecurrents]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,7 +63,7 @@ const PaiementRecurrent = () => {
   const handleDateChange = (date) => {
     setNewPaiement((prev) => ({
       ...prev,
-      date: date.toISOString().split("T")[0],
+      debutDate: date.toISOString().split("T")[0],
     }));
     setShowDatePicker(false);
   };
@@ -140,8 +95,8 @@ const PaiementRecurrent = () => {
     setNewPaiement({
       nom: "",
       montant: "",
-      frequence: "",
-      date: new Date().toISOString().split("T")[0],
+      frequence: "mensuel",
+      debutDate: defaultDebutDate,
       categorie: "",
       type: "depense",
     });
@@ -153,6 +108,26 @@ const PaiementRecurrent = () => {
   const handleDelete = (id) => {
     setPaiementsRecurrents(paiementsRecurrents.filter((p) => p.id !== id));
   };
+
+  // Calcul des totaux
+  const totalDepenses = useMemo(() => {
+    return paiementsRecurrents
+      .filter((p) => p.type === "depense")
+      .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
+  }, [paiementsRecurrents]);
+
+  const totalRevenus = useMemo(() => {
+    return paiementsRecurrents
+      .filter((p) => p.type === "revenu")
+      .reduce((acc, p) => acc + (parseFloat(p.montant) || 0), 0);
+  }, [paiementsRecurrents]);
+
+  const solde = totalRevenus - totalDepenses;
+
+  // Filtrage des paiements selon le type
+  const paiementsFiltres = useMemo(() => {
+    return paiementsRecurrents.filter((p) => p.type === currentTab);
+  }, [paiementsRecurrents, currentTab]);
 
   if (error) {
     return (
@@ -258,8 +233,8 @@ const PaiementRecurrent = () => {
                   setNewPaiement({
                     nom: "",
                     montant: "",
-                    frequence: "",
-                    date: new Date().toISOString().split("T")[0],
+                    frequence: "mensuel",
+                    debutDate: defaultDebutDate,
                     categorie: "",
                     type: currentTab,
                   });
@@ -357,8 +332,8 @@ const PaiementRecurrent = () => {
                 setNewPaiement({
                   nom: "",
                   montant: "",
-                  frequence: "",
-                  date: new Date().toISOString().split("T")[0],
+                  frequence: "mensuel",
+                  debutDate: defaultDebutDate,
                   categorie: "",
                   type: "depense",
                 });
@@ -393,10 +368,10 @@ const PaiementRecurrent = () => {
                   {newPaiement.frequence}
                 </div>
               )}
-              {step > 3 && newPaiement.date && (
+              {step > 3 && newPaiement.debutDate && (
                 <div>
-                  <span className='font-medium'>Date :</span>{" "}
-                  {new Date(newPaiement.date).toLocaleDateString("fr-FR")}
+                  <span className='font-medium'>Date de début :</span>{" "}
+                  {new Date(newPaiement.debutDate).toLocaleDateString("fr-FR")}
                 </div>
               )}
               {step > 4 && newPaiement.categorie && (
@@ -577,13 +552,13 @@ const PaiementRecurrent = () => {
             {step === 5 && (
               <div>
                 <label className='block mb-2 font-medium dark:text-white'>
-                  Date
+                  Date de début
                 </label>
                 <div className='relative'>
                   <input
                     type='text'
-                    name='date'
-                    value={newPaiement.date}
+                    name='debutDate'
+                    value={newPaiement.debutDate}
                     readOnly
                     className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 pr-10 mb-4 cursor-pointer'
                     onClick={() => setShowDatePicker(true)}
@@ -603,10 +578,10 @@ const PaiementRecurrent = () => {
                   </button>
                   <button
                     className='bg-gray-900 text-white px-4 py-2 rounded'
-                    disabled={!newPaiement.date}
+                    disabled={!newPaiement.debutDate}
                     onClick={() => {
-                      if (!newPaiement.date) {
-                        setError("La date est requise");
+                      if (!newPaiement.debutDate) {
+                        setError("La date de début est requise");
                         return;
                       }
                       setError(null);
@@ -620,7 +595,9 @@ const PaiementRecurrent = () => {
                   onClose={() => setShowDatePicker(false)}
                   onConfirm={handleDateChange}
                   selectedDate={
-                    newPaiement.date ? new Date(newPaiement.date) : new Date()
+                    newPaiement.debutDate
+                      ? new Date(newPaiement.debutDate)
+                      : new Date()
                   }
                 />
               </div>
@@ -649,7 +626,7 @@ const PaiementRecurrent = () => {
                     }
                   }}>
                   <option value=''>Sélectionner une catégorie</option>
-                  {Array.from(new Set(categories)).map((cat) => (
+                  {Array.from(new Set(RECURRENT_CATEGORIES)).map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>

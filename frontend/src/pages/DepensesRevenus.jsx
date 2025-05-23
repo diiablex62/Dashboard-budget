@@ -18,37 +18,19 @@ import { FiEdit, FiTrash } from "react-icons/fi";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-import { MONTHS } from "../utils/categoryUtils";
+// Import des catégories et données centralisées
+import {
+  DEPENSES_CATEGORIES,
+  REVENUS_CATEGORIES,
+  getMonthYear,
+  CATEGORY_COLORS,
+} from "../utils/categoryUtils";
 import TransactionsChart from "../components/graphiques/TransactionsChart";
-
-// Catégories par défaut pour les dépenses et revenus
-const DEPENSES_CATEGORIES = [
-  "Alimentation",
-  "Transport",
-  "Logement",
-  "Santé",
-  "Loisirs",
-  "Shopping",
-  "Factures",
-  "Éducation",
-  "Voyages",
-  "Autres",
-];
-
-const REVENUS_CATEGORIES = [
-  "Salaire",
-  "Freelance",
-  "Investissements",
-  "Ventes",
-  "Prestations",
-  "Allocations",
-  "Autres",
-];
+import { fakeTransactions } from "../utils/fakeData";
 
 // Importation des nouvelles fonctions utilitaires
 import {
   formatDate,
-  getMonthYear,
   DEFAULT_CATEGORIES, // Ces catégories proviennent maintenant du fichier categoryUtils.js
   getAllDepenses,
   getAllRevenus,
@@ -58,56 +40,6 @@ import {
 } from "../utils/transactionUtils";
 
 // Génération dynamique de transactions factices pour le mois de mai 2025
-const fakeTransactions = [
-  {
-    id: 1,
-    nom: "Loyer",
-    montant: 700,
-    categorie: "Logement",
-    date: "2025-05-01",
-    type: "depense",
-  },
-  {
-    id: 2,
-    nom: "Courses",
-    montant: 220.5,
-    categorie: "Alimentation",
-    date: "2025-05-03",
-    type: "depense",
-  },
-  {
-    id: 3,
-    nom: "Salaire",
-    montant: 2100,
-    categorie: "Salaire",
-    date: "2025-05-01",
-    type: "revenu",
-  },
-  {
-    id: 4,
-    nom: "Vente Vinted",
-    montant: 45,
-    categorie: "Ventes",
-    date: "2025-05-10",
-    type: "revenu",
-  },
-  {
-    id: 5,
-    nom: "Essence",
-    montant: 80,
-    categorie: "Transport",
-    date: "2025-05-07",
-    type: "depense",
-  },
-  {
-    id: 6,
-    nom: "Remboursement mutuelle",
-    montant: 60,
-    categorie: "Santé",
-    date: "2025-05-12",
-    type: "revenu",
-  },
-];
 
 function getMonthName(date) {
   return date.toLocaleString("fr-FR", { month: "long" });
@@ -655,6 +587,12 @@ export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState(fakeTransactions);
+  const [paiementsRecurrents, setPaiementsRecurrents] = useState(
+    fakePaiementsRecurrents
+  );
+  const [paiementsEchelonnes, setPaiementsEchelonnes] = useState(
+    fakePaiementsEchelonnes
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showRevenuModal, setShowRevenuModal] = useState(false);

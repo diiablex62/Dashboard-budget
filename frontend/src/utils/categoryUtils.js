@@ -6,58 +6,64 @@
 const uniqueArray = (array) => [...new Set(array)];
 
 /**
- * Catégories pour les dépenses et revenus
+ * Catégories pour les dépenses
  * Organisées par fréquence d'utilisation
  */
-export const TRANSACTION_CATEGORIES = uniqueArray([
-  "Logement", // Loyer, charges, prêt immobilier
-  "Alimentation", // Courses, restaurants
-  "Transport", // Essence, transports en commun, entretien véhicule
-  "Factures", // Électricité, eau, téléphone, internet
-  "Santé", // Frais médicaux, pharmacie
-  "Loisirs", // Cinéma, sorties, voyages
-  "Shopping", // Vêtements, électronique
-  "Salaire", // Pour les revenus
-  "Employé", // Pour les revenus d'emploi
-  "Travail", // Pour les revenus liés au travail non salarié
-  "Aide", // Pour les aides et subventions
-  "Épargne", // Pour les revenus ou transferts
-  "Autre",
-]);
+export const DEPENSES_CATEGORIES = [
+  "Alimentation",
+  "Transport",
+  "Logement",
+  "Santé",
+  "Loisirs",
+  "Shopping",
+  "Factures",
+  "Éducation",
+  "Voyages",
+  "Autres",
+];
+
+/**
+ * Catégories pour les revenus
+ * Organisées par fréquence d'utilisation
+ */
+export const REVENUS_CATEGORIES = [
+  "Salaire",
+  "Freelance",
+  "Investissements",
+  "Ventes",
+  "Prestations",
+  "Allocations",
+  "Autres",
+];
 
 /**
  * Catégories pour les paiements récurrents
  * Mises en avant pour correspondre aux usages typiques (loyers, abonnements)
  */
-export const RECURRENT_CATEGORIES = uniqueArray([
-  "Logement", // Loyer, charges
-  "Prêt", // Prêt immobilier, prêt étudiant
-  "Assurance", // Auto, habitation, santé
-  "Abonnements", // TV, streaming, salle de sport
-  "Factures", // Électricité, eau, téléphone, internet
-  "Transport", // Transports en commun, parking
-  "Santé", // Mutuelle
-  "Éducation", // Frais de scolarité
-  "Épargne", // Versements programmés
-  "Autre",
-]);
+export const RECURRENT_CATEGORIES = [
+  "Loyer",
+  "Électricité",
+  "Eau",
+  "Internet",
+  "Téléphone",
+  "Assurance",
+  "Abonnements",
+  "Autres",
+];
 
 /**
  * Catégories pour les paiements échelonnés
  * Adaptées aux crédits et achats importants en plusieurs fois
  */
-export const ECHELONNE_CATEGORIES = uniqueArray([
-  "Véhicule", // Crédit auto, moto
-  "Immobilier", // Crédit immobilier
-  "Électroménager", // Gros achats d'équipement maison
-  "Électronique", // Ordinateur, smartphone, TV
-  "Mobilier", // Meubles, équipement maison
-  "Travaux", // Rénovation, construction
-  "Santé", // Soins importants (dentaire, optique)
-  "Voyage", // Paiement en plusieurs fois
-  "Éducation", // Formation, études
-  "Autre",
-]);
+export const ECHELONNE_CATEGORIES = [
+  "Crédit immobilier",
+  "Crédit auto",
+  "Crédit conso",
+  "Équipement",
+  "Voyage",
+  "Formation",
+  "Autres",
+];
 
 /**
  * Liste des mois
@@ -78,6 +84,14 @@ export const MONTHS = [
 ];
 
 /**
+ * Catégories globales pour toutes les transactions (dépenses + revenus)
+ */
+export const TRANSACTION_CATEGORIES = uniqueArray([
+  ...DEPENSES_CATEGORIES,
+  ...REVENUS_CATEGORIES,
+]);
+
+/**
  * Récupère les catégories adaptées au type de transaction
  * @param {string} type - Type de transaction ("transaction", "recurrent", ou "echelonne")
  * @returns {Array} - Liste des catégories appropriées
@@ -85,13 +99,13 @@ export const MONTHS = [
 export const getCategoriesByType = (type) => {
   switch (type) {
     case "transaction":
-      return TRANSACTION_CATEGORIES;
+      return DEPENSES_CATEGORIES.concat(REVENUS_CATEGORIES);
     case "recurrent":
       return RECURRENT_CATEGORIES;
     case "echelonne":
       return ECHELONNE_CATEGORIES;
     default:
-      return TRANSACTION_CATEGORIES;
+      return DEPENSES_CATEGORIES.concat(REVENUS_CATEGORIES);
   }
 };
 
@@ -190,4 +204,44 @@ export const getCategoryColor = (category) => {
   };
 
   return colors[category] || colors["Autre"]; // couleur par défaut si la catégorie n'est pas définie
+};
+
+// Palette de couleurs pour les catégories
+export const CATEGORY_COLORS = {
+  // Dépenses
+  Alimentation: "#FF6B6B",
+  Transport: "#4ECDC4",
+  Logement: "#45B7D1",
+  Santé: "#96CEB4",
+  Loisirs: "#FFEEAD",
+  Shopping: "#D4A5A5",
+  Factures: "#9B59B6",
+  Éducation: "#3498DB",
+  Voyages: "#E67E22",
+  Autres: "#95A5A6",
+
+  // Revenus
+  Salaire: "#2ECC71",
+  Freelance: "#F1C40F",
+  Investissements: "#1ABC9C",
+  Ventes: "#E74C3C",
+  Prestations: "#9B59B6",
+  Allocations: "#3498DB",
+
+  // Paiements récurrents
+  Loyer: "#E74C3C",
+  Électricité: "#F1C40F",
+  Eau: "#3498DB",
+  Internet: "#2ECC71",
+  Téléphone: "#9B59B6",
+  Assurance: "#1ABC9C",
+  Abonnements: "#E67E22",
+
+  // Paiements échelonnés
+  "Crédit immobilier": "#E74C3C",
+  "Crédit auto": "#3498DB",
+  "Crédit conso": "#2ECC71",
+  Équipement: "#F1C40F",
+  Voyage: "#1ABC9C",
+  Formation: "#9B59B6",
 };
