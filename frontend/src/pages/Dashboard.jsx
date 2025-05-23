@@ -150,10 +150,10 @@ export default function Dashboard() {
   );
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
+    <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Total dépensé en {moisEnCours}
@@ -219,7 +219,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Paiements récurrents
@@ -236,7 +236,7 @@ export default function Dashboard() {
             Gérer →
           </button>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Paiements échelonnés
@@ -253,7 +253,7 @@ export default function Dashboard() {
             Gérer →
           </button>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>Économies</span>
             <AiOutlineRise className='text-blue-600 text-xl' />
@@ -331,7 +331,7 @@ export default function Dashboard() {
 
       {/* Graphiques */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
-        <div className='bg-white rounded-xl shadow p-6'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 dark:text-white  '>
           <h2 className='text-lg font-semibold mb-4 text-center'>
             Dépenses du mois par catégorie
           </h2>
@@ -339,7 +339,7 @@ export default function Dashboard() {
             <DepensesParCategorieChart data={depensesParCategorie} />
           </div>
         </div>
-        <div className='bg-white rounded-xl shadow p-6'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 dark:text-white '>
           <h2 className='text-lg font-semibold mb-4 text-center'>
             Dépenses et revenus des 6 derniers mois
           </h2>
@@ -351,7 +351,7 @@ export default function Dashboard() {
 
       {/* Listes du bas */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col'>
           <div className='font-semibold mb-4'>Paiements récurrents récents</div>
           <div className='flex flex-col gap-2 mb-4'>
             {paiementsRecurrentsTries.slice(0, 3).map((item) => (
@@ -385,7 +385,7 @@ export default function Dashboard() {
             Voir tous les paiements récurrents
           </button>
         </div>
-        <div className='bg-white rounded-xl shadow p-6 flex flex-col'>
+        <div className='bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl shadow p-6 flex flex-col'>
           <div className='font-semibold mb-4'>Paiements échelonnés récents</div>
           <div className='flex flex-col gap-2 mb-4'>
             {paiementsEchelonnesTries.slice(0, 3).map((item) => (

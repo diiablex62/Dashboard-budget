@@ -33,7 +33,7 @@ export default function DepensesParCategorieChart({ data }) {
   ).toFixed(1);
 
   return (
-    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400'>
+    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 bg-white dark:bg-black '>
       <div className='flex w-full h-full'>
         {/* Graphique à gauche */}
         <div className='w-1/2 h-full flex items-center justify-center relative'>

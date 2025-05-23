@@ -16,7 +16,7 @@ export default function DepensesRevenus6Mois({ data }) {
   });
 
   return (
-    <div className='flex-1 flex flex-col items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400'>
+    <div className='flex-1 flex flex-col items-center justify-center min-h-[200px] bg-white dark:bg-black  rounded-lg text-gray-400'>
       <ResponsiveContainer width='100%' height={200}>
         <BarChart
           data={data}
@@ -68,7 +68,7 @@ export default function DepensesRevenus6Mois({ data }) {
       </ResponsiveContainer>
       {barHover.mois && (
         <div className='w-full flex justify-center mt-2'>
-          <div className='flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg'>
+          <div className='flex items-center gap-2 bg-white dark:bg-black px-4 py-2 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700'>
             <span
               className='w-3 h-3 rounded-full'
               style={{
