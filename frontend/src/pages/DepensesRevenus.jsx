@@ -676,12 +676,12 @@ export default function DepensesRevenus() {
   };
 
   return (
-    <div className='bg-[#f8fafc] min-h-screen p-8'>
+    <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div className='max-w-6xl mx-auto'>
         {/* En-tête et sélecteur de mois */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
           <div>
-            <h1 className='text-2xl font-semibold text-gray-800 mb-1'>
+            <h1 className='text-2xl font-semibold text-gray-800 mb-1 dark:text-white'>
               Dépenses & Revenus
             </h1>
             <div className='text-gray-500 text-base'>
@@ -690,19 +690,19 @@ export default function DepensesRevenus() {
           </div>
           {/* Sélecteur mois/année */}
           <div className='flex items-center mt-4 md:mt-0'>
-            <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent'>
+            <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
               <button
-                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer'
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
                 onClick={handlePrevMonth}
                 aria-label='Mois précédent'
                 type='button'>
                 <AiOutlineArrowLeft />
               </button>
-              <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition'>
+              <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
                 {getMonthYear(currentDate)}
               </div>
               <button
-                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer'
+                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
                 onClick={handleNextMonth}
                 aria-label='Mois suivant'
                 type='button'>
@@ -715,10 +715,12 @@ export default function DepensesRevenus() {
         {/* Cartes de statistiques */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
           {/* Carte 1: Total Dépenses */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center relative'>
+          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
             <div className='flex items-center text-red-600 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Dépenses</span>
+              <span className='text-sm font-semibold dark:text-white'>
+                Total Dépenses
+              </span>
               <div className='relative group ml-2'>
                 <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
                 <div className='absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
@@ -727,7 +729,7 @@ export default function DepensesRevenus() {
                 </div>
               </div>
             </div>
-            <div className='text-2xl text-[#222]'>
+            <div className='text-2xl text-[#222] dark:text-white'>
               {totalDepenses.toLocaleString("fr-FR", {
                 minimumFractionDigits: 2,
               })}{" "}
@@ -735,12 +737,14 @@ export default function DepensesRevenus() {
             </div>
           </div>
           {/* Carte 2: Total Revenus */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
             <div className='flex items-center text-green-600 mb-2'>
               <AiOutlineCalendar className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Revenus</span>
+              <span className='text-sm font-semibold dark:text-white'>
+                Total Revenus
+              </span>
             </div>
-            <div className='text-2xl text-[#222]'>
+            <div className='text-2xl text-[#222] dark:text-white'>
               {totalRevenus.toLocaleString("fr-FR", {
                 minimumFractionDigits: 2,
               })}{" "}
@@ -748,10 +752,12 @@ export default function DepensesRevenus() {
             </div>
           </div>
           {/* Carte 3: Solde */}
-          <div className='bg-white rounded-2xl shadow border border-[#ececec] p-6 flex flex-col items-start justify-center'>
+          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
             <div className='flex items-center text-blue-600 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Solde</span>
+              <span className='text-sm font-semibold dark:text-white'>
+                Solde
+              </span>
             </div>
             <div
               className={`text-2xl font-bold ${
@@ -777,8 +783,8 @@ export default function DepensesRevenus() {
             <button
               className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
                 currentTab === "depense"
-                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
-                  : "bg-transparent text-[#7b849b] font-normal"
+                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1] dark:bg-black dark:text-white dark:border-gray-700"
+                  : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
               } cursor-pointer`}
               onClick={() => setCurrentTab("depense")}
               type='button'>
@@ -787,8 +793,8 @@ export default function DepensesRevenus() {
             <button
               className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
                 currentTab === "revenu"
-                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1]"
-                  : "bg-transparent text-[#7b849b] font-normal"
+                  ? "bg-white text-[#111827] shadow font-semibold border border-[#e5eaf1] dark:bg-black dark:text-white dark:border-gray-700"
+                  : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400"
               } cursor-pointer`}
               onClick={() => setCurrentTab("revenu")}
               type='button'>
@@ -798,15 +804,15 @@ export default function DepensesRevenus() {
         </div>
 
         {/* Affichage des dépenses & revenus */}
-        <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-8 mt-2'>
           <div className='flex items-center justify-between mb-6'>
             <div>
-              <div className='text-2xl font-bold text-[#222]'>
+              <div className='text-2xl font-bold text-[#222] dark:text-white'>
                 {currentTab === "depense"
                   ? "Dépenses du mois"
                   : "Revenus du mois"}
               </div>
-              <div className='text-sm text-gray-500 mt-1'>
+              <div className='text-sm text-gray-500 mt-1 dark:text-gray-300'>
                 {currentTab === "depense" ? "Dépenses" : "Revenus"} du mois de{" "}
                 {getMonthYear(currentDate)}
               </div>
@@ -814,7 +820,7 @@ export default function DepensesRevenus() {
             {/* Bouton Ajouter - toujours visible ici */}
             <div className='flex space-x-3'>
               <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                className='flex items-center gap-2 bg-white border border-gray-200 text-gray-800 hover:bg-gray-100 rounded-lg px-4 py-2 font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
                 onClick={
                   currentTab === "depense" ? handleAddDepense : handleAddRevenu
                 }>
@@ -825,7 +831,7 @@ export default function DepensesRevenus() {
           </div>
 
           {filteredDepenseRevenu.length === 0 ? (
-            <div className='text-center py-10 text-gray-500'>
+            <div className='text-center py-10 text-gray-500 dark:text-gray-300'>
               <p>
                 Aucune {currentTab === "depense" ? "dépense" : "revenu"} pour{" "}
                 {getMonthYear(currentDate)}.
@@ -836,18 +842,18 @@ export default function DepensesRevenus() {
               {filteredDepenseRevenu.map((depenseRevenuItem, idx) => (
                 <div
                   key={depenseRevenuItem.id || idx}
-                  className='bg-white rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200'>
+                  className='bg-gray-50 rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200 dark:bg-black dark:text-white dark:border-gray-700'>
                   <div className='flex items-center justify-between'>
                     <div className='flex items-center'>
-                      <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3'>
-                        <AiOutlineDollarCircle className='text-gray-600 text-xl' />
+                      <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3 dark:bg-gray-800'>
+                        <AiOutlineDollarCircle className='text-gray-600 text-xl dark:text-white' />
                       </div>
                       <div>
-                        <div className='font-semibold'>
+                        <div className='font-semibold dark:text-white'>
                           {depenseRevenuItem.nom.charAt(0).toUpperCase() +
                             depenseRevenuItem.nom.slice(1)}
                         </div>
-                        <div className='text-xs text-gray-500'>
+                        <div className='text-xs text-gray-500 dark:text-gray-300'>
                           {depenseRevenuItem.categorie}
                         </div>
                       </div>
@@ -866,7 +872,7 @@ export default function DepensesRevenus() {
                         )}{" "}
                         €
                       </div>
-                      <div className='text-xs text-gray-400'>
+                      <div className='text-xs text-gray-400 dark:text-gray-300'>
                         {new Date(depenseRevenuItem.date).toLocaleDateString(
                           "fr-FR"
                         )}
