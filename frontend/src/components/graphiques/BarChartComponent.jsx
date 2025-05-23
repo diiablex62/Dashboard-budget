@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import CustomSingleBarTooltip from "./CustomSingleBarTooltip";
 
 export default function BarChartComponent({ data }) {
   const [barHover, setBarHover] = useState({
@@ -17,7 +16,7 @@ export default function BarChartComponent({ data }) {
   });
 
   return (
-    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400'>
+    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 relative'>
       <ResponsiveContainer width='100%' height={200}>
         <BarChart
           data={data}
@@ -36,8 +35,6 @@ export default function BarChartComponent({ data }) {
                 mois: d.mois,
                 type: "depenses",
                 value: d.depenses,
-                x: window.event?.clientX,
-                y: window.event?.clientY - 40,
               });
             }}
             onMouseOut={() =>
@@ -55,8 +52,6 @@ export default function BarChartComponent({ data }) {
                 mois: d.mois,
                 type: "revenus",
                 value: d.revenus,
-                x: window.event?.clientX,
-                y: window.event?.clientY - 40,
               });
             }}
             onMouseOut={() =>
@@ -65,7 +60,6 @@ export default function BarChartComponent({ data }) {
           />
         </BarChart>
       </ResponsiveContainer>
-      <CustomSingleBarTooltip barHover={barHover} />
       {barHover.mois && (
         <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg'>
           <span
