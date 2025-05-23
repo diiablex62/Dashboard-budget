@@ -15,8 +15,8 @@ import {
   fakeDepenseRevenu,
 } from "../utils/fakeData";
 import * as calculs from "../utils/calcul";
-import BarChartComponent from "../components/graphiques/BarChartComponent";
-import PieChartComponent from "../components/graphiques/PieChartComponent";
+import DepensesRevenus6Mois from "../components/graphiques/DepensesRevenus6Mois";
+import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
 
 // -------------------
 // Constantes globales
@@ -279,7 +279,7 @@ export default function Dashboard() {
             Dépenses du mois par catégorie
           </h2>
           <div className='h-[300px]'>
-            <PieChartComponent data={depensesParCategorie} />
+            <DepensesParCategorieChart data={depensesParCategorie} />
           </div>
         </div>
         <div className='bg-white rounded-xl shadow p-6'>
@@ -287,7 +287,7 @@ export default function Dashboard() {
             Dépenses et revenus des 6 derniers mois
           </h2>
           <div className='h-[300px]'>
-            <BarChartComponent data={barChartData} />
+            <DepensesRevenus6Mois data={barChartData} />
           </div>
         </div>
       </div>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import RenderActiveShape from "./RenderActiveShape";
+import AnimationDepensesParCategorieChart from "./AnimationDepensesParCategorieChart";
 
-export default function PieChartComponent({ data }) {
+export default function DepensesParCategorieChart({ data }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Trier les données par montant décroissant
@@ -41,7 +41,7 @@ export default function PieChartComponent({ data }) {
             <PieChart>
               <Pie
                 activeIndex={activeIndex}
-                activeShape={RenderActiveShape}
+                activeShape={AnimationDepensesParCategorieChart}
                 data={sortedData}
                 cx='50%'
                 cy='50%'
