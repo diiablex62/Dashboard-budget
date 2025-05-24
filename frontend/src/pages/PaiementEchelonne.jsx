@@ -161,8 +161,8 @@ const PaiementEchelonne = () => {
   }, [totalDepenses]);
 
   return (
-    <div className='bg-[#f8fafc] dark:bg-black min-h-screen p-8'>
-      <div className='max-w-6xl mx-auto'>
+    <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
+      <div>
         {/* Titre */}
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>

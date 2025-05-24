@@ -136,7 +136,7 @@ export default function Notifications() {
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
-      <div className='max-w-4xl mx-auto'>
+      <div>
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 dark:bg-black dark:text-white dark:border-gray-800'>
           <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4'>
             <div>

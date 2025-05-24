@@ -133,7 +133,7 @@ const PaiementRecurrent = () => {
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
-      <div className='max-w-6xl mx-auto'>
+      <div>
         {/* Titre */}
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
@@ -172,26 +172,26 @@ const PaiementRecurrent = () => {
         </div>
         {/* Switch Dépenses/Revenus */}
         <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "depense"
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "depense"
                 ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
                 : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("depense")}
-              type='button'>
-              Dépenses
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "revenu"
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("depense")}
+            type='button'>
+            Dépenses
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "revenu"
                 ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
                 : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("revenu")}
-              type='button'>
-              Revenus
-            </button>
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("revenu")}
+            type='button'>
+            Revenus
+          </button>
         </div>
         {/* Affichage des paiements récurrents filtrés */}
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2 dark:bg-black dark:text-white dark:border-gray-700'>

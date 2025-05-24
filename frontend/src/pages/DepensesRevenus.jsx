@@ -677,7 +677,7 @@ export default function DepensesRevenus() {
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
-      <div className='max-w-6xl mx-auto'>
+      <div>
         {/* En-tête et sélecteur de mois */}
         <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
           <div>
@@ -779,26 +779,26 @@ export default function DepensesRevenus() {
 
         {/* Switch Dépenses/Revenus */}
         <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "depense"
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "depense"
                 ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
                 : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("depense")}
-              type='button'>
-              Dépenses
-            </button>
-            <button
-              className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-                currentTab === "revenu"
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("depense")}
+            type='button'>
+            Dépenses
+          </button>
+          <button
+            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+              currentTab === "revenu"
                 ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
                 : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
-              } cursor-pointer`}
-              onClick={() => setCurrentTab("revenu")}
-              type='button'>
-              Revenus
-            </button>
+            } cursor-pointer`}
+            onClick={() => setCurrentTab("revenu")}
+            type='button'>
+            Revenus
+          </button>
         </div>
 
         {/* Affichage des dépenses & revenus */}
