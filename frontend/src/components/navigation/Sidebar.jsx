@@ -86,9 +86,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         <span className='text-3xl font-bold tracking-wide uppercase mb-8 dark:text-white'>
           {!isCollapsed ? "Futurio" : "F"}
         </span>
-        {!isCollapsed && (
-          <div className='w-full flex items-center bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-2 mb-2'>
-            <AiOutlineSearch className='text-gray-400 text-lg mr-2' />
+        <div className='w-full flex items-center bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-2 mb-2'>
+          <AiOutlineSearch className='text-gray-400 text-lg mr-2' />
+          {!isCollapsed && (
             <input
               type='text'
               placeholder='Search...'
@@ -96,8 +96,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               onChange={(e) => setSearch(e.target.value)}
               className='bg-transparent outline-none w-full text-sm text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Encoche absolue débordante du sidebar */}
@@ -122,7 +122,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       {/* Sidebar principal */}
       <div className='flex flex-col items-stretch py-4 px-4 border-b border-gray-100 dark:border-gray-800'>
         {/* OVERVIEW */}
-        <div className='flex-1 overflow-y-auto px-2 pt-4'>
+        <div
+          className={`flex-1 overflow-y-auto px-2 ${
+            isCollapsed ? "pt-8" : "pt-4"
+          }`}>
           {!isCollapsed && (
             <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
               OVERVIEW
@@ -139,13 +142,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                         ? "bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 font-bold"
                         : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
                     } ${
-                      isCollapsed ? "justify-center px-0" : "justify-start px-4"
+                      isCollapsed ? "justify-center px-4" : "justify-start px-4"
                     }`
                   }
                   title={link.label}>
-                  {link.icon}
+                  <div className='flex items-center'>{link.icon}</div>
                   {!isCollapsed && (
-                    <span className='text-base'>{link.label}</span>
+                    <span className='text-base whitespace-nowrap'>
+                      {link.label}
+                    </span>
                   )}
                 </NavLink>
               </li>
@@ -171,13 +176,15 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                         ? "bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 font-bold"
                         : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
                     } ${
-                      isCollapsed ? "justify-center px-0" : "justify-start px-4"
+                      isCollapsed ? "justify-center px-4" : "justify-start px-4"
                     }`
                   }
                   title={link.label}>
-                  {link.icon}
+                  <div className='flex items-center'>{link.icon}</div>
                   {!isCollapsed && (
-                    <span className='text-base'>{link.label}</span>
+                    <span className='text-base whitespace-nowrap'>
+                      {link.label}
+                    </span>
                   )}
                 </NavLink>
               </li>
