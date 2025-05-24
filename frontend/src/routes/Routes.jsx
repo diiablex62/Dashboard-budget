@@ -10,7 +10,6 @@ import AuthConfirm from "../pages/AuthConfirm";
 import Validation from "../pages/Validation";
 import Profil from "../pages/Profil";
 import Notifications from "../pages/Notifications";
-import Settings from "../pages/Settings";
 import Terms from "../pages/Terms";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import UserDataDeletion from "../pages/UserDataDeletion";
@@ -36,7 +35,6 @@ const AppRoutes = () => {
       {/* Routes utilisateur */}
       <Route path='/profil' element={<Profil />} />
       <Route path='/notifications' element={<Notifications />} />
-      <Route path='/settings' element={<Settings />} />
 
       {/* Routes légales */}
       <Route path='/terms' element={<Terms />} />

@@ -2,13 +2,15 @@ import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./styles/tailwind.css";
 import Sidebar from "./components/navigation/Sidebar";
-import Navbar from "./components/navigation/Navbar";
+// import Navbar from "./components/navigation/Navbar"; // supprimé
+import SettingsPanel from "./components/ui/SettingsPanel";
 import { AppContext } from "./context/AppContext";
 import AppRoutes from "./routes/Routes";
 
 // Composant principal qui utilise les contextes
 export default function App() {
-  const { primaryColor, setPrimaryColor } = useContext(AppContext);
+  const { primaryColor, setPrimaryColor, isSettingsOpen, setIsSettingsOpen } =
+    useContext(AppContext);
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -104,7 +106,7 @@ export default function App() {
   };
 
   return (
-    <div className='app'>
+    <div className='app bg-white dark:bg-black min-h-screen'>
       {!isIsolatedRoute && (
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       )}
@@ -115,9 +117,12 @@ export default function App() {
             : (isCollapsed ? "ml-20" : "ml-72") +
               " relative bg-[#f8fafc] min-h-screen transition-all duration-300 ease-in-out"
         }>
-        {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
+        {/* {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />} */}
         <AppRoutes />
       </div>
+      {isSettingsOpen && (
+        <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
+      )}
     </div>
   );
 }

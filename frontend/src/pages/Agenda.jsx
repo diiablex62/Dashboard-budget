@@ -132,13 +132,20 @@ export default function Agenda() {
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
+        {/* Titre */}
+        <div className='mb-6 flex items-center justify-between'>
+          <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+            Agenda
+          </h1>
+        </div>
+        {/* Carte principale : calendrier + événements */}
         <div className='flex gap-8'>
-          {/* Partie gauche : calendrier */}
+          {/* Partie gauche : calendrier dans sa propre carte */}
           <div className='flex-1 bg-white rounded-2xl shadow border border-[#ececec] p-8 dark:bg-black dark:text-white dark:border-gray-800'>
             <div className='mb-2'>
-              <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+              <h2 className='text-xl font-bold text-gray-900 dark:text-white'>
                 Mon agenda
-              </h1>
+              </h2>
               <div className='text-gray-500 text-base dark:text-gray-300'>
                 Visualisez vos paiements
               </div>
@@ -273,7 +280,7 @@ export default function Agenda() {
               )}
             </div>
           </div>
-          {/* Partie droite : événements du mois */}
+          {/* Partie droite : événements du mois dans sa propre carte */}
           <div className='flex-1 flex flex-col bg-white rounded-2xl shadow border border-[#ececec] p-8 dark:bg-black dark:text-white dark:border-gray-800'>
             <h2 className='text-xl font-bold mb-8 dark:text-white'>
               Événements de {getMonthYear(currentDate)}
