@@ -106,11 +106,7 @@ export default function App() {
   return (
     <div className='app'>
       {!isIsolatedRoute && (
-        <Sidebar
-          primaryColor={primaryColor}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-        />
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       )}
       <div
         className={
