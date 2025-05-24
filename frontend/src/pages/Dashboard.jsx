@@ -175,48 +175,30 @@ export default function Dashboard() {
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
             <div className='absolute -right-32 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
               <p className='font-semibold mb-1'>Détail du calcul :</p>
-              <ul className='list-disc list-inside space-y-1'>
-                <li>
-                  Dépenses du mois :{" "}
-                  {calculs
-                    .totalDepensesMois(depenseRevenu)
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-                <li>
-                  Paiements récurrents :{" "}
-                  {calculs
-                    .calculTotalRecurrentsMois(paiementsRecurrents)
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-                <li>
-                  Paiements échelonnés :{" "}
-                  {calculs
-                    .calculTotalEchelonnesMois(paiementsEchelonnes)
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-                <li>
-                  Mois précédent :{" "}
-                  {calculs
-                    .calculTotalDepensesMois(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes,
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth() - 1,
-                        1
-                      )
+              <div className='whitespace-pre-line'>
+                {`- Dépenses du mois : ${calculs
+                  .totalDepensesMois(depenseRevenu)
+                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+- Paiements récurrents : ${calculs
+                  .calculTotalRecurrentsMois(paiementsRecurrents)
+                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+- Paiements échelonnés : ${calculs
+                  .calculTotalEchelonnesMois(paiementsEchelonnes)
+                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
+
+Mois précédent :
+- Dépense : ${calculs
+                  .calculTotalDepensesMois(
+                    depenseRevenu,
+                    paiementsRecurrents,
+                    paiementsEchelonnes,
+                    new Date(
+                      new Date().getFullYear(),
+                      new Date().getMonth() - 1,
+                      1
                     )
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                  €
-                </li>
-              </ul>
-              <div className='mt-2 text-[11px] text-gray-300'>
-                Ce total inclut toutes les dépenses, les paiements récurrents et
-                les paiements échelonnés du mois.
+                  )
+                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €`}
               </div>
             </div>
           </div>
@@ -294,6 +276,7 @@ export default function Dashboard() {
                   €
                 </li>
               </ul>
+              <div className='h-2' />
               <div className='font-semibold mt-2 mb-1'>Mois précédent :</div>
               <ul className='list-disc list-inside space-y-1'>
                 <li>

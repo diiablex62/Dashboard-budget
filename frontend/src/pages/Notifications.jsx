@@ -92,16 +92,21 @@ function getDayLabel(dateString) {
   const diff = Math.floor((today - date) / 86400000);
   if (diff === 0) return "Aujourd'hui";
   if (diff === 1) return "Hier";
-  return date.toLocaleDateString("fr-FR", {
+  const label = date.toLocaleDateString("fr-FR", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(buildNotifications());
+  const [notifications, setNotifications] = useState(() => {
+    const initial = buildNotifications();
+    localStorage.setItem("notifications", JSON.stringify(initial));
+    return initial;
+  });
   const [filter, setFilter] = useState("all");
   const [hoveredId, setHoveredId] = useState(null);
 
@@ -112,13 +117,21 @@ export default function Notifications() {
   const grouped = groupByDay(filtered);
 
   const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => {
+      const updated = prev.map((n) => ({ ...n, read: true }));
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const handleToggleRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
+    setNotifications((prev) => {
+      const updated = prev.map((n) =>
+        n.id === id ? { ...n, read: !n.read } : n
+      );
+      localStorage.setItem("notifications", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return (
@@ -197,7 +210,7 @@ export default function Notifications() {
                         </span>
                       )}
                       {!notification.read && (
-                        <span className='absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400'></span>
+                        <span className='absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 dark:bg-red-400'></span>
                       )}
                     </div>
                   ))}
