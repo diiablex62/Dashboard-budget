@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./styles/tailwind.css";
 import Sidebar from "./components/navigation/Sidebar";
@@ -10,6 +10,7 @@ import AppRoutes from "./routes/Routes";
 export default function App() {
   const { primaryColor, setPrimaryColor } = useContext(AppContext);
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isolatedRoutes = ["/auth"];
   const isIsolatedRoute = isolatedRoutes.includes(location.pathname);
@@ -104,8 +105,20 @@ export default function App() {
 
   return (
     <div className='app'>
-      {!isIsolatedRoute && <Sidebar primaryColor={primaryColor} />}
-      <div className={isIsolatedRoute ? "" : "ml-72"}>
+      {!isIsolatedRoute && (
+        <Sidebar
+          primaryColor={primaryColor}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+        />
+      )}
+      <div
+        className={
+          isIsolatedRoute
+            ? ""
+            : (isCollapsed ? "ml-20" : "ml-72") +
+              " relative bg-[#f8fafc] min-h-screen"
+        }>
         {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
         <AppRoutes />
       </div>

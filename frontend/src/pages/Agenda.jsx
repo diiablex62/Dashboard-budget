@@ -170,16 +170,16 @@ export default function Agenda() {
               week.map((day, j) => {
                 const currentDay = day;
                 return (
-                  <div
-                    key={i + "-" + j}
-                    className={`h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-all ${
+                <div
+                  key={i + "-" + j}
+                  className={`h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-all ${
                       currentDay === selectedDay
                         ? "bg-teal-100 dark:bg-gray-800"
                         : "hover:bg-gray-100 dark:hover:bg-gray-900"
-                    }`}
+                  }`}
                     onClick={() => currentDay && setSelectedDay(currentDay)}>
-                    <span
-                      className={`text-lg ${
+                  <span
+                    className={`text-lg ${
                         currentDay === selectedDay
                           ? "font-bold text-gray-900 dark:text-white"
                           : "text-gray-700 dark:text-gray-300"
@@ -286,9 +286,9 @@ export default function Agenda() {
                               }
                             }}></span>
                         )}
-                      </span>
-                    )}
-                  </div>
+                  </span>
+                  )}
+                </div>
                 );
               })
             )}

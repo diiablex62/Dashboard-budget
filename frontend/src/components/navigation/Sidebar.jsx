@@ -7,13 +7,15 @@ import {
   AiOutlineCalendar,
   AiOutlineSetting,
   AiOutlineLogin,
+  AiOutlineLeft,
+  AiOutlineRight,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
 import { AppContext } from "../../context/AppContext";
 import SettingsPanel from "../ui/SettingsPanel";
 import { ThemeContext } from "../../context/ThemeContext";
 
-export default function Sidebar() {
+export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -23,10 +25,29 @@ export default function Sidebar() {
   }
 
   return (
-    <div className='w-72 h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md  border-r border-gray-200 dark:border-gray-800'>
-      <h2 className='text-3xl font-bold p-8 uppercase text-center'>
-        Futurio
-      </h2>
+    <div
+      className={`h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+        isCollapsed ? "w-20" : "w-72"
+      }`}>
+      {/* Encoche */}
+      <div className='absolute left-full top-8 w-6 h-12 flex items-center justify-center'>
+        <div
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className='w-6 h-12 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-r-lg cursor-pointer flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors'>
+          {isCollapsed ? (
+            <AiOutlineRight size={16} />
+          ) : (
+            <AiOutlineLeft size={16} />
+          )}
+        </div>
+      </div>
+
+      <div className='relative'>
+        <h2 className='text-3xl font-bold p-8 uppercase text-center'>
+          {isCollapsed ? "F" : "Futurio"}
+        </h2>
+      </div>
+
       <nav className='flex-1'>
         <ul className='space-y-4'>
           {/* Dashboard */}
@@ -42,7 +63,9 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineHome className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Dashboard</span>
+              {!isCollapsed && (
+                <span className='text-lg font-medium'>Dashboard</span>
+              )}
             </NavLink>
           </li>
           {/* Dépenses & Revenus */}
@@ -58,7 +81,9 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlinePieChart className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Dépenses & Revenus</span>
+              {!isCollapsed && (
+                <span className='text-lg font-medium'>Dépenses & Revenus</span>
+              )}
             </NavLink>
           </li>
           {/* Paiements récurrents */}
@@ -74,7 +99,11 @@ export default function Sidebar() {
                 }`
               }>
               <MdAutorenew className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Paiements récurrents</span>
+              {!isCollapsed && (
+                <span className='text-lg font-medium'>
+                  Paiements récurrents
+                </span>
+              )}
             </NavLink>
           </li>
           {/* Paiements échelonnés */}
@@ -90,7 +119,11 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineSetting className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Paiements échelonnés</span>
+              {!isCollapsed && (
+                <span className='text-lg font-medium'>
+                  Paiements échelonnés
+                </span>
+              )}
             </NavLink>
           </li>
           {/* Agenda */}
@@ -106,12 +139,14 @@ export default function Sidebar() {
                 }`
               }>
               <AiOutlineCalendar className='mr-6 text-2xl text-[var(--primary-color)]' />
-              <span className='text-lg font-medium'>Agenda</span>
+              {!isCollapsed && (
+                <span className='text-lg font-medium'>Agenda</span>
+              )}
             </NavLink>
           </li>
         </ul>
       </nav>
-      {!user && (
+      {!user && !isCollapsed && (
         <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
           <button
             className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
