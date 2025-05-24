@@ -117,7 +117,7 @@ export default function App() {
           isIsolatedRoute
             ? ""
             : (isCollapsed ? "ml-20" : "ml-72") +
-              " relative bg-[#f8fafc] min-h-screen"
+              " relative bg-[#f8fafc] min-h-screen transition-all duration-300 ease-in-out"
         }>
         {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />}
         <AppRoutes />

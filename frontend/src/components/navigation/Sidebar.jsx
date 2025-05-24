@@ -1,5 +1,5 @@
-import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   AiOutlineHome,
@@ -9,6 +9,10 @@ import {
   AiOutlineLogin,
   AiOutlineLeft,
   AiOutlineRight,
+  AiOutlineBell,
+  AiOutlineUser,
+  AiOutlineQuestionCircle,
+  AiOutlineSearch,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
 import { AppContext } from "../../context/AppContext";
@@ -16,24 +20,73 @@ import SettingsPanel from "../ui/SettingsPanel";
 import { ThemeContext } from "../../context/ThemeContext";
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  const { loading } = useAuth();
+  const [search, setSearch] = useState("");
 
   // Ne rien afficher pendant le chargement
   if (loading) {
     return null;
   }
 
+  // Onglets principaux (overview)
+  const overviewLinks = [
+    {
+      to: "/dashboard",
+      icon: <AiOutlineHome className='text-2xl' />,
+      label: "Dashboard",
+    },
+    {
+      to: "/depenses-revenus",
+      icon: <AiOutlinePieChart className='text-2xl' />,
+      label: "Dépenses & Revenus",
+    },
+    {
+      to: "/recurrents",
+      icon: <MdAutorenew className='text-2xl' />,
+      label: "Paiements récurrents",
+    },
+    {
+      to: "/echelonne",
+      icon: <AiOutlineSetting className='text-2xl' />,
+      label: "Paiements échelonnés",
+    },
+    {
+      to: "/agenda",
+      icon: <AiOutlineCalendar className='text-2xl' />,
+      label: "Agenda",
+    },
+    {
+      to: "/notifications",
+      icon: <AiOutlineBell className='text-2xl' />,
+      label: "Notifications",
+    },
+  ];
+
+  // Liens settings
+  const settingsLinks = [
+    {
+      to: "/settings",
+      icon: <AiOutlineSetting className='text-2xl' />,
+      label: "Settings",
+    },
+    {
+      to: "/help",
+      icon: <AiOutlineQuestionCircle className='text-2xl' />,
+      label: "Help",
+    },
+  ];
+
   return (
     <div
-      className={`h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-md border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+      className={`h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-lg border-r border-gray-200 dark:border-gray-800 transition-all duration-500 ease-in-out overflow-hidden rounded-r-3xl ${
         isCollapsed ? "w-20" : "w-72"
       }`}>
-      {/* Encoche */}
-      <div className='absolute left-full top-8 w-6 h-12 flex items-center justify-center'>
+      {/* Encoche collapse */}
+      <div className='fixed left-0 top-8 z-50'>
         <div
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className='w-6 h-12 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-r-lg cursor-pointer flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors'>
+          className='w-6 h-12 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-r-lg cursor-pointer flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-300 ease-in-out shadow'
+          style={{ boxShadow: "2px 0 8px rgba(0,0,0,0.08)" }}>
           {isCollapsed ? (
             <AiOutlineRight size={16} />
           ) : (
@@ -41,124 +94,104 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           )}
         </div>
       </div>
-
-      <div className='relative'>
-        <h2 className='text-3xl font-bold p-8 uppercase text-center'>
-          {isCollapsed ? "F" : "Futurio"}
-        </h2>
-      </div>
-
-      <nav className='flex-1'>
-        <ul className='space-y-4'>
-          {/* Dashboard */}
-          <li>
-            <NavLink
-              to='/dashboard'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer transition ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlineHome className='mr-6 text-2xl text-[var(--primary-color)]' />
-              {!isCollapsed && (
-                <span className='text-lg font-medium'>Dashboard</span>
-              )}
-            </NavLink>
-          </li>
-          {/* Dépenses & Revenus */}
-          <li>
-            <NavLink
-              to='/depenses-revenus'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer transition ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlinePieChart className='mr-6 text-2xl text-[var(--primary-color)]' />
-              {!isCollapsed && (
-                <span className='text-lg font-medium'>Dépenses & Revenus</span>
-              )}
-            </NavLink>
-          </li>
-          {/* Paiements récurrents */}
-          <li>
-            <NavLink
-              to='/recurrents'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer transition ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <MdAutorenew className='mr-6 text-2xl text-[var(--primary-color)]' />
-              {!isCollapsed && (
-                <span className='text-lg font-medium'>
-                  Paiements récurrents
-                </span>
-              )}
-            </NavLink>
-          </li>
-          {/* Paiements échelonnés */}
-          <li>
-            <NavLink
-              to='/echelonne'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer transition ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlineSetting className='mr-6 text-2xl text-[var(--primary-color)]' />
-              {!isCollapsed && (
-                <span className='text-lg font-medium'>
-                  Paiements échelonnés
-                </span>
-              )}
-            </NavLink>
-          </li>
-          {/* Agenda */}
-          <li>
-            <NavLink
-              to='/agenda'
-              onClick={() => window.scrollTo(0, 0)}
-              className={({ isActive }) =>
-                `flex items-center p-4 rounded-lg cursor-pointer transition ${
-                  isActive
-                    ? "bg-gray-100 dark:bg-gray-900 text-[var(--primary-color)] font-bold"
-                    : "hover:text-[var(--primary-color)]"
-                }`
-              }>
-              <AiOutlineCalendar className='mr-6 text-2xl text-[var(--primary-color)]' />
-              {!isCollapsed && (
-                <span className='text-lg font-medium'>Agenda</span>
-              )}
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
-      {!user && !isCollapsed && (
-        <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
-          <button
-            className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
-            onClick={() => navigate("/auth")}>
-            <AiOutlineLogin className='mr-2 text-xl' />
-            <span>Se connecter / S'inscrire</span>
-          </button>
-          <p className='text-xs text-center text-gray-500 mt-2'>
-            Connexion simplifiée par email, Google ou GitHub
-          </p>
+      {/* Sidebar principal */}
+      <div className='flex flex-col items-stretch py-4 px-4 border-b border-gray-100 dark:border-gray-800'>
+        {/* Titre et recherche */}
+        <div className='flex flex-col items-center py-4 px-4 border-b border-gray-100 dark:border-gray-800'>
+          <span className='text-3xl font-bold tracking-wide uppercase mb-4 dark:text-white'>
+            {!isCollapsed ? "Futurio" : "F"}
+          </span>
+          {!isCollapsed && (
+            <div className='w-full flex items-center bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-2 mb-2'>
+              <AiOutlineSearch className='text-gray-400 text-lg mr-2' />
+              <input
+                type='text'
+                placeholder='Search...'
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className='bg-transparent outline-none w-full text-sm text-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'
+              />
+            </div>
+          )}
         </div>
-      )}
+
+        {/* OVERVIEW */}
+        <div className='flex-1 overflow-y-auto px-2 pt-4'>
+          {!isCollapsed && (
+            <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
+              OVERVIEW
+            </div>
+          )}
+          <ul className='space-y-1 w-full'>
+            {overviewLinks.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer group ${
+                      isActive
+                        ? "bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 font-bold"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
+                    } ${isCollapsed ? "justify-center px-2" : "justify-start"}`
+                  }
+                  title={link.label}>
+                  {link.icon}
+                  {!isCollapsed && (
+                    <span className='text-base'>{link.label}</span>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* SETTINGS */}
+        <div className='px-2 pb-2 text-left mt-8'>
+          {!isCollapsed && (
+            <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
+              SETTINGS
+            </div>
+          )}
+          <ul className='space-y-1 mb-4 w-full'>
+            {settingsLinks.map((link) => (
+              <li key={link.to}>
+                <NavLink
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer group ${
+                      isActive
+                        ? "bg-gray-100 dark:bg-gray-900 text-blue-600 dark:text-blue-400 font-bold"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
+                    } ${isCollapsed ? "justify-center px-2" : "justify-start"}`
+                  }
+                  title={link.label}>
+                  {link.icon}
+                  {!isCollapsed && (
+                    <span className='text-base'>{link.label}</span>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Profil utilisateur simulé */}
+        <div className='mt-auto px-4 py-6 border-t border-gray-100 dark:border-gray-800 flex items-center gap-3'>
+          <div className='w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden'>
+            <AiOutlineUser className='text-3xl text-gray-400 dark:text-gray-500' />
+          </div>
+          {!isCollapsed && (
+            <div className='flex flex-col'>
+              <span className='font-semibold text-gray-800 dark:text-white'>
+                Alexandre Janacek
+              </span>
+              <span className='text-xs text-gray-500 dark:text-gray-400'>
+                alexandre.janacek@gmail.com
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
