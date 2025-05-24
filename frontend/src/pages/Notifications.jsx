@@ -1,43 +1,46 @@
 import React, { useState } from "react";
+import {
+  fakeDepenseRevenu,
+  fakePaiementsRecurrents,
+  fakePaiementsEchelonnes,
+} from "../utils/fakeData";
 
-// Données fictives pour l'exemple
-const fakeNotifications = [
-  {
-    id: 1,
-    message: "Nouvelle dépense ajoutée : Courses",
-    createdAt: new Date().toISOString(),
-    type: "depense-revenu",
-    read: true,
-  },
-  {
-    id: 2,
-    message: "Paiement récurrent à venir : Loyer",
-    createdAt: new Date(Date.now() - 86400000).toISOString(), // Hier
-    type: "recurrent",
-    read: true,
-  },
-  {
-    id: 3,
-    message: "Nouvelle mensualité échelonnée : Crédit voiture",
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    type: "echelonne",
-    read: false,
-  },
-  {
-    id: 4,
-    message: "Dépense exceptionnelle : Santé",
-    createdAt: new Date().toISOString(),
-    type: "depense-revenu",
-    read: false,
-  },
-  {
-    id: 5,
-    message: "Rappel : Abonnement Netflix (récurrent)",
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    type: "recurrent",
-    read: false,
-  },
-];
+// Génération dynamique des notifications à partir des fakedata
+function buildNotifications() {
+  const notifs = [];
+  fakeDepenseRevenu.forEach((e, i) => {
+    notifs.push({
+      id: `depense-revenu-${i}`,
+      message:
+        e.type === "depense"
+          ? `Nouvelle dépense : ${e.categorie || e.nom}`
+          : `Nouveau revenu : ${e.categorie || e.nom}`,
+      createdAt: e.date,
+      type: "depense-revenu",
+      read: Math.random() > 0.5,
+    });
+  });
+  fakePaiementsRecurrents.forEach((e, i) => {
+    notifs.push({
+      id: `recurrent-${i}`,
+      message: `Paiement récurrent : ${e.nom}`,
+      createdAt: e.date,
+      type: "recurrent",
+      read: Math.random() > 0.5,
+    });
+  });
+  fakePaiementsEchelonnes.forEach((e, i) => {
+    notifs.push({
+      id: `echelonne-${i}`,
+      message: `Paiement échelonné : ${e.nom}`,
+      createdAt: e.debutDate,
+      type: "echelonne",
+      read: Math.random() > 0.5,
+    });
+  });
+  // Trie du plus récent au plus ancien
+  return notifs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+}
 
 const FILTERS = [
   { key: "all", label: "Toutes" },
@@ -77,8 +80,10 @@ function getDayLabel(dateString) {
 }
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(fakeNotifications);
+  const [notifications, setNotifications] = useState(buildNotifications());
   const [filter, setFilter] = useState("all");
+  const [openedId, setOpenedId] = useState(null);
+  const [hoveredId, setHoveredId] = useState(null);
 
   const filtered =
     filter === "all"
@@ -88,6 +93,12 @@ export default function Notifications() {
 
   const handleMarkAllUnread = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: false })));
+  };
+
+  const handleToggleRead = (id) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
+    );
   };
 
   return (
@@ -141,9 +152,14 @@ export default function Notifications() {
                   {notifs.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 border rounded-lg flex items-center border-gray-200 dark:border-gray-700 transition hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                        notification.read ? "opacity-60" : ""
-                      }`}>
+                      className={`relative p-4 border rounded-lg flex items-center border-gray-200 dark:border-gray-700 transition hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
+                        notification.read
+                          ? "opacity-60"
+                          : "border-l-4 border-blue-500 dark:border-blue-400"
+                      }`}
+                      onClick={() => handleToggleRead(notification.id)}
+                      onMouseEnter={() => setHoveredId(notification.id)}
+                      onMouseLeave={() => setHoveredId(null)}>
                       <span className='flex-1 text-gray-900 dark:text-white'>
                         {notification.message}
                       </span>
@@ -153,6 +169,16 @@ export default function Notifications() {
                           { hour: "2-digit", minute: "2-digit" }
                         )}
                       </span>
+                      {hoveredId === notification.id && (
+                        <span className='ml-4 text-xs text-gray-500 dark:text-gray-400 italic select-none'>
+                          {notification.read
+                            ? "Marquer comme non lu"
+                            : "Marquer comme lu"}
+                        </span>
+                      )}
+                      {!notification.read && (
+                        <span className='absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400'></span>
+                      )}
                     </div>
                   ))}
                 </div>
