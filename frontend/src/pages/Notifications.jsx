@@ -5,35 +5,56 @@ import {
   fakePaiementsEchelonnes,
 } from "../utils/fakeData";
 
+// Fonction utilitaire pour garantir une date valide
+function safeDate(d) {
+  if (!d) return new Date();
+  // Correction automatique : ajoute un zéro si mois ou jour sur un chiffre
+  if (/^\d{4}-\d{1}-\d{2}$/.test(d)) d = d.replace(/-(\d{1})-/, "-0$1-");
+  if (/^\d{4}-\d{2}-\d{1}$/.test(d)) d = d.replace(/-(\d{1})$/, "-0$1");
+  // Si la date est au format YYYY-MM-DD, on ajoute T00:00:00 pour forcer l'ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const date = new Date(d + "T00:00:00");
+    console.log("DEBUG safeDate (ISO)", d, date);
+    return date;
+  }
+  const date = new Date(d);
+  console.log("DEBUG safeDate (autre)", d, date);
+  return isNaN(date.getTime()) ? new Date() : date;
+}
+
 // Génération dynamique des notifications à partir des fakedata
 function buildNotifications() {
   const notifs = [];
   fakeDepenseRevenu.forEach((e, i) => {
+    // Ajout log debug
+    console.log("DEBUG NOTIF DEPENSE/REVENU", e.nom, e.date);
     notifs.push({
       id: `depense-revenu-${i}`,
       message:
         e.type === "depense"
           ? `Nouvelle dépense : ${e.categorie || e.nom}`
           : `Nouveau revenu : ${e.categorie || e.nom}`,
-      createdAt: e.date,
+      createdAt: safeDate(e.date).toISOString(),
       type: "depense-revenu",
       read: Math.random() > 0.5,
     });
   });
   fakePaiementsRecurrents.forEach((e, i) => {
+    console.log("DEBUG NOTIF RECURRENT", e.nom, e.date);
     notifs.push({
       id: `recurrent-${i}`,
       message: `Paiement récurrent : ${e.nom}`,
-      createdAt: e.date,
+      createdAt: safeDate(e.date).toISOString(),
       type: "recurrent",
       read: Math.random() > 0.5,
     });
   });
   fakePaiementsEchelonnes.forEach((e, i) => {
+    console.log("DEBUG NOTIF ECHELONNE", e.nom, e.debutDate);
     notifs.push({
       id: `echelonne-${i}`,
       message: `Paiement échelonné : ${e.nom}`,
-      createdAt: e.debutDate,
+      createdAt: safeDate(e.debutDate).toISOString(),
       type: "echelonne",
       read: Math.random() > 0.5,
     });
@@ -82,7 +103,6 @@ function getDayLabel(dateString) {
 export default function Notifications() {
   const [notifications, setNotifications] = useState(buildNotifications());
   const [filter, setFilter] = useState("all");
-  const [openedId, setOpenedId] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
 
   const filtered =
@@ -91,8 +111,8 @@ export default function Notifications() {
       : notifications.filter((n) => n.type === filter);
   const grouped = groupByDay(filtered);
 
-  const handleMarkAllUnread = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: false })));
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const handleToggleRead = (id) => {
@@ -115,9 +135,9 @@ export default function Notifications() {
               </div>
             </div>
             <button
-              onClick={handleMarkAllUnread}
+              onClick={handleMarkAllRead}
               className='bg-gray-100 text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 font-semibold transition'>
-              Tout marquer comme non lu
+              Tout marquer comme lu
             </button>
           </div>
 
@@ -146,7 +166,7 @@ export default function Notifications() {
             grouped.map(([date, notifs]) => (
               <div key={date} className='mb-8'>
                 <div className='mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200'>
-                  {getDayLabel(date)}
+                  {getDayLabel(safeDate(date))}
                 </div>
                 <div className='space-y-2'>
                   {notifs.map((notification) => (
@@ -164,7 +184,7 @@ export default function Notifications() {
                         {notification.message}
                       </span>
                       <span className='ml-4 text-xs text-gray-500 dark:text-gray-400'>
-                        {new Date(notification.createdAt).toLocaleTimeString(
+                        {safeDate(notification.createdAt).toLocaleTimeString(
                           "fr-FR",
                           { hour: "2-digit", minute: "2-digit" }
                         )}
