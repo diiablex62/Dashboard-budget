@@ -185,15 +185,16 @@ export default function Notifications() {
                   {notifs.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`relative p-4 border rounded-lg flex items-center border-gray-200 dark:border-gray-700 transition hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
-                        notification.read
-                          ? "opacity-60"
-                          : "border-l-4 border-blue-500 dark:border-blue-400"
+                      className={`relative py-1.5 pl-0 pr-2 border rounded-lg flex items-center border-gray-200 dark:border-gray-700 transition hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
+                        notification.read ? "opacity-60" : "border-l-0"
                       }`}
                       onClick={() => handleToggleRead(notification.id)}
                       onMouseEnter={() => setHoveredId(notification.id)}
                       onMouseLeave={() => setHoveredId(null)}>
-                      <span className='flex-1 text-gray-900 dark:text-white'>
+                      {!notification.read && (
+                        <div className='w-5 h-full bg-blue-500 dark:bg-blue-400 rounded-l-lg'></div>
+                      )}
+                      <span className='flex-1 text-gray-900 dark:text-white pl-2'>
                         {notification.message}
                       </span>
                       <span className='ml-4 text-xs text-gray-500 dark:text-gray-400'>
@@ -208,9 +209,6 @@ export default function Notifications() {
                             ? "Marquer comme non lu"
                             : "Marquer comme lu"}
                         </span>
-                      )}
-                      {!notification.read && (
-                        <span className='absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 dark:bg-red-400'></span>
                       )}
                     </div>
                   ))}

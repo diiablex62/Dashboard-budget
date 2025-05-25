@@ -107,17 +107,17 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       <div
         className='absolute top-8 z-40'
         style={{
-          right: "-28px",
+          right: "-20px",
           transition: "right 0.3s cubic-bezier(0.4,0,0.2,1)",
         }}>
         <div
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className='w-7 h-14 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-r-2xl cursor-pointer flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-300 ease-in-out shadow'
+          className='w-5 h-14 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-r-2xl cursor-pointer flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-all duration-300 ease-in-out shadow'
           style={{ boxShadow: "2px 0 8px rgba(0,0,0,0.10)" }}>
           {isCollapsed ? (
-            <AiOutlineRight size={18} />
+            <AiOutlineRight size={15} />
           ) : (
-            <AiOutlineLeft size={18} />
+            <AiOutlineLeft size={15} />
           )}
         </div>
       </div>
