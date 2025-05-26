@@ -131,6 +131,17 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         className={`h-screen fixed top-0 left-0 z-30 bg-white dark:bg-black text-gray-800 dark:text-white flex flex-col shadow-lg border-r border-gray-200 dark:border-gray-800 transition-all duration-500 ease-in-out rounded-r-3xl ${
           isCollapsed ? "w-20" : "w-72"
         }`}>
+        {/* Bouton de toggle */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className='absolute -right-5 top-6 w-5 h-12 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors z-40 flex items-center justify-center rounded-r-md'>
+          {isCollapsed ? (
+            <AiOutlineRight className='text-gray-600 dark:text-gray-300' />
+          ) : (
+            <AiOutlineLeft className='text-gray-600 dark:text-gray-300' />
+          )}
+        </button>
+
         {/* Bloc du haut : Logo, recherche, overview, menu */}
         <div>
           {/* Titre et recherche */}
