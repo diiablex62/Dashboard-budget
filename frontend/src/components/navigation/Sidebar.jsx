@@ -105,7 +105,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   const settingsLinks = [
     {
-      to: "/settings",
+      key: "settings-panel",
       icon: <AiOutlineSetting className='text-2xl' />,
       label: "Paramètres",
       onClick: () => setIsSettingsOpen(true),
@@ -211,29 +211,46 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             )}
             <ul className='space-y-1 mb-4'>
               {settingsLinks.map((link) => (
-                <li key={link.to}>
-                  <NavLink
-                    to={link.to}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
-                        isActive
-                          ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white font-semibold"
-                          : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
-                      } ${
+                <li key={link.to || link.key}>
+                  {link.key === "settings-panel" ? (
+                    <button
+                      type='button'
+                      onClick={link.onClick}
+                      className={`flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group w-full text-left ${"hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"} ${
                         isCollapsed
                           ? "justify-center px-4"
                           : "justify-start px-4"
-                      }`
-                    }
-                    title={link.label}
-                    onClick={link.onClick}>
-                    <div className='flex items-center'>{link.icon}</div>
-                    {!isCollapsed && (
-                      <span className='text-base whitespace-nowrap'>
-                        {link.label}
-                      </span>
-                    )}
-                  </NavLink>
+                      }`}>
+                      <div className='flex items-center'>{link.icon}</div>
+                      {!isCollapsed && (
+                        <span className='text-base whitespace-nowrap'>
+                          {link.label}
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    <NavLink
+                      to={link.to}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
+                          isActive
+                            ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white font-semibold"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
+                        } ${
+                          isCollapsed
+                            ? "justify-center px-4"
+                            : "justify-start px-4"
+                        }`
+                      }
+                      title={link.label}>
+                      <div className='flex items-center'>{link.icon}</div>
+                      {!isCollapsed && (
+                        <span className='text-base whitespace-nowrap'>
+                          {link.label}
+                        </span>
+                      )}
+                    </NavLink>
+                  )}
                 </li>
               ))}
             </ul>
