@@ -12,7 +12,6 @@ import {
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
 } from "react-icons/ai";
-import DatePickerModal from "../components/ui/DatePickerModal";
 import { fakePaiementsRecurrents } from "../utils/fakeData";
 import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
 import {
@@ -38,6 +37,8 @@ const PaiementRecurrent = () => {
   const [currentTab, setCurrentTab] = useState("depense");
   const [error, setError] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedPaiement, setSelectedPaiement] = useState(null);
 
   const nomInputRef = useRef(null);
   const montantInputRef = useRef(null);
@@ -120,6 +121,30 @@ const PaiementRecurrent = () => {
   const paiementsFiltres = useMemo(() => {
     return paiementsRecurrents.filter((p) => p.type === currentTab);
   }, [paiementsRecurrents, currentTab]);
+
+  const handleAddPaiement = useCallback(() => {
+    setSelectedPaiement(null);
+    setShowModal(true);
+  }, []);
+
+  const handleSavePaiement = useCallback(
+    async (paiement) => {
+      setPaiementsRecurrents((prev) => {
+        if (paiement.id) {
+          return prev.map((t) => (t.id === paiement.id ? { ...paiement } : t));
+        } else {
+          return [...prev, { ...paiement, id: Date.now(), type: currentTab }];
+        }
+      });
+      setShowModal(false);
+    },
+    [currentTab]
+  );
+
+  const handleEditPaiement = useCallback((paiement) => {
+    setSelectedPaiement(paiement);
+    setShowModal(true);
+  }, []);
 
   if (error) {
     return (
@@ -210,19 +235,7 @@ const PaiementRecurrent = () => {
             <div className='flex space-x-3'>
               <button
                 className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                onClick={() => {
-                  setNewPaiement({
-                    nom: "",
-                    montant: "",
-                    frequence: "mensuel",
-                    debutDate: defaultDebutDate,
-                    categorie: "",
-                    type: currentTab,
-                  });
-                  setEditIndex(null);
-                  setShowModal(true);
-                  setStep(1);
-                }}>
+                onClick={handleAddPaiement}>
                 <span className='text-lg font-bold'>+</span>
                 <span>Ajouter</span>
               </button>
@@ -276,16 +289,7 @@ const PaiementRecurrent = () => {
                   <div className='flex justify-end mt-2'>
                     <button
                       className='text-blue-600 font-medium hover:underline mr-4 cursor-pointer dark:text-blue-400'
-                      onClick={() => {
-                        setNewPaiement(p);
-                        setEditIndex(
-                          paiementsRecurrents.findIndex(
-                            (item) => item.id === p.id
-                          )
-                        );
-                        setShowModal(true);
-                        setStep(1);
-                      }}>
+                      onClick={() => handleEditPaiement(p)}>
                       Modifier
                     </button>
                     <button
@@ -303,339 +307,241 @@ const PaiementRecurrent = () => {
 
       {/* Modale */}
       {showModal && (
-        <div
-          className='fixed inset-0 z-[9999] flex items-center justify-center'
-          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-          <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
-            <button
-              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer'
-              onClick={() => {
-                setShowModal(false);
-                setStep(1);
-                setNewPaiement({
-                  nom: "",
-                  montant: "",
-                  frequence: "mensuel",
-                  debutDate: defaultDebutDate,
-                  categorie: "",
-                  type: "depense",
-                });
-                setEditIndex(null);
-              }}
-              aria-label='Fermer'>
-              ✕
-            </button>
-            <div className='mb-6 text-lg font-semibold dark:text-white'>
-              {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
-              récurrent
-            </div>
-            {/* Récapitulatif dynamique */}
-            <div className='mb-4 dark:text-gray-300'>
-              {newPaiement.nom && (
-                <div>
-                  <span className='font-medium'>Libellé :</span>{" "}
-                  {newPaiement.nom.charAt(0).toUpperCase() +
-                    newPaiement.nom.slice(1)}
-                </div>
-              )}
-              {step > 1 && newPaiement.montant && (
-                <div>
-                  <span className='font-medium'>Montant :</span>{" "}
-                  {parseFloat(newPaiement.montant).toFixed(2)} €
-                </div>
-              )}
-              {step > 2 && newPaiement.frequence && (
-                <div>
-                  <span className='font-medium'>Fréquence :</span>{" "}
-                  {newPaiement.frequence}
-                </div>
-              )}
-              {step > 3 && newPaiement.debutDate && (
-                <div>
-                  <span className='font-medium'>Date de début :</span>{" "}
-                  {new Date(newPaiement.debutDate).toLocaleDateString("fr-FR")}
-                </div>
-              )}
-              {step > 4 && newPaiement.categorie && (
-                <div>
-                  <span className='font-medium'>Catégorie :</span>{" "}
-                  {newPaiement.categorie}
-                </div>
-              )}
-            </div>
-            {error && (
-              <div className='mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded'>
-                {error}
-              </div>
-            )}
-            {/* Étapes */}
-            {step === 1 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Type
-                </label>
-                <select
-                  name='type'
-                  value={newPaiement.type}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'>
-                  <option value='depense'>Dépense</option>
-                  <option value='revenu'>Revenu</option>
-                </select>
-                <div className='flex justify-end'>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.type}
-                    onClick={() => {
-                      if (!newPaiement.type) {
-                        setError("Le type est requis");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-            {step === 2 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Nom du paiement
-                </label>
-                <input
-                  type='text'
-                  name='nom'
-                  value={newPaiement.nom}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  placeholder='Ex: Crédit auto'
-                  ref={nomInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.nom) handleNext();
-                  }}
-                />
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.nom}
-                    onClick={() => {
-                      if (!newPaiement.nom) {
-                        setError("Le nom est requis");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-            {step === 3 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Montant (€)
-                </label>
-                <input
-                  type='number'
-                  name='montant'
-                  value={newPaiement.montant}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  placeholder='Ex: 9999'
-                  min='0.01'
-                  step='0.01'
-                  ref={montantInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.montant) handleNext();
-                  }}
-                />
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.montant}
-                    onClick={() => {
-                      if (!newPaiement.montant) {
-                        setError("Le montant est requis");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-            {step === 4 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Fréquence
-                </label>
-                <select
-                  name='frequence'
-                  value={newPaiement.frequence}
-                  onChange={(e) => {
-                    handleChange(e);
-                    if (e.target.value && e.target.value !== "") {
-                      setTimeout(() => handleNext(), 100);
-                    }
-                  }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  ref={frequenceInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.frequence) {
-                      e.preventDefault();
-                      handleNext();
-                    }
-                  }}>
-                  <option value=''>Sélectionner une fréquence</option>
-                  <option value='Mensuel'>Mensuel</option>
-                  <option value='Trimestriel'>Trimestriel</option>
-                  <option value='Annuel'>Annuel</option>
-                </select>
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.frequence}
-                    onClick={() => {
-                      if (!newPaiement.frequence) {
-                        setError("La fréquence est requise");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-            {step === 5 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Date de début
-                </label>
-                <div className='relative'>
-                  <input
-                    type='text'
-                    name='debutDate'
-                    value={newPaiement.debutDate}
-                    readOnly
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 pr-10 mb-4 cursor-pointer'
-                    onClick={() => setShowDatePicker(true)}
-                    ref={dateInputRef}
-                    autoFocus
-                  />
-                  <AiOutlineCalendar
-                    className='absolute right-3 top-3 text-xl text-gray-400 cursor-pointer'
-                    onClick={() => setShowDatePicker(true)}
-                  />
-                </div>
-                <div className='flex justify-between mt-4'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer px-4 py-2'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.debutDate}
-                    onClick={() => {
-                      if (!newPaiement.debutDate) {
-                        setError("La date de début est requise");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-                <DatePickerModal
-                  show={showDatePicker}
-                  onClose={() => setShowDatePicker(false)}
-                  onConfirm={handleDateChange}
-                  selectedDate={
-                    newPaiement.debutDate
-                      ? new Date(newPaiement.debutDate)
-                      : new Date()
-                  }
-                />
-              </div>
-            )}
-            {step === 6 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Catégorie
-                </label>
-                <select
-                  name='categorie'
-                  value={newPaiement.categorie}
-                  onChange={(e) => {
-                    handleChange(e);
-                    if (e.target.value && e.target.value !== "") {
-                      setTimeout(() => handleAddOrEditPaiement(), 100);
-                    }
-                  }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  ref={categorieInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.categorie) {
-                      e.preventDefault();
-                      handleAddOrEditPaiement();
-                    }
-                  }}>
-                  <option value=''>Sélectionner une catégorie</option>
-                  {Array.from(new Set(RECURRENT_CATEGORIES)).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                <div className='flex justify-between mt-4'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer px-4 py-2'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-6 py-2 rounded-lg font-medium cursor-pointer'
-                    disabled={!newPaiement.categorie}
-                    onClick={handleAddOrEditPaiement}>
-                    {editIndex !== null
-                      ? "Valider la modification"
-                      : "Valider l'ajout"}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <PaiementRecurrentModal
+          onClose={() => {
+            setShowModal(false);
+            setStep(1);
+            setNewPaiement({
+              nom: "",
+              montant: "",
+              frequence: "mensuel",
+              debutDate: defaultDebutDate,
+              categorie: "",
+              type: "depense",
+            });
+            setEditIndex(null);
+          }}
+          onSave={handleSavePaiement}
+          paiement={selectedPaiement}
+          stepInit={step}
+          categories={
+            currentTab === "depense"
+              ? RECURRENT_CATEGORIES
+              : RECURRENT_CATEGORIES
+          }
+          type={currentTab}
+        />
       )}
     </div>
   );
 };
+
+function PaiementRecurrentModal({
+  onClose,
+  onSave,
+  paiement = null,
+  stepInit = 1,
+  categories = [],
+  type = "depense",
+}) {
+  const [currentStep, setCurrentStep] = useState(stepInit);
+  const [formData, setFormData] = useState({
+    id: paiement?.id || null,
+    nom: paiement?.nom || "",
+    montant: paiement?.montant ? paiement.montant.toString() : "",
+    categorie: paiement?.categorie || "",
+    frequence: "mensuel",
+    dateDebut: paiement?.dateDebut || new Date().toISOString().split("T")[0],
+    type: type,
+  });
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const updateForm = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrorMessage(null);
+  };
+
+  const nextStep = () => setCurrentStep((prev) => prev + 1);
+  const prevStep = () => setCurrentStep((prev) => prev - 1);
+
+  const validateAndSave = (e) => {
+    e.preventDefault();
+
+    if (!formData.nom) {
+      setErrorMessage("Le nom est requis");
+      return;
+    }
+    if (!formData.categorie) {
+      setErrorMessage("La catégorie est requise");
+      return;
+    }
+    const montant = parseFloat(formData.montant);
+    if (isNaN(montant) || montant <= 0) {
+      setErrorMessage("Le montant doit être un nombre positif");
+      return;
+    }
+    if (!formData.dateDebut) {
+      setErrorMessage("La date de début est requise");
+      return;
+    }
+
+    onSave({
+      ...formData,
+      montant: montant,
+    });
+    onClose();
+  };
+
+  return (
+    <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80'>
+      <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
+        <button
+          className='absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+          onClick={onClose}>
+          ✕
+        </button>
+
+        <h2 className='text-xl font-semibold mb-6 dark:text-white'>
+          {paiement ? "Modifier" : "Ajouter"} un paiement récurrent{" "}
+          {type === "depense" ? "dépense" : "revenu"}
+        </h2>
+
+        {errorMessage && (
+          <div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
+            {errorMessage}
+          </div>
+        )}
+
+        <form onSubmit={validateAndSave}>
+          {currentStep === 1 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Nom du paiement
+              </label>
+              <input
+                type='text'
+                value={formData.nom}
+                onChange={(e) => updateForm("nom", e.target.value)}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                placeholder='Ex: Loyer'
+                autoFocus
+              />
+              <div className='flex justify-end'>
+                <button
+                  type='button'
+                  onClick={nextStep}
+                  disabled={!formData.nom}
+                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50'>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Catégorie
+              </label>
+              <select
+                value={formData.categorie}
+                onChange={(e) => {
+                  updateForm("categorie", e.target.value);
+                  if (e.target.value) setTimeout(nextStep, 100);
+                }}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
+                <option value=''>Sélectionner une catégorie</option>
+                {categories.map((cat, index) => (
+                  <option key={index} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <div className='flex justify-between'>
+                <button
+                  type='button'
+                  onClick={prevStep}
+                  className='text-gray-600 dark:text-gray-400'>
+                  Précédent
+                </button>
+                <button
+                  type='button'
+                  onClick={nextStep}
+                  disabled={!formData.categorie}
+                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50'>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Montant (€)
+              </label>
+              <input
+                type='number'
+                value={formData.montant}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "" || parseFloat(value) > 0) {
+                    updateForm("montant", value);
+                  }
+                }}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                min='0.01'
+                step='0.01'
+                placeholder='Ex: 500'
+              />
+              <div className='flex justify-between'>
+                <button
+                  type='button'
+                  onClick={prevStep}
+                  className='text-gray-600 dark:text-gray-400'>
+                  Précédent
+                </button>
+                <button
+                  type='button'
+                  onClick={nextStep}
+                  disabled={!formData.montant}
+                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50'>
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                Date de début
+              </label>
+              <input
+                type='date'
+                value={formData.dateDebut}
+                onChange={(e) => updateForm("dateDebut", e.target.value)}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+              />
+              <div className='flex justify-between'>
+                <button
+                  type='button'
+                  onClick={prevStep}
+                  className='text-gray-600 dark:text-gray-400'>
+                  Précédent
+                </button>
+                <button
+                  type='submit'
+                  className='bg-gray-900 text-white px-4 py-2 rounded'>
+                  {paiement ? "Modifier" : "Ajouter"}
+                </button>
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default PaiementRecurrent;
