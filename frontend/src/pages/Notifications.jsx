@@ -120,6 +120,8 @@ export default function Notifications() {
     setNotifications((prev) => {
       const updated = prev.map((n) => ({ ...n, read: true }));
       localStorage.setItem("notifications", JSON.stringify(updated));
+      // Déclencher l'événement personnalisé
+      window.dispatchEvent(new Event("notificationsUpdated"));
       return updated;
     });
   };
@@ -130,6 +132,8 @@ export default function Notifications() {
         n.id === id ? { ...n, read: !n.read } : n
       );
       localStorage.setItem("notifications", JSON.stringify(updated));
+      // Déclencher l'événement personnalisé
+      window.dispatchEvent(new Event("notificationsUpdated"));
       return updated;
     });
   };
@@ -192,7 +196,10 @@ export default function Notifications() {
                       onMouseEnter={() => setHoveredId(notification.id)}
                       onMouseLeave={() => setHoveredId(null)}>
                       {!notification.read && (
-                        <div className='w-5 h-full bg-blue-500 dark:bg-blue-400 rounded-l-lg'></div>
+                        <>
+                          <div className='w-5 h-full bg-blue-500 dark:bg-blue-400 rounded-l-lg'></div>
+                          <div className='absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full'></div>
+                        </>
                       )}
                       <span className='flex-1 text-gray-900 dark:text-white pl-2'>
                         {notification.message}

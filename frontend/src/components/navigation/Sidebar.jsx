@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -23,6 +23,43 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { loading } = useAuth();
   const [search, setSearch] = useState("");
   const { setIsSettingsOpen } = useContext(AppContext);
+  const searchInputRef = useRef(null);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(() => {
+    const notifications = JSON.parse(
+      localStorage.getItem("notifications") || "[]"
+    );
+    return notifications.some((n) => !n.read);
+  });
+
+  // Mettre à jour l'état des notifications non lues quand les notifications changent
+  React.useEffect(() => {
+    const handleNotificationsUpdate = () => {
+      const notifications = JSON.parse(
+        localStorage.getItem("notifications") || "[]"
+      );
+      setHasUnreadNotifications(notifications.some((n) => !n.read));
+    };
+
+    // Vérifier l'état initial
+    handleNotificationsUpdate();
+
+    // Écouter les changements
+    window.addEventListener("notificationsUpdated", handleNotificationsUpdate);
+    return () =>
+      window.removeEventListener(
+        "notificationsUpdated",
+        handleNotificationsUpdate
+      );
+  }, []);
+
+  const handleSearchClick = () => {
+    if (isCollapsed) {
+      setIsCollapsed(false);
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  };
 
   if (loading) return null;
 
@@ -54,15 +91,23 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     },
     {
       to: "/notifications",
-      icon: <AiOutlineBell className='text-2xl' />,
+      icon: (
+        <div className='relative'>
+          <AiOutlineBell className='text-2xl' />
+          {hasUnreadNotifications && (
+            <div className='absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full' />
+          )}
+        </div>
+      ),
       label: "Notifications",
     },
   ];
+
   const settingsLinks = [
     {
       to: "/settings",
       icon: <AiOutlineSetting className='text-2xl' />,
-      label: "Settings",
+      label: "Paramètres",
       onClick: (e) => {
         e.preventDefault();
         setIsSettingsOpen(true);
@@ -71,7 +116,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     {
       to: "/help",
       icon: <AiOutlineQuestionCircle className='text-2xl' />,
-      label: "Help",
+      label: "Aide",
     },
   ];
 
@@ -99,7 +144,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               isCollapsed
                 ? "justify-center w-10 h-10 hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer"
                 : "w-full bg-gray-100 dark:bg-gray-900 px-3 py-2"
-            }`}>
+            }`}
+            onClick={handleSearchClick}>
             <AiOutlineSearch
               className={`text-gray-400 ${
                 isCollapsed ? "text-2xl" : "text-lg"
@@ -107,6 +153,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             />
             {!isCollapsed && (
               <input
+                ref={searchInputRef}
                 placeholder='Rechercher un montant...'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -177,7 +224,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           <div className='px-2 pb-2 text-left mt-8 border-t border-gray-100 dark:border-gray-800 pt-4'>
             {!isCollapsed && (
               <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
-                SETTINGS
+                Paramètres
               </div>
             )}
             <ul className='space-y-1 mb-4'>
