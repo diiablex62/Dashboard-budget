@@ -108,10 +108,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       to: "/settings",
       icon: <AiOutlineSetting className='text-2xl' />,
       label: "Paramètres",
-      onClick: (e) => {
-        e.preventDefault();
-        setIsSettingsOpen(true);
-      },
+      onClick: () => setIsSettingsOpen(true),
     },
     {
       to: "/help",
