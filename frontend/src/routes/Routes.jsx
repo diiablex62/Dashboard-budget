@@ -13,34 +13,38 @@ import Notifications from "../pages/Notifications";
 import Terms from "../pages/Terms";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import UserDataDeletion from "../pages/UserDataDeletion";
+import ScrollToTop from "../components/ScrollToTop";
 
 const AppRoutes = () => {
   return (
-    <Routes>
-      {/* Route par défaut */}
-      <Route path='/' element={<Dashboard />} />
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Route par défaut */}
+        <Route path='/' element={<Dashboard />} />
 
-      {/* Routes principales */}
-      <Route path='/dashboard' element={<Dashboard />} />
-      <Route path='/depenses-revenus' element={<DepensesRevenus />} />
-      <Route path='/recurrents' element={<PaiementRecurrent />} />
-      <Route path='/echelonne' element={<PaiementEchelonne />} />
-      <Route path='/agenda' element={<Agenda />} />
+        {/* Routes principales */}
+        <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='/depenses-revenus' element={<DepensesRevenus />} />
+        <Route path='/recurrents' element={<PaiementRecurrent />} />
+        <Route path='/echelonne' element={<PaiementEchelonne />} />
+        <Route path='/agenda' element={<Agenda />} />
 
-      {/* Routes d'authentification */}
-      <Route path='/auth' element={<Auth />} />
-      <Route path='/auth/confirm' element={<AuthConfirm />} />
-      <Route path='/validation' element={<Validation />} />
+        {/* Routes d'authentification */}
+        <Route path='/auth' element={<Auth />} />
+        <Route path='/auth/confirm' element={<AuthConfirm />} />
+        <Route path='/validation' element={<Validation />} />
 
-      {/* Routes utilisateur */}
-      <Route path='/profil' element={<Profil />} />
-      <Route path='/notifications' element={<Notifications />} />
+        {/* Routes utilisateur */}
+        <Route path='/profil' element={<Profil />} />
+        <Route path='/notifications' element={<Notifications />} />
 
-      {/* Routes légales */}
-      <Route path='/terms' element={<Terms />} />
-      <Route path='/privacy-policy' element={<PrivacyPolicy />} />
-      <Route path='/user-data-deletion' element={<UserDataDeletion />} />
-    </Routes>
+        {/* Routes légales */}
+        <Route path='/terms' element={<Terms />} />
+        <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+        <Route path='/user-data-deletion' element={<UserDataDeletion />} />
+      </Routes>
+    </>
   );
 };
 
