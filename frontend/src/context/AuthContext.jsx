@@ -28,11 +28,16 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await userApi.getProfile();
+      // Simulation d'un utilisateur pour le développement
+      const response = {
+        data: {
+          name: "Alexandre Janacek",
+          email: "alexandre.janacek@gmail.com",
+        },
+      };
       setUser(response.data);
       setError(null);
     } catch (error) {
-      console.error("Erreur lors de la récupération du profil:", error);
       setError("Erreur lors de la récupération du profil");
       localStorage.removeItem("token");
       setUser(null);
