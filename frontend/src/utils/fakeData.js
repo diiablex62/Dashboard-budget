@@ -107,20 +107,11 @@ export const fakePaiementsRecurrents = [
   },
 ];
 
-// Paiements échelonnés (tous commencent en 2025)
+// Paiements échelonnés 
 export const fakePaiementsEchelonnes = [
+
   {
     id: 1,
-    nom: "Crédit auto",
-    montant: 15000,
-    mensualites: 36,
-    mensualitesPayees: 12,
-    debutDate: "2025-01-01",
-    categorie: "Transports",
-    type: "depense",
-  },
-  {
-    id: 2,
     nom: "Formation",
     montant: 3000,
     mensualites: 12,
@@ -130,7 +121,7 @@ export const fakePaiementsEchelonnes = [
     type: "depense",
   },
   {
-    id: 3,
+    id: 2,
     nom: "Équipement",
     montant: 2000,
     mensualites: 10,

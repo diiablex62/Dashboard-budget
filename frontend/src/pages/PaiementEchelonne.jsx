@@ -209,7 +209,7 @@ const PaiementEchelonne = () => {
             } cursor-pointer`}
             onClick={() => setIsRevenus(false)}
             type='button'>
-            Dépenses
+            Crédit
           </button>
           <button
             className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
@@ -219,7 +219,7 @@ const PaiementEchelonne = () => {
             } cursor-pointer`}
             onClick={() => setIsRevenus(true)}
             type='button'>
-            Revenus
+            Débit
           </button>
         </div>
 
@@ -279,7 +279,7 @@ const PaiementEchelonne = () => {
                     <div className='flex items-center justify-between'>
                       <div className='flex items-center'>
                         <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
-                          <AiOutlineDollarCircle className='text-gray-600 dark:text-gray-300 text-xl' />
+                          <AiOutlineDollarCircle className='text-gray-600 dark:text-white text-xl' />
                         </div>
                         <div>
                           <div className='font-semibold dark:text-white'>
@@ -538,15 +538,13 @@ const PaiementEchelonne = () => {
                 </label>
                 <div className='relative'>
                   <input
-                    type='text'
+                    type='date'
                     name='debutDate'
                     value={newPaiement.debutDate}
-                    readOnly
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 pr-10 mb-4 cursor-pointer'
-                    ref={debutDateInputRef}
-                    autoFocus
+                    onChange={handleChange}
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                   />
-                  <AiOutlineCalendar className='absolute right-3 top-3 text-xl text-gray-400 cursor-pointer' />
+                  <AiOutlineCalendar className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer' />
                 </div>
                 <div className='flex justify-between'>
                   <button
@@ -557,14 +555,7 @@ const PaiementEchelonne = () => {
                   <button
                     className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
                     disabled={!newPaiement.debutDate}
-                    onClick={() => {
-                      if (!newPaiement.debutDate) {
-                        setError("La date de début est requise");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
+                    onClick={handleNext}>
                     Suivant
                   </button>
                 </div>
