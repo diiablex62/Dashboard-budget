@@ -45,8 +45,8 @@ export default function DepensesParCategorieChart({ data }) {
                 data={sortedData}
                 cx='50%'
                 cy='50%'
-                innerRadius={60}
-                outerRadius={80}
+                innerRadius={50}
+                outerRadius={90}
                 fill='#8884d8'
                 dataKey='value'
                 onMouseEnter={onPieEnter}>
