@@ -117,11 +117,18 @@ const PaiementRecurrent = () => {
 
   // Calcul des totaux
   const totalDepenses = useMemo(
-    () => calculTotalRecurrentsMois(paiementsRecurrents),
+    () =>
+      calculTotalRecurrentsMois(
+        paiementsRecurrents.filter((p) => p.type === "depense")
+      ),
     [paiementsRecurrents]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois([], paiementsRecurrents),
+    () =>
+      totalRevenusGlobalMois(
+        [],
+        paiementsRecurrents.filter((p) => p.type === "revenu")
+      ),
     [paiementsRecurrents]
   );
 
@@ -138,10 +145,16 @@ const PaiementRecurrent = () => {
   const handleSavePaiement = useCallback(
     async (paiement) => {
       setPaiementsRecurrents((prev) => {
+        const newPaiement = {
+          ...paiement,
+          type: currentTab,
+          date: paiement.dateDebut,
+          dateDebut: paiement.dateDebut,
+        };
         if (paiement.id) {
-          return prev.map((t) => (t.id === paiement.id ? { ...paiement } : t));
+          return prev.map((t) => (t.id === paiement.id ? newPaiement : t));
         } else {
-          return [...prev, { ...paiement, id: Date.now(), type: currentTab }];
+          return [...prev, { ...newPaiement, id: Date.now() }];
         }
       });
       setShowModal(false);
@@ -272,7 +285,7 @@ const PaiementRecurrent = () => {
                           {p.nom?.charAt(0).toUpperCase() + p.nom?.slice(1)}
                         </div>
                         <div className='text-xs text-gray-500 dark:text-gray-300'>
-                          {p.categorie} - {p.frequence}
+                          {p.categorie}
                         </div>
                       </div>
                     </div>
@@ -347,6 +360,7 @@ function PaiementRecurrentModal({
   type = "depense",
 }) {
   const [currentStep, setCurrentStep] = useState(stepInit);
+  const montantInputRef = useRef(null);
   const [formData, setFormData] = useState({
     id: paiement?.id || null,
     nom: paiement?.nom || "",
@@ -357,6 +371,14 @@ function PaiementRecurrentModal({
     type: type,
   });
   const [errorMessage, setErrorMessage] = useState(null);
+
+  useEffect(() => {
+    if (currentStep === 3 && montantInputRef.current) {
+      setTimeout(() => {
+        montantInputRef.current.focus();
+      }, 100);
+    }
+  }, [currentStep]);
 
   const updateForm = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -426,6 +448,12 @@ function PaiementRecurrentModal({
                 type='text'
                 value={formData.nom}
                 onChange={(e) => updateForm("nom", e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && formData.nom) {
+                    e.preventDefault();
+                    nextStep();
+                  }
+                }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
                 placeholder='Ex: Loyer'
                 autoFocus
@@ -453,7 +481,7 @@ function PaiementRecurrentModal({
                 onChange={(e) => {
                   updateForm("categorie", e.target.value);
                   if (e.target.value) {
-                    validateAndSave(e);
+                    nextStep();
                   }
                 }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
@@ -496,6 +524,7 @@ function PaiementRecurrentModal({
                 Montant (€)
               </label>
               <input
+                ref={montantInputRef}
                 type='number'
                 value={formData.montant}
                 onChange={(e) => {
