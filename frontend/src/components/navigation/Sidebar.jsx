@@ -234,7 +234,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               <ul className='space-y-1'>
                 {overviewLinks.map((link) => (
                   <li key={link.to}>
-                    <NavItem {...link} isCollapsed={isCollapsed} />
+                    <NavItem
+                      to={link.to}
+                      icon={link.icon}
+                      label={link.label}
+                      isCollapsed={isCollapsed}
+                    />
                   </li>
                 ))}
               </ul>
@@ -253,7 +258,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             <ul className='space-y-1 mb-4'>
               {settingsLinks.map((link) => (
                 <li key={link.to || link.key}>
-                  <NavItem {...link} isCollapsed={isCollapsed} />
+                  <NavItem
+                    to={link.to}
+                    icon={link.icon}
+                    label={link.label}
+                    onClick={link.onClick}
+                    isCollapsed={isCollapsed}
+                  />
                 </li>
               ))}
             </ul>

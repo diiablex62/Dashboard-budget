@@ -23,8 +23,8 @@ import {
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
 import {
-  calculTotalRecurrentsMois,
-  totalRevenusGlobalMois,
+  calculTotalRevenusRecurrentsMois,
+  calculTotalDepensesRecurrentesMois,
 } from "../utils/calcul";
 
 const PaiementRecurrent = () => {
@@ -39,24 +39,19 @@ const PaiementRecurrent = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   // Calcul des totaux
-  const totalDepenses = useMemo(
-    () =>
-      calculTotalRecurrentsMois(
-        paiementsRecurrents.filter((p) => p.type === "depense"),
-        selectedMonth
-      ),
-    [paiementsRecurrents, selectedMonth]
-  );
-  const totalRevenus = useMemo(
-    () =>
-      totalRevenusGlobalMois(
-        [], // depenseRevenu
-        paiementsRecurrents.filter((p) => p.type === "revenu"),
-        [], // paiementsEchelonnes
-        selectedMonth
-      ),
-    [paiementsRecurrents, selectedMonth]
-  );
+  const totalRevenus = useMemo(() => {
+    return calculTotalRevenusRecurrentsMois(
+      paiementsRecurrents.filter((p) => p.type === "revenu"),
+      selectedMonth
+    );
+  }, [paiementsRecurrents, selectedMonth]);
+
+  const totalDepenses = useMemo(() => {
+    return calculTotalDepensesRecurrentesMois(
+      paiementsRecurrents.filter((p) => p.type === "depense"),
+      selectedMonth
+    );
+  }, [paiementsRecurrents, selectedMonth]);
 
   // Filtrage des paiements selon le type et le mois
   const paiementsFiltres = useMemo(() => {
