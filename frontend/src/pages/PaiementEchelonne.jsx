@@ -542,9 +542,16 @@ const PaiementEchelonne = () => {
                     name='debutDate'
                     value={newPaiement.debutDate}
                     onChange={handleChange}
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
+                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
+                    ref={debutDateInputRef}
+                    style={{
+                      paddingRight: "2.5rem",
+                    }}
                   />
-                  <AiOutlineCalendar className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer' />
+                  <AiOutlineCalendar
+                    className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
+                    onClick={() => debutDateInputRef.current?.showPicker()}
+                  />
                 </div>
                 <div className='flex justify-between'>
                   <button
