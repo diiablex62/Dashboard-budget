@@ -1,9 +1,9 @@
 import React, {
   useState,
-  useCallback,
-  useEffect,
-  useRef,
   useMemo,
+  useCallback,
+  useRef,
+  useEffect,
 } from "react";
 import {
   AiOutlinePlus,
@@ -40,95 +40,11 @@ const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
     fakePaiementsRecurrents
   );
-  const [newPaiement, setNewPaiement] = useState({
-    nom: "",
-    montant: "",
-    frequence: "mensuel",
-    debutDate: new Date().toISOString().split("T")[0],
-    categorie: "",
-    type: "depense",
-    date: new Date().toISOString().split("T")[0],
-  });
-  const [showModal, setShowModal] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [step, setStep] = useState(1);
   const [currentTab, setCurrentTab] = useState("depense");
-  const [error, setError] = useState(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [error] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [selectedPaiement, setSelectedPaiement] = useState(null);
-
-  const nomInputRef = useRef(null);
-  const montantInputRef = useRef(null);
-  const frequenceInputRef = useRef(null);
-  const dateInputRef = useRef(null);
-  const categorieInputRef = useRef(null);
-
-  const defaultDebutDate = useMemo(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  }, []);
-
-  useEffect(() => {
-    console.log("Paiements récurrents:", paiementsRecurrents);
-  }, [paiementsRecurrents]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewPaiement((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDateChange = (date) => {
-    setNewPaiement((prev) => ({
-      ...prev,
-      debutDate: date.toISOString().split("T")[0],
-    }));
-  };
-
-  const handleNext = useCallback(() => setStep((s) => s + 1), []);
-  const handlePrev = useCallback(() => setStep((s) => s - 1), []);
-
-  const handleAddOrEditPaiement = () => {
-    if (editIndex !== null) {
-      // Modifier le paiement existant
-      const updatedPaiements = [...paiementsRecurrents];
-      updatedPaiements[editIndex] = {
-        ...newPaiement,
-        id: updatedPaiements[editIndex].id,
-        montant: parseFloat(newPaiement.montant),
-        date: newPaiement.debutDate,
-        dateDebut: newPaiement.debutDate,
-      };
-      setPaiementsRecurrents(updatedPaiements);
-    } else {
-      // Ajouter un nouveau paiement
-      const newId = Math.max(...paiementsRecurrents.map((p) => p.id), 0) + 1;
-      const newPaiementWithId = {
-        ...newPaiement,
-        id: newId,
-        montant: parseFloat(newPaiement.montant),
-        date: newPaiement.debutDate,
-        dateDebut: newPaiement.debutDate,
-      };
-      setPaiementsRecurrents([...paiementsRecurrents, newPaiementWithId]);
-    }
-    setShowModal(false);
-    setNewPaiement({
-      nom: "",
-      montant: "",
-      frequence: "mensuel",
-      debutDate: defaultDebutDate,
-      categorie: "",
-      type: "depense",
-      date: defaultDebutDate,
-    });
-    setStep(1);
-    setEditIndex(null);
-  };
-
-  const handleDelete = (id) => {
-    setPaiementsRecurrents(paiementsRecurrents.filter((p) => p.id !== id));
-  };
+  const [step, setStep] = useState(1);
 
   // Calcul des totaux
   const totalDepenses = useMemo(
@@ -152,6 +68,10 @@ const PaiementRecurrent = () => {
     return paiementsRecurrents.filter((p) => p.type === currentTab);
   }, [paiementsRecurrents, currentTab]);
 
+  const handleDelete = (id) => {
+    setPaiementsRecurrents(paiementsRecurrents.filter((p) => p.id !== id));
+  };
+
   const handleAddPaiement = useCallback(() => {
     setSelectedPaiement(null);
     setShowModal(true);
@@ -159,9 +79,7 @@ const PaiementRecurrent = () => {
 
   const handleSavePaiement = useCallback(
     async (paiement) => {
-      console.log("handleSavePaiement - paiement reçu:", paiement);
       const selectedDate = paiement.dateDebut;
-      console.log("handleSavePaiement - selectedDate:", selectedDate);
 
       setPaiementsRecurrents((prev) => {
         const newPaiement = {
@@ -170,7 +88,6 @@ const PaiementRecurrent = () => {
           date: selectedDate,
           dateDebut: selectedDate,
         };
-        console.log("handleSavePaiement - newPaiement:", newPaiement);
         if (paiement.id) {
           return prev.map((t) => (t.id === paiement.id ? newPaiement : t));
         } else {
@@ -235,7 +152,6 @@ const PaiementRecurrent = () => {
               €
             </div>
           </div>
-          {/* Carte 3: Solde supprimée */}
         </div>
         {/* Switch Dépenses/Revenus */}
         <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
@@ -278,7 +194,7 @@ const PaiementRecurrent = () => {
               <button
                 className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
                 onClick={handleAddPaiement}>
-                <span className='text-lg font-bold'>+</span>
+                <AiOutlinePlus className='text-lg' />
                 <span>Ajouter</span>
               </button>
             </div>
@@ -353,16 +269,7 @@ const PaiementRecurrent = () => {
           onClose={() => {
             setShowModal(false);
             setStep(1);
-            setNewPaiement({
-              nom: "",
-              montant: "",
-              frequence: "mensuel",
-              debutDate: defaultDebutDate,
-              categorie: "",
-              type: "depense",
-              date: defaultDebutDate,
-            });
-            setEditIndex(null);
+            setSelectedPaiement(null);
           }}
           onSave={handleSavePaiement}
           paiement={selectedPaiement}
@@ -412,38 +319,74 @@ function PaiementRecurrentModal({
     setErrorMessage(null);
   }, []);
 
+  const isFormValid = useMemo(() => {
+    if (!formData.nom) return false;
+    if (!formData.categorie) return false;
+    const montant = parseFloat(formData.montant);
+    if (isNaN(montant) || montant <= 0) return false;
+    if (!formData.dateDebut) return false;
+
+    const selectedDate = new Date(formData.dateDebut);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) return false;
+
+    return true;
+  }, [formData]);
+
+  const handleDateChange = useCallback(
+    (e) => {
+      const selectedDate = new Date(e.target.value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate < today) {
+        setErrorMessage("La date ne peut pas être antérieure à aujourd'hui");
+        return;
+      }
+
+      handleChange(e);
+
+      // Si tous les champs sont valides, sauvegarder automatiquement
+      if (isFormValid) {
+        const paiementToSave = {
+          ...formData,
+          dateDebut: e.target.value,
+          montant: parseFloat(formData.montant),
+          date: e.target.value,
+        };
+        onSave(paiementToSave);
+        onClose();
+      }
+    },
+    [handleChange, isFormValid, formData, onSave, onClose]
+  );
+
   const nextStep = () => setCurrentStep((prev) => prev + 1);
   const prevStep = () => setCurrentStep((prev) => prev - 1);
 
   const validateAndSave = (e) => {
     e.preventDefault();
-    console.log("validateAndSave - dateDebut:", formData.dateDebut);
 
-    if (!formData.nom) {
-      setErrorMessage("Le nom est requis");
-      return;
-    }
-    if (!formData.categorie) {
-      setErrorMessage("La catégorie est requise");
-      return;
-    }
-    const montant = parseFloat(formData.montant);
-    if (isNaN(montant) || montant <= 0) {
-      setErrorMessage("Le montant doit être un nombre positif");
-      return;
-    }
-    if (!formData.dateDebut) {
-      setErrorMessage("La date de début est requise");
+    if (!isFormValid) {
+      if (!formData.nom) {
+        setErrorMessage("Le nom est requis");
+      } else if (!formData.categorie) {
+        setErrorMessage("La catégorie est requise");
+      } else if (!formData.montant || parseFloat(formData.montant) <= 0) {
+        setErrorMessage("Le montant doit être un nombre positif");
+      } else if (!formData.dateDebut) {
+        setErrorMessage("La date de début est requise");
+      }
       return;
     }
 
     const paiementToSave = {
       ...formData,
-      montant: montant,
+      montant: parseFloat(formData.montant),
       date: formData.dateDebut,
       dateDebut: formData.dateDebut,
     };
-    console.log("validateAndSave - paiementToSave:", paiementToSave);
 
     onSave(paiementToSave);
     onClose();
@@ -607,17 +550,13 @@ function PaiementRecurrentModal({
                   type='date'
                   name='dateDebut'
                   value={formData.dateDebut}
-                  onChange={handleChange}
+                  onChange={handleDateChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
                   ref={dateInputRef}
                   style={{
                     paddingRight: "2.5rem",
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && formData.dateDebut) {
-                      validateAndSave(e);
-                    }
-                  }}
+                  min={new Date().toISOString().split("T")[0]}
                 />
                 <AiOutlineCalendar
                   className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
@@ -633,7 +572,8 @@ function PaiementRecurrentModal({
                 </button>
                 <button
                   type='submit'
-                  className='bg-gray-900 text-white px-4 py-2 rounded'>
+                  disabled={!isFormValid}
+                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed'>
                   {paiement ? "Modifier" : "Ajouter"}
                 </button>
               </div>
