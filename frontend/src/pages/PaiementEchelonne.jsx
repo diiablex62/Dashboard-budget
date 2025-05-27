@@ -331,9 +331,6 @@ const PaiementEchelonne = () => {
                           ).toFixed(2)}{" "}
                           €/mois
                         </div>
-                        <div className='text-xs text-gray-400'>
-                          {paiement.mensualites} mensualités
-                        </div>
                       </div>
                     </div>
 
@@ -349,9 +346,21 @@ const PaiementEchelonne = () => {
                             }%`,
                           }}></div>
                       </div>
-                      <div className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
-                        Mensualité {paiement.mensualitesPayees || 1}/
-                        {paiement.mensualites}
+                      <div className='mt-2 flex justify-between items-center w-full text-sm text-gray-500 dark:text-gray-400'>
+                        <span>
+                          Mensualité {paiement.mensualitesPayees || 1}/
+                          {paiement.mensualites}
+                        </span>
+                        <span>
+                          Fin:{" "}
+                          {new Date(
+                            new Date(paiement.debutDate).setMonth(
+                              new Date(paiement.debutDate).getMonth() +
+                                parseInt(paiement.mensualites) -
+                                1
+                            )
+                          ).toLocaleDateString("fr-FR")}
+                        </span>
                       </div>
                     </div>
 

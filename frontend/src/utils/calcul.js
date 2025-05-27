@@ -83,6 +83,7 @@ export function calculTotalEchelonnesMois(
       const moisFin = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
       if (moisActuel <= finDate && moisFin >= debutDate) {
+        // On ajoute la mensualité si on est dans la période
         return acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites);
       }
       return acc;
