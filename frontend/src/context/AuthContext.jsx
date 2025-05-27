@@ -57,6 +57,10 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/auth";
   };
 
+  const setAvatar = (avatar) => {
+    setUser((prev) => (prev ? { ...prev, avatar } : { avatar }));
+  };
+
   const value = {
     user,
     loading,
@@ -64,6 +68,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     fetchUserProfile,
+    setAvatar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

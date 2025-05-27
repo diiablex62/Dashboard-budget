@@ -20,7 +20,7 @@ import SettingsPanel from "../ui/SettingsPanel";
 import { ThemeContext } from "../../context/ThemeContext";
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
   const [search, setSearch] = useState("");
   const { setIsSettingsOpen } = useContext(AppContext);
   const searchInputRef = useRef(null);
@@ -266,21 +266,39 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               ))}
             </ul>
           </div>
-          <div className='py-6 flex justify-center gap-3'>
+          <NavLink
+            to='/profil'
+            className={({ isActive }) =>
+              `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
+                isActive
+                  ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white font-semibold"
+                  : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
+              }`
+            }
+            title='Profil utilisateur'
+            tabIndex={0}>
             <div className='w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden'>
-              <AiOutlineUser className='text-3xl text-gray-400 dark:text-gray-500' />
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt='Avatar'
+                  className='w-12 h-12 object-cover rounded-full'
+                />
+              ) : (
+                <AiOutlineUser className='text-3xl text-gray-400 dark:text-gray-500' />
+              )}
             </div>
             {!isCollapsed && (
               <div className='flex flex-col justify-center'>
                 <span className='font-semibold text-gray-800 dark:text-white'>
-                  Alexandre Janacek
+                  {user?.name || "Alexandre Janacek"}
                 </span>
                 <span className='text-xs text-gray-500 dark:text-gray-400'>
-                  alexandre.janacek@gmail.com
+                  {user?.email || "alexandre.janacek@gmail.com"}
                 </span>
               </div>
             )}
-          </div>
+          </NavLink>
         </div>
       </div>
     </>
