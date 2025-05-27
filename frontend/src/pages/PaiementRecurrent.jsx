@@ -561,12 +561,29 @@ function PaiementRecurrentModal({
               <label className='block mb-2 font-medium dark:text-white'>
                 Date de début
               </label>
-              <input
-                type='date'
-                value={formData.dateDebut}
-                onChange={(e) => updateForm("dateDebut", e.target.value)}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-              />
+              <div className='relative'>
+                <input
+                  type='date'
+                  name='date'
+                  value={formData.dateDebut}
+                  onChange={(e) => updateForm("dateDebut", e.target.value)}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
+                  ref={dateInputRef}
+                  style={{
+                    paddingRight: "2.5rem",
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && formData.dateDebut) {
+                      e.preventDefault();
+                      nextStep();
+                    }
+                  }}
+                />
+                <AiOutlineCalendar
+                  className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
+                  onClick={() => dateInputRef.current?.showPicker()}
+                />
+              </div>
               <div className='flex justify-between'>
                 <button
                   type='button'

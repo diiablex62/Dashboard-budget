@@ -259,17 +259,26 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
               <label className='block mb-2 font-medium dark:text-white'>
                 Date
               </label>
-              <input
-                type='date'
-                name='date'
-                value={form.date}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                ref={dateInputRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && form.date) handleSubmit(e);
-                }}
-              />
+              <div className='relative'>
+                <input
+                  type='date'
+                  name='date'
+                  value={form.date}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
+                  ref={dateInputRef}
+                  style={{
+                    paddingRight: "2.5rem",
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && form.date) handleSubmit(e);
+                  }}
+                />
+                <AiOutlineCalendar
+                  className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
+                  onClick={() => dateInputRef.current?.showPicker()}
+                />
+              </div>
               <div className='flex justify-between'>
                 <button
                   className='text-gray-600 dark:text-gray-400 cursor-pointer'
@@ -517,17 +526,26 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
               <label className='block mb-2 font-medium dark:text-white'>
                 Date
               </label>
-              <input
-                type='date'
-                name='date'
-                value={form.date}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                ref={dateInputRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && form.date) handleSubmit(e);
-                }}
-              />
+              <div className='relative'>
+                <input
+                  type='date'
+                  name='date'
+                  value={form.date}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
+                  ref={dateInputRef}
+                  style={{
+                    paddingRight: "2.5rem",
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && form.date) handleSubmit(e);
+                  }}
+                />
+                <AiOutlineCalendar
+                  className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
+                  onClick={() => dateInputRef.current?.showPicker()}
+                />
+              </div>
               <div className='flex justify-between'>
                 <button
                   className='text-gray-600 dark:text-gray-400 cursor-pointer'
