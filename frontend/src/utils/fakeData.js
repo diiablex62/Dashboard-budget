@@ -65,7 +65,7 @@ export const fakePaiementsRecurrents = [
     nom: "Loyer",
     montant: 800,
     categorie: "Logement",
-    date: "2025-05-01",
+    jourPrelevement: 1,
     type: "depense",
     frequence: "mensuel",
   },
@@ -74,7 +74,7 @@ export const fakePaiementsRecurrents = [
     nom: "Salaire",
     montant: 2500,
     categorie: "Revenus",
-    date: "2025-05-05",
+    jourPrelevement: 5,
     type: "revenu",
     frequence: "mensuel",
   },
@@ -83,7 +83,7 @@ export const fakePaiementsRecurrents = [
     nom: "Électricité",
     montant: 120,
     categorie: "Logement",
-    date: "2025-05-10",
+    jourPrelevement: 10,
     type: "depense",
     frequence: "mensuel",
   },
@@ -92,7 +92,7 @@ export const fakePaiementsRecurrents = [
     nom: "Rente",
     montant: 500,
     categorie: "Investissements",
-    date: "2025-05-15",
+    jourPrelevement: 15,
     type: "revenu",
     frequence: "mensuel",
   },
@@ -101,15 +101,14 @@ export const fakePaiementsRecurrents = [
     nom: "Allocation logement",
     montant: 200,
     categorie: "Allocations",
-    date: "2025-05-20",
+    jourPrelevement: 20,
     type: "revenu",
     frequence: "mensuel",
   },
 ];
 
-// Paiements échelonnés 
+// Paiements échelonnés
 export const fakePaiementsEchelonnes = [
-
   {
     id: 1,
     nom: "Formation",

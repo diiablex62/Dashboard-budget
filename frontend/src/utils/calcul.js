@@ -53,18 +53,10 @@ export function calculTotalDepensesMois(
 }
 
 // total calcul paiements récurrents du mois : [calculTotalRecurrentsMois]
-export function calculTotalRecurrentsMois(
-  paiementsRecurrents,
-  date = new Date()
-) {
-  return paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "depense" &&
-        new Date(p.date).getFullYear() === date.getFullYear() &&
-        new Date(p.date).getMonth() === date.getMonth()
-    )
-    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+export function calculTotalRecurrentsMois(paiements, date) {
+  return paiements
+    .filter((p) => p.type === "depense")
+    .reduce((total, p) => total + p.montant, 0);
 }
 
 // total calcul paiements échelonnés du mois : [calculTotalEchelonnesMois]
