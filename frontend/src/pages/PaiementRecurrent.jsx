@@ -45,28 +45,55 @@ const PaiementRecurrent = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedPaiement, setSelectedPaiement] = useState(null);
   const [step, setStep] = useState(1);
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
 
   // Calcul des totaux
   const totalDepenses = useMemo(
     () =>
       calculTotalRecurrentsMois(
-        paiementsRecurrents.filter((p) => p.type === "depense")
+        paiementsRecurrents.filter((p) => p.type === "depense"),
+        selectedMonth
       ),
-    [paiementsRecurrents]
+    [paiementsRecurrents, selectedMonth]
   );
   const totalRevenus = useMemo(
     () =>
       totalRevenusGlobalMois(
-        [],
-        paiementsRecurrents.filter((p) => p.type === "revenu")
+        [], // depenseRevenu
+        paiementsRecurrents.filter((p) => p.type === "revenu"),
+        [], // paiementsEchelonnes
+        selectedMonth
       ),
-    [paiementsRecurrents]
+    [paiementsRecurrents, selectedMonth]
   );
 
-  // Filtrage des paiements selon le type
+  // Filtrage des paiements selon le type et le mois
   const paiementsFiltres = useMemo(() => {
-    return paiementsRecurrents.filter((p) => p.type === currentTab);
-  }, [paiementsRecurrents, currentTab]);
+    return paiementsRecurrents.filter((p) => {
+      if (p.type !== currentTab) return false;
+      const paiementDate = new Date(p.date);
+      return (
+        paiementDate.getMonth() === selectedMonth.getMonth() &&
+        paiementDate.getFullYear() === selectedMonth.getFullYear()
+      );
+    });
+  }, [paiementsRecurrents, currentTab, selectedMonth]);
+
+  const handlePreviousMonth = () => {
+    setSelectedMonth((prev) => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setSelectedMonth((prev) => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + 1);
+      return newDate;
+    });
+  };
 
   const handleDelete = (id) => {
     setPaiementsRecurrents(paiementsRecurrents.filter((p) => p.id !== id));
@@ -118,11 +145,35 @@ const PaiementRecurrent = () => {
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
-        {/* Titre */}
+        {/* Titre et sélecteur de mois */}
         <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
-            Paiements Récurrents
-          </h1>
+          <div>
+            <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+              Paiements Récurrents
+            </h1>
+            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+              Gérez vos dépenses et revenus mensuels.
+            </p>
+          </div>
+          <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
+            <button
+              className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+              onClick={handlePreviousMonth}
+              aria-label='Mois précédent'
+              type='button'>
+              <AiOutlineArrowLeft />
+            </button>
+            <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
+              {getMonthYear(selectedMonth)}
+            </div>
+            <button
+              className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+              onClick={handleNextMonth}
+              aria-label='Mois suivant'
+              type='button'>
+              <AiOutlineArrowRight />
+            </button>
+          </div>
         </div>
         {/* Cartes de statistiques */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>

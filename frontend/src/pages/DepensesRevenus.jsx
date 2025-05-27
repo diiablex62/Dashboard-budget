@@ -677,37 +677,34 @@ export default function DepensesRevenus() {
       return (
         <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
           <div>
-            {/* En-tête et sélecteur de mois */}
-            <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
+            {/* Titre et sélecteur de mois */}
+            <div className='mb-6 flex items-center justify-between'>
               <div>
-                <h1 className='text-2xl font-semibold text-gray-800 mb-1 dark:text-white'>
-                  Dépenses & Revenus
+                <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+                  Dépenses et Revenus
                 </h1>
-                <div className='text-gray-500 text-base'>
+                <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   Gérez vos dépenses et revenus mensuels.
-                </div>
+                </p>
               </div>
-              {/* Sélecteur mois/année */}
-              <div className='flex items-center mt-4 md:mt-0'>
-                <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
-                  <button
-                    className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                    onClick={handlePrevMonth}
-                    aria-label='Mois précédent'
-                    type='button'>
-                    <AiOutlineArrowLeft />
-                  </button>
-                  <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
-                    {getMonthYear(currentDate)}
-                  </div>
-                  <button
-                    className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                    onClick={handleNextMonth}
-                    aria-label='Mois suivant'
-                    type='button'>
-                    <AiOutlineArrowRight />
-                  </button>
+              <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
+                <button
+                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+                  onClick={handlePrevMonth}
+                  aria-label='Mois précédent'
+                  type='button'>
+                  <AiOutlineArrowLeft />
+                </button>
+                <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
+                  {getMonthYear(currentDate)}
                 </div>
+                <button
+                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+                  onClick={handleNextMonth}
+                  aria-label='Mois suivant'
+                  type='button'>
+                  <AiOutlineArrowRight />
+                </button>
               </div>
             </div>
 

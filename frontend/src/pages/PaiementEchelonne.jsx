@@ -30,7 +30,7 @@ const PaiementEchelonne = () => {
     return today.toISOString().split("T")[0];
   }, []);
 
-  const [selectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1);
   const [newPaiement, setNewPaiement] = useState({
@@ -164,11 +164,43 @@ const PaiementEchelonne = () => {
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
-        {/* Titre */}
+        {/* Titre et sélecteur de mois */}
         <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
-            Paiements Échelonnés
-          </h1>
+          <div>
+            <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+              Paiements Échelonnés
+            </h1>
+            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+              Gérez vos dépenses et revenus mensuels.
+            </p>
+          </div>
+          <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
+            <button
+              className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+              onClick={() => {
+                const newDate = new Date(selectedDate);
+                newDate.setMonth(newDate.getMonth() - 1);
+                setSelectedDate(newDate);
+              }}
+              aria-label='Mois précédent'
+              type='button'>
+              <AiOutlineArrowLeft />
+            </button>
+            <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
+              {getMonthYear(selectedDate)}
+            </div>
+            <button
+              className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+              onClick={() => {
+                const newDate = new Date(selectedDate);
+                newDate.setMonth(newDate.getMonth() + 1);
+                setSelectedDate(newDate);
+              }}
+              aria-label='Mois suivant'
+              type='button'>
+              <AiOutlineArrowRight />
+            </button>
+          </div>
         </div>
 
         {/* Cartes de statistiques */}
