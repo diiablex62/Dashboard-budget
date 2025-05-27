@@ -41,13 +41,7 @@ import {
   calculEconomies,
 } from "../utils/calcul";
 
-function RevenuModal({
-  onClose,
-  onSave,
-  revenu = {},
-  stepInit = 1,
-  categories = REVENUS_CATEGORIES,
-}) {
+function RevenuModal({ onClose, onSave, revenu = {}, stepInit = 1 }) {
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
     id: revenu.id || null,
@@ -191,23 +185,14 @@ function RevenuModal({
               <select
                 name='categorie'
                 value={form.categorie}
-                onChange={(e) => {
-                  handleChange(e);
-                  if (e.target.value) {
-                    setTimeout(() => handleNext(), 100);
-                  }
-                }}
+                onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && form.categorie) {
-                    e.preventDefault();
-                    handleNext();
-                  }
+                  if (e.key === "Enter" && form.categorie) handleNext();
                 }}>
                 <option value=''>Sélectionner une catégorie</option>
-                {Array.from(new Set(categories)).map((cat, index) => (
-                  <option key={index} value={cat}>
+                {REVENUS_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
                     {cat}
                   </option>
                 ))}
@@ -310,13 +295,7 @@ function RevenuModal({
   );
 }
 
-function DepenseModal({
-  onClose,
-  onSave,
-  depense = {},
-  stepInit = 1,
-  categories = DEPENSES_CATEGORIES,
-}) {
+function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
     id: depense.id || null,
@@ -460,23 +439,14 @@ function DepenseModal({
               <select
                 name='categorie'
                 value={form.categorie}
-                onChange={(e) => {
-                  handleChange(e);
-                  if (e.target.value) {
-                    setTimeout(() => handleNext(), 100);
-                  }
-                }}
+                onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && form.categorie) {
-                    e.preventDefault();
-                    handleNext();
-                  }
+                  if (e.key === "Enter" && form.categorie) handleNext();
                 }}>
                 <option value=''>Sélectionner une catégorie</option>
-                {Array.from(new Set(categories)).map((cat, index) => (
-                  <option key={index} value={cat}>
+                {DEPENSES_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
                     {cat}
                   </option>
                 ))}
@@ -888,7 +858,6 @@ export default function DepensesRevenus() {
           onClose={() => setShowRevenuModal(false)}
           onSave={handleSaveRevenu}
           revenu={selectedDepenseRevenu}
-          categories={REVENUS_CATEGORIES}
         />
       )}
       {showDepenseModal && (
@@ -896,7 +865,6 @@ export default function DepensesRevenus() {
           onClose={() => setShowDepenseModal(false)}
           onSave={handleSaveDepense}
           depense={selectedDepenseRevenu || {}}
-          categories={DEPENSES_CATEGORIES}
         />
       )}
     </div>

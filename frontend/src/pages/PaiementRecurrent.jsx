@@ -11,9 +11,17 @@ import {
   AiOutlineDollarCircle,
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
+  AiOutlineEdit,
+  AiOutlineDelete,
 } from "react-icons/ai";
 import { fakePaiementsRecurrents } from "../utils/fakeData";
-import { RECURRENT_CATEGORIES } from "../utils/categoryUtils";
+import {
+  DEPENSES_CATEGORIES,
+  REVENUS_CATEGORIES,
+  getMonthYear,
+  MONTHS,
+  CATEGORY_COLORS,
+} from "../utils/categoryUtils";
 import {
   calculTotalRecurrentsMois,
   totalRevenusGlobalMois,
@@ -324,11 +332,6 @@ const PaiementRecurrent = () => {
           onSave={handleSavePaiement}
           paiement={selectedPaiement}
           stepInit={step}
-          categories={
-            currentTab === "depense"
-              ? RECURRENT_CATEGORIES
-              : RECURRENT_CATEGORIES
-          }
           type={currentTab}
         />
       )}
@@ -341,7 +344,6 @@ function PaiementRecurrentModal({
   onSave,
   paiement = null,
   stepInit = 1,
-  categories = [],
   type = "depense",
 }) {
   const [currentStep, setCurrentStep] = useState(stepInit);
@@ -393,7 +395,9 @@ function PaiementRecurrentModal({
   };
 
   return (
-    <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80'>
+    <div
+      className='fixed inset-0 z-[9999] flex items-center justify-center'
+      style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
         <button
           className='absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
@@ -444,15 +448,22 @@ function PaiementRecurrentModal({
                 Catégorie
               </label>
               <select
+                name='categorie'
                 value={formData.categorie}
                 onChange={(e) => {
                   updateForm("categorie", e.target.value);
                   if (e.target.value) setTimeout(nextStep, 100);
                 }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'>
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && formData.categorie) nextStep();
+                }}>
                 <option value=''>Sélectionner une catégorie</option>
-                {categories.map((cat, index) => (
-                  <option key={index} value={cat}>
+                {(type === "depense"
+                  ? DEPENSES_CATEGORIES
+                  : REVENUS_CATEGORIES
+                ).map((cat) => (
+                  <option key={cat} value={cat}>
                     {cat}
                   </option>
                 ))}
