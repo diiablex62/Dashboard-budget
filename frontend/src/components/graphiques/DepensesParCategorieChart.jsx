@@ -36,7 +36,9 @@ export default function DepensesParCategorieChart({ data }) {
     <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 bg-white dark:bg-black '>
       <div className='flex w-full h-full'>
         {/* Graphique à gauche */}
-        <div className='w-1/2 h-full flex items-center justify-center relative'>
+        <div
+          className='w-1/2 h-full flex items-center justify-center relative'
+          onMouseLeave={() => setActiveIndex(null)}>
           <ResponsiveContainer width='100%' height={200}>
             <PieChart>
               <Pie
@@ -69,23 +71,25 @@ export default function DepensesParCategorieChart({ data }) {
         </div>
 
         {/* Liste des catégories à droite */}
-        <div className='w-1/2 h-full p-4 overflow-y-auto'>
+        <div
+          className='w-1/2 h-full p-4 overflow-y-auto'
+          onMouseLeave={() => setActiveIndex(null)}>
           <div className='space-y-2'>
             {sortedData.map((item, index) => (
               <div
                 key={item.name}
-                className='flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer'
+                className='group flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer dark:hover:bg-gray-100'
                 onMouseEnter={() => setActiveIndex(index)}>
                 <div className='flex items-center gap-2'>
                   <div
                     className='w-3 h-3 rounded-full'
                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                   />
-                  <span className='text-sm font-medium text-gray-700 dark:text-white'>
+                  <span className='text-sm font-medium text-gray-700 dark:text-white dark:group-hover:text-black'>
                     {item.name}
                   </span>
                 </div>
-                <span className='text-sm text-gray-600 dark:text-white'>
+                <span className='text-sm text-gray-600'>
                   {item.value.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                   })}{" "}
