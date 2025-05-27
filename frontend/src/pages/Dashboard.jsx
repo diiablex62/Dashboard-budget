@@ -212,7 +212,7 @@ Mois précédent :
           <div className='text-2xl font-bold dark:text-white'>
             {totalRecurrents.toFixed(2)}€
           </div>
-          <div className='text-xs text-gray-400'>Ce mois-ci</div>
+          <div className='text-xs text-gray-400'>en dépenses ce mois-ci</div>
           <button
             className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/recurrents")}>
@@ -229,7 +229,7 @@ Mois précédent :
           <div className='text-2xl font-bold dark:text-white'>
             {totalEchelonnes.toFixed(2)}€
           </div>
-          <div className='text-xs text-gray-400'>Ce mois-ci</div>
+          <div className='text-xs text-gray-400'>en dépenses ce mois-ci</div>
           <button
             className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/echelonne")}>

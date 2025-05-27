@@ -24,12 +24,12 @@ export function calculTotalDepensesMois(
 
   // Paiements récurrents du mois
   const recurrentsMois = paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "depense" &&
-        new Date(p.date).getFullYear() === date.getFullYear() &&
-        new Date(p.date).getMonth() === date.getMonth()
-    )
+    .filter((p) => {
+      if (p.type !== "depense") return false;
+      const jourPrelevement = p.jourPrelevement;
+      const jourActuel = date.getDate();
+      return jourPrelevement <= jourActuel;
+    })
     .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
 
   // Paiements échelonnés du mois
@@ -87,6 +87,20 @@ export function calculTotalEchelonnesMois(
       }
       return acc;
     }, 0);
+}
+
+// total calcul paiements récurrents du mois : [calculTotalRecurrentsMois]
+export function calculTotalRecurrentsMois(paiements, date = new Date()) {
+  return paiements
+    .filter((p) => {
+      // On ne garde que les dépenses récurrentes
+      if (p.type !== "depense") return false;
+      // On vérifie si le jour de prélèvement correspond au jour actuel ou est déjà passé
+      const jourPrelevement = p.jourPrelevement;
+      const jourActuel = date.getDate();
+      return jourPrelevement <= jourActuel;
+    })
+    .reduce((total, p) => total + Math.abs(p.montant), 0);
 }
 
 // total calcul économies (revenus - dépenses) : [calculEconomies]
