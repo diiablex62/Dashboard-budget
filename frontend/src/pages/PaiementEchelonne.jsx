@@ -22,7 +22,6 @@ import {
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
 import { fakePaiementsEchelonnes } from "../utils/fakeData";
-import { calculTotalEchelonnesMois } from "../utils/calcul";
 
 const PaiementEchelonne = () => {
   const defaultDebutDate = useMemo(() => {
@@ -141,10 +140,50 @@ const PaiementEchelonne = () => {
     setPaiementsEchelonnes((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  const totalDepenses = useMemo(
-    () => calculTotalEchelonnesMois(paiementsEchelonnes),
-    [paiementsEchelonnes]
-  );
+  const totalDepenses = useMemo(() => {
+    return paiementsEchelonnes
+      .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
+      .filter((paiement) => {
+        const debut = new Date(paiement.debutDate);
+        const fin = new Date(paiement.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
+        // Paiement actif si selectedDate >= debut et <= fin (mois/année)
+        const afterStart =
+          selectedDate.getFullYear() > debut.getFullYear() ||
+          (selectedDate.getFullYear() === debut.getFullYear() &&
+            selectedDate.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          selectedDate.getFullYear() < fin.getFullYear() ||
+          (selectedDate.getFullYear() === fin.getFullYear() &&
+            selectedDate.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      })
+      .reduce((acc, paiement) => {
+        return (
+          acc + parseFloat(paiement.montant) / parseInt(paiement.mensualites)
+        );
+      }, 0);
+  }, [paiementsEchelonnes, selectedDate, isRevenus]);
+
+  const paiementsActifsCount = useMemo(() => {
+    return paiementsEchelonnes
+      .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
+      .filter((paiement) => {
+        const debut = new Date(paiement.debutDate);
+        const fin = new Date(paiement.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
+        // Paiement actif si selectedDate >= debut et <= fin (mois/année)
+        const afterStart =
+          selectedDate.getFullYear() > debut.getFullYear() ||
+          (selectedDate.getFullYear() === debut.getFullYear() &&
+            selectedDate.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          selectedDate.getFullYear() < fin.getFullYear() ||
+          (selectedDate.getFullYear() === fin.getFullYear() &&
+            selectedDate.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      }).length;
+  }, [paiementsEchelonnes, selectedDate, isRevenus]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -226,7 +265,8 @@ const PaiementEchelonne = () => {
               <span className='text-sm font-semibold'>Paiements Actifs</span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
-              {paiementsEchelonnes.length} paiements
+              {paiementsActifsCount} paiement
+              {paiementsActifsCount > 1 ? "s" : ""}
             </div>
           </div>
         </div>
@@ -304,80 +344,101 @@ const PaiementEchelonne = () => {
             <div className='grid grid-cols-1 gap-4'>
               {paiementsEchelonnes
                 .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
-                .map((paiement) => (
-                  <div
-                    key={paiement.id}
-                    className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
-                    <div className='flex items-center justify-between'>
-                      <div className='flex items-center'>
-                        <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
-                          <AiOutlineDollarCircle className='text-gray-600 dark:text-white text-xl' />
-                        </div>
-                        <div>
-                          <div className='font-semibold dark:text-white'>
-                            {paiement.nom.charAt(0).toUpperCase() +
-                              paiement.nom.slice(1)}
+                .filter((paiement) => {
+                  const fin = new Date(paiement.debutDate);
+                  fin.setMonth(
+                    fin.getMonth() + parseInt(paiement.mensualites) - 1
+                  );
+                  return (
+                    selectedDate.getFullYear() < fin.getFullYear() ||
+                    (selectedDate.getFullYear() === fin.getFullYear() &&
+                      selectedDate.getMonth() <= fin.getMonth())
+                  );
+                })
+                .map((paiement) => {
+                  // Calcul dynamique du nombre de mensualités payées selon selectedDate
+                  const debut = new Date(paiement.debutDate);
+                  const moisEcoules =
+                    (selectedDate.getFullYear() - debut.getFullYear()) * 12 +
+                    (selectedDate.getMonth() - debut.getMonth()) +
+                    1;
+                  const mensualitesPayees = Math.max(
+                    1,
+                    Math.min(moisEcoules, paiement.mensualites)
+                  );
+                  const pourcentage =
+                    (mensualitesPayees / paiement.mensualites) * 100;
+                  return (
+                    <div
+                      key={paiement.id}
+                      className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
+                      <div className='flex items-center justify-between'>
+                        <div className='flex items-center'>
+                          <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
+                            <AiOutlineDollarCircle className='text-gray-600 dark:text-white text-xl' />
                           </div>
-                          <div className='text-xs text-gray-500 dark:text-gray-400'>
-                            {paiement.categorie}
+                          <div>
+                            <div className='font-semibold dark:text-white'>
+                              {paiement.nom.charAt(0).toUpperCase() +
+                                paiement.nom.slice(1)}
+                            </div>
+                            <div className='text-xs text-gray-500 dark:text-gray-400'>
+                              {paiement.categorie}
+                            </div>
+                          </div>
+                        </div>
+                        <div className='flex flex-col items-end'>
+                          <div className='font-bold text-green-600 dark:text-green-400'>
+                            {(
+                              parseFloat(paiement.montant) /
+                              parseFloat(paiement.mensualites)
+                            ).toFixed(2)}{" "}
+                            €/mois
                           </div>
                         </div>
                       </div>
-                      <div className='flex flex-col items-end'>
-                        <div className='font-bold text-green-600 dark:text-green-400'>
-                          {(
-                            parseFloat(paiement.montant) /
-                            parseFloat(paiement.mensualites)
-                          ).toFixed(2)}{" "}
-                          €/mois
+
+                      <div className='mt-4'>
+                        <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
+                          <div
+                            className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
+                            style={{
+                              width: `${pourcentage}%`,
+                            }}></div>
+                        </div>
+                        <div className='mt-2 flex justify-between items-center w-full text-sm text-gray-500 dark:text-gray-400'>
+                          <span>
+                            Mensualité {mensualitesPayees}/
+                            {paiement.mensualites}
+                          </span>
+                          <span>
+                            Fin:{" "}
+                            {new Date(
+                              new Date(paiement.debutDate).setMonth(
+                                new Date(paiement.debutDate).getMonth() +
+                                  parseInt(paiement.mensualites) -
+                                  1
+                              )
+                            ).toLocaleDateString("fr-FR")}
+                          </span>
                         </div>
                       </div>
-                    </div>
 
-                    <div className='mt-4'>
-                      <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
-                        <div
-                          className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
-                          style={{
-                            width: `${
-                              (paiement.mensualitesPayees /
-                                paiement.mensualites) *
-                              100
-                            }%`,
-                          }}></div>
-                      </div>
-                      <div className='mt-2 flex justify-between items-center w-full text-sm text-gray-500 dark:text-gray-400'>
-                        <span>
-                          Mensualité {paiement.mensualitesPayees || 1}/
-                          {paiement.mensualites}
-                        </span>
-                        <span>
-                          Fin:{" "}
-                          {new Date(
-                            new Date(paiement.debutDate).setMonth(
-                              new Date(paiement.debutDate).getMonth() +
-                                parseInt(paiement.mensualites) -
-                                1
-                            )
-                          ).toLocaleDateString("fr-FR")}
-                        </span>
+                      <div className='flex justify-end mt-4'>
+                        <button
+                          className='text-blue-600 dark:text-blue-400 font-medium hover:underline mr-4 cursor-pointer'
+                          onClick={() => handleEdit(paiement)}>
+                          Modifier
+                        </button>
+                        <button
+                          className='text-red-500 dark:text-red-400 font-medium hover:underline cursor-pointer'
+                          onClick={() => handleDelete(paiement.id)}>
+                          Supprimer
+                        </button>
                       </div>
                     </div>
-
-                    <div className='flex justify-end mt-4'>
-                      <button
-                        className='text-blue-600 dark:text-blue-400 font-medium hover:underline mr-4 cursor-pointer'
-                        onClick={() => handleEdit(paiement)}>
-                        Modifier
-                      </button>
-                      <button
-                        className='text-red-500 dark:text-red-400 font-medium hover:underline cursor-pointer'
-                        onClick={() => handleDelete(paiement.id)}>
-                        Supprimer
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           )}
         </div>

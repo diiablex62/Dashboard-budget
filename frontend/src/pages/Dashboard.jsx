@@ -95,7 +95,30 @@ export default function Dashboard() {
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   // Calcul du total des paiements échelonnés (dépenses) du mois
-  const totalEchelonnes = calculs.totalEchelonnesMois(paiementsEchelonnes);
+  const now = new Date();
+  const totalEchelonnes = useMemo(() => {
+    return paiementsEchelonnes
+      .filter((paiement) => {
+        const debut = new Date(paiement.debutDate);
+        const fin = new Date(paiement.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
+        // Paiement actif si now >= debut et <= fin (mois/année)
+        const afterStart =
+          now.getFullYear() > debut.getFullYear() ||
+          (now.getFullYear() === debut.getFullYear() &&
+            now.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          now.getFullYear() < fin.getFullYear() ||
+          (now.getFullYear() === fin.getFullYear() &&
+            now.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      })
+      .reduce((acc, paiement) => {
+        return (
+          acc + parseFloat(paiement.montant) / parseInt(paiement.mensualites)
+        );
+      }, 0);
+  }, [paiementsEchelonnes]);
 
   // Calcul des économies (revenus - tout ce qui sort)
   const totalRevenus = calculs.totalRevenusGlobalMois(
