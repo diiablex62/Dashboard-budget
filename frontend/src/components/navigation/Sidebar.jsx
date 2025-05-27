@@ -19,6 +19,7 @@ import {
   AiOutlineUser,
   AiOutlineQuestionCircle,
   AiOutlineSearch,
+  AiOutlineDollarCircle,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
 import { AppContext } from "../../context/AppContext";
@@ -130,7 +131,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       },
       {
         to: "/echelonne",
-        icon: <AiOutlineSetting className='text-2xl' />,
+        icon: <AiOutlineDollarCircle className='text-2xl' />,
         label: "Paiements échelonnés",
       },
       {
