@@ -213,7 +213,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         </div>
 
         {/* Bloc du bas : Paramètres, Aide, Profil utilisateur */}
-        <div className='mt-auto flex flex-col border-t border-gray-100 dark:border-gray-800'>
+        <div className='mt-auto flex flex-col border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-black'>
           <div className='px-2 pb-2 text-left mt-8 pt-4'>
             {!isCollapsed && (
               <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
@@ -271,13 +271,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             className={({ isActive }) =>
               `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
                 isActive
-                  ? "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white font-semibold"
+                  ? "text-gray-900 dark:text-white font-semibold"
                   : "hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-700 dark:text-gray-200"
               }`
             }
             title='Profil utilisateur'
             tabIndex={0}>
-            <div className='w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden'>
+            <div className='w-12 h-12 rounded-full bg-white dark:bg-black flex items-center justify-center overflow-hidden'>
               {user?.avatar ? (
                 <img
                   src={user.avatar}

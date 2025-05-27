@@ -12,7 +12,7 @@ import { useAuth } from "../context/AuthContext";
 const initialUser = {
   avatar: null,
   name: "Alexandre",
-  email: "alexandre@gmail.com",
+  email: "alexandre.janacek@gmail.com",
   phone: "07 69 69 69 69",
   password: "password123",
   confirmPassword: "password123",
@@ -57,7 +57,7 @@ export default function Profil() {
   };
 
   return (
-    <div className='w-full min-h-screen bg-black dark:bg-black dark:text-white py-10 p-8'>
+    <div className='w-full min-h-screen bg-white dark:bg-black dark:text-white py-10 p-8'>
       {/* Avatar */}
       <div className='flex flex-col items-center mb-8'>
         <div className='relative'>
