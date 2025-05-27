@@ -11,11 +11,9 @@ import { useAuth } from "../context/AuthContext";
 
 const initialUser = {
   avatar: null,
-  name: "Satyajit Mane",
-  email: "satyajitmane123@gmail.com",
-  emailVerified: true,
-  phone: "1234567890",
-  phoneVerified: false,
+  name: "Alexandre",
+  email: "alexandre@gmail.com",
+  phone: "07 69 69 69 69",
   password: "password123",
   confirmPassword: "password123",
   twoFA: true,
@@ -26,8 +24,6 @@ export default function Profil() {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [emailStatus] = useState(user.emailVerified);
-  const [phoneStatus] = useState(user.phoneVerified);
   const [password, setPassword] = useState(user.password);
   const [confirmPassword, setConfirmPassword] = useState(user.confirmPassword);
   const [twoFA, setTwoFA] = useState(user.twoFA);
@@ -61,7 +57,7 @@ export default function Profil() {
   };
 
   return (
-    <div className='max-w-2xl mx-auto py-10 px-4'>
+    <div className='w-full min-h-screen bg-black dark:bg-black dark:text-white py-10 p-8'>
       {/* Avatar */}
       <div className='flex flex-col items-center mb-8'>
         <div className='relative'>
@@ -84,35 +80,37 @@ export default function Profil() {
             onChange={handleAvatarChange}
           />
         </div>
-        <span className='mt-2 text-sm text-gray-500'>
-          Edit your profile picture
+        <span className='mt-2 text-sm text-gray-500 dark:text-gray-300'>
+          Modifier votre photo de profil
         </span>
       </div>
 
       {/* Personal Information */}
       <form
         onSubmit={handleInfoSave}
-        className='bg-white rounded-xl shadow p-6 mb-8 border border-gray-100'>
-        <h2 className='text-lg font-semibold mb-4'>Personal Information</h2>
+        className='w-full bg-white dark:bg-black rounded-xl shadow p-6 mb-8 border border-gray-100 dark:border-gray-800'>
+        <h2 className='text-lg font-semibold mb-4'>
+          Informations Personnelles
+        </h2>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
           <div>
-            <label className='block text-sm text-gray-600 mb-1'>Name</label>
+            <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
+              Nom
+            </label>
             <input
-              className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
               value={user.name}
               onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
               required
             />
           </div>
           <div>
-            <label className='block text-sm text-gray-600 mb-1'>Email</label>
+            <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
+              Email
+            </label>
             <div className='relative'>
               <input
-                className={`w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 ${
-                  emailStatus
-                    ? "border-green-400 focus:ring-green-200"
-                    : "border-gray-300 focus:ring-blue-500"
-                }`}
+                className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
                 value={user.email}
                 onChange={(e) =>
                   setUser((u) => ({ ...u, email: e.target.value }))
@@ -120,43 +118,18 @@ export default function Profil() {
                 required
                 type='email'
               />
-              {emailStatus ? (
-                <AiOutlineCheckCircle
-                  className='absolute right-2 top-2 text-green-500 text-xl'
-                  title='Email Verified'
-                />
-              ) : (
-                <AiOutlineCloseCircle
-                  className='absolute right-2 top-2 text-yellow-500 text-xl'
-                  title='Not Verified'
-                />
-              )}
-            </div>
-            <div className='text-xs mt-1 ml-1'>
-              {emailStatus ? (
-                <span className='text-green-600 flex items-center gap-1'>
-                  <AiOutlineCheckCircle /> Email Verified
-                </span>
-              ) : (
-                <span className='text-yellow-600 flex items-center gap-1'>
-                  <AiOutlineCloseCircle /> Not Verified
-                </span>
-              )}
             </div>
           </div>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
           <div>
-            <label className='block text-sm text-gray-600 mb-1'>
-              Phone <span className='text-xs text-gray-400'>(Optional)</span>
+            <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
+              Téléphone{" "}
+              <span className='text-xs text-gray-400'>(Optionnel)</span>
             </label>
             <div className='relative'>
               <input
-                className={`w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 ${
-                  phoneStatus
-                    ? "border-green-400 focus:ring-green-200"
-                    : "border-gray-300 focus:ring-blue-500"
-                }`}
+                className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
                 value={user.phone}
                 onChange={(e) =>
                   setUser((u) => ({ ...u, phone: e.target.value }))
@@ -164,48 +137,28 @@ export default function Profil() {
                 type='tel'
                 placeholder='1234567890'
               />
-              {phoneStatus ? (
-                <AiOutlineCheckCircle
-                  className='absolute right-2 top-2 text-green-500 text-xl'
-                  title='Phone Verified'
-                />
-              ) : (
-                <AiOutlineCloseCircle
-                  className='absolute right-2 top-2 text-yellow-500 text-xl'
-                  title='Not Verified'
-                />
-              )}
-            </div>
-            <div className='text-xs mt-1 ml-1'>
-              {phoneStatus ? (
-                <span className='text-green-600 flex items-center gap-1'>
-                  <AiOutlineCheckCircle /> Verified
-                </span>
-              ) : (
-                <span className='text-yellow-600 flex items-center gap-1'>
-                  <AiOutlineCloseCircle /> Not Verified
-                </span>
-              )}
             </div>
           </div>
         </div>
         <button
           type='submit'
           className='bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-semibold mt-2'>
-          {infoSaved ? "Saved!" : "Save"}
+          {infoSaved ? "Enregistré !" : "Enregistrer"}
         </button>
       </form>
 
       {/* Security */}
       <form
         onSubmit={handleSecuritySave}
-        className='bg-white rounded-xl shadow p-6 border border-gray-100'>
-        <h2 className='text-lg font-semibold mb-4'>Security</h2>
+        className='w-full bg-white dark:bg-black rounded-xl shadow p-6 border border-gray-100 dark:border-gray-800'>
+        <h2 className='text-lg font-semibold mb-4'>Sécurité</h2>
         <div className='mb-4'>
-          <label className='block text-sm text-gray-600 mb-1'>Password</label>
+          <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
+            Mot de passe
+          </label>
           <div className='relative'>
             <input
-              className='w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className='w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -213,7 +166,7 @@ export default function Profil() {
             />
             <button
               type='button'
-              className='absolute right-2 top-2 text-gray-500'
+              className='absolute right-2 top-1/2 -translate-y-1/2 text-gray-500'
               onClick={() => setShowPassword((v) => !v)}>
               {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
             </button>
@@ -223,13 +176,13 @@ export default function Profil() {
               className={
                 password.length >= 8 ? "text-green-600" : "text-gray-400"
               }>
-              ✔ 8 Character
+              ✔ 8 Caractères
             </span>
             <span
               className={
                 /[0-9]/.test(password) ? "text-green-600" : "text-gray-400"
               }>
-              Numbers
+              Chiffres
             </span>
             <span
               className={
@@ -237,17 +190,17 @@ export default function Profil() {
                   ? "text-green-600"
                   : "text-gray-400"
               }>
-              Symbols
+              Symboles
             </span>
           </div>
         </div>
         <div className='mb-4'>
-          <label className='block text-sm text-gray-600 mb-1'>
-            Confirm Password
+          <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
+            Confirmer le mot de passe
           </label>
           <div className='relative'>
             <input
-              className='w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className='w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
               type={showConfirm ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -255,7 +208,7 @@ export default function Profil() {
             />
             <button
               type='button'
-              className='absolute right-2 top-2 text-gray-500'
+              className='absolute right-2 top-1/2 -translate-y-1/2 text-gray-500'
               onClick={() => setShowConfirm((v) => !v)}>
               {showConfirm ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
             </button>
@@ -269,18 +222,23 @@ export default function Profil() {
             onChange={(e) => setTwoFA(e.target.checked)}
             className='mr-2 accent-blue-600'
           />
-          <label htmlFor='2fa' className='text-sm text-gray-700'>
-            <span className='font-semibold'>Two-step authentication</span>
-            <span className='block text-xs text-gray-500'>
-              Activate this check to get a secure OTP on your email and phone
-              number to log into your account.
+          <label
+            htmlFor='2fa'
+            className='text-sm text-gray-700 dark:text-gray-300'>
+            <span className='font-semibold'>
+              Authentification à deux facteurs
+            </span>
+            <span className='block text-xs text-gray-500 dark:text-gray-400'>
+              Activez cette option pour recevoir un code OTP sécurisé sur votre
+              email et votre numéro de téléphone lors de la connexion à votre
+              compte.
             </span>
           </label>
         </div>
         <button
           type='submit'
           className='bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-semibold mt-2'>
-          {securitySaved ? "Saved!" : "Save"}
+          {securitySaved ? "Enregistré !" : "Enregistrer"}
         </button>
       </form>
     </div>

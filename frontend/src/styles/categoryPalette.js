@@ -9,7 +9,6 @@ const CATEGORY_PALETTE = {
   Assurance: "#FACC15", // jaune
   Crédit: "#EF4444", // rouge
   Maison: "#A855F7", // violet
-  // Ajoute ici d'autres catégories selon tes besoins
 };
 
 export default CATEGORY_PALETTE;
