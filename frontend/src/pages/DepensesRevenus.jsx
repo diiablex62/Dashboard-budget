@@ -22,6 +22,7 @@ import {
   REVENUS_CATEGORIES,
   getMonthYear,
   CATEGORY_COLORS,
+  CATEGORIES,
 } from "../utils/categoryUtils";
 import { fakeDepenseRevenu } from "../utils/fakeData";
 
@@ -31,14 +32,15 @@ import {
   calculEconomies,
 } from "../utils/calcul";
 
-function RevenuModal({ onClose, onSave, revenu = {}, stepInit = 1 }) {
+function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
+  console.log("REVENUS_CATEGORIES:", REVENUS_CATEGORIES);
   const [step, setStep] = useState(stepInit);
   const [form, setForm] = useState({
-    id: revenu.id || null,
-    nom: revenu.nom || "",
-    montant: revenu.montant ? revenu.montant.toString() : "",
-    categorie: revenu.categorie || "",
-    date: revenu.date || new Date().toISOString().split("T")[0],
+    id: revenu?.id || null,
+    nom: revenu?.nom || "",
+    montant: revenu?.montant ? revenu.montant.toString() : "",
+    categorie: revenu?.categorie || "",
+    date: revenu?.date || new Date().toISOString().split("T")[0],
   });
   const [error, setError] = useState(null);
   const montantInputRef = useRef(null);
@@ -175,13 +177,17 @@ function RevenuModal({ onClose, onSave, revenu = {}, stepInit = 1 }) {
               <select
                 name='categorie'
                 value={form.categorie}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (e.target.value) {
+                    handleNext();
+                  }
+                }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && form.categorie) handleNext();
-                }}>
+                size={CATEGORIES.length + 1}
+                style={{ overflowY: "auto" }}>
                 <option value=''>Sélectionner une catégorie</option>
-                {REVENUS_CATEGORIES.map((cat) => (
+                {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -429,13 +435,17 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
               <select
                 name='categorie'
                 value={form.categorie}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (e.target.value) {
+                    handleNext();
+                  }
+                }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && form.categorie) handleNext();
-                }}>
+                size={CATEGORIES.length + 1}
+                style={{ overflowY: "auto" }}>
                 <option value=''>Sélectionner une catégorie</option>
-                {DEPENSES_CATEGORIES.map((cat) => (
+                {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -580,7 +590,9 @@ export default function DepensesRevenus() {
     setRevenus((prev) => {
       if (revenu.id) {
         // Edition locale
-        return prev.map((t) => (t.id === revenu.id ? { ...revenu } : t));
+        return prev.map((t) =>
+          t.id === revenu.id ? { ...revenu, type: "revenu" } : t
+        );
       } else {
         // Ajout local
         return [...prev, { ...revenu, id: Date.now(), type: "revenu" }];
@@ -592,7 +604,9 @@ export default function DepensesRevenus() {
     setDepenses((prev) => {
       if (depense.id) {
         // Edition locale
-        return prev.map((t) => (t.id === depense.id ? { ...depense } : t));
+        return prev.map((t) =>
+          t.id === depense.id ? { ...depense, type: "depense" } : t
+        );
       } else {
         // Ajout local
         return [...prev, { ...depense, id: Date.now(), type: "depense" }];
@@ -601,23 +615,23 @@ export default function DepensesRevenus() {
   }, []);
 
   const filteredDepenseRevenu = useMemo(() => {
-    return fakeDepenseRevenu.filter((t) => {
+    const items = currentTab === "depense" ? depenses : revenus;
+    return items.filter((t) => {
       const d = new Date(t.date);
       return (
-        t.type === currentTab &&
         d.getMonth() === currentDate.getMonth() &&
         d.getFullYear() === currentDate.getFullYear()
       );
     });
-  }, [fakeDepenseRevenu, currentTab, currentDate]);
+  }, [currentTab, currentDate, depenses, revenus]);
 
   const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(fakeDepenseRevenu, [], [], currentDate),
-    [fakeDepenseRevenu, currentDate]
+    () => calculTotalDepensesMois(depenses, [], [], currentDate),
+    [depenses, currentDate]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(fakeDepenseRevenu, [], [], currentDate),
-    [fakeDepenseRevenu, currentDate]
+    () => totalRevenusGlobalMois(revenus, [], [], currentDate),
+    [revenus, currentDate]
   );
   const solde = useMemo(
     () => calculEconomies(totalRevenus, totalDepenses),

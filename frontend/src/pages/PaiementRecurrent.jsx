@@ -452,12 +452,16 @@ function PaiementRecurrentModal({
                 value={formData.categorie}
                 onChange={(e) => {
                   updateForm("categorie", e.target.value);
-                  if (e.target.value) setTimeout(nextStep, 100);
+                  if (e.target.value) {
+                    validateAndSave(e);
+                  }
                 }}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && formData.categorie) nextStep();
-                }}>
+                size={
+                  type === "depense"
+                    ? DEPENSES_CATEGORIES.length + 1
+                    : REVENUS_CATEGORIES.length + 1
+                }>
                 <option value=''>Sélectionner une catégorie</option>
                 {(type === "depense"
                   ? DEPENSES_CATEGORIES

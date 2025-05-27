@@ -23,18 +23,10 @@ export const CATEGORIES = [
 ];
 
 /**
- * Catégories pour les dépenses
+ * Catégories pour les dépenses et revenus (toutes les catégories)
  */
-export const DEPENSES_CATEGORIES = CATEGORIES.filter(
-  (cat) => !["Revenus", "Investissements", "Allocations"].includes(cat)
-);
-
-/**
- * Catégories pour les revenus
- */
-export const REVENUS_CATEGORIES = CATEGORIES.filter((cat) =>
-  ["Revenus", "Investissements", "Allocations"].includes(cat)
-);
+export const DEPENSES_CATEGORIES = CATEGORIES;
+export const REVENUS_CATEGORIES = CATEGORIES;
 
 /**
  * Liste des mois

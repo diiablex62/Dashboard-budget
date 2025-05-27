@@ -582,18 +582,17 @@ const PaiementEchelonne = () => {
                   onChange={(e) => {
                     handleChange(e);
                     if (e.target.value && e.target.value !== "") {
-                      setTimeout(() => handleAddOrEditPaiement(), 100);
+                      handleAddOrEditPaiement();
                     }
                   }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                   ref={categorieInputRef}
                   autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.categorie) {
-                      e.preventDefault();
-                      handleAddOrEditPaiement();
-                    }
-                  }}>
+                  size={
+                    isRevenus
+                      ? REVENUS_CATEGORIES.length + 1
+                      : DEPENSES_CATEGORIES.length + 1
+                  }>
                   <option value=''>Sélectionner une catégorie</option>
                   {(isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES).map(
                     (cat) => (

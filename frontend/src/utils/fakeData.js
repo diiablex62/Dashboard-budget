@@ -40,6 +40,22 @@ export const fakeDepenseRevenu = [
     date: `${currentMonth}-20`,
     type: "depense",
   },
+  {
+    id: 6,
+    nom: "Dividendes",
+    montant: 300,
+    categorie: "Investissements",
+    date: `${currentMonth}-25`,
+    type: "revenu",
+  },
+  {
+    id: 7,
+    nom: "Allocation CAF",
+    montant: 150,
+    categorie: "Allocations",
+    date: `${currentMonth}-28`,
+    type: "revenu",
+  },
 ];
 
 // Paiements récurrents (dates en brut)
@@ -69,6 +85,24 @@ export const fakePaiementsRecurrents = [
     categorie: "Logement",
     date: "2025-05-10",
     type: "depense",
+    frequence: "mensuel",
+  },
+  {
+    id: 4,
+    nom: "Rente",
+    montant: 500,
+    categorie: "Investissements",
+    date: "2025-05-15",
+    type: "revenu",
+    frequence: "mensuel",
+  },
+  {
+    id: 5,
+    nom: "Allocation logement",
+    montant: 200,
+    categorie: "Allocations",
+    date: "2025-05-20",
+    type: "revenu",
     frequence: "mensuel",
   },
 ];
