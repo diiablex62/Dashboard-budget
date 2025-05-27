@@ -1,39 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import AnimationDepensesParCategorieChart from "./AnimationDepensesParCategorieChart";
+
+const COLORS = [
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#96CEB4",
+  "#FFEEAD",
+  "#D4A5A5",
+  "#9B59B6",
+  "#3498DB",
+  "#E67E22",
+  "#2ECC71",
+];
 
 export default function DepensesParCategorieChart({ data }) {
   const [activeIndex, setActiveIndex] = useState(null);
 
-  // Trier les données par montant décroissant
-  const sortedData = [...data].sort((a, b) => b.value - a.value);
+  // Trie et total optimisés avec useMemo
+  const sortedData = useMemo(
+    () => [...data].sort((a, b) => b.value - a.value),
+    [data]
+  );
+  const total = useMemo(
+    () => sortedData.reduce((sum, item) => sum + item.value, 0),
+    [sortedData]
+  );
 
-  const onPieEnter = (_, index) => {
-    setActiveIndex(index);
-  };
-
-  const COLORS = [
-    "#FF6B6B",
-    "#4ECDC4",
-    "#45B7D1",
-    "#96CEB4",
-    "#FFEEAD",
-    "#D4A5A5",
-    "#9B59B6",
-    "#3498DB",
-    "#E67E22",
-    "#2ECC71",
-  ];
-
-  // Calculer le total pour les pourcentages
-  const total = sortedData.reduce((sum, item) => sum + item.value, 0);
   const activePercentage =
     activeIndex !== null && sortedData[activeIndex]
       ? ((sortedData[activeIndex].value / total) * 100).toFixed(1)
       : null;
 
+  // Callback optimisé
+  const onPieEnter = useCallback((_, index) => {
+    setActiveIndex(index);
+  }, []);
+
   return (
-    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 bg-white dark:bg-black '>
+    <div className='flex-1 flex items-center justify-center min-h-[200px] bg-gray-50 rounded-lg text-gray-400 bg-white dark:bg-black'>
       <div className='flex w-full h-full'>
         {/* Graphique à gauche */}
         <div
