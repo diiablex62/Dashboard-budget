@@ -15,7 +15,8 @@ import {
   AiOutlineDelete,
 } from "react-icons/ai";
 import {
-  ECHELONNE_CATEGORIES,
+  DEPENSES_CATEGORIES,
+  REVENUS_CATEGORIES,
   getMonthYear,
   MONTHS,
   CATEGORY_COLORS,
@@ -594,11 +595,13 @@ const PaiementEchelonne = () => {
                     }
                   }}>
                   <option value=''>Sélectionner une catégorie</option>
-                  {ECHELONNE_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
+                  {(isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES).map(
+                    (cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    )
+                  )}
                 </select>
                 <div className='flex justify-between'>
                   <button

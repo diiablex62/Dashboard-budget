@@ -1,6 +1,5 @@
 /**
  * Palette de couleurs standardisées pour les catégories
- * Utilisée pour la cohérence visuelle dans toute l'application
  */
 const CATEGORY_PALETTE = {
   Logement: "#f87171", // rouge clair

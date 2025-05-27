@@ -25,16 +25,6 @@ import {
 } from "../utils/categoryUtils";
 import { fakeDepenseRevenu } from "../utils/fakeData";
 
-// Importation des nouvelles fonctions utilitaires
-import {
-  formatDate,
-  DEFAULT_CATEGORIES,
-  getAllDepenses,
-  getAllRevenus,
-  addOrUpdateDepense,
-  addOrUpdateRevenu,
-} from "../utils/depenseRevenuUtils";
-
 import {
   calculTotalDepensesMois,
   totalRevenusGlobalMois,
@@ -552,13 +542,18 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
 export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [depenseRevenu, setDepenseRevenu] = useState(fakeDepenseRevenu);
-  const [showRevenuModal, setShowRevenuModal] = useState(false);
+  const [depenses, setDepenses] = useState([]);
+  const [revenus, setRevenus] = useState([]);
   const [showDepenseModal, setShowDepenseModal] = useState(false);
-  const [selectedDepenseRevenu, setSelectedDepenseRevenu] = useState(null);
+  const [showRevenuModal, setShowRevenuModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   const fetchDepenseRevenu = useCallback(() => {
-    setDepenseRevenu(fakeDepenseRevenu);
+    setDepenses(fakeDepenseRevenu.filter((t) => t.type === "depense"));
+    setRevenus(fakeDepenseRevenu.filter((t) => t.type === "revenu"));
   }, []);
 
   useEffect(() => {
@@ -572,17 +567,17 @@ export default function DepensesRevenus() {
   }, [fetchDepenseRevenu]);
 
   const handleAddRevenu = useCallback(() => {
-    setSelectedDepenseRevenu(null);
+    setSelectedItem(null);
     setShowRevenuModal(true);
   }, []);
 
   const handleAddDepense = useCallback(() => {
-    setSelectedDepenseRevenu(null);
+    setSelectedItem(null);
     setShowDepenseModal(true);
   }, []);
 
   const handleSaveRevenu = useCallback(async (revenu) => {
-    setDepenseRevenu((prev) => {
+    setRevenus((prev) => {
       if (revenu.id) {
         // Edition locale
         return prev.map((t) => (t.id === revenu.id ? { ...revenu } : t));
@@ -594,7 +589,7 @@ export default function DepensesRevenus() {
   }, []);
 
   const handleSaveDepense = useCallback(async (depense) => {
-    setDepenseRevenu((prev) => {
+    setDepenses((prev) => {
       if (depense.id) {
         // Edition locale
         return prev.map((t) => (t.id === depense.id ? { ...depense } : t));
@@ -606,7 +601,7 @@ export default function DepensesRevenus() {
   }, []);
 
   const filteredDepenseRevenu = useMemo(() => {
-    return depenseRevenu.filter((t) => {
+    return fakeDepenseRevenu.filter((t) => {
       const d = new Date(t.date);
       return (
         t.type === currentTab &&
@@ -614,15 +609,15 @@ export default function DepensesRevenus() {
         d.getFullYear() === currentDate.getFullYear()
       );
     });
-  }, [depenseRevenu, currentTab, currentDate]);
+  }, [fakeDepenseRevenu, currentTab, currentDate]);
 
   const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(depenseRevenu, [], [], currentDate),
-    [depenseRevenu, currentDate]
+    () => calculTotalDepensesMois(fakeDepenseRevenu, [], [], currentDate),
+    [fakeDepenseRevenu, currentDate]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(depenseRevenu, [], [], currentDate),
-    [depenseRevenu, currentDate]
+    () => totalRevenusGlobalMois(fakeDepenseRevenu, [], [], currentDate),
+    [fakeDepenseRevenu, currentDate]
   );
   const solde = useMemo(
     () => calculEconomies(totalRevenus, totalDepenses),
@@ -645,228 +640,252 @@ export default function DepensesRevenus() {
     });
   };
 
-  return (
-    <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
-      <div>
-        {/* En-tête et sélecteur de mois */}
-        <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
+  const renderContent = () => {
+    try {
+      return (
+        <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
           <div>
-            <h1 className='text-2xl font-semibold text-gray-800 mb-1 dark:text-white'>
-              Dépenses & Revenus
-            </h1>
-            <div className='text-gray-500 text-base'>
-              Gérez vos dépenses et revenus mensuels.
-            </div>
-          </div>
-          {/* Sélecteur mois/année */}
-          <div className='flex items-center mt-4 md:mt-0'>
-            <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
-              <button
-                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                onClick={handlePrevMonth}
-                aria-label='Mois précédent'
-                type='button'>
-                <AiOutlineArrowLeft />
-              </button>
-              <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
-                {getMonthYear(currentDate)}
+            {/* En-tête et sélecteur de mois */}
+            <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-6'>
+              <div>
+                <h1 className='text-2xl font-semibold text-gray-800 mb-1 dark:text-white'>
+                  Dépenses & Revenus
+                </h1>
+                <div className='text-gray-500 text-base'>
+                  Gérez vos dépenses et revenus mensuels.
+                </div>
               </div>
-              <button
-                className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                onClick={handleNextMonth}
-                aria-label='Mois suivant'
-                type='button'>
-                <AiOutlineArrowRight />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Cartes de statistiques */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
-          {/* Carte 1: Total Dépenses */}
-          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
-            <div className='flex items-center text-red-600 mb-2'>
-              <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold dark:text-white'>
-                Total Dépenses
-              </span>
-              <div className='relative group ml-2'>
-                <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-                <div className='absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-                  Ce total correspond uniquement aux transactions de type
-                  dépense, hors paiements récurrents et échelonnés.
+              {/* Sélecteur mois/année */}
+              <div className='flex items-center mt-4 md:mt-0'>
+                <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
+                  <button
+                    className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+                    onClick={handlePrevMonth}
+                    aria-label='Mois précédent'
+                    type='button'>
+                    <AiOutlineArrowLeft />
+                  </button>
+                  <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
+                    {getMonthYear(currentDate)}
+                  </div>
+                  <button
+                    className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+                    onClick={handleNextMonth}
+                    aria-label='Mois suivant'
+                    type='button'>
+                    <AiOutlineArrowRight />
+                  </button>
                 </div>
               </div>
             </div>
-            <div className='text-2xl text-[#222] dark:text-white'>
-              {totalDepenses.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
-            </div>
-          </div>
-          {/* Carte 2: Total Revenus */}
-          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
-            <div className='flex items-center text-green-600 mb-2'>
-              <AiOutlineCalendar className='text-2xl mr-2' />
-              <span className='text-sm font-semibold dark:text-white'>
-                Total Revenus
-              </span>
-            </div>
-            <div className='text-2xl text-[#222] dark:text-white'>
-              {totalRevenus.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
-            </div>
-          </div>
-          {/* Carte 3: Solde */}
-          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
-            <div className='flex items-center text-blue-600 mb-2'>
-              <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold dark:text-white'>
-                Solde
-              </span>
-            </div>
-            <div
-              className={`text-2xl font-bold ${
-                solde > 0
-                  ? "text-green-600"
-                  : solde < 0
-                  ? "text-red-600"
-                  : "text-gray-500"
-              }`}>
-              {solde > 0 && "+"}
-              {solde < 0 && "-"}
-              {Math.abs(solde).toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
-            </div>
-          </div>
-        </div>
 
-        {/* Switch Dépenses/Revenus */}
-        <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
-          <button
-            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-              currentTab === "depense"
-                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
-                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
-            } cursor-pointer`}
-            onClick={() => setCurrentTab("depense")}
-            type='button'>
-            Dépenses
-          </button>
-          <button
-            className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
-              currentTab === "revenu"
-                ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
-                : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
-            } cursor-pointer`}
-            onClick={() => setCurrentTab("revenu")}
-            type='button'>
-            Revenus
-          </button>
-        </div>
-
-        {/* Affichage des dépenses & revenus */}
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-8 mt-2 '>
-          <div className='flex items-center justify-between mb-6'>
-            <div>
-              <div className='text-2xl font-bold text-[#222] dark:text-white'>
-                {currentTab === "depense"
-                  ? "Dépenses du mois"
-                  : "Revenus du mois"}
-              </div>
-              <div className='text-sm text-gray-500 mt-1 dark:text-gray-300'>
-                {currentTab === "depense" ? "Dépenses" : "Revenus"} du mois de{" "}
-                {getMonthYear(currentDate)}
-              </div>
-            </div>
-            {/* Bouton Ajouter - toujours visible ici */}
-            <div className='flex space-x-3'>
-              <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                onClick={
-                  currentTab === "depense" ? handleAddDepense : handleAddRevenu
-                }>
-                <span className='text-lg font-bold'>+</span>
-                <span className='cursor-pointer'>Ajouter</span>
-              </button>
-            </div>
-          </div>
-
-          {filteredDepenseRevenu.length === 0 ? (
-            <div className='text-center py-10 text-gray-500 dark:text-gray-300'>
-              <p>
-                Aucune {currentTab === "depense" ? "dépense" : "revenu"} pour{" "}
-                {getMonthYear(currentDate)}.
-              </p>
-            </div>
-          ) : (
-            <div className='grid grid-cols-1 gap-4'>
-              {filteredDepenseRevenu.map((depenseRevenuItem, idx) => (
-                <div
-                  key={depenseRevenuItem.id || idx}
-                  className='bg-gray-50 rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200 dark:bg-black dark:text-white dark:border-gray-700'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center'>
-                      <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3 dark:bg-gray-800'>
-                        <AiOutlineDollarCircle className='text-gray-600 text-xl dark:text-white' />
-                      </div>
-                      <div>
-                        <div className='font-semibold dark:text-white'>
-                          {depenseRevenuItem.nom.charAt(0).toUpperCase() +
-                            depenseRevenuItem.nom.slice(1)}
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-300'>
-                          {depenseRevenuItem.categorie}
-                        </div>
-                      </div>
-                    </div>
-                    <div className='flex flex-col items-end'>
-                      <div
-                        className={`font-bold ${
-                          currentTab === "depense"
-                            ? "text-red-600"
-                            : "text-green-600"
-                        }`}>
-                        {currentTab === "depense" ? "-" : "+"}
-                        {parseFloat(depenseRevenuItem.montant).toLocaleString(
-                          "fr-FR",
-                          { minimumFractionDigits: 2 }
-                        )}{" "}
-                        €
-                      </div>
-                      <div className='text-xs text-gray-400 dark:text-gray-300'>
-                        {new Date(depenseRevenuItem.date).toLocaleDateString(
-                          "fr-FR"
-                        )}
-                      </div>
+            {/* Cartes de statistiques */}
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+              {/* Carte 1: Total Dépenses */}
+              <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
+                <div className='flex items-center text-red-600 mb-2'>
+                  <AiOutlineDollarCircle className='text-2xl mr-2' />
+                  <span className='text-sm font-semibold dark:text-white'>
+                    Total Dépenses
+                  </span>
+                  <div className='relative group ml-2'>
+                    <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+                    <div className='absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+                      Ce total correspond uniquement aux transactions de type
+                      dépense, hors paiements récurrents et échelonnés.
                     </div>
                   </div>
                 </div>
-              ))}
+                <div className='text-2xl text-[#222] dark:text-white'>
+                  {totalDepenses.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </div>
+              </div>
+              {/* Carte 2: Total Revenus */}
+              <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
+                <div className='flex items-center text-green-600 mb-2'>
+                  <AiOutlineCalendar className='text-2xl mr-2' />
+                  <span className='text-sm font-semibold dark:text-white'>
+                    Total Revenus
+                  </span>
+                </div>
+                <div className='text-2xl text-[#222] dark:text-white'>
+                  {totalRevenus.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </div>
+              </div>
+              {/* Carte 3: Solde */}
+              <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
+                <div className='flex items-center text-blue-600 mb-2'>
+                  <AiOutlineDollarCircle className='text-2xl mr-2' />
+                  <span className='text-sm font-semibold dark:text-white'>
+                    Solde
+                  </span>
+                </div>
+                <div
+                  className={`text-2xl font-bold ${
+                    solde > 0
+                      ? "text-green-600"
+                      : solde < 0
+                      ? "text-red-600"
+                      : "text-gray-500"
+                  }`}>
+                  {solde > 0 && "+"}
+                  {solde < 0 && "-"}
+                  {Math.abs(solde).toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </div>
+              </div>
             </div>
+
+            {/* Switch Dépenses/Revenus */}
+            <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
+              <button
+                className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+                  currentTab === "depense"
+                    ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                    : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+                } cursor-pointer`}
+                onClick={() => setCurrentTab("depense")}
+                type='button'>
+                Dépenses
+              </button>
+              <button
+                className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
+                  currentTab === "revenu"
+                    ? "bg-white text-gray-800 shadow font-semibold border border-gray-200 dark:bg-black dark:text-white dark:border-gray-700"
+                    : "bg-transparent text-[#7b849b] font-normal dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+                } cursor-pointer`}
+                onClick={() => setCurrentTab("revenu")}
+                type='button'>
+                Revenus
+              </button>
+            </div>
+
+            {/* Affichage des dépenses & revenus */}
+            <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-8 mt-2 '>
+              <div className='flex items-center justify-between mb-6'>
+                <div>
+                  <div className='text-2xl font-bold text-[#222] dark:text-white'>
+                    {currentTab === "depense"
+                      ? "Dépenses du mois"
+                      : "Revenus du mois"}
+                  </div>
+                  <div className='text-sm text-gray-500 mt-1 dark:text-gray-300'>
+                    {currentTab === "depense" ? "Dépenses" : "Revenus"} du mois
+                    de {getMonthYear(currentDate)}
+                  </div>
+                </div>
+                {/* Bouton Ajouter - toujours visible ici */}
+                <div className='flex space-x-3'>
+                  <button
+                    className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+                    onClick={
+                      currentTab === "depense"
+                        ? handleAddDepense
+                        : handleAddRevenu
+                    }>
+                    <span className='text-lg font-bold'>+</span>
+                    <span className='cursor-pointer'>Ajouter</span>
+                  </button>
+                </div>
+              </div>
+
+              {filteredDepenseRevenu.length === 0 ? (
+                <div className='text-center py-10 text-gray-500 dark:text-gray-300'>
+                  <p>
+                    Aucune {currentTab === "depense" ? "dépense" : "revenu"}{" "}
+                    pour {getMonthYear(currentDate)}.
+                  </p>
+                </div>
+              ) : (
+                <div className='grid grid-cols-1 gap-4'>
+                  {filteredDepenseRevenu.map((depenseRevenuItem, idx) => (
+                    <div
+                      key={depenseRevenuItem.id || idx}
+                      className='bg-gray-50 rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200 dark:bg-black dark:text-white dark:border-gray-700'>
+                      <div className='flex items-center justify-between'>
+                        <div className='flex items-center'>
+                          <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3 dark:bg-gray-800'>
+                            <AiOutlineDollarCircle className='text-gray-600 text-xl dark:text-white' />
+                          </div>
+                          <div>
+                            <div className='font-semibold dark:text-white'>
+                              {depenseRevenuItem.nom.charAt(0).toUpperCase() +
+                                depenseRevenuItem.nom.slice(1)}
+                            </div>
+                            <div className='text-xs text-gray-500 dark:text-gray-300'>
+                              {depenseRevenuItem.categorie}
+                            </div>
+                          </div>
+                        </div>
+                        <div className='flex flex-col items-end'>
+                          <div
+                            className={`font-bold ${
+                              currentTab === "depense"
+                                ? "text-red-600"
+                                : "text-green-600"
+                            }`}>
+                            {currentTab === "depense" ? "-" : "+"}
+                            {parseFloat(
+                              depenseRevenuItem.montant
+                            ).toLocaleString("fr-FR", {
+                              minimumFractionDigits: 2,
+                            })}{" "}
+                            €
+                          </div>
+                          <div className='text-xs text-gray-400 dark:text-gray-300'>
+                            {new Date(
+                              depenseRevenuItem.date
+                            ).toLocaleDateString("fr-FR")}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {showRevenuModal && (
+            <RevenuModal
+              onClose={() => setShowRevenuModal(false)}
+              onSave={handleSaveRevenu}
+              revenu={selectedItem}
+            />
+          )}
+          {showDepenseModal && (
+            <DepenseModal
+              onClose={() => setShowDepenseModal(false)}
+              onSave={handleSaveDepense}
+              depense={selectedItem || {}}
+            />
           )}
         </div>
-      </div>
-      {showRevenuModal && (
-        <RevenuModal
-          onClose={() => setShowRevenuModal(false)}
-          onSave={handleSaveRevenu}
-          revenu={selectedDepenseRevenu}
-        />
-      )}
-      {showDepenseModal && (
-        <DepenseModal
-          onClose={() => setShowDepenseModal(false)}
-          onSave={handleSaveDepense}
-          depense={selectedDepenseRevenu || {}}
-        />
-      )}
-    </div>
-  );
+      );
+    } catch (error) {
+      console.error("Erreur dans le rendu de DepensesRevenus:", error);
+      return (
+        <div className='container mx-auto px-4 py-8'>
+          <div
+            className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative'
+            role='alert'>
+            <strong className='font-bold'>Erreur !</strong>
+            <span className='block sm:inline'>
+              {" "}
+              Une erreur est survenue lors du chargement de la page.
+            </span>
+          </div>
+        </div>
+      );
+    }
+  };
+
+  return renderContent();
 }

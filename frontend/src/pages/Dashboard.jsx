@@ -7,8 +7,7 @@ import {
   AiOutlineDollarCircle,
   AiOutlineInfoCircle,
 } from "react-icons/ai";
-import { FaCalendarAlt } from "react-icons/fa";
-import CATEGORY_PALETTE from "../styles/categoryPalette";
+import CATEGORY_PALETTE from "../utils/categoryPalette";
 import {
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
