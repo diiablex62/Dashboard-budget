@@ -1,4 +1,10 @@
-import React, { useState, useContext, useRef } from "react";
+import React, {
+  useState,
+  useContext,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -19,6 +25,54 @@ import { AppContext } from "../../context/AppContext";
 import SettingsPanel from "../ui/SettingsPanel";
 import { ThemeContext } from "../../context/ThemeContext";
 
+// Composant pour l'icône de notification
+const NotificationIcon = React.memo(({ hasUnread }) => (
+  <div className='relative'>
+    <AiOutlineBell className='text-2xl' />
+    {hasUnread && (
+      <div className='absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full' />
+    )}
+  </div>
+));
+
+// Composant pour les liens de navigation
+const NavItem = React.memo(({ to, icon, label, isCollapsed, onClick }) => {
+  if (onClick) {
+    return (
+      <button
+        type='button'
+        onClick={onClick}
+        className={`flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300 ${
+          isCollapsed ? "justify-center px-4" : "justify-start px-4"
+        }`}
+        title={label}>
+        <div className='flex items-center'>{icon}</div>
+        {!isCollapsed && (
+          <span className='text-base whitespace-nowrap'>{label}</span>
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
+          isActive
+            ? "bg-gray-100 dark:bg-[#18181b] text-gray-900 dark:text-white font-semibold"
+            : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
+        } ${isCollapsed ? "justify-center px-4" : "justify-start px-4"}`
+      }
+      title={label}>
+      <div className='flex items-center'>{icon}</div>
+      {!isCollapsed && (
+        <span className='text-base whitespace-nowrap'>{label}</span>
+      )}
+    </NavLink>
+  );
+});
+
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { user, loading } = useAuth();
   const [search, setSearch] = useState("");
@@ -31,91 +85,86 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     return notifications.some((n) => !n.read);
   });
 
-  // Mettre à jour l'état des notifications non lues quand les notifications changent
+  const handleNotificationsUpdate = useCallback(() => {
+    const notifications = JSON.parse(
+      localStorage.getItem("notifications") || "[]"
+    );
+    setHasUnreadNotifications(notifications.some((n) => !n.read));
+  }, []);
+
   React.useEffect(() => {
-    const handleNotificationsUpdate = () => {
-      const notifications = JSON.parse(
-        localStorage.getItem("notifications") || "[]"
-      );
-      setHasUnreadNotifications(notifications.some((n) => !n.read));
-    };
-
-    // Vérifier l'état initial
     handleNotificationsUpdate();
-
-    // Écouter les changements
     window.addEventListener("notificationsUpdated", handleNotificationsUpdate);
     return () =>
       window.removeEventListener(
         "notificationsUpdated",
         handleNotificationsUpdate
       );
-  }, []);
+  }, [handleNotificationsUpdate]);
 
-  const handleSearchClick = () => {
+  const handleSearchClick = useCallback(() => {
     if (isCollapsed) {
       setIsCollapsed(false);
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 100);
     }
-  };
+  }, [isCollapsed, setIsCollapsed]);
+
+  const overviewLinks = useMemo(
+    () => [
+      {
+        to: "/dashboard",
+        icon: <AiOutlineHome className='text-2xl' />,
+        label: "Dashboard",
+      },
+      {
+        to: "/depenses-revenus",
+        icon: <AiOutlinePieChart className='text-2xl' />,
+        label: "Dépenses & Revenus",
+      },
+      {
+        to: "/recurrents",
+        icon: <MdAutorenew className='text-2xl' />,
+        label: "Paiements récurrents",
+      },
+      {
+        to: "/echelonne",
+        icon: <AiOutlineSetting className='text-2xl' />,
+        label: "Paiements échelonnés",
+      },
+      {
+        to: "/agenda",
+        icon: <AiOutlineCalendar className='text-2xl' />,
+        label: "Agenda",
+      },
+      {
+        to: "/notifications",
+        icon: <NotificationIcon hasUnread={hasUnreadNotifications} />,
+        label: "Notifications",
+      },
+    ],
+    [hasUnreadNotifications]
+  );
+
+  const settingsLinks = useMemo(
+    () => [
+      {
+        key: "settings-panel",
+        icon: <AiOutlineSetting className='text-2xl' />,
+        label: "Paramètres",
+        onClick: () => setIsSettingsOpen(true),
+      },
+      {
+        to: "/help",
+        icon: <AiOutlineQuestionCircle className='text-2xl' />,
+        label: "Aide",
+      },
+    ],
+    [setIsSettingsOpen]
+  );
 
   if (loading) return null;
-
-  const overviewLinks = [
-    {
-      to: "/dashboard",
-      icon: <AiOutlineHome className='text-2xl' />,
-      label: "Dashboard",
-    },
-    {
-      to: "/depenses-revenus",
-      icon: <AiOutlinePieChart className='text-2xl' />,
-      label: "Dépenses & Revenus",
-    },
-    {
-      to: "/recurrents",
-      icon: <MdAutorenew className='text-2xl' />,
-      label: "Paiements récurrents",
-    },
-    {
-      to: "/echelonne",
-      icon: <AiOutlineSetting className='text-2xl' />,
-      label: "Paiements échelonnés",
-    },
-    {
-      to: "/agenda",
-      icon: <AiOutlineCalendar className='text-2xl' />,
-      label: "Agenda",
-    },
-    {
-      to: "/notifications",
-      icon: (
-        <div className='relative'>
-          <AiOutlineBell className='text-2xl' />
-          {hasUnreadNotifications && (
-            <div className='absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full' />
-          )}
-        </div>
-      ),
-      label: "Notifications",
-    },
-  ];
-
-  const settingsLinks = [
-    {
-      key: "settings-panel",
-      icon: <AiOutlineSetting className='text-2xl' />,
-      label: "Paramètres",
-      onClick: () => setIsSettingsOpen(true),
-    },
-    {
-      to: "/help",
-      icon: <AiOutlineQuestionCircle className='text-2xl' />,
-      label: "Aide",
-    },
-  ];
 
   return (
     <>
@@ -184,27 +233,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               <ul className='space-y-1'>
                 {overviewLinks.map((link) => (
                   <li key={link.to}>
-                    <NavLink
-                      to={link.to}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
-                          isActive
-                            ? "bg-gray-100 dark:bg-[#18181b] text-gray-900 dark:text-white font-semibold"
-                            : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
-                        } ${
-                          isCollapsed
-                            ? "justify-center px-4"
-                            : "justify-start px-4"
-                        }`
-                      }
-                      title={link.label}>
-                      <div className='flex items-center'>{link.icon}</div>
-                      {!isCollapsed && (
-                        <span className='text-base whitespace-nowrap'>
-                          {link.label}
-                        </span>
-                      )}
-                    </NavLink>
+                    <NavItem {...link} isCollapsed={isCollapsed} />
                   </li>
                 ))}
               </ul>
@@ -223,49 +252,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             <ul className='space-y-1 mb-4'>
               {settingsLinks.map((link) => (
                 <li key={link.to || link.key}>
-                  {link.key === "settings-panel" ? (
-                    <button
-                      type='button'
-                      onClick={link.onClick}
-                      className={`flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group w-full text-left hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300 ${
-                        isCollapsed
-                          ? "justify-center px-4"
-                          : "justify-start px-4"
-                      } ${
-                        link.active
-                          ? "bg-gray-100 dark:bg-[#18181b] text-gray-900 dark:text-white font-semibold"
-                          : ""
-                      }`}>
-                      <div className='flex items-center'>{link.icon}</div>
-                      {!isCollapsed && (
-                        <span className='text-base whitespace-nowrap'>
-                          {link.label}
-                        </span>
-                      )}
-                    </button>
-                  ) : (
-                    <NavLink
-                      to={link.to}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
-                          isActive
-                            ? "bg-gray-100 dark:bg-[#18181b] text-gray-900 dark:text-white font-semibold"
-                            : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
-                        } ${
-                          isCollapsed
-                            ? "justify-center px-4"
-                            : "justify-start px-4"
-                        }`
-                      }
-                      title={link.label}>
-                      <div className='flex items-center'>{link.icon}</div>
-                      {!isCollapsed && (
-                        <span className='text-base whitespace-nowrap'>
-                          {link.label}
-                        </span>
-                      )}
-                    </NavLink>
-                  )}
+                  <NavItem {...link} isCollapsed={isCollapsed} />
                 </li>
               ))}
             </ul>
