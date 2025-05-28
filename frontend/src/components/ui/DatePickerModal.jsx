@@ -16,8 +16,9 @@ const MONTHS = [
   "Décembre",
 ];
 
-const WheelPicker = ({ items, value, onChange, height = 120, label }) => {
-  const itemHeight = height / 3;
+const WheelPicker = ({ items, value, onChange, height = 200 }) => {
+  const visibleCount = 5;
+  const itemHeight = height / visibleCount;
   const currentIndex = items.findIndex((item) => item === value);
 
   // Scroll à la molette
@@ -28,14 +29,42 @@ const WheelPicker = ({ items, value, onChange, height = 120, label }) => {
     onChange(items[newIndex]);
   };
 
+  // Style perspective
+  const getStyle = (offset) => {
+    if (offset === 0) {
+      return {
+        fontWeight: "bold",
+        fontSize: "2.2rem",
+        color: "var(--picker-selected, #fff)",
+        opacity: 1,
+        transform: "scale(1)",
+        fontFamily: "system-ui, monospace",
+        letterSpacing: "0.08em",
+        lineHeight: `${itemHeight}px`,
+        height: `${itemHeight}px`,
+        transition: "all 0.2s",
+      };
+    }
+    const abs = Math.abs(offset);
+    return {
+      fontWeight: "normal",
+      fontSize: abs === 1 ? "1.3rem" : "1rem",
+      color: "#b0b8c1",
+      opacity: abs === 1 ? 0.7 : 0.4,
+      transform: `scale(${abs === 1 ? 0.92 : 0.85})`,
+      fontFamily: "system-ui, monospace",
+      letterSpacing: "0.08em",
+      lineHeight: `${itemHeight}px`,
+      height: `${itemHeight}px`,
+      transition: "all 0.2s",
+    };
+  };
+
   return (
-    <div className='flex flex-col items-center w-24'>
-      <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 text-center'>
-        {label}
-      </label>
+    <div className='flex flex-col items-center w-32'>
       <button
         type='button'
-        className={`mb-1 p-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed`}
+        className='mb-1 p-1 rounded-full bg-transparent text-[#3fd0ff] hover:bg-[#222] transition disabled:opacity-40 disabled:cursor-not-allowed'
         onClick={() => {
           if (currentIndex > 0) onChange(items[currentIndex - 1]);
         }}
@@ -43,44 +72,37 @@ const WheelPicker = ({ items, value, onChange, height = 120, label }) => {
         tabIndex={-1}
         aria-label='Valeur précédente'
         style={{ zIndex: 2 }}>
-        <AiOutlineUp />
+        <AiOutlineUp size={22} />
       </button>
       <div
         className='flex flex-col items-center justify-center w-full relative'
-        style={{ height: `${itemHeight * 3}px` }}
+        style={{ height: `${itemHeight * visibleCount}px` }}
         tabIndex={0}
         role='listbox'
         aria-activedescendant={`wheel-item-${currentIndex}`}
         onWheel={handleWheel}>
-        {/* Valeur précédente */}
-        <div
-          className='w-full text-center text-gray-400 select-none text-sm'
-          style={{ height: `${itemHeight}px`, lineHeight: `${itemHeight}px` }}
-          role='option'
-          aria-selected='false'>
-          {items[currentIndex - 1] || ""}
-        </div>
-        {/* Valeur sélectionnée */}
-        <div
-          id={`wheel-item-${currentIndex}`}
-          className='w-full text-center text-teal-500 font-bold text-lg select-none'
-          style={{ height: `${itemHeight}px`, lineHeight: `${itemHeight}px` }}
-          role='option'
-          aria-selected='true'>
-          {items[currentIndex]}
-        </div>
-        {/* Valeur suivante */}
-        <div
-          className='w-full text-center text-gray-400 select-none text-sm'
-          style={{ height: `${itemHeight}px`, lineHeight: `${itemHeight}px` }}
-          role='option'
-          aria-selected='false'>
-          {items[currentIndex + 1] || ""}
-        </div>
+        {[...Array(visibleCount)].map((_, i) => {
+          const offset = i - Math.floor(visibleCount / 2);
+          const itemIdx = currentIndex + offset;
+          return (
+            <div
+              key={i}
+              id={offset === 0 ? `wheel-item-${currentIndex}` : undefined}
+              className='w-full text-center select-none'
+              style={getStyle(offset)}
+              role='option'
+              aria-selected={offset === 0}>
+              {items[itemIdx] || ""}
+            </div>
+          );
+        })}
+        {/* Dégradés haut/bas */}
+        <div className='pointer-events-none absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-[#181e29] to-transparent' />
+        <div className='pointer-events-none absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-[#181e29] to-transparent' />
       </div>
       <button
         type='button'
-        className={`mt-1 p-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed`}
+        className='mt-1 p-1 rounded-full bg-transparent text-[#3fd0ff] hover:bg-[#222] transition disabled:opacity-40 disabled:cursor-not-allowed'
         onClick={() => {
           if (currentIndex < items.length - 1)
             onChange(items[currentIndex + 1]);
@@ -89,7 +111,7 @@ const WheelPicker = ({ items, value, onChange, height = 120, label }) => {
         tabIndex={-1}
         aria-label='Valeur suivante'
         style={{ zIndex: 2 }}>
-        <AiOutlineDown />
+        <AiOutlineDown size={22} />
       </button>
     </div>
   );
@@ -120,7 +142,7 @@ export default function DatePickerModal({
 
   if (!show) return null;
 
-  const years = Array.from({ length: 12 }, (_, i) => 2015 + i);
+  const years = Array.from({ length: 12 }, (_, i) => 2018 + i);
   const months = MONTHS;
   const days = Array.from(
     { length: daysInMonth(tempDate.getFullYear(), tempDate.getMonth()) },
@@ -128,55 +150,55 @@ export default function DatePickerModal({
   );
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
-      <div className='bg-white dark:bg-gray-900 rounded-lg shadow-xl p-6 w-[400px]'>
-        <div className='flex justify-between items-center mb-6'>
-          <h3 className='text-lg font-medium text-gray-700 dark:text-gray-300'>
-            Sélectionner une date
-          </h3>
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60'>
+      <div
+        className='bg-[#181e29] rounded-2xl shadow-xl px-0 pt-0 pb-6 w-[410px] max-w-full relative'
+        style={{ minWidth: 320 }}>
+        {/* Header avec boutons et titre */}
+        <div className='flex items-center justify-between px-6 pt-5 pb-2'>
           <button
-            className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
-            onClick={onClose}>
-            &times;
+            className='text-[#3fd0ff] text-xl font-semibold px-2 py-1 rounded focus:outline-none'
+            onClick={onClose}
+            style={{ fontFamily: "system-ui, monospace" }}>
+            Annuler
+          </button>
+          <div
+            className='text-2xl font-bold text-white text-center flex-1'
+            style={{
+              fontFamily: "system-ui, monospace",
+              letterSpacing: "0.08em",
+            }}>
+            Date
+          </div>
+          <button
+            className='text-[#3fd0ff] text-xl font-semibold px-2 py-1 rounded focus:outline-none'
+            onClick={() => {
+              onConfirm(tempDate);
+              onChange && onChange(tempDate);
+            }}
+            style={{ fontFamily: "system-ui, monospace" }}>
+            Confirmer
           </button>
         </div>
-
-        <div className='flex justify-between items-end gap-4 mb-6'>
+        {/* Roues */}
+        <div
+          className='flex flex-row items-center justify-center gap-2 px-2 py-2'
+          style={{ minHeight: 220 }}>
           <WheelPicker
             items={days}
             value={tempDate.getDate()}
             onChange={handleDaySelect}
-            label='Jour'
           />
           <WheelPicker
             items={months}
             value={months[tempDate.getMonth()]}
             onChange={(month) => handleMonthSelect(months.indexOf(month))}
-            label='Mois'
           />
           <WheelPicker
             items={years}
             value={tempDate.getFullYear()}
             onChange={handleYearSelect}
-            label='Année'
           />
-        </div>
-
-        {/* Boutons d'action */}
-        <div className='flex justify-end space-x-2'>
-          <button
-            className='px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600'
-            onClick={onClose}>
-            Annuler
-          </button>
-          <button
-            className='px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600'
-            onClick={() => {
-              onConfirm(tempDate);
-              onChange && onChange(tempDate);
-            }}>
-            Valider
-          </button>
         </div>
       </div>
     </div>
