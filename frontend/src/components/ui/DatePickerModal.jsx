@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
+import { AiOutlineUp, AiOutlineDown } from "react-icons/ai";
 
 const MONTHS = [
   "Janvier",
@@ -15,81 +16,81 @@ const MONTHS = [
   "Décembre",
 ];
 
-const WheelPicker = ({ items, value, onChange, height = 120 }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const containerRef = useRef(null);
-
+const WheelPicker = ({ items, value, onChange, height = 120, label }) => {
   const itemHeight = height / 3;
+  const currentIndex = items.findIndex((item) => item === value);
 
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setStartY(e.clientY);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const delta = e.clientY - startY;
-    setOffset(delta);
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-
-    // Calculer l'index le plus proche
-    const index = Math.round(-offset / itemHeight);
-    const newIndex = Math.max(0, Math.min(items.length - 1, index));
-
-    // Réinitialiser l'offset
-    setOffset(0);
-
-    // Mettre à jour la valeur
+  // Scroll à la molette
+  const handleWheel = (e) => {
+    e.preventDefault();
+    let newIndex = currentIndex + (e.deltaY > 0 ? 1 : -1);
+    newIndex = Math.max(0, Math.min(items.length - 1, newIndex));
     onChange(items[newIndex]);
   };
 
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => window.removeEventListener("mouseup", handleMouseUp);
-  }, [isDragging]);
-
   return (
-    <div
-      ref={containerRef}
-      className='relative overflow-hidden'
-      style={{ height: `${height}px` }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}>
+    <div className='flex flex-col items-center w-24'>
+      <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 text-center'>
+        {label}
+      </label>
+      <button
+        type='button'
+        className={`mb-1 p-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed`}
+        onClick={() => {
+          if (currentIndex > 0) onChange(items[currentIndex - 1]);
+        }}
+        disabled={currentIndex === 0}
+        tabIndex={-1}
+        aria-label='Valeur précédente'
+        style={{ zIndex: 2 }}>
+        <AiOutlineUp />
+      </button>
       <div
-        className='absolute w-full transition-transform'
-        style={{
-          transform: `translateY(${offset}px)`,
-          transition: isDragging ? "none" : "transform 0.3s ease-out",
-        }}>
-        {items.map((item, index) => (
-          <div
-            key={index}
-            className={`flex items-center justify-center h-[${itemHeight}px] text-center cursor-pointer select-none ${
-              item === value
-                ? "text-teal-500 font-bold text-lg"
-                : "text-gray-500"
-            }`}
-            style={{ height: `${itemHeight}px` }}>
-            {item}
-          </div>
-        ))}
+        className='flex flex-col items-center justify-center w-full relative'
+        style={{ height: `${itemHeight * 3}px` }}
+        tabIndex={0}
+        role='listbox'
+        aria-activedescendant={`wheel-item-${currentIndex}`}
+        onWheel={handleWheel}>
+        {/* Valeur précédente */}
+        <div
+          className='w-full text-center text-gray-400 select-none text-sm'
+          style={{ height: `${itemHeight}px`, lineHeight: `${itemHeight}px` }}
+          role='option'
+          aria-selected='false'>
+          {items[currentIndex - 1] || ""}
+        </div>
+        {/* Valeur sélectionnée */}
+        <div
+          id={`wheel-item-${currentIndex}`}
+          className='w-full text-center text-teal-500 font-bold text-lg select-none'
+          style={{ height: `${itemHeight}px`, lineHeight: `${itemHeight}px` }}
+          role='option'
+          aria-selected='true'>
+          {items[currentIndex]}
+        </div>
+        {/* Valeur suivante */}
+        <div
+          className='w-full text-center text-gray-400 select-none text-sm'
+          style={{ height: `${itemHeight}px`, lineHeight: `${itemHeight}px` }}
+          role='option'
+          aria-selected='false'>
+          {items[currentIndex + 1] || ""}
+        </div>
       </div>
-      {/* Indicateurs de sélection */}
-      <div className='absolute top-0 left-0 right-0 h-[${itemHeight}px] bg-gradient-to-b from-white to-transparent dark:from-gray-900 dark:to-transparent pointer-events-none' />
-      <div className='absolute bottom-0 left-0 right-0 h-[${itemHeight}px] bg-gradient-to-t from-white to-transparent dark:from-gray-900 dark:to-transparent pointer-events-none' />
+      <button
+        type='button'
+        className={`mt-1 p-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-40 disabled:cursor-not-allowed`}
+        onClick={() => {
+          if (currentIndex < items.length - 1)
+            onChange(items[currentIndex + 1]);
+        }}
+        disabled={currentIndex === items.length - 1}
+        tabIndex={-1}
+        aria-label='Valeur suivante'
+        style={{ zIndex: 2 }}>
+        <AiOutlineDown />
+      </button>
     </div>
   );
 };
@@ -102,10 +103,6 @@ export default function DatePickerModal({
   onChange,
 }) {
   const [tempDate, setTempDate] = useState(selectedDate || new Date());
-
-  useEffect(() => {
-    setTempDate(selectedDate || new Date());
-  }, [selectedDate, show]);
 
   const handleYearSelect = (year) => {
     setTempDate((prev) => new Date(year, prev.getMonth(), prev.getDate()));
@@ -144,42 +141,25 @@ export default function DatePickerModal({
           </button>
         </div>
 
-        <div className='flex justify-between items-center gap-4 mb-6'>
-          {/* Sélecteur de jour */}
-          <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 text-center'>
-              Jour
-            </label>
-            <WheelPicker
-              items={days}
-              value={tempDate.getDate()}
-              onChange={handleDaySelect}
-            />
-          </div>
-
-          {/* Sélecteur de mois */}
-          <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 text-center'>
-              Mois
-            </label>
-            <WheelPicker
-              items={months}
-              value={months[tempDate.getMonth()]}
-              onChange={(month) => handleMonthSelect(months.indexOf(month))}
-            />
-          </div>
-
-          {/* Sélecteur d'année */}
-          <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 text-center'>
-              Année
-            </label>
-            <WheelPicker
-              items={years}
-              value={tempDate.getFullYear()}
-              onChange={handleYearSelect}
-            />
-          </div>
+        <div className='flex justify-between items-end gap-4 mb-6'>
+          <WheelPicker
+            items={days}
+            value={tempDate.getDate()}
+            onChange={handleDaySelect}
+            label='Jour'
+          />
+          <WheelPicker
+            items={months}
+            value={months[tempDate.getMonth()]}
+            onChange={(month) => handleMonthSelect(months.indexOf(month))}
+            label='Mois'
+          />
+          <WheelPicker
+            items={years}
+            value={tempDate.getFullYear()}
+            onChange={handleYearSelect}
+            label='Année'
+          />
         </div>
 
         {/* Boutons d'action */}
