@@ -15,7 +15,7 @@ import {
 } from "react-icons/ai";
 import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { FiEdit, FiTrash } from "react-icons/fi";
-import DataPickerDay from "../components/ui/DatePickerDay";
+import MonthPickerModal from "../components/ui/MonthPickerModal";
 
 // Import des catégories et données centralisées
 import {
@@ -45,7 +45,6 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
   });
   const [error, setError] = useState(null);
   const montantInputRef = useRef(null);
-  const dateInputRef = useRef(null);
 
   const handleChange = useCallback((e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -59,10 +58,6 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
     if (step === 3 && montantInputRef.current) {
       setTimeout(() => {
         montantInputRef.current.focus();
-      }, 100);
-    } else if (step === 4 && dateInputRef.current) {
-      setTimeout(() => {
-        dateInputRef.current.focus();
       }, 100);
     }
   }, [step]);
@@ -267,7 +262,6 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
                   value={form.date}
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
-                  ref={dateInputRef}
                   style={{
                     paddingRight: "2.5rem",
                   }}
@@ -277,7 +271,9 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
                 />
                 <AiOutlineCalendar
                   className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
-                  onClick={() => dateInputRef.current?.showPicker()}
+                  onClick={() => {
+                    // setDatePickerPos({ ... }); // supprimé car plus utilisé
+                  }}
                 />
               </div>
               <div className='flex justify-between'>
@@ -312,7 +308,6 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
   });
   const [error, setError] = useState(null);
   const montantInputRef = useRef(null);
-  const dateInputRef = useRef(null);
 
   const handleChange = useCallback((e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -326,10 +321,6 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
     if (step === 3 && montantInputRef.current) {
       setTimeout(() => {
         montantInputRef.current.focus();
-      }, 100);
-    } else if (step === 4 && dateInputRef.current) {
-      setTimeout(() => {
-        dateInputRef.current.focus();
       }, 100);
     }
   }, [step]);
@@ -534,7 +525,6 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
                   value={form.date}
                   onChange={handleChange}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
-                  ref={dateInputRef}
                   style={{
                     paddingRight: "2.5rem",
                   }}
@@ -544,7 +534,9 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
                 />
                 <AiOutlineCalendar
                   className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
-                  onClick={() => dateInputRef.current?.showPicker()}
+                  onClick={() => {
+                    // setDatePickerPos({ ... }); // supprimé car plus utilisé
+                  }}
                 />
               </div>
               <div className='flex justify-between'>
@@ -570,20 +562,11 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
 
 export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [depenses, setDepenses] = useState([]);
   const [revenus, setRevenus] = useState([]);
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
-  const dateButtonRef = useRef(null);
-  const [datePickerPos, setDatePickerPos] = useState({
-    top: 0,
-    left: 0,
-    width: 0,
-    buttonHeight: 0,
-  });
 
   const fetchDepenseRevenu = useCallback(() => {
     setDepenses(fakeDepenseRevenu.filter((t) => t.type === "depense"));
@@ -643,59 +626,24 @@ export default function DepensesRevenus() {
     return items.filter((t) => {
       const d = new Date(t.date);
       return (
-        d.getMonth() === currentDate.getMonth() &&
-        d.getFullYear() === currentDate.getFullYear()
+        d.getMonth() === new Date().getMonth() &&
+        d.getFullYear() === new Date().getFullYear()
       );
     });
-  }, [currentTab, currentDate, depenses, revenus]);
+  }, [currentTab, depenses, revenus]);
 
   const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(depenses, [], [], currentDate),
-    [depenses, currentDate]
+    () => calculTotalDepensesMois(depenses, [], [], new Date()),
+    [depenses]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(revenus, [], [], currentDate),
-    [revenus, currentDate]
+    () => totalRevenusGlobalMois(revenus, [], [], new Date()),
+    [revenus]
   );
   const solde = useMemo(
     () => calculEconomies(totalRevenus, totalDepenses),
     [totalRevenus, totalDepenses]
   );
-
-  // Navigation mois
-  const handlePrevMonth = () => {
-    setCurrentDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() - 1);
-      return d;
-    });
-  };
-  const handleNextMonth = () => {
-    setCurrentDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() + 1);
-      return d;
-    });
-  };
-
-  // Ajoute une fonction pour changer la date depuis la modal
-  const handleDatePickerSelect = (year, month) => {
-    setCurrentDate(new Date(year, month, 1));
-    setShowDatePickerModal(false);
-  };
-
-  const openDatePicker = () => {
-    if (dateButtonRef.current) {
-      const rect = dateButtonRef.current.getBoundingClientRect();
-      setDatePickerPos({
-        top: rect.top + rect.height + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-        buttonHeight: rect.height,
-      });
-    }
-    setShowDatePickerModal(true);
-  };
 
   const renderContent = () => {
     try {
@@ -712,44 +660,10 @@ export default function DepensesRevenus() {
                   Gérez vos dépenses et revenus mensuels.
                 </p>
               </div>
-              <div
-                ref={dateButtonRef}
-                className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
-                <button
-                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                  onClick={handlePrevMonth}
-                  aria-label='Mois précédent'
-                  type='button'>
-                  <AiOutlineArrowLeft />
-                </button>
-                <button
-                  className='mx-4 text-[#222] text-lg font-medium w-40 text-center dark:text-white rounded-full px-4 py-2 flex items-center justify-center gap-2 focus:outline-none'
-                  onClick={() => {
-                    console.log("Clic bouton date");
-                    openDatePicker();
-                  }}
-                  type='button'>
-                  {getMonthYear(currentDate)}
-                </button>
-                <button
-                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                  onClick={handleNextMonth}
-                  aria-label='Mois suivant'
-                  type='button'>
-                  <AiOutlineArrowRight />
-                </button>
-              </div>
+              <MonthPickerModal />
             </div>
             {/* MODAL DATEPICKER */}
-            <DataPickerDay
-              isOpen={showDatePickerModal}
-              onClose={() => setShowDatePickerModal(false)}
-              onSelect={handleDatePickerSelect}
-              initialMonth={currentDate.getMonth()}
-              initialYear={currentDate.getFullYear()}
-              dropdownPosition={datePickerPos}
-            />
-
+            // Ancienne modal supprimée
             {/* Cartes de statistiques */}
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
               {/* Carte 1: Total Dépenses */}
@@ -814,7 +728,6 @@ export default function DepensesRevenus() {
                 </div>
               </div>
             </div>
-
             {/* Switch Dépenses/Revenus */}
             <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>
               <button
@@ -838,7 +751,6 @@ export default function DepensesRevenus() {
                 Revenus
               </button>
             </div>
-
             {/* Affichage des dépenses & revenus */}
             <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-8 mt-2 '>
               <div className='flex items-center justify-between mb-6'>
@@ -850,7 +762,7 @@ export default function DepensesRevenus() {
                   </div>
                   <div className='text-sm text-gray-500 mt-1 dark:text-gray-300'>
                     {currentTab === "depense" ? "Dépenses" : "Revenus"} du mois
-                    de {getMonthYear(currentDate)}
+                    de {getMonthYear(new Date())}
                   </div>
                 </div>
                 {/* Bouton Ajouter - toujours visible ici */}
@@ -872,7 +784,7 @@ export default function DepensesRevenus() {
                 <div className='text-center py-10 text-gray-500 dark:text-gray-300'>
                   <p>
                     Aucune {currentTab === "depense" ? "dépense" : "revenu"}{" "}
-                    pour {getMonthYear(currentDate)}.
+                    pour {getMonthYear(new Date())}.
                   </p>
                 </div>
               ) : (
