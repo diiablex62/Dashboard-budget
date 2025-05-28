@@ -31,7 +31,6 @@ import {
   totalRevenusGlobalMois,
   calculEconomies,
 } from "../utils/calcul";
-import DatePickerModal from "../components/ui/DatePickerModal";
 
 function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
   console.log("REVENUS_CATEGORIES:", REVENUS_CATEGORIES);
@@ -579,7 +578,6 @@ export default function DepensesRevenus() {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const fetchDepenseRevenu = useCallback(() => {
     setDepenses(fakeDepenseRevenu.filter((t) => t.type === "depense"));
@@ -697,12 +695,8 @@ export default function DepensesRevenus() {
                   type='button'>
                   <AiOutlineArrowLeft />
                 </button>
-                <div
-                  className='mx-4 flex items-center gap-2 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'
-                  onClick={() => setShowDatePicker(true)}
-                  aria-label='Sélectionner une date'>
+                <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center dark:text-white'>
                   {getMonthYear(currentDate)}
-                  <AiOutlineCalendar className='text-xl ml-2 text-gray-400 group-hover:text-teal-500 dark:group-hover:text-teal-400' />
                 </div>
                 <button
                   className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
@@ -902,15 +896,6 @@ export default function DepensesRevenus() {
               depense={selectedItem || {}}
             />
           )}
-          <DatePickerModal
-            show={showDatePicker}
-            onClose={() => setShowDatePicker(false)}
-            onConfirm={(date) => {
-              setCurrentDate(date);
-              setShowDatePicker(false);
-            }}
-            selectedDate={currentDate}
-          />
         </div>
       );
     } catch (error) {
