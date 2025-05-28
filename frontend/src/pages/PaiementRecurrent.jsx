@@ -26,6 +26,7 @@ import {
   calculTotalRevenusRecurrentsMois,
   calculTotalDepensesRecurrentesMois,
 } from "../utils/calcul";
+import MonthPickerModal from "../components/ui/MonthPickerModal";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -68,22 +69,6 @@ const PaiementRecurrent = () => {
       (a, b) => a.jourPrelevement - b.jourPrelevement
     );
   }, [paiementsFiltres]);
-
-  const handlePreviousMonth = () => {
-    setSelectedMonth((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() - 1);
-      return newDate;
-    });
-  };
-
-  const handleNextMonth = () => {
-    setSelectedMonth((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() + 1);
-      return newDate;
-    });
-  };
 
   const handleDelete = (id) => {
     setPaiementsRecurrents(paiementsRecurrents.filter((p) => p.id !== id));
@@ -146,25 +131,10 @@ const PaiementRecurrent = () => {
               Gérez vos dépenses et revenus mensuels.
             </p>
           </div>
-          <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
-            <button
-              className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-              onClick={handlePreviousMonth}
-              aria-label='Mois précédent'
-              type='button'>
-              <AiOutlineArrowLeft />
-            </button>
-            <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
-              {getMonthYear(selectedMonth)}
-            </div>
-            <button
-              className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-              onClick={handleNextMonth}
-              aria-label='Mois suivant'
-              type='button'>
-              <AiOutlineArrowRight />
-            </button>
-          </div>
+          <MonthPickerModal
+            selectedDate={selectedMonth}
+            onDateChange={setSelectedMonth}
+          />
         </div>
         {/* Cartes de statistiques */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
