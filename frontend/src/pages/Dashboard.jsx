@@ -500,6 +500,13 @@ Mois précédent :
                   })}{" "}
                   €
                 </li>
+                <li>
+                  Total économies :{" "}
+                  {totalEconomies.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}{" "}
+                  €
+                </li>
               </ul>
               <div className='h-2' />
               <div className='font-semibold mt-2 mb-1'>Mois précédent :</div>
@@ -529,6 +536,27 @@ Mois précédent :
                       paiementsEchelonnes
                     )
                     .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  €
+                </li>
+                <li>
+                  Total économies :{" "}
+                  {(
+                    calculs.calculRevenusMoisPrecedent(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes
+                    ) -
+                    calculs.calculTotalDepensesMois(
+                      depenseRevenu,
+                      paiementsRecurrents,
+                      paiementsEchelonnes,
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() - 1,
+                        1
+                      )
+                    )
+                  ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
                   €
                 </li>
               </ul>
