@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 import DepensesRevenus from "../pages/DepensesRevenus";
 import PaiementRecurrent from "../pages/PaiementRecurrent";
@@ -20,8 +20,8 @@ const AppRoutes = () => {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Route par défaut */}
-        <Route path='/' element={<Dashboard />} />
+        {/* Redirection de la racine vers /dashboard */}
+        <Route path='/' element={<Navigate to='/dashboard' replace />} />
 
         {/* Routes principales */}
         <Route path='/dashboard' element={<Dashboard />} />
