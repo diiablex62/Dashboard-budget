@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/tailwind.css";
 import App from "./App";
-import { Analytics } from "@vercel/analytics/react";
+// import { Analytics } from "@vercel/analytics/react";
 
 import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")).render(
           <BudgetProvider>
             <BrowserRouter>
               <App />
-              <Analytics />
+              {/* <Analytics /> */}
             </BrowserRouter>
           </BudgetProvider>
         </AuthProvider>
