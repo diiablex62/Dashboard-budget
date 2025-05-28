@@ -147,7 +147,6 @@ const PaiementEchelonne = () => {
         const debut = new Date(paiement.debutDate);
         const fin = new Date(paiement.debutDate);
         fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
-        // Paiement actif si selectedDate >= debut et <= fin (mois/année)
         const afterStart =
           selectedDate.getFullYear() > debut.getFullYear() ||
           (selectedDate.getFullYear() === debut.getFullYear() &&
@@ -345,15 +344,20 @@ const PaiementEchelonne = () => {
               {paiementsEchelonnes
                 .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
                 .filter((paiement) => {
+                  const debut = new Date(paiement.debutDate);
                   const fin = new Date(paiement.debutDate);
                   fin.setMonth(
                     fin.getMonth() + parseInt(paiement.mensualites) - 1
                   );
-                  return (
+                  const afterStart =
+                    selectedDate.getFullYear() > debut.getFullYear() ||
+                    (selectedDate.getFullYear() === debut.getFullYear() &&
+                      selectedDate.getMonth() >= debut.getMonth());
+                  const beforeEnd =
                     selectedDate.getFullYear() < fin.getFullYear() ||
                     (selectedDate.getFullYear() === fin.getFullYear() &&
-                      selectedDate.getMonth() <= fin.getMonth())
-                  );
+                      selectedDate.getMonth() <= fin.getMonth());
+                  return afterStart && beforeEnd;
                 })
                 .map((paiement) => {
                   // Calcul dynamique du nombre de mensualités payées selon selectedDate

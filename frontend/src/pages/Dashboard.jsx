@@ -85,15 +85,6 @@ export default function Dashboard() {
     });
   }, [paiementsEchelonnes]);
 
-  // Calcul de la différence avec le mois dernier
-  const differenceMoisPrecedent = useMemo(() => {
-    return calculs.calculDifferenceDepensesMoisPrecedent(
-      depenseRevenu,
-      paiementsRecurrents,
-      paiementsEchelonnes
-    );
-  }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
-
   // Calcul du total des paiements échelonnés (dépenses) du mois
   const now = new Date();
   const totalEchelonnes = useMemo(() => {
@@ -102,7 +93,6 @@ export default function Dashboard() {
         const debut = new Date(paiement.debutDate);
         const fin = new Date(paiement.debutDate);
         fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
-        // Paiement actif si now >= debut et <= fin (mois/année)
         const afterStart =
           now.getFullYear() > debut.getFullYear() ||
           (now.getFullYear() === debut.getFullYear() &&
@@ -171,6 +161,140 @@ export default function Dashboard() {
     [paiementsRecurrents]
   );
 
+  // --- Calculs pour le mois précédent ---
+  const dateMoisPrecedent = useMemo(() => {
+    return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  }, [now]);
+
+  // Dépenses classiques du mois précédent
+  const depensesClassiquesMoisPrec = useMemo(() => {
+    return depenseRevenu
+      .filter(
+        (d) =>
+          d.type === "depense" &&
+          new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
+          new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
+      )
+      .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+  }, [depenseRevenu, dateMoisPrecedent]);
+
+  // Paiements récurrents (dépense) du mois précédent
+  const recurrentsDepenseMoisPrec = useMemo(() => {
+    return paiementsRecurrents
+      .filter(
+        (p) =>
+          p.type === "depense" &&
+          (!p.debut ||
+            new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
+            (new Date(p.debut).getFullYear() ===
+              dateMoisPrecedent.getFullYear() &&
+              new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
+      )
+      .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+  }, [paiementsRecurrents, dateMoisPrecedent]);
+
+  // Paiements échelonnés (dépense) du mois précédent
+  const echelonnesDepenseMoisPrec = useMemo(() => {
+    return paiementsEchelonnes
+      .filter((e) => {
+        if (e.type !== "depense") return false;
+        const debut = new Date(e.debutDate);
+        const fin = new Date(e.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+        const afterStart =
+          dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
+          (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
+            dateMoisPrecedent.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
+          (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
+            dateMoisPrecedent.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      })
+      .reduce(
+        (acc, e) =>
+          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+        0
+      );
+  }, [paiementsEchelonnes, dateMoisPrecedent]);
+
+  // --- Calculs pour le mois courant (pour la différence) ---
+  const dateMoisCourant = useMemo(() => {
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }, [now]);
+
+  // Dépenses classiques du mois courant
+  const depensesClassiquesMoisCourant = useMemo(() => {
+    return depenseRevenu
+      .filter(
+        (d) =>
+          d.type === "depense" &&
+          new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
+          new Date(d.date).getMonth() === dateMoisCourant.getMonth()
+      )
+      .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+  }, [depenseRevenu, dateMoisCourant]);
+
+  // Paiements récurrents (dépense) du mois courant
+  const recurrentsDepenseMoisCourant = useMemo(() => {
+    return paiementsRecurrents
+      .filter(
+        (p) =>
+          p.type === "depense" &&
+          (!p.debut ||
+            new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
+            (new Date(p.debut).getFullYear() ===
+              dateMoisCourant.getFullYear() &&
+              new Date(p.debut).getMonth() <= dateMoisCourant.getMonth()))
+      )
+      .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+  }, [paiementsRecurrents, dateMoisCourant]);
+
+  // Paiements échelonnés (dépense) du mois courant
+  const echelonnesDepenseMoisCourant = useMemo(() => {
+    return paiementsEchelonnes
+      .filter((e) => {
+        if (e.type !== "depense") return false;
+        const debut = new Date(e.debutDate);
+        const fin = new Date(e.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+        const afterStart =
+          dateMoisCourant.getFullYear() > debut.getFullYear() ||
+          (dateMoisCourant.getFullYear() === debut.getFullYear() &&
+            dateMoisCourant.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          dateMoisCourant.getFullYear() < fin.getFullYear() ||
+          (dateMoisCourant.getFullYear() === fin.getFullYear() &&
+            dateMoisCourant.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      })
+      .reduce(
+        (acc, e) =>
+          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+        0
+      );
+  }, [paiementsEchelonnes, dateMoisCourant]);
+
+  // Différence dépenses mois précédent (alignée avec le détail du tooltip)
+  const differenceMoisPrecedent = useMemo(() => {
+    const totalCourant =
+      depensesClassiquesMoisCourant +
+      recurrentsDepenseMoisCourant +
+      echelonnesDepenseMoisCourant;
+    const totalPrec =
+      depensesClassiquesMoisPrec +
+      recurrentsDepenseMoisPrec +
+      echelonnesDepenseMoisPrec;
+    return totalPrec - totalCourant;
+  }, [
+    depensesClassiquesMoisCourant,
+    recurrentsDepenseMoisCourant,
+    echelonnesDepenseMoisCourant,
+    depensesClassiquesMoisPrec,
+    recurrentsDepenseMoisPrec,
+    echelonnesDepenseMoisPrec,
+  ]);
+
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
       {/* Cartes du haut */}
@@ -209,18 +333,22 @@ export default function Dashboard() {
                   .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
 
 Mois précédent :
-- Dépense : ${calculs
-                  .calculTotalDepensesMois(
-                    depenseRevenu,
-                    paiementsRecurrents,
-                    paiementsEchelonnes,
-                    new Date(
-                      new Date().getFullYear(),
-                      new Date().getMonth() - 1,
-                      1
-                    )
-                  )
-                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €`}
+- Dépenses classiques : ${depensesClassiquesMoisPrec.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                })} €
+- Paiements récurrents (dépense) : ${recurrentsDepenseMoisPrec.toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2 }
+                )} €
+- Paiements échelonnés (dépense) : ${echelonnesDepenseMoisPrec.toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2 }
+                )} €
+- Total : ${(
+                  depensesClassiquesMoisPrec +
+                  recurrentsDepenseMoisPrec +
+                  echelonnesDepenseMoisPrec
+                ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €`}
               </div>
             </div>
           </div>

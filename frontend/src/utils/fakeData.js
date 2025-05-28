@@ -56,6 +56,22 @@ export const fakeDepenseRevenu = [
     date: `${currentMonth}-28`,
     type: "revenu",
   },
+  {
+    id: 9991,
+    nom: "Achat ordinateur",
+    montant: 1200,
+    categorie: "Shopping",
+    date: "2025-04-10",
+    type: "depense",
+  },
+  {
+    id: 9992,
+    nom: "Prime exceptionnelle",
+    montant: 800,
+    categorie: "Salaire",
+    date: "2025-04-15",
+    type: "revenu",
+  },
 ];
 
 // Paiements récurrents (dates en brut)
@@ -104,6 +120,26 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 20,
     type: "revenu",
     frequence: "mensuel",
+  },
+  {
+    id: 9993,
+    nom: "Abonnement streaming",
+    montant: 15,
+    categorie: "Divertissement",
+    jourPrelevement: 5,
+    type: "depense",
+    frequence: "mensuel",
+    debut: "2025-04-05",
+  },
+  {
+    id: 9994,
+    nom: "Rente mensuelle",
+    montant: 200,
+    categorie: "Rente",
+    jourPrelevement: 20,
+    type: "revenu",
+    frequence: "mensuel",
+    debut: "2025-04-20",
   },
 ];
 
