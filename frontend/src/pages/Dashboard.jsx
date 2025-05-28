@@ -150,11 +150,86 @@ export default function Dashboard() {
   );
 
   // Préparation des données pour le graphique à barres (6 derniers mois)
-  const barChartData = calculs.calculBarChartData(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes
-  );
+  const barChartData = useMemo(() => {
+    // 6 derniers mois
+    const nowDate = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(nowDate.getFullYear(), nowDate.getMonth() - 5 + i, 1);
+      const label = d.toLocaleString("fr-FR", { month: "short" });
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      // Dépenses classiques
+      const depensesClassiques = depenseRevenu
+        .filter(
+          (item) =>
+            item.type === "depense" &&
+            new Date(item.date).getFullYear() === year &&
+            new Date(item.date).getMonth() === month
+        )
+        .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0);
+      // Paiements récurrents (dépense)
+      const recurrentsDepense = paiementsRecurrents
+        .filter(
+          (p) =>
+            p.type === "depense" &&
+            (!p.debut ||
+              new Date(p.debut).getFullYear() < year ||
+              (new Date(p.debut).getFullYear() === year &&
+                new Date(p.debut).getMonth() <= month))
+        )
+        .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+      // Paiements échelonnés (dépense)
+      const echelonnesDepense = paiementsEchelonnes
+        .filter((e) => {
+          if (e.type !== "depense") return false;
+          const debut = new Date(e.debutDate);
+          const fin = new Date(e.debutDate);
+          fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+          const afterStart =
+            year > debut.getFullYear() ||
+            (year === debut.getFullYear() && month >= debut.getMonth());
+          const beforeEnd =
+            year < fin.getFullYear() ||
+            (year === fin.getFullYear() && month <= fin.getMonth());
+          return afterStart && beforeEnd;
+        })
+        .reduce(
+          (acc, e) =>
+            acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+          0
+        );
+      // Total dépenses
+      const depenses =
+        depensesClassiques + recurrentsDepense + echelonnesDepense;
+      // Revenus classiques
+      const revenusClassiques = depenseRevenu
+        .filter(
+          (item) =>
+            item.type === "revenu" &&
+            new Date(item.date).getFullYear() === year &&
+            new Date(item.date).getMonth() === month
+        )
+        .reduce((acc, item) => acc + parseFloat(item.montant), 0);
+      // Paiements récurrents (revenu)
+      const recurrentsRevenu = paiementsRecurrents
+        .filter(
+          (p) =>
+            p.type === "revenu" &&
+            (!p.debut ||
+              new Date(p.debut).getFullYear() < year ||
+              (new Date(p.debut).getFullYear() === year &&
+                new Date(p.debut).getMonth() <= month))
+        )
+        .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+      // Total revenus
+      const revenus = revenusClassiques + recurrentsRevenu;
+      return {
+        mois: label.charAt(0).toUpperCase() + label.slice(1),
+        depenses,
+        revenus,
+      };
+    });
+  }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   const totalRecurrents = useMemo(
     () => calculs.calculTotalRecurrentsMois(paiementsRecurrents),
