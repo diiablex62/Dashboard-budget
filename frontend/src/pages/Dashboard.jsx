@@ -483,9 +483,9 @@ Mois précédent :
           {/* Tooltip des économies */}
           <div className='absolute bottom-2 right-2 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-            <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-              <p className='font-semibold mb-1'>Détail du calcul :</p>
-              <ul className='list-disc list-inside space-y-1'>
+            <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+              <p className='font-semibold mb-0'>Détail du calcul :</p>
+              <ul className='list-disc list-inside space-y-0.5'>
                 <li>
                   Total revenus :{" "}
                   {totalRevenus.toLocaleString("fr-FR", {
@@ -508,9 +508,9 @@ Mois précédent :
                   €
                 </li>
               </ul>
-              <div className='h-2' />
-              <div className='font-semibold mt-2 mb-1'>Mois précédent :</div>
-              <ul className='list-disc list-inside space-y-1'>
+              <div className='h-1' />
+              <div className='font-semibold mt-1 mb-0'>Mois précédent :</div>
+              <ul className='list-disc list-inside space-y-0.5'>
                 <li>
                   Dépenses :{" "}
                   {calculs
@@ -560,7 +560,7 @@ Mois précédent :
                   €
                 </li>
               </ul>
-              <div className='mt-2 text-[11px] text-gray-300'>
+              <div className='mt-1 text-[10px] text-gray-300'>
                 Les économies sont calculées en soustrayant le total des
                 dépenses du total des revenus.
               </div>

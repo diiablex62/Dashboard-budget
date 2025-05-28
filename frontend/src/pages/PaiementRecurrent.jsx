@@ -188,36 +188,6 @@ const PaiementRecurrent = () => {
             Revenus
           </button>
         </div>
-        {/* Affichage simple des paiements récurrents actifs pour le mois sélectionné */}
-        <div className='mb-4'>
-          {paiementsRecurrents
-            .filter((p) => {
-              // Paiement actif pour le mois sélectionné
-              if (p.debut) {
-                const debut = new Date(p.debut);
-                return (
-                  selectedMonth.getFullYear() > debut.getFullYear() ||
-                  (selectedMonth.getFullYear() === debut.getFullYear() &&
-                    selectedMonth.getMonth() >= debut.getMonth())
-                );
-              }
-              return true;
-            })
-            .map((p) => (
-              <div
-                key={p.id}
-                className='text-base text-gray-800 dark:text-white mb-1'>
-                {p.nom}
-                <span className='text-xs text-gray-500 ml-2'>
-                  ({String(p.jourPrelevement).padStart(2, "0")}/
-                  {p.debut
-                    ? String(new Date(p.debut).getMonth() + 1).padStart(2, "0")
-                    : "--"}
-                  )
-                </span>
-              </div>
-            ))}
-        </div>
         {/* Affichage des paiements récurrents filtrés */}
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2 dark:bg-black dark:text-white dark:border-gray-700'>
           <div className='flex items-center justify-between mb-6'>
