@@ -84,12 +84,27 @@ const CATEGORIES = [
   },
 ];
 
-export default function AgendaEvenement({ year, month }) {
+export default function AgendaEvenement({
+  year,
+  month,
+  selectionEvenement = [],
+  onClearSelection,
+}) {
+  // Si une sélection existe, on filtre les events pour ne garder que ceux sélectionnés
+  const isSelectionActive =
+    Array.isArray(selectionEvenement) && selectionEvenement.length > 0;
   return (
     <div className='grid grid-cols-2 gap-4'>
       {CATEGORIES.map((cat) => {
-        const events = cat.getEvents(year, month);
-
+        let events = cat.getEvents(year, month);
+        if (isSelectionActive) {
+          events = events.filter((e) =>
+            selectionEvenement.some((sel) => {
+              const d = new Date(e.date || e.debutDate);
+              return sel.categorie === cat.key && d.getDate() === sel.day;
+            })
+          );
+        }
         return (
           <div
             key={cat.key}
@@ -100,9 +115,17 @@ export default function AgendaEvenement({ year, month }) {
                 {cat.label}
               </span>
             </div>
+            {isSelectionActive && events.length > 0 && (
+              <button
+                onClick={onClearSelection}
+                className='mb-2 text-xs text-gray-500 underline'>
+                Désélectionner
+              </button>
+            )}
             {events.length === 0 ? (
               <span className='text-sm text-gray-500'>
-                Aucun {cat.label.toLowerCase()} ce mois-ci
+                Aucun {cat.label.toLowerCase()}{" "}
+                {isSelectionActive ? "sélectionné" : "ce mois-ci"}
               </span>
             ) : (
               <ul className='text-sm text-gray-700 space-y-1 dark:text-gray-200'>
