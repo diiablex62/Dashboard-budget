@@ -15,6 +15,7 @@ import {
 } from "react-icons/ai";
 import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { FiEdit, FiTrash } from "react-icons/fi";
+import DataPickerDay from "../components/ui/DatePickerDay";
 
 // Import des catégories et données centralisées
 import {
@@ -575,9 +576,14 @@ export default function DepensesRevenus() {
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [filter, setFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
+  const dateButtonRef = useRef(null);
+  const [datePickerPos, setDatePickerPos] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+    buttonHeight: 0,
+  });
 
   const fetchDepenseRevenu = useCallback(() => {
     setDepenses(fakeDepenseRevenu.filter((t) => t.type === "depense"));
@@ -672,6 +678,25 @@ export default function DepensesRevenus() {
     });
   };
 
+  // Ajoute une fonction pour changer la date depuis la modal
+  const handleDatePickerSelect = (year, month) => {
+    setCurrentDate(new Date(year, month, 1));
+    setShowDatePickerModal(false);
+  };
+
+  const openDatePicker = () => {
+    if (dateButtonRef.current) {
+      const rect = dateButtonRef.current.getBoundingClientRect();
+      setDatePickerPos({
+        top: rect.top + rect.height + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+        buttonHeight: rect.height,
+      });
+    }
+    setShowDatePickerModal(true);
+  };
+
   const renderContent = () => {
     try {
       return (
@@ -687,7 +712,9 @@ export default function DepensesRevenus() {
                   Gérez vos dépenses et revenus mensuels.
                 </p>
               </div>
-              <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
+              <div
+                ref={dateButtonRef}
+                className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
                 <button
                   className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
                   onClick={handlePrevMonth}
@@ -695,9 +722,15 @@ export default function DepensesRevenus() {
                   type='button'>
                   <AiOutlineArrowLeft />
                 </button>
-                <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center dark:text-white'>
+                <button
+                  className='mx-4 text-[#222] text-lg font-medium w-40 text-center dark:text-white rounded-full px-4 py-2 flex items-center justify-center gap-2 focus:outline-none'
+                  onClick={() => {
+                    console.log("Clic bouton date");
+                    openDatePicker();
+                  }}
+                  type='button'>
                   {getMonthYear(currentDate)}
-                </div>
+                </button>
                 <button
                   className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
                   onClick={handleNextMonth}
@@ -707,6 +740,15 @@ export default function DepensesRevenus() {
                 </button>
               </div>
             </div>
+            {/* MODAL DATEPICKER */}
+            <DataPickerDay
+              isOpen={showDatePickerModal}
+              onClose={() => setShowDatePickerModal(false)}
+              onSelect={handleDatePickerSelect}
+              initialMonth={currentDate.getMonth()}
+              initialYear={currentDate.getFullYear()}
+              dropdownPosition={datePickerPos}
+            />
 
             {/* Cartes de statistiques */}
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
