@@ -11,6 +11,7 @@ import {
   fakePaiementsRecurrents,
   fakePaiementsEchelonnes,
 } from "../utils/fakeData";
+import MonthPickerModal from "../components/ui/MonthPickerModal";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
@@ -123,24 +124,6 @@ export default function Agenda() {
     return map;
   }, [month, year]);
 
-  // Navigation mois
-  const handlePrevMonth = () => {
-    setCurrentDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() - 1);
-      setSelectedDay(1);
-      return d;
-    });
-  };
-  const handleNextMonth = () => {
-    setCurrentDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() + 1);
-      setSelectedDay(1);
-      return d;
-    });
-  };
-
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
@@ -163,25 +146,10 @@ export default function Agenda() {
               </div>
             </div>
             <div className='flex items-center justify-end mb-4'>
-              <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
-                <button
-                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                  onClick={handlePrevMonth}
-                  aria-label='Mois précédent'
-                  type='button'>
-                  <AiOutlineArrowLeft />
-                </button>
-                <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
-                  {getMonthYear(currentDate)}
-                </div>
-                <button
-                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
-                  onClick={handleNextMonth}
-                  aria-label='Mois suivant'
-                  type='button'>
-                  <AiOutlineArrowRight />
-                </button>
-              </div>
+              <MonthPickerModal
+                selectedDate={currentDate}
+                onDateChange={setCurrentDate}
+              />
             </div>
             <div className='grid grid-cols-7 gap-y-2 mb-4'>
               {DAYS.map((day) => (

@@ -27,6 +27,10 @@ import {
   calculTotalDepensesRecurrentesMois,
 } from "../utils/calcul";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
+import {
+  editPaiement,
+  deletePaiementWithUndo,
+} from "../utils/paiementActions.jsx";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -70,10 +74,6 @@ const PaiementRecurrent = () => {
     );
   }, [paiementsFiltres]);
 
-  const handleDelete = (id) => {
-    setPaiementsRecurrents(paiementsRecurrents.filter((p) => p.id !== id));
-  };
-
   const handleAddPaiement = useCallback(() => {
     setSelectedPaiement(null);
     setShowModal(true);
@@ -102,11 +102,6 @@ const PaiementRecurrent = () => {
     },
     [currentTab]
   );
-
-  const handleEditPaiement = useCallback((paiement) => {
-    setSelectedPaiement(paiement);
-    setShowModal(true);
-  }, []);
 
   if (error) {
     return (
@@ -258,14 +253,24 @@ const PaiementRecurrent = () => {
                   </div>
                   <div className='flex justify-end mt-2'>
                     <button
-                      className='text-blue-600 font-medium hover:underline mr-4 cursor-pointer dark:text-blue-400'
-                      onClick={() => handleEditPaiement(p)}>
-                      Modifier
+                      className='text-blue-600 hover:bg-blue-100 p-2 rounded-full mr-2 transition dark:text-blue-400 dark:hover:bg-blue-900'
+                      onClick={() =>
+                        editPaiement(p, setSelectedPaiement, setShowModal)
+                      }
+                      title='Modifier'>
+                      <AiOutlineEdit className='text-xl' />
                     </button>
                     <button
-                      className='text-red-500 font-medium hover:underline cursor-pointer dark:text-red-400'
-                      onClick={() => handleDelete(p.id)}>
-                      Supprimer
+                      className='text-red-500 hover:bg-red-100 p-2 rounded-full transition dark:text-red-400 dark:hover:bg-red-900'
+                      onClick={() =>
+                        deletePaiementWithUndo(
+                          p.id,
+                          setPaiementsRecurrents,
+                          p.nom
+                        )
+                      }
+                      title='Supprimer'>
+                      <AiOutlineDelete className='text-xl' />
                     </button>
                   </div>
                 </div>

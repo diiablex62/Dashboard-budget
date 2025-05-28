@@ -6,6 +6,8 @@ import Sidebar from "./components/navigation/Sidebar";
 import SettingsPanel from "./components/ui/SettingsPanel";
 import { AppContext } from "./context/AppContext";
 import AppRoutes from "./routes/Routes";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Composant principal qui utilise les contextes
 export default function App() {
@@ -123,6 +125,18 @@ export default function App() {
       {isSettingsOpen && (
         <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
       )}
+      <ToastContainer
+        position='top-right'
+        autoClose={5000}
+        hideProgressBar={true}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme='light'
+      />
     </div>
   );
 }

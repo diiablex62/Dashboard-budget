@@ -6,8 +6,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --primary-color: #007bff; 
-  --primary-hover-color: #0056b3; 
+  --primary-color: #007bff;
+  --primary-hover-color: #0056b3;
 }
 
 .bg-primary {
@@ -24,4 +24,10 @@
 
 .bg-primary-hover {
   background-color: var(--primary-hover-color);
+}
+
+/* Forcer la largeur des toasts React-Toastify */
+.Toastify__toast {
+  max-width: 600px !important;
+  width: 600px !important;
 }
