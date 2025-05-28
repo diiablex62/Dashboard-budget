@@ -16,13 +16,15 @@ const months = [
   "Décembre",
 ];
 
-export default function MonthPickerModal() {
+export default function MonthPickerModal({
+  selectedDate = new Date(),
+  onDateChange,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
-  const today = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
-  const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(selectedDate.getMonth());
+  const [selectedYear, setSelectedYear] = useState(selectedDate.getFullYear());
+  const [viewYear, setViewYear] = useState(selectedDate.getFullYear());
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -41,18 +43,37 @@ export default function MonthPickerModal() {
   }, [isOpen]);
 
   const handleMonthClick = (idx) => {
+    const newDate = new Date(viewYear, idx, 1);
     setSelectedMonth(idx);
     setSelectedYear(viewYear);
     setIsOpen(false);
+    onDateChange?.(newDate);
   };
 
-  const handlePrevYear = (e) => {
-    e.stopPropagation();
+  const handlePrevYear = () => {
     setViewYear((y) => y - 1);
   };
-  const handleNextYear = (e) => {
-    e.stopPropagation();
+
+  const handleNextYear = () => {
     setViewYear((y) => y + 1);
+  };
+
+  const handlePrevMonth = () => {
+    const newMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+    const newYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+    const newDate = new Date(newYear, newMonth, 1);
+    setSelectedMonth(newMonth);
+    setSelectedYear(newYear);
+    onDateChange?.(newDate);
+  };
+
+  const handleNextMonth = () => {
+    const newMonth = selectedMonth === 11 ? 0 : selectedMonth + 1;
+    const newYear = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
+    const newDate = new Date(newYear, newMonth, 1);
+    setSelectedMonth(newMonth);
+    setSelectedYear(newYear);
+    onDateChange?.(newDate);
   };
 
   return (
@@ -61,10 +82,7 @@ export default function MonthPickerModal() {
         <div className='bg-white border border-gray-200 rounded-2xl shadow-md py-3 px-6 text-xl font-bold text-[#1a2332] flex items-center justify-center gap-4 w-auto min-w-[200px]'>
           <AiOutlineArrowLeft
             className='text-2xl cursor-pointer'
-            onClick={() => {
-              setSelectedMonth((m) => (m === 0 ? 11 : m - 1));
-              if (selectedMonth === 0) setSelectedYear((y) => y - 1);
-            }}
+            onClick={handlePrevMonth}
           />
           <button
             onClick={() => setIsOpen(true)}
@@ -73,10 +91,7 @@ export default function MonthPickerModal() {
           </button>
           <AiOutlineArrowRight
             className='text-2xl cursor-pointer'
-            onClick={() => {
-              setSelectedMonth((m) => (m === 11 ? 0 : m + 1));
-              if (selectedMonth === 11) setSelectedYear((y) => y + 1);
-            }}
+            onClick={handleNextMonth}
           />
         </div>
       </div>

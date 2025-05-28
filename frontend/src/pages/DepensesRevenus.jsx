@@ -567,6 +567,7 @@ export default function DepensesRevenus() {
   const [showDepenseModal, setShowDepenseModal] = useState(false);
   const [showRevenuModal, setShowRevenuModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const fetchDepenseRevenu = useCallback(() => {
     setDepenses(fakeDepenseRevenu.filter((t) => t.type === "depense"));
@@ -626,19 +627,19 @@ export default function DepensesRevenus() {
     return items.filter((t) => {
       const d = new Date(t.date);
       return (
-        d.getMonth() === new Date().getMonth() &&
-        d.getFullYear() === new Date().getFullYear()
+        d.getMonth() === selectedDate.getMonth() &&
+        d.getFullYear() === selectedDate.getFullYear()
       );
     });
-  }, [currentTab, depenses, revenus]);
+  }, [currentTab, depenses, revenus, selectedDate]);
 
   const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(depenses, [], [], new Date()),
-    [depenses]
+    () => calculTotalDepensesMois(depenses, [], [], selectedDate),
+    [depenses, selectedDate]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(revenus, [], [], new Date()),
-    [revenus]
+    () => totalRevenusGlobalMois(revenus, [], [], selectedDate),
+    [revenus, selectedDate]
   );
   const solde = useMemo(
     () => calculEconomies(totalRevenus, totalDepenses),
@@ -657,12 +658,15 @@ export default function DepensesRevenus() {
                   Dépenses et Revenus
                 </h1>
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Gérez vos dépenses et revenus mensuels.
+                  Dépenses du mois de {getMonthYear(selectedDate)}
                 </p>
               </div>
-              <MonthPickerModal />
+              <MonthPickerModal
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+              />
             </div>
-        
+
             {/* Cartes de statistiques */}
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
               {/* Carte 1: Total Dépenses */}
@@ -761,7 +765,7 @@ export default function DepensesRevenus() {
                   </div>
                   <div className='text-sm text-gray-500 mt-1 dark:text-gray-300'>
                     {currentTab === "depense" ? "Dépenses" : "Revenus"} du mois
-                    de {getMonthYear(new Date())}
+                    de {getMonthYear(selectedDate)}
                   </div>
                 </div>
                 {/* Bouton Ajouter - toujours visible ici */}
@@ -783,7 +787,7 @@ export default function DepensesRevenus() {
                 <div className='text-center py-10 text-gray-500 dark:text-gray-300'>
                   <p>
                     Aucune {currentTab === "depense" ? "dépense" : "revenu"}{" "}
-                    pour {getMonthYear(new Date())}.
+                    pour {getMonthYear(selectedDate)}.
                   </p>
                 </div>
               ) : (
