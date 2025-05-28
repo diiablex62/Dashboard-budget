@@ -43,10 +43,24 @@ const CATEGORIES = [
     label: "Paiements Récurrents",
     color: "bg-purple-400",
     getEvents: (year, month) =>
-      fakePaiementsRecurrents.filter((e) => {
-        const d = new Date(e.date);
-        return d.getFullYear() === year && d.getMonth() === month;
-      }),
+      fakePaiementsRecurrents
+        .filter((e) => {
+          let debut = e.debut ? new Date(e.debut) : null;
+          const eventYear = year;
+          const eventMonth = month;
+          if (!debut) return true;
+          if (
+            debut.getFullYear() > eventYear ||
+            (debut.getFullYear() === eventYear && debut.getMonth() > eventMonth)
+          ) {
+            return false;
+          }
+          return true;
+        })
+        .map((e) => {
+          const date = new Date(year, month, e.jourPrelevement);
+          return { ...e, date: date.toISOString() };
+        }),
   },
   {
     key: "depenses",
@@ -219,7 +233,17 @@ export default function AgendaEvenement({
                           (mensualité ce jour)
                         </span>
                       )}
-                      {cat.key !== "echelonnes" && (
+                      {cat.key === "recurrents" && (
+                        <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
+                          (
+                          {new Date(e.date).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                          })}
+                          )
+                        </span>
+                      )}
+                      {cat.key !== "echelonnes" && cat.key !== "recurrents" && (
                         <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
                           (
                           {new Date(e.date || e.debutDate).toLocaleDateString(

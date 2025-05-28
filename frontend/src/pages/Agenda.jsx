@@ -1,5 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { AiOutlineCalendar, AiOutlinePlus } from "react-icons/ai";
+import {
+  AiOutlineCalendar,
+  AiOutlinePlus,
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
+} from "react-icons/ai";
 import AgendaEvenement from "../components/ui/AgendaEvenement";
 import {
   fakeDepenseRevenu,
@@ -67,9 +72,16 @@ export default function Agenda() {
     });
     // Récurrents
     fakePaiementsRecurrents.forEach((e) => {
-      const d = new Date(e.date);
-      if (d.getMonth() === month && d.getFullYear() === year) {
-        const day = d.getDate();
+      // Vérifie si le paiement est actif pour le mois/année affiché
+      let actif = true;
+      if (e.debut) {
+        const debut = new Date(e.debut);
+        actif =
+          year > debut.getFullYear() ||
+          (year === debut.getFullYear() && month >= debut.getMonth());
+      }
+      if (actif && e.jourPrelevement >= 1 && e.jourPrelevement <= 31) {
+        const day = e.jourPrelevement;
         if (!map[day])
           map[day] = {
             depense: false,
@@ -151,20 +163,25 @@ export default function Agenda() {
               </div>
             </div>
             <div className='flex items-center justify-end mb-4'>
-              <button className='flex items-center gap-2 border rounded px-3 py-1 text-gray-700 bg-white shadow-sm cursor-pointer dark:bg-gray-900 dark:text-white dark:border-gray-700'>
-                <AiOutlineCalendar className='text-lg' />
-                {getMonthYear(currentDate)}
-              </button>
-              <button
-                onClick={handlePrevMonth}
-                className='ml-2 text-gray-400 hover:text-gray-700 text-xl cursor-pointer dark:text-gray-500 dark:hover:text-white'>
-                &#8592;
-              </button>
-              <button
-                onClick={handleNextMonth}
-                className='ml-1 text-gray-400 hover:text-gray-700 text-xl cursor-pointer dark:text-gray-500 dark:hover:text-white'>
-                &#8594;
-              </button>
+              <div className='flex items-center bg-[#f6f9fb] rounded-xl px-4 py-2 shadow-none border border-transparent dark:bg-gray-900'>
+                <button
+                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+                  onClick={handlePrevMonth}
+                  aria-label='Mois précédent'
+                  type='button'>
+                  <AiOutlineArrowLeft />
+                </button>
+                <div className='mx-4 text-[#222] text-lg font-medium w-40 text-center cursor-pointer hover:bg-[#e9eef2] px-3 py-1 rounded transition dark:text-white dark:hover:bg-gray-800'>
+                  {getMonthYear(currentDate)}
+                </div>
+                <button
+                  className='text-[#222] text-xl px-2 py-1 rounded hover:bg-[#e9eef2] transition cursor-pointer dark:text-white dark:hover:bg-gray-800'
+                  onClick={handleNextMonth}
+                  aria-label='Mois suivant'
+                  type='button'>
+                  <AiOutlineArrowRight />
+                </button>
+              </div>
             </div>
             <div className='grid grid-cols-7 gap-y-2 mb-4'>
               {DAYS.map((day) => (
