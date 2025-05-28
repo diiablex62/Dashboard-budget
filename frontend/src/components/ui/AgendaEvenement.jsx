@@ -84,27 +84,11 @@ const CATEGORIES = [
   },
 ];
 
-export default function AgendaEvenement({
-  year,
-  month,
-  selectionEvenement = [],
-  onClearSelection,
-}) {
-  // Si une sélection existe, on filtre les events pour ne garder que ceux sélectionnés
-  const isSelectionActive =
-    Array.isArray(selectionEvenement) && selectionEvenement.length > 0;
+export default function AgendaEvenement({ year, month, selectionEvenement }) {
   return (
     <div className='grid grid-cols-2 gap-4'>
       {CATEGORIES.map((cat) => {
         let events = cat.getEvents(year, month);
-        if (isSelectionActive) {
-          events = events.filter((e) =>
-            selectionEvenement.some((sel) => {
-              const d = new Date(e.date || e.debutDate);
-              return sel.categorie === cat.key && d.getDate() === sel.day;
-            })
-          );
-        }
         return (
           <div
             key={cat.key}
@@ -115,59 +99,79 @@ export default function AgendaEvenement({
                 {cat.label}
               </span>
             </div>
-            {isSelectionActive && events.length > 0 && (
-              <button
-                onClick={onClearSelection}
-                className='mb-2 text-xs text-gray-500 underline'>
-                Désélectionner
-              </button>
-            )}
             {events.length === 0 ? (
               <span className='text-sm text-gray-500'>
-                Aucun {cat.label.toLowerCase()}{" "}
-                {isSelectionActive ? "sélectionné" : "ce mois-ci"}
+                Aucun {cat.label.toLowerCase()} ce mois-ci
               </span>
             ) : (
               <ul className='text-sm text-gray-700 space-y-1 dark:text-gray-200'>
-                {events.map((e) => (
-                  <li
-                    key={e.id || e.nom}
-                    style={{ display: "flex", alignItems: "center" }}>
-                    <span className='overflow-hidden text-ellipsis whitespace-nowrap max-w-[120px] block'>
-                      {e.nom || e.categorie}
-                    </span>
-                    {cat.key === "echelonnes" && (
-                      <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
-                        (
-                        {new Date(e.debutDate).toLocaleDateString("fr-FR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                        })}
-                        )
+                {events.map((e) => {
+                  const isSelected = selectionEvenement.some((sel) => {
+                    const d = new Date(e.date || e.debutDate);
+                    return sel.categorie === cat.key && d.getDate() === sel.day;
+                  });
+                  return (
+                    <li
+                      key={e.id || e.nom}
+                      className={`flex items-center p-1 rounded ${
+                        isSelected ? "bg-yellow-100 dark:bg-yellow-900" : ""
+                      }`}>
+                      <span className='overflow-hidden text-ellipsis whitespace-nowrap max-w-[120px] block'>
+                        {e.nom || e.categorie}
                       </span>
-                    )}
-                    {cat.key === "recurrents" && (
-                      <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
-                        (
-                        {new Date(e.date).toLocaleDateString("fr-FR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                        })}
-                        )
-                      </span>
-                    )}
-                    {cat.key !== "echelonnes" && cat.key !== "recurrents" && (
-                      <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
-                        (
-                        {new Date(e.date || e.debutDate).toLocaleDateString(
-                          "fr-FR",
-                          { day: "2-digit", month: "2-digit" }
-                        )}
-                        )
-                      </span>
-                    )}
-                  </li>
-                ))}
+                      {cat.key === "echelonnes" && (
+                        <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
+                          (
+                          {(() => {
+                            const debut = new Date(e.debutDate);
+                            const nbMensualites = parseInt(e.mensualites, 10);
+                            for (let m = 0; m < nbMensualites; m++) {
+                              const dateMensualite = new Date(
+                                debut.getFullYear(),
+                                debut.getMonth() + m,
+                                debut.getDate()
+                              );
+                              if (
+                                dateMensualite.getFullYear() === year &&
+                                dateMensualite.getMonth() === month
+                              ) {
+                                return dateMensualite.toLocaleDateString(
+                                  "fr-FR",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                  }
+                                );
+                              }
+                            }
+                            return "";
+                          })()}
+                          )
+                        </span>
+                      )}
+                      {cat.key === "recurrents" && (
+                        <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
+                          (
+                          {new Date(e.date).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                          })}
+                          )
+                        </span>
+                      )}
+                      {cat.key !== "echelonnes" && cat.key !== "recurrents" && (
+                        <span className='ml-2 text-xs text-gray-400 whitespace-nowrap'>
+                          (
+                          {new Date(e.date || e.debutDate).toLocaleDateString(
+                            "fr-FR",
+                            { day: "2-digit", month: "2-digit" }
+                          )}
+                          )
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

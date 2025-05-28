@@ -202,7 +202,44 @@ export default function Agenda() {
                           ? "bg-teal-100 dark:bg-gray-800"
                           : "hover:bg-gray-100 dark:hover:bg-gray-900"
                       }`}
-                      onClick={() => currentDay && setSelectedDay(currentDay)}>
+                      onClick={() => {
+                        if (currentDay) {
+                          console.log("Clic sur jour", currentDay);
+                          setSelectedDay(currentDay);
+
+                          // Récupérer tous les événements du jour
+                          const eventsOfDay = [];
+                          if (eventsByDay[currentDay]) {
+                            if (eventsByDay[currentDay].echelonne) {
+                              eventsOfDay.push({
+                                day: currentDay,
+                                categorie: "echelonnes",
+                              });
+                            }
+                            if (eventsByDay[currentDay].recurrent) {
+                              eventsOfDay.push({
+                                day: currentDay,
+                                categorie: "recurrents",
+                              });
+                            }
+                            if (eventsByDay[currentDay].depense) {
+                              eventsOfDay.push({
+                                day: currentDay,
+                                categorie: "depenses",
+                              });
+                            }
+                            if (eventsByDay[currentDay].revenu) {
+                              eventsOfDay.push({
+                                day: currentDay,
+                                categorie: "revenus",
+                              });
+                            }
+                          }
+
+                          // Mettre à jour la sélection
+                          setSelectionEvenement(eventsOfDay);
+                        }
+                      }}>
                       <span
                         className={`text-lg ${
                           currentDay === selectedDay
@@ -212,133 +249,20 @@ export default function Agenda() {
                         {currentDay || ""}
                       </span>
                       {currentDay && eventsByDay[currentDay] && (
-                        <span className='flex gap-0.5 mt-1'>
+                        <div className='flex gap-0.5 mt-1'>
                           {eventsByDay[currentDay].echelonne && (
-                            <span
-                              className='w-2 h-2 rounded-full bg-blue-500 inline-block cursor-pointer'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!currentDay) return;
-                                setSelectionEvenement((prev) => {
-                                  const exists = prev.some(
-                                    (sel) =>
-                                      sel.day === currentDay &&
-                                      sel.categorie === "echelonnes"
-                                  );
-                                  if (exists) {
-                                    return prev.filter(
-                                      (sel) =>
-                                        !(
-                                          sel.day === currentDay &&
-                                          sel.categorie === "echelonnes"
-                                        )
-                                    );
-                                  } else {
-                                    return [
-                                      ...prev,
-                                      {
-                                        day: currentDay,
-                                        categorie: "echelonnes",
-                                      },
-                                    ];
-                                  }
-                                });
-                              }}></span>
+                            <span className='w-2 h-2 rounded-full bg-blue-500 inline-block'></span>
                           )}
                           {eventsByDay[currentDay].recurrent && (
-                            <span
-                              className='w-2 h-2 rounded-full bg-purple-400 inline-block cursor-pointer'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!currentDay) return;
-                                setSelectionEvenement((prev) => {
-                                  const exists = prev.some(
-                                    (sel) =>
-                                      sel.day === currentDay &&
-                                      sel.categorie === "recurrents"
-                                  );
-                                  if (exists) {
-                                    return prev.filter(
-                                      (sel) =>
-                                        !(
-                                          sel.day === currentDay &&
-                                          sel.categorie === "recurrents"
-                                        )
-                                    );
-                                  } else {
-                                    return [
-                                      ...prev,
-                                      {
-                                        day: currentDay,
-                                        categorie: "recurrents",
-                                      },
-                                    ];
-                                  }
-                                });
-                              }}></span>
+                            <span className='w-2 h-2 rounded-full bg-purple-400 inline-block'></span>
                           )}
                           {eventsByDay[currentDay].depense && (
-                            <span
-                              className='w-2 h-2 rounded-full bg-red-500 inline-block cursor-pointer'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!currentDay) return;
-                                setSelectionEvenement((prev) => {
-                                  const exists = prev.some(
-                                    (sel) =>
-                                      sel.day === currentDay &&
-                                      sel.categorie === "depenses"
-                                  );
-                                  if (exists) {
-                                    return prev.filter(
-                                      (sel) =>
-                                        !(
-                                          sel.day === currentDay &&
-                                          sel.categorie === "depenses"
-                                        )
-                                    );
-                                  } else {
-                                    return [
-                                      ...prev,
-                                      {
-                                        day: currentDay,
-                                        categorie: "depenses",
-                                      },
-                                    ];
-                                  }
-                                });
-                              }}></span>
+                            <span className='w-2 h-2 rounded-full bg-red-500 inline-block'></span>
                           )}
                           {eventsByDay[currentDay].revenu && (
-                            <span
-                              className='w-2 h-2 rounded-full bg-green-500 inline-block cursor-pointer'
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!currentDay) return;
-                                setSelectionEvenement((prev) => {
-                                  const exists = prev.some(
-                                    (sel) =>
-                                      sel.day === currentDay &&
-                                      sel.categorie === "revenus"
-                                  );
-                                  if (exists) {
-                                    return prev.filter(
-                                      (sel) =>
-                                        !(
-                                          sel.day === currentDay &&
-                                          sel.categorie === "revenus"
-                                        )
-                                    );
-                                  } else {
-                                    return [
-                                      ...prev,
-                                      { day: currentDay, categorie: "revenus" },
-                                    ];
-                                  }
-                                });
-                              }}></span>
+                            <span className='w-2 h-2 rounded-full bg-green-500 inline-block'></span>
                           )}
-                        </span>
+                        </div>
                       )}
                     </div>
                   );
