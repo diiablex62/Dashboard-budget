@@ -261,6 +261,8 @@ function PaiementRecurrentModal({
 }) {
   const [currentStep, setCurrentStep] = useState(stepInit);
   const montantInputRef = useRef(null);
+  const categorieSelectRef = useRef(null);
+  const joursRefs = useRef([]);
   const [formData, setFormData] = useState({
     id: paiement?.id || null,
     nom: paiement?.nom || "",
@@ -273,12 +275,23 @@ function PaiementRecurrentModal({
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
+    if (currentStep === 2 && categorieSelectRef.current) {
+      setTimeout(() => {
+        categorieSelectRef.current.focus();
+      }, 100);
+    }
     if (currentStep === 3 && montantInputRef.current) {
       setTimeout(() => {
         montantInputRef.current.focus();
       }, 100);
     }
-  }, [currentStep]);
+    if (currentStep === 4 && joursRefs.current.length > 0) {
+      const selectedJour = parseInt(formData.dateDebut.split("-")[2]) || 1;
+      setTimeout(() => {
+        joursRefs.current[selectedJour - 1]?.focus();
+      }, 100);
+    }
+  }, [currentStep, formData.dateDebut]);
 
   const handleChange = useCallback((e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -393,12 +406,47 @@ function PaiementRecurrentModal({
                     nextStep();
                   }
                 }}
+                ref={categorieSelectRef}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 size={
                   type === "depense"
                     ? DEPENSES_CATEGORIES.length + 1
                     : REVENUS_CATEGORIES.length + 1
-                }>
+                }
+                onKeyDown={(e) => {
+                  const categories =
+                    type === "depense"
+                      ? DEPENSES_CATEGORIES
+                      : REVENUS_CATEGORIES;
+                  const currentIndex = categories.indexOf(formData.categorie);
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    const nextIndex =
+                      currentIndex < categories.length - 1
+                        ? currentIndex + 1
+                        : 0;
+                    handleChange({
+                      target: {
+                        name: "categorie",
+                        value: categories[nextIndex],
+                      },
+                    });
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    const prevIndex =
+                      currentIndex > 0
+                        ? currentIndex - 1
+                        : categories.length - 1;
+                    handleChange({
+                      target: {
+                        name: "categorie",
+                        value: categories[prevIndex],
+                      },
+                    });
+                  } else if (e.key === "Enter" && formData.categorie) {
+                    nextStep();
+                  }
+                }}>
                 <option value=''>Sélectionner une catégorie</option>
                 {(type === "depense"
                   ? DEPENSES_CATEGORIES
@@ -478,41 +526,75 @@ function PaiementRecurrentModal({
                 Jour de prélèvement
               </label>
               <div className='grid grid-cols-7 gap-2 mb-4'>
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((jour) => (
-                  <button
-                    key={jour}
-                    type='button'
-                    onClick={() => {
-                      const date = new Date();
-                      date.setDate(jour);
-                      const newDate = date.toISOString().split("T")[0];
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                  (jour, idx) => (
+                    <button
+                      key={jour}
+                      type='button'
+                      ref={(el) => (joursRefs.current[idx] = el)}
+                      onClick={() => {
+                        const date = new Date();
+                        date.setDate(jour);
+                        const newDate = date.toISOString().split("T")[0];
 
-                      if (isFormValid) {
-                        const paiementToSave = {
-                          ...formData,
-                          dateDebut: newDate,
-                          montant: parseFloat(formData.montant),
-                          date: newDate,
-                        };
-                        onSave(paiementToSave);
-                        onClose();
-                      } else {
-                        handleChange({
-                          target: {
-                            name: "dateDebut",
-                            value: newDate,
-                          },
-                        });
-                      }
-                    }}
-                    className={`p-2 text-center rounded-lg border transition-colors ${
-                      parseInt(formData.dateDebut.split("-")[2]) === jour
-                        ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900"
-                        : "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-white"
-                    }`}>
-                    {jour}
-                  </button>
-                ))}
+                        if (isFormValid) {
+                          const paiementToSave = {
+                            ...formData,
+                            dateDebut: newDate,
+                            montant: parseFloat(formData.montant),
+                            date: newDate,
+                          };
+                          onSave(paiementToSave);
+                          onClose();
+                        } else {
+                          handleChange({
+                            target: {
+                              name: "dateDebut",
+                              value: newDate,
+                            },
+                          });
+                        }
+                      }}
+                      className={`p-2 text-center rounded-lg border transition-colors ${
+                        parseInt(formData.dateDebut.split("-")[2]) === jour
+                          ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900"
+                          : "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-white"
+                      }`}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        const col = idx % 7;
+                        const row = Math.floor(idx / 7);
+                        let nextIdx = idx;
+                        if (e.key === "ArrowRight") {
+                          nextIdx = idx === 30 ? 0 : idx + 1;
+                          joursRefs.current[nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "ArrowLeft") {
+                          nextIdx = idx === 0 ? 30 : idx - 1;
+                          joursRefs.current[nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "ArrowDown") {
+                          nextIdx = idx + 7 > 30 ? col : idx + 7;
+                          joursRefs.current[nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "ArrowUp") {
+                          nextIdx =
+                            idx - 7 < 0
+                              ? col + 28 > 30
+                                ? col + 21
+                                : col + 28
+                              : idx - 7;
+                          joursRefs.current[nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "Enter") {
+                          joursRefs.current[idx]?.click();
+                          e.preventDefault();
+                        }
+                      }}>
+                      {jour}
+                    </button>
+                  )
+                )}
               </div>
               <div className='flex justify-between'>
                 <button
