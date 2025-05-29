@@ -75,6 +75,13 @@ const PaiementRecurrent = () => {
     );
   }, [paiementsFiltres]);
 
+  // Fonction locale pour éditer un paiement
+  const handleEditPaiement = useCallback((paiement) => {
+    setSelectedPaiement(paiement);
+    setShowModal(true);
+    setStep(1);
+  }, []);
+
   const handleAddPaiement = useCallback(() => {
     setSelectedPaiement(null);
     setShowModal(true);
@@ -221,9 +228,7 @@ const PaiementRecurrent = () => {
                   key={p.id}
                   item={p}
                   currentTab={currentTab}
-                  onEdit={() =>
-                    editPaiement(p, setSelectedPaiement, setShowModal)
-                  }
+                  onEdit={() => handleEditPaiement(p)}
                   onDelete={() =>
                     deletePaiementWithUndo(p.id, setPaiementsRecurrents, p.nom)
                   }
