@@ -23,6 +23,9 @@ import {
 } from "../utils/categoryUtils";
 import { fakePaiementsEchelonnes } from "../utils/fakeData";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
+import CardDesign from "../components/ui/CardDesign";
+import { toast } from "react-toastify";
+import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 const PaiementEchelonne = () => {
   const defaultDebutDate = useMemo(() => {
@@ -131,14 +134,39 @@ const PaiementEchelonne = () => {
     setShowModal(true);
   }, []);
 
-  const handleDelete = useCallback((id) => {
-    if (
-      !window.confirm(
-        "Êtes-vous sûr de vouloir supprimer ce paiement échelonné ?"
-      )
-    )
-      return;
-    setPaiementsEchelonnes((prev) => prev.filter((p) => p.id !== id));
+  const handleDelete = useCallback((id, nom) => {
+    toast.warn(
+      <div>
+        <b>Suppression du paiement échelonné : {nom}</b>
+        <div className='mt-1'>
+          Vous allez supprimer ce paiement échelonné pour tous les mois.
+          <br />
+          Voulez-vous continuer&nbsp;?
+        </div>
+        <div className='flex justify-end gap-2 mt-3'>
+          <button
+            className='px-3 py-1 rounded bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300'
+            onClick={() => toast.dismiss()}>
+            Annuler
+          </button>
+          <button
+            className='px-3 py-1 rounded bg-red-500 text-white font-semibold hover:bg-red-600'
+            onClick={() => {
+              toast.dismiss();
+              deletePaiementWithUndo(id, setPaiementsEchelonnes, nom);
+            }}>
+            Supprimer
+          </button>
+        </div>
+      </div>,
+      {
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+        position: "top-right",
+        toastId: `alert-delete-echelonne-${id}`,
+      }
+    );
   }, []);
 
   const totalDepenses = useMemo(() => {
@@ -350,75 +378,38 @@ const PaiementEchelonne = () => {
                   );
                   const pourcentage =
                     (mensualitesPayees / paiement.mensualites) * 100;
+                  const finDate = new Date(
+                    new Date(paiement.debutDate).setMonth(
+                      new Date(paiement.debutDate).getMonth() +
+                        parseInt(paiement.mensualites) -
+                        1
+                    )
+                  );
+                  // Montant mensuel calculé
+                  const montantMensuel =
+                    parseFloat(paiement.montant) /
+                    parseInt(paiement.mensualites);
                   return (
-                    <div
+                    <CardDesign
                       key={paiement.id}
-                      className='bg-white dark:bg-black rounded-lg shadow border border-gray-100 dark:border-gray-800 p-4 flex flex-col transition-all duration-200'>
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center'>
-                          <div className='w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mr-3'>
-                            <AiOutlineDollarCircle className='text-gray-600 dark:text-white text-xl' />
-                          </div>
-                          <div>
-                            <div className='font-semibold dark:text-white'>
-                              {paiement.nom.charAt(0).toUpperCase() +
-                                paiement.nom.slice(1)}
-                            </div>
-                            <div className='text-xs text-gray-500 dark:text-gray-400'>
-                              {paiement.categorie}
-                            </div>
-                          </div>
-                        </div>
-                        <div className='flex flex-col items-end'>
-                          <div className='font-bold text-green-600 dark:text-green-400'>
-                            {(
-                              parseFloat(paiement.montant) /
-                              parseFloat(paiement.mensualites)
-                            ).toFixed(2)}{" "}
-                            €/mois
-                          </div>
-                        </div>
+                      item={{ ...paiement, montant: montantMensuel }}
+                      currentTab={isRevenus ? "revenu" : "depense"}
+                      onEdit={() => handleEdit(paiement)}
+                      onDelete={() => handleDelete(paiement.id, paiement.nom)}>
+                      {/* Barre de progression */}
+                      <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-2'>
+                        <div
+                          className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
+                          style={{ width: `${pourcentage}%` }}></div>
                       </div>
-
-                      <div className='mt-4'>
-                        <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
-                          <div
-                            className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
-                            style={{
-                              width: `${pourcentage}%`,
-                            }}></div>
-                        </div>
-                        <div className='mt-2 flex justify-between items-center w-full text-sm text-gray-500 dark:text-gray-400'>
-                          <span>
-                            Mensualité {mensualitesPayees}/
-                            {paiement.mensualites}
-                          </span>
-                          <span>
-                            Fin:{" "}
-                            {new Date(
-                              new Date(paiement.debutDate).setMonth(
-                                new Date(paiement.debutDate).getMonth() +
-                                  parseInt(paiement.mensualites) -
-                                  1
-                              )
-                            ).toLocaleDateString("fr-FR")}
-                          </span>
-                        </div>
+                      {/* Infos mensualité et fin */}
+                      <div className='flex justify-between items-center w-full text-sm text-gray-500 dark:text-gray-400'>
+                        <span>
+                          Mensualité {mensualitesPayees}/{paiement.mensualites}
+                        </span>
+                        <span>Fin: {finDate.toLocaleDateString("fr-FR")}</span>
                       </div>
-
-                      <div className='flex justify-end mt-4'>
-                        <button
-                          className='text-blue-600 dark:text-blue-400 font-medium hover:underline mr-4 cursor-pointer'
-                          onClick={() => handleEdit(paiement)}>
-                          Modifier
-                        </button>
-                        <button
-                          className='text-red-500 dark:text-red-400 font-medium hover:underline cursor-pointer'
-                          onClick={() => handleDelete(paiement.id)}>
-                          Supprimer
-                        </button>
-                      </div>
-                    </div>
+                    </CardDesign>
                   );
                 })}
             </div>

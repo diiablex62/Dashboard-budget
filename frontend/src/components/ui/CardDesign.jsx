@@ -1,8 +1,8 @@
 import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
 
-const CardDesign = ({ item, currentTab, onEdit, onDelete }) => {
-  // Fonction pour formater la date
+const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
+  // Fonction pour formater la date (utilisée uniquement si pas d'échelonné)
   const formatDate = () => {
     if (item.jourPrelevement) {
       return `Prélèvement : le ${item.jourPrelevement}`;
@@ -24,7 +24,7 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete }) => {
             {item.categorie}
           </div>
         </div>
-        {/* Colonne droite : montant et date */}
+        {/* Colonne droite : montant et date (date seulement si pas d'échelonné) */}
         <div className='flex flex-col items-end justify-center min-w-0'>
           <div
             className={`font-bold ${
@@ -34,13 +34,18 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete }) => {
             {parseFloat(item.montant).toLocaleString("fr-FR", {
               minimumFractionDigits: 2,
             })}{" "}
-            €
+            {/* Pas de /mois ici, ni de montant mensuel calculé ici */}
           </div>
-          <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
-            {formatDate()}
-          </div>
+          {/* Afficher la date uniquement si ce n'est pas un paiement échelonné */}
+          {!item.mensualites && (
+            <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
+              {formatDate()}
+            </div>
+          )}
         </div>
       </div>
+      {/* Slot pour contenu additionnel (ex: barre de progression, infos) */}
+      {children && <div className='mt-3'>{children}</div>}
       {/* Boutons Modifier/Supprimer en bas à droite sur une 3e ligne, visibles au hover */}
       <div className='flex justify-end gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
         <button
