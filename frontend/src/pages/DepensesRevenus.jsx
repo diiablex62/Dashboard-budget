@@ -47,8 +47,12 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
   });
   const [error, setError] = useState(null);
   const montantInputRef = useRef(null);
+  const dateInputRef = useRef(null);
+  const categorieSelectRef = useRef(null);
+  const [dateInput, setDateInput] = useState("");
 
   const handleChange = useCallback((e) => {
+    console.log(e.target.name, e.target.value);
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
   }, []);
@@ -56,13 +60,54 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
   const handleNext = useCallback(() => setStep((s) => s + 1), []);
   const handlePrev = useCallback(() => setStep((s) => s - 1), []);
 
+  const handleDateInputChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 8) {
+      let formattedValue = value;
+      if (value.length > 2) {
+        formattedValue = value.slice(0, 2) + "/" + value.slice(2);
+      }
+      if (value.length > 4) {
+        formattedValue =
+          value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4);
+      }
+      setDateInput(formattedValue);
+
+      // Mise à jour de la date complète
+      if (value.length === 8) {
+        const year = value.slice(4, 8);
+        const month = value.slice(2, 4);
+        const day = value.slice(0, 2);
+        const dateStr = `${year}-${month}-${day}`;
+        handleChange({ target: { name: "date", value: dateStr } });
+      }
+    }
+  };
+
   useEffect(() => {
+    if (step === 2 && categorieSelectRef.current) {
+      setTimeout(() => {
+        categorieSelectRef.current.focus();
+      }, 100);
+    }
     if (step === 3 && montantInputRef.current) {
       setTimeout(() => {
         montantInputRef.current.focus();
       }, 100);
     }
+    if (step === 4 && dateInputRef.current) {
+      setTimeout(() => {
+        dateInputRef.current.focus();
+      }, 100);
+    }
   }, [step]);
+
+  useEffect(() => {
+    if (form.date) {
+      const [year, month, day] = form.date.split("-");
+      setDateInput(`${day}/${month}/${year}`);
+    }
+  }, [form.date]);
 
   const handleSubmit = useCallback(
     (e) => {
@@ -181,6 +226,37 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
                     handleNext();
                   }
                 }}
+                onKeyDown={(e) => {
+                  const currentIndex = CATEGORIES.indexOf(form.categorie);
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    const nextIndex =
+                      currentIndex < CATEGORIES.length - 1
+                        ? currentIndex + 1
+                        : 0;
+                    handleChange({
+                      target: {
+                        name: "categorie",
+                        value: CATEGORIES[nextIndex],
+                      },
+                    });
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    const prevIndex =
+                      currentIndex > 0
+                        ? currentIndex - 1
+                        : CATEGORIES.length - 1;
+                    handleChange({
+                      target: {
+                        name: "categorie",
+                        value: CATEGORIES[prevIndex],
+                      },
+                    });
+                  } else if (e.key === "Enter" && form.categorie) {
+                    handleNext();
+                  }
+                }}
+                ref={categorieSelectRef}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 size={CATEGORIES.length + 1}
                 style={{ overflowY: "auto" }}>
@@ -262,11 +338,23 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
                   type='date'
                   name='date'
                   value={form.date}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newDate = e.target.value;
+                    if (newDate) {
+                      onSave({
+                        ...form,
+                        date: newDate,
+                        montant: parseFloat(form.montant),
+                        id: form.id,
+                      });
+                      onClose();
+                    }
+                  }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
                   style={{
                     paddingRight: "2.5rem",
                   }}
+                  ref={dateInputRef}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && form.date) handleSubmit(e);
                   }}
@@ -274,7 +362,9 @@ function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
                 <AiOutlineCalendar
                   className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
                   onClick={() => {
-                    // setDatePickerPos({ ... }); // supprimé car plus utilisé
+                    if (dateInputRef.current) {
+                      dateInputRef.current.showPicker();
+                    }
                   }}
                 />
               </div>
@@ -310,8 +400,12 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
   });
   const [error, setError] = useState(null);
   const montantInputRef = useRef(null);
+  const dateInputRef = useRef(null);
+  const categorieSelectRef = useRef(null);
+  const [dateInput, setDateInput] = useState("");
 
   const handleChange = useCallback((e) => {
+    console.log(e.target.name, e.target.value);
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
   }, []);
@@ -319,13 +413,54 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
   const handleNext = useCallback(() => setStep((s) => s + 1), []);
   const handlePrev = useCallback(() => setStep((s) => s - 1), []);
 
+  const handleDateInputChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 8) {
+      let formattedValue = value;
+      if (value.length > 2) {
+        formattedValue = value.slice(0, 2) + "/" + value.slice(2);
+      }
+      if (value.length > 4) {
+        formattedValue =
+          value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4);
+      }
+      setDateInput(formattedValue);
+
+      // Mise à jour de la date complète
+      if (value.length === 8) {
+        const year = value.slice(4, 8);
+        const month = value.slice(2, 4);
+        const day = value.slice(0, 2);
+        const dateStr = `${year}-${month}-${day}`;
+        handleChange({ target: { name: "date", value: dateStr } });
+      }
+    }
+  };
+
   useEffect(() => {
+    if (step === 2 && categorieSelectRef.current) {
+      setTimeout(() => {
+        categorieSelectRef.current.focus();
+      }, 100);
+    }
     if (step === 3 && montantInputRef.current) {
       setTimeout(() => {
         montantInputRef.current.focus();
       }, 100);
     }
+    if (step === 4 && dateInputRef.current) {
+      setTimeout(() => {
+        dateInputRef.current.focus();
+      }, 100);
+    }
   }, [step]);
+
+  useEffect(() => {
+    if (form.date) {
+      const [year, month, day] = form.date.split("-");
+      setDateInput(`${day}/${month}/${year}`);
+    }
+  }, [form.date]);
 
   const handleSubmit = useCallback(
     (e) => {
@@ -444,6 +579,37 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
                     handleNext();
                   }
                 }}
+                onKeyDown={(e) => {
+                  const currentIndex = CATEGORIES.indexOf(form.categorie);
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    const nextIndex =
+                      currentIndex < CATEGORIES.length - 1
+                        ? currentIndex + 1
+                        : 0;
+                    handleChange({
+                      target: {
+                        name: "categorie",
+                        value: CATEGORIES[nextIndex],
+                      },
+                    });
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    const prevIndex =
+                      currentIndex > 0
+                        ? currentIndex - 1
+                        : CATEGORIES.length - 1;
+                    handleChange({
+                      target: {
+                        name: "categorie",
+                        value: CATEGORIES[prevIndex],
+                      },
+                    });
+                  } else if (e.key === "Enter" && form.categorie) {
+                    handleNext();
+                  }
+                }}
+                ref={categorieSelectRef}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
                 size={CATEGORIES.length + 1}
                 style={{ overflowY: "auto" }}>
@@ -525,11 +691,23 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
                   type='date'
                   name='date'
                   value={form.date}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newDate = e.target.value;
+                    if (newDate) {
+                      onSave({
+                        ...form,
+                        date: newDate,
+                        montant: parseFloat(form.montant),
+                        id: form.id,
+                      });
+                      onClose();
+                    }
+                  }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
                   style={{
                     paddingRight: "2.5rem",
                   }}
+                  ref={dateInputRef}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && form.date) handleSubmit(e);
                   }}
@@ -537,7 +715,9 @@ function DepenseModal({ onClose, onSave, depense = {}, stepInit = 1 }) {
                 <AiOutlineCalendar
                   className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
                   onClick={() => {
-                    // setDatePickerPos({ ... }); // supprimé car plus utilisé
+                    if (dateInputRef.current) {
+                      dateInputRef.current.showPicker();
+                    }
                   }}
                 />
               </div>
