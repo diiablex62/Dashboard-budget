@@ -360,7 +360,7 @@ export default function Dashboard() {
       depensesClassiquesMoisPrec +
       recurrentsDepenseMoisPrec +
       echelonnesDepenseMoisPrec;
-    return totalPrec - totalCourant;
+    return totalCourant - totalPrec;
   }, [
     depensesClassiquesMoisCourant,
     recurrentsDepenseMoisCourant,
@@ -385,7 +385,7 @@ export default function Dashboard() {
             {totalDepense.toFixed(2)}€
           </div>
           <div className='text-xs text-gray-400'>
-            {differenceMoisPrecedent >= 0 ? "+" : "-"}{" "}
+            {differenceMoisPrecedent < 0 ? "-" : "+"}{" "}
             {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
               minimumFractionDigits: 2,
             })}{" "}
