@@ -32,6 +32,7 @@ import {
   totalRevenusGlobalMois,
   calculEconomies,
 } from "../utils/calcul";
+import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 function RevenuModal({ onClose, onSave, revenu = null, stepInit = 1 }) {
   console.log("REVENUS_CATEGORIES:", REVENUS_CATEGORIES);
@@ -668,7 +669,7 @@ export default function DepensesRevenus() {
             </div>
 
             {/* Cartes de statistiques */}
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
               {/* Carte 1: Total Dépenses */}
               <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
                 <div className='flex items-center text-red-600 mb-2'>
@@ -791,33 +792,33 @@ export default function DepensesRevenus() {
                   </p>
                 </div>
               ) : (
-                <div className='grid grid-cols-1 gap-4'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   {filteredDepenseRevenu.map((depenseRevenuItem, idx) => (
                     <div
                       key={depenseRevenuItem.id || idx}
-                      className='bg-gray-50 rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200 dark:bg-black dark:text-white dark:border-gray-700'>
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center'>
-                          <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3 dark:bg-gray-800'>
-                            <AiOutlineDollarCircle className='text-gray-600 text-xl dark:text-white' />
+                      className='group bg-white dark:bg-gray-900 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 p-6 flex flex-col transition-all duration-200 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-600 h-full'>
+                      <div className='flex flex-row items-center justify-between'>
+                        {/* Bloc gauche : logo, nom, catégorie */}
+                        <div className='flex flex-col justify-center min-w-0'>
+                          <div className='w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3 dark:bg-gray-800'>
+                            <AiOutlineDollarCircle className='text-gray-600 text-2xl dark:text-white' />
                           </div>
-                          <div>
-                            <div className='font-semibold dark:text-white'>
-                              {depenseRevenuItem.nom.charAt(0).toUpperCase() +
-                                depenseRevenuItem.nom.slice(1)}
-                            </div>
-                            <div className='text-xs text-gray-500 dark:text-gray-300'>
-                              {depenseRevenuItem.categorie}
-                            </div>
+                          <div className='font-semibold dark:text-white mb-1 truncate max-w-[180px] text-lg'>
+                            {depenseRevenuItem.nom.charAt(0).toUpperCase() +
+                              depenseRevenuItem.nom.slice(1)}
+                          </div>
+                          <div className='text-xs text-gray-500 dark:text-gray-300 truncate max-w-[180px]'>
+                            {depenseRevenuItem.categorie}
                           </div>
                         </div>
-                        <div className='flex flex-col items-end'>
+                        {/* Bloc droit : montant, date */}
+                        <div className='flex flex-col items-end justify-center ml-4'>
                           <div
                             className={`font-bold ${
                               currentTab === "depense"
                                 ? "text-red-600"
                                 : "text-green-600"
-                            }`}>
+                            } mb-1 text-lg`}>
                             {currentTab === "depense" ? "-" : "+"}
                             {parseFloat(
                               depenseRevenuItem.montant
@@ -832,6 +833,40 @@ export default function DepensesRevenus() {
                             ).toLocaleDateString("fr-FR")}
                           </div>
                         </div>
+                      </div>
+                      {/* Boutons Modifier/Supprimer en bas à droite sur une 3e ligne, visibles au hover */}
+                      <div className='flex justify-end gap-2 mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                        <button
+                          className='text-blue-600 hover:bg-blue-100 p-2 rounded-full transition dark:text-blue-400 dark:hover:bg-blue-900'
+                          title='Modifier'
+                          onClick={() => {
+                            setSelectedItem(depenseRevenuItem);
+                            if (currentTab === "depense")
+                              setShowDepenseModal(true);
+                            else setShowRevenuModal(true);
+                          }}>
+                          <FiEdit className='text-lg' />
+                        </button>
+                        <button
+                          className='text-red-500 hover:bg-red-100 p-2 rounded-full transition dark:text-red-400 dark:hover:bg-red-900'
+                          title='Supprimer'
+                          onClick={() => {
+                            if (currentTab === "depense") {
+                              deletePaiementWithUndo(
+                                depenseRevenuItem.id,
+                                setDepenses,
+                                depenseRevenuItem.nom
+                              );
+                            } else {
+                              deletePaiementWithUndo(
+                                depenseRevenuItem.id,
+                                setRevenus,
+                                depenseRevenuItem.nom
+                              );
+                            }
+                          }}>
+                          <FiTrash className='text-lg' />
+                        </button>
                       </div>
                     </div>
                   ))}
