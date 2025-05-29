@@ -31,6 +31,7 @@ import {
   editPaiement,
   deletePaiementWithUndo,
 } from "../utils/paiementActions.jsx";
+import CardDesign from "../components/ui/CardDesign";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -216,64 +217,17 @@ const PaiementRecurrent = () => {
           ) : (
             <div className='grid grid-cols-1 gap-4'>
               {paiementsTries.map((p) => (
-                <div
+                <CardDesign
                   key={p.id}
-                  className='bg-gray-50 rounded-lg shadow border border-gray-100 p-4 flex flex-col transition-all duration-200 dark:bg-black dark:text-white dark:border-gray-700'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center'>
-                      <div className='w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3'>
-                        <AiOutlineDollarCircle className='text-gray-600 text-xl' />
-                      </div>
-                      <div>
-                        <div className='font-semibold'>
-                          {p.nom?.charAt(0).toUpperCase() + p.nom?.slice(1)}
-                        </div>
-                        <div className='text-xs text-gray-500 dark:text-gray-300'>
-                          {p.categorie}
-                        </div>
-                      </div>
-                    </div>
-                    <div className='flex flex-col items-end'>
-                      <div
-                        className={`font-bold ${
-                          currentTab === "depense"
-                            ? "text-red-600 dark:text-red-400"
-                            : "text-green-600 dark:text-green-400"
-                        }`}>
-                        {currentTab === "depense" ? "-" : "+"}
-                        {parseFloat(p.montant).toLocaleString("fr-FR", {
-                          minimumFractionDigits: 2,
-                        })}{" "}
-                        €
-                      </div>
-                      <div className='text-xs text-gray-400 dark:text-gray-300'>
-                        Prélèvement : le {p.jourPrelevement}
-                      </div>
-                    </div>
-                  </div>
-                  <div className='flex justify-end mt-2'>
-                    <button
-                      className='text-blue-600 hover:bg-blue-100 p-2 rounded-full mr-2 transition dark:text-blue-400 dark:hover:bg-blue-900'
-                      onClick={() =>
-                        editPaiement(p, setSelectedPaiement, setShowModal)
-                      }
-                      title='Modifier'>
-                      <AiOutlineEdit className='text-xl' />
-                    </button>
-                    <button
-                      className='text-red-500 hover:bg-red-100 p-2 rounded-full transition dark:text-red-400 dark:hover:bg-red-900'
-                      onClick={() =>
-                        deletePaiementWithUndo(
-                          p.id,
-                          setPaiementsRecurrents,
-                          p.nom
-                        )
-                      }
-                      title='Supprimer'>
-                      <AiOutlineDelete className='text-xl' />
-                    </button>
-                  </div>
-                </div>
+                  item={p}
+                  currentTab={currentTab}
+                  onEdit={() =>
+                    editPaiement(p, setSelectedPaiement, setShowModal)
+                  }
+                  onDelete={() =>
+                    deletePaiementWithUndo(p.id, setPaiementsRecurrents, p.nom)
+                  }
+                />
               ))}
             </div>
           )}

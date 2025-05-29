@@ -1,10 +1,13 @@
 import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
-import { deletePaiementWithUndo } from "../../utils/paiementActions.jsx";
 
 const CardDesign = ({ item, currentTab, onEdit, onDelete }) => {
-  const handleDelete = () => {
-    deletePaiementWithUndo(item.id, onDelete, item.nom);
+  // Fonction pour formater la date
+  const formatDate = () => {
+    if (item.jourPrelevement) {
+      return `Prélèvement : le ${item.jourPrelevement}`;
+    }
+    return new Date(item.date).toLocaleDateString("fr-FR");
   };
 
   return (
@@ -34,7 +37,7 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete }) => {
             €
           </div>
           <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
-            {new Date(item.date).toLocaleDateString("fr-FR")}
+            {formatDate()}
           </div>
         </div>
       </div>
@@ -49,7 +52,7 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete }) => {
         <button
           className='text-red-500 hover:bg-red-100 p-1 rounded-full transition dark:text-red-400 dark:hover:bg-red-900'
           title='Supprimer'
-          onClick={handleDelete}>
+          onClick={onDelete}>
           <FiTrash className='text-base' />
         </button>
       </div>
