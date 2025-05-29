@@ -75,55 +75,6 @@ const PaiementEchelonne = () => {
     setNewPaiement((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
-  const handleAddOrEditPaiement = useCallback(
-    (paiementOverride) => {
-      const paiementToSave = paiementOverride || newPaiement;
-      if (
-        !paiementToSave.nom ||
-        !paiementToSave.montant ||
-        !paiementToSave.mensualites ||
-        !paiementToSave.debutDate
-      ) {
-        setError("Tous les champs sont obligatoires");
-        return;
-      }
-
-      const paymentData = {
-        ...paiementToSave,
-        montant: parseFloat(paiementToSave.montant),
-        mensualites: parseInt(paiementToSave.mensualites),
-      };
-
-      if (editIndex !== null) {
-        setPaiementsEchelonnes((prev) => {
-          const updated = prev.map((p) =>
-            p.id === editIndex ? { ...paymentData, id: editIndex } : p
-          );
-          return [...updated];
-        });
-      } else {
-        const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
-        setPaiementsEchelonnes((prev) => [
-          ...prev,
-          { ...paymentData, id: newId },
-        ]);
-      }
-
-      setNewPaiement({
-        nom: "",
-        montant: "",
-        mensualites: "",
-        debutDate: defaultDebutDate,
-        categorie: "",
-        type: "depense",
-      });
-      setEditIndex(null);
-      setShowModal(false);
-      setError(null);
-    },
-    [newPaiement, editIndex, defaultDebutDate, paiementsEchelonnes]
-  );
-
   const handleEdit = useCallback((payment) => {
     setNewPaiement({
       nom: payment.nom,
@@ -457,35 +408,6 @@ const PaiementEchelonne = () => {
               échelonné
             </div>
 
-            {/* Récapitulatif dynamique */}
-            <div className='mb-4 dark:text-gray-300'>
-              {newPaiement.nom && (
-                <div>
-                  <span className='font-medium'>Libellé :</span>{" "}
-                  {newPaiement.nom.charAt(0).toUpperCase() +
-                    newPaiement.nom.slice(1)}
-                </div>
-              )}
-              {step > 1 && newPaiement.montant && (
-                <div>
-                  <span className='font-medium'>Montant total :</span>{" "}
-                  {parseFloat(newPaiement.montant).toFixed(2)} €
-                </div>
-              )}
-              {step > 2 && newPaiement.mensualites && (
-                <div>
-                  <span className='font-medium'>Nombre de mensualités :</span>{" "}
-                  {newPaiement.mensualites}
-                </div>
-              )}
-              {step > 3 && newPaiement.debutDate && (
-                <div>
-                  <span className='font-medium'>Début :</span>{" "}
-                  {new Date(newPaiement.debutDate).toLocaleDateString("fr-FR")}
-                </div>
-              )}
-            </div>
-
             {error && (
               <div className='mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded'>
                 {error}
@@ -532,6 +454,90 @@ const PaiementEchelonne = () => {
             {step === 2 && (
               <div>
                 <label className='block mb-2 font-medium dark:text-white'>
+                  Catégorie
+                </label>
+                <select
+                  name='categorie'
+                  value={newPaiement.categorie}
+                  onChange={handleChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
+                  ref={categorieInputRef}
+                  autoFocus
+                  size={
+                    isRevenus
+                      ? REVENUS_CATEGORIES.length + 1
+                      : DEPENSES_CATEGORIES.length + 1
+                  }
+                  onKeyDown={(e) => {
+                    const categories = isRevenus
+                      ? REVENUS_CATEGORIES
+                      : DEPENSES_CATEGORIES;
+                    const currentIndex = categories.indexOf(
+                      newPaiement.categorie
+                    );
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      const nextIndex =
+                        currentIndex < categories.length - 1
+                          ? currentIndex + 1
+                          : 0;
+                      handleChange({
+                        target: {
+                          name: "categorie",
+                          value: categories[nextIndex],
+                        },
+                      });
+                    } else if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      const prevIndex =
+                        currentIndex > 0
+                          ? currentIndex - 1
+                          : categories.length - 1;
+                      handleChange({
+                        target: {
+                          name: "categorie",
+                          value: categories[prevIndex],
+                        },
+                      });
+                    } else if (e.key === "Enter" && newPaiement.categorie) {
+                      handleNext();
+                    }
+                  }}>
+                  <option value=''>Sélectionner une catégorie</option>
+                  {(isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES).map(
+                    (cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    )
+                  )}
+                </select>
+                <div className='flex justify-between'>
+                  <button
+                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
+                    onClick={handlePrev}>
+                    Précédent
+                  </button>
+                  <button
+                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
+                    disabled={!newPaiement.categorie}
+                    onClick={() => {
+                      if (!newPaiement.categorie) {
+                        setError("La catégorie est requise");
+                        return;
+                      }
+                      setError(null);
+                      handleNext();
+                    }}>
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div>
+                <label className='block mb-2 font-medium dark:text-white'>
                   Montant total (€)
                 </label>
                 <input
@@ -572,7 +578,7 @@ const PaiementEchelonne = () => {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <div>
                 <label className='block mb-2 font-medium dark:text-white'>
                   Nombre de mensualités
@@ -616,7 +622,7 @@ const PaiementEchelonne = () => {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div>
                 <label className='block mb-2 font-medium dark:text-white'>
                   Date de début
@@ -631,6 +637,56 @@ const PaiementEchelonne = () => {
                     ref={debutDateInputRef}
                     style={{
                       paddingRight: "2.5rem",
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newPaiement.debutDate) {
+                        if (
+                          !newPaiement.nom ||
+                          !newPaiement.montant ||
+                          !newPaiement.mensualites ||
+                          !newPaiement.debutDate ||
+                          !newPaiement.categorie
+                        ) {
+                          setError("Tous les champs sont obligatoires");
+                          return;
+                        }
+                        const paymentData = {
+                          ...newPaiement,
+                          montant: parseFloat(newPaiement.montant),
+                          mensualites: parseInt(newPaiement.mensualites),
+                        };
+                        if (editIndex !== null) {
+                          setPaiementsEchelonnes((prev) => {
+                            const updated = prev.map((p) =>
+                              p.id === editIndex
+                                ? { ...paymentData, id: editIndex }
+                                : p
+                            );
+                            return [...updated];
+                          });
+                        } else {
+                          const newId =
+                            Math.max(
+                              ...paiementsEchelonnes.map((p) => p.id),
+                              0
+                            ) + 1;
+                          setPaiementsEchelonnes((prev) => [
+                            ...prev,
+                            { ...paymentData, id: newId },
+                          ]);
+                        }
+                        setNewPaiement({
+                          nom: "",
+                          montant: "",
+                          mensualites: "",
+                          debutDate: defaultDebutDate,
+                          categorie: "",
+                          type: "depense",
+                        });
+                        setEditIndex(null);
+                        setShowModal(false);
+                        setError(null);
+                      }
                     }}
                   />
                   <AiOutlineCalendar
@@ -649,58 +705,6 @@ const PaiementEchelonne = () => {
                     disabled={!newPaiement.debutDate}
                     onClick={handleNext}>
                     Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 5 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Catégorie
-                </label>
-                <select
-                  name='categorie'
-                  value={newPaiement.categorie}
-                  onChange={(e) => {
-                    handleChange(e);
-                    if (e.target.value && e.target.value !== "") {
-                      handleAddOrEditPaiement({
-                        ...newPaiement,
-                        categorie: e.target.value,
-                      });
-                    }
-                  }}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  ref={categorieInputRef}
-                  autoFocus
-                  size={
-                    isRevenus
-                      ? REVENUS_CATEGORIES.length + 1
-                      : DEPENSES_CATEGORIES.length + 1
-                  }>
-                  <option value=''>Sélectionner une catégorie</option>
-                  {(isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES).map(
-                    (cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    )
-                  )}
-                </select>
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.categorie}
-                    onClick={handleAddOrEditPaiement}>
-                    {editIndex !== null
-                      ? "Valider la modification"
-                      : "Valider l'ajout"}
                   </button>
                 </div>
               </div>
