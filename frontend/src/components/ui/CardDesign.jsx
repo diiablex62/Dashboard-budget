@@ -2,12 +2,24 @@ import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
 
 const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
+  // LOG pour debug
+  console.log("CardDesign - item:", item);
+  console.log("CardDesign - item.jourPrelevement:", item.jourPrelevement);
+
   // Fonction pour formater la date (utilisée uniquement si pas d'échelonné)
   const formatDate = () => {
     if (item.jourPrelevement) {
       return `Prélèvement : le ${item.jourPrelevement}`;
     }
-    return new Date(item.date).toLocaleDateString("fr-FR");
+    try {
+      const date = new Date(item.date);
+      if (isNaN(date.getTime())) {
+        return "Date invalide";
+      }
+      return date.toLocaleDateString("fr-FR");
+    } catch (e) {
+      return "Date invalide";
+    }
   };
 
   return (
@@ -30,18 +42,37 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
             className={`font-bold ${
               currentTab === "depense" ? "text-red-600" : "text-green-600"
             } text-base truncate`}>
-            {currentTab === "depense" ? "-" : "+"}
-            {parseFloat(item.montant).toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            {/* Pas de /mois ici, ni de montant mensuel calculé ici */}
+            {!isNaN(parseFloat(item.montant)) &&
+            item.montant !== "" &&
+            item.montant != null ? (
+              `${currentTab === "depense" ? "-" : "+"}${parseFloat(
+                item.montant
+              ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}`
+            ) : (
+              <span className='opacity-50'>&nbsp;</span>
+            )}
           </div>
-          {/* Afficher la date uniquement si ce n'est pas un paiement échelonné */}
-          {!item.mensualites && (
+          {/* Afficher la date ou le jour de prélèvement pour les paiements récurrents */}
+          {Number.isFinite(Number(item.jourPrelevement)) && (
             <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
-              {formatDate()}
+              Prélèvement : le {item.jourPrelevement} de chaque mois
             </div>
           )}
+          {/* Afficher la date uniquement si ce n'est pas un paiement échelonné et pas de jour de prélèvement, et si la date est valide */}
+          {!item.mensualites &&
+            !item.jourPrelevement &&
+            item.date &&
+            (() => {
+              const date = new Date(item.date);
+              if (!isNaN(date.getTime())) {
+                return (
+                  <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
+                    {date.toLocaleDateString("fr-FR")}
+                  </div>
+                );
+              }
+              return null;
+            })()}
         </div>
       </div>
       {/* Slot pour contenu additionnel (ex: barre de progression, infos) */}

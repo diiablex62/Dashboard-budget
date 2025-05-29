@@ -25,20 +25,51 @@ export default function ModalTransaction({
   }, [visible, initialValues]);
 
   useEffect(() => {
-    if (visible && inputRefs.current[step - 1]) {
+    console.log(
+      "ModalTransaction - step:",
+      step,
+      "current:",
+      steps[step - 1]?.name,
+      "form:",
+      form
+    );
+  }, [step, form, steps]);
+
+  useEffect(() => {
+    if (visible) {
       setTimeout(() => {
-        inputRefs.current[step - 1].focus();
+        const el = inputRefs.current[step - 1];
+        if (el && typeof el.focus === "function") {
+          el.focus();
+          if (el.select) el.select();
+        }
       }, 100);
     }
-  }, [step, visible]);
+  }, [step, visible, steps]);
 
   const handleChange = useCallback((e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
   }, []);
 
-  const handleNext = useCallback(() => setStep((s) => s + 1), []);
-  const handlePrev = useCallback(() => setStep((s) => s - 1), []);
+  const handleNext = useCallback(() => {
+    console.log(
+      "ModalTransaction - handleNext, step:",
+      step,
+      "current:",
+      steps[step - 1]?.name
+    );
+    setStep((s) => s + 1);
+  }, [step, steps]);
+  const handlePrev = useCallback(() => {
+    console.log(
+      "ModalTransaction - handlePrev, step:",
+      step,
+      "current:",
+      steps[step - 1]?.name
+    );
+    setStep((s) => s - 1);
+  }, [step, steps]);
 
   const isLastStep = step === steps.length;
   const current = steps[step - 1];
@@ -103,7 +134,10 @@ export default function ModalTransaction({
                 ref={(el) => (inputRefs.current[step - 1] = el)}
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && form[current.name]) handleSubmit(e);
+                  if (e.key === "Enter" && form[current.name]) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
                 }}
               />
               {step === 1 && (
@@ -135,7 +169,10 @@ export default function ModalTransaction({
                 ref={(el) => (inputRefs.current[step - 1] = el)}
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && form[current.name]) handleSubmit(e);
+                  if (e.key === "Enter" && form[current.name]) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
                 }}
               />
             </div>
@@ -152,16 +189,8 @@ export default function ModalTransaction({
                   handleChange(e);
                   if (e.target.value) {
                     const newForm = { ...form, [current.name]: e.target.value };
-                    setTimeout(() => {
-                      if (!newForm[current.name]) return;
-                      if (isLastStep) {
-                        onSave(newForm);
-                        onClose();
-                      } else {
-                        setForm(newForm);
-                        setStep((s) => s + 1);
-                      }
-                    }, 0);
+                    setForm(newForm);
+                    setStep((s) => (s < steps.length ? s + 1 : s));
                   }
                 }}
                 ref={(el) => (inputRefs.current[step - 1] = el)}
@@ -186,7 +215,8 @@ export default function ModalTransaction({
                       target: { name: current.name, value: options[prevIndex] },
                     });
                   } else if (e.key === "Enter" && form[current.name]) {
-                    handleSubmit();
+                    e.preventDefault();
+                    handleSubmit(e);
                   }
                 }}>
                 <option value=''>Sélectionner une catégorie</option>
@@ -210,25 +240,21 @@ export default function ModalTransaction({
                   value={form[current.name] || ""}
                   onChange={(e) => {
                     handleChange(e);
-                    if (isLastStep && e.target.value) {
-                      const newForm = {
-                        ...form,
-                        [current.name]: e.target.value,
-                      };
-                      setTimeout(() => {
-                        if (!newForm[current.name]) return;
-                        onSave(newForm);
-                        onClose();
-                      }, 0);
-                    }
+                    setForm((prev) => ({
+                      ...prev,
+                      [current.name]: e.target.value,
+                    }));
+                    setStep((s) => (s < steps.length ? s + 1 : s));
                   }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
                   ref={(el) => (inputRefs.current[step - 1] = el)}
                   style={{ paddingRight: "2.5rem" }}
                   autoFocus
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && form[current.name])
+                    if (e.key === "Enter" && form[current.name]) {
+                      e.preventDefault();
                       handleSubmit(e);
+                    }
                   }}
                 />
                 {current.icon && (
@@ -236,6 +262,71 @@ export default function ModalTransaction({
                     className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
                     onClick={() => inputRefs.current[step - 1]?.showPicker()}
                   />
+                )}
+              </div>
+            </div>
+          )}
+          {current.type === "grid-day" && (
+            <div>
+              <label className='block mb-2 font-medium dark:text-white'>
+                {current.label}
+              </label>
+              <div className='grid grid-cols-7 gap-2 mb-4'>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(
+                  (jour, idx) => (
+                    <button
+                      key={jour}
+                      type='button'
+                      ref={(el) => (inputRefs.current[step - 1 + idx] = el)}
+                      onClick={() => {
+                        const newForm = { ...form, [current.name]: jour };
+                        setForm(newForm);
+                        setStep((s) => (s < steps.length ? s + 1 : s));
+                      }}
+                      className={`p-2 text-center rounded-lg border transition-colors ${
+                        parseInt(form[current.name]) === jour
+                          ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900"
+                          : "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-white"
+                      }`}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        const col = idx % 7;
+                        let nextIdx = idx;
+                        if (e.key === "ArrowRight") {
+                          nextIdx = idx === 30 ? 0 : idx + 1;
+                          inputRefs.current[step - 1 + nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "ArrowLeft") {
+                          nextIdx = idx === 0 ? 30 : idx - 1;
+                          inputRefs.current[step - 1 + nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "ArrowDown") {
+                          nextIdx = idx + 7 > 30 ? col : idx + 7;
+                          inputRefs.current[step - 1 + nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "ArrowUp") {
+                          nextIdx =
+                            idx - 7 < 0
+                              ? col + 28 > 30
+                                ? col + 21
+                                : col + 28
+                              : idx - 7;
+                          inputRefs.current[step - 1 + nextIdx]?.focus();
+                          e.preventDefault();
+                        } else if (e.key === "Enter") {
+                          e.preventDefault();
+                          const newForm = { ...form, [current.name]: jour };
+                          setForm(newForm);
+                          if (step === steps.length) {
+                            handleSubmit();
+                          } else {
+                            setStep((s) => (s < steps.length ? s + 1 : s));
+                          }
+                        }
+                      }}>
+                      {jour}
+                    </button>
+                  )
                 )}
               </div>
             </div>

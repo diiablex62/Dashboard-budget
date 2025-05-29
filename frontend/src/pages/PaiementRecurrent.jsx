@@ -32,6 +32,7 @@ import {
   deletePaiementWithUndo,
 } from "../utils/paiementActions.jsx";
 import CardDesign from "../components/ui/CardDesign";
+import ModalTransaction from "../components/ui/ModalTransaction";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -89,8 +90,10 @@ const PaiementRecurrent = () => {
 
   const handleSavePaiement = useCallback(
     async (paiement) => {
-      const selectedDate = new Date(paiement.dateDebut);
-      const jourPrelevement = selectedDate.getDate();
+      // Correction : utiliser la valeur du champ jourPrelevement du formulaire
+      let jourPrelevement = Number.isFinite(Number(paiement.jourPrelevement))
+        ? Number(paiement.jourPrelevement)
+        : undefined;
 
       setPaiementsRecurrents((prev) => {
         const newPaiement = {
@@ -98,6 +101,7 @@ const PaiementRecurrent = () => {
           type: currentTab,
           jourPrelevement,
           dateDebut: paiement.dateDebut,
+          montant: Number(paiement.montant),
         };
         if (paiement.id) {
           return prev.map((t) => (t.id === paiement.id ? newPaiement : t));
@@ -222,7 +226,7 @@ const PaiementRecurrent = () => {
               </p>
             </div>
           ) : (
-            <div className='grid grid-cols-1 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {paiementsTries.map((p) => (
                 <CardDesign
                   key={p.id}
@@ -241,380 +245,62 @@ const PaiementRecurrent = () => {
 
       {/* Modale */}
       {showModal && (
-        <PaiementRecurrentModal
+        <ModalTransaction
+          visible={showModal}
           onClose={() => {
             setShowModal(false);
             setStep(1);
             setSelectedPaiement(null);
           }}
           onSave={handleSavePaiement}
-          paiement={selectedPaiement}
-          stepInit={step}
-          type={currentTab}
+          steps={[
+            {
+              name: "nom",
+              label: "Nom du paiement",
+              type: "text",
+              placeholder: "Ex: Abonnement",
+            },
+            {
+              name: "categorie",
+              label: "Catégorie",
+              type: "select",
+              options:
+                currentTab === "depense"
+                  ? DEPENSES_CATEGORIES
+                  : REVENUS_CATEGORIES,
+            },
+            {
+              name: "montant",
+              label: "Montant (€)",
+              type: "number",
+              placeholder: "Ex: 50",
+            },
+            {
+              name: "jourPrelevement",
+              label: "Jour de prélèvement",
+              type: "grid-day",
+            },
+          ]}
+          initialValues={
+            selectedPaiement || {
+              nom: "",
+              montant: "",
+              categorie: "",
+              jourPrelevement: 1,
+            }
+          }
+          categories={
+            currentTab === "depense" ? DEPENSES_CATEGORIES : REVENUS_CATEGORIES
+          }
+          title={
+            selectedPaiement
+              ? "Modifier un paiement récurrent"
+              : "Ajouter un paiement récurrent"
+          }
         />
       )}
     </div>
   );
 };
-
-function PaiementRecurrentModal({
-  onClose,
-  onSave,
-  paiement = null,
-  stepInit = 1,
-  type = "depense",
-}) {
-  const [currentStep, setCurrentStep] = useState(stepInit);
-  const montantInputRef = useRef(null);
-  const categorieSelectRef = useRef(null);
-  const joursRefs = useRef([]);
-  const [formData, setFormData] = useState({
-    id: paiement?.id || null,
-    nom: paiement?.nom || "",
-    montant: paiement?.montant ? paiement.montant.toString() : "",
-    categorie: paiement?.categorie || "",
-    frequence: "mensuel",
-    dateDebut: paiement?.dateDebut || new Date().toISOString().split("T")[0],
-    type: type,
-  });
-  const [errorMessage, setErrorMessage] = useState(null);
-
-  useEffect(() => {
-    if (currentStep === 2 && categorieSelectRef.current) {
-      setTimeout(() => {
-        categorieSelectRef.current.focus();
-      }, 100);
-    }
-    if (currentStep === 3 && montantInputRef.current) {
-      setTimeout(() => {
-        montantInputRef.current.focus();
-      }, 100);
-    }
-    if (currentStep === 4 && joursRefs.current.length > 0) {
-      const selectedJour = parseInt(formData.dateDebut.split("-")[2]) || 1;
-      setTimeout(() => {
-        joursRefs.current[selectedJour - 1]?.focus();
-      }, 100);
-    }
-  }, [currentStep, formData.dateDebut]);
-
-  const handleChange = useCallback((e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setErrorMessage(null);
-  }, []);
-
-  const isFormValid = useMemo(() => {
-    if (!formData.nom) return false;
-    if (!formData.categorie) return false;
-    const montant = parseFloat(formData.montant);
-    if (isNaN(montant) || montant <= 0) return false;
-    if (!formData.dateDebut) return false;
-    return true;
-  }, [formData]);
-
-  const nextStep = () => setCurrentStep((prev) => prev + 1);
-  const prevStep = () => setCurrentStep((prev) => prev - 1);
-
-  const validateAndSave = (e) => {
-    e.preventDefault();
-
-    if (!isFormValid) {
-      if (!formData.nom) {
-        setErrorMessage("Le nom est requis");
-      } else if (!formData.categorie) {
-        setErrorMessage("La catégorie est requise");
-      } else if (!formData.montant || parseFloat(formData.montant) <= 0) {
-        setErrorMessage("Le montant doit être un nombre positif");
-      } else if (!formData.dateDebut) {
-        setErrorMessage("Le jour de prélèvement est requis");
-      }
-      return;
-    }
-
-    const paiementToSave = {
-      ...formData,
-      montant: parseFloat(formData.montant),
-      date: formData.dateDebut,
-      dateDebut: formData.dateDebut,
-    };
-
-    onSave(paiementToSave);
-    onClose();
-  };
-
-  return (
-    <div
-      className='fixed inset-0 z-[9999] flex items-center justify-center'
-      style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-      <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
-        <button
-          className='absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-          onClick={onClose}>
-          ✕
-        </button>
-
-        <h2 className='text-xl font-semibold mb-6 dark:text-white'>
-          {paiement ? "Modifier" : "Ajouter"} un paiement récurrent{" "}
-          {type === "depense" ? "dépense" : "revenu"}
-        </h2>
-
-        {errorMessage && (
-          <div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
-            {errorMessage}
-          </div>
-        )}
-
-        <form onSubmit={validateAndSave}>
-          {currentStep === 1 && (
-            <div>
-              <label className='block mb-2 font-medium dark:text-white'>
-                Nom du paiement
-              </label>
-              <input
-                type='text'
-                name='nom'
-                value={formData.nom}
-                onChange={handleChange}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && formData.nom) {
-                    e.preventDefault();
-                    nextStep();
-                  }
-                }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                placeholder='Ex: Loyer'
-                autoFocus
-              />
-              <div className='flex justify-end'>
-                <button
-                  type='button'
-                  onClick={nextStep}
-                  disabled={!formData.nom}
-                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50'>
-                  Suivant
-                </button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 2 && (
-            <div>
-              <label className='block mb-2 font-medium dark:text-white'>
-                Catégorie
-              </label>
-              <select
-                name='categorie'
-                value={formData.categorie}
-                onChange={(e) => {
-                  handleChange(e);
-                  if (e.target.value) {
-                    nextStep();
-                  }
-                }}
-                ref={categorieSelectRef}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                size={
-                  type === "depense"
-                    ? DEPENSES_CATEGORIES.length + 1
-                    : REVENUS_CATEGORIES.length + 1
-                }
-                onKeyDown={(e) => {
-                  const categories =
-                    type === "depense"
-                      ? DEPENSES_CATEGORIES
-                      : REVENUS_CATEGORIES;
-                  const currentIndex = categories.indexOf(formData.categorie);
-                  if (e.key === "ArrowDown") {
-                    e.preventDefault();
-                    const nextIndex =
-                      currentIndex < categories.length - 1
-                        ? currentIndex + 1
-                        : 0;
-                    handleChange({
-                      target: {
-                        name: "categorie",
-                        value: categories[nextIndex],
-                      },
-                    });
-                  } else if (e.key === "ArrowUp") {
-                    e.preventDefault();
-                    const prevIndex =
-                      currentIndex > 0
-                        ? currentIndex - 1
-                        : categories.length - 1;
-                    handleChange({
-                      target: {
-                        name: "categorie",
-                        value: categories[prevIndex],
-                      },
-                    });
-                  } else if (e.key === "Enter" && formData.categorie) {
-                    nextStep();
-                  }
-                }}>
-                <option value=''>Sélectionner une catégorie</option>
-                {(type === "depense"
-                  ? DEPENSES_CATEGORIES
-                  : REVENUS_CATEGORIES
-                ).map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-              <div className='flex justify-between'>
-                <button
-                  type='button'
-                  onClick={prevStep}
-                  className='text-gray-600 dark:text-gray-400'>
-                  Précédent
-                </button>
-                <button
-                  type='button'
-                  onClick={nextStep}
-                  disabled={!formData.categorie}
-                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50'>
-                  Suivant
-                </button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div>
-              <label className='block mb-2 font-medium dark:text-white'>
-                Montant (€)
-              </label>
-              <input
-                ref={montantInputRef}
-                type='number'
-                name='montant'
-                value={formData.montant}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "" || parseFloat(value) > 0) {
-                    handleChange(e);
-                  }
-                }}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4'
-                min='0.01'
-                step='0.01'
-                placeholder='Ex: 500'
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && formData.montant) {
-                    e.preventDefault();
-                    nextStep();
-                  }
-                }}
-              />
-              <div className='flex justify-between'>
-                <button
-                  type='button'
-                  onClick={prevStep}
-                  className='text-gray-600 dark:text-gray-400'>
-                  Précédent
-                </button>
-                <button
-                  type='button'
-                  onClick={nextStep}
-                  disabled={!formData.montant}
-                  className='bg-gray-900 text-white px-4 py-2 rounded disabled:opacity-50'>
-                  Suivant
-                </button>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 4 && (
-            <div>
-              <label className='block mb-2 font-medium dark:text-white'>
-                Jour de prélèvement
-              </label>
-              <div className='grid grid-cols-7 gap-2 mb-4'>
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(
-                  (jour, idx) => (
-                    <button
-                      key={jour}
-                      type='button'
-                      ref={(el) => (joursRefs.current[idx] = el)}
-                      onClick={() => {
-                        const date = new Date();
-                        date.setDate(jour);
-                        const newDate = date.toISOString().split("T")[0];
-
-                        if (isFormValid) {
-                          const paiementToSave = {
-                            ...formData,
-                            dateDebut: newDate,
-                            montant: parseFloat(formData.montant),
-                            date: newDate,
-                          };
-                          onSave(paiementToSave);
-                          onClose();
-                        } else {
-                          handleChange({
-                            target: {
-                              name: "dateDebut",
-                              value: newDate,
-                            },
-                          });
-                        }
-                      }}
-                      className={`p-2 text-center rounded-lg border transition-colors ${
-                        parseInt(formData.dateDebut.split("-")[2]) === jour
-                          ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900"
-                          : "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 dark:text-white"
-                      }`}
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        const col = idx % 7;
-                        const row = Math.floor(idx / 7);
-                        let nextIdx = idx;
-                        if (e.key === "ArrowRight") {
-                          nextIdx = idx === 30 ? 0 : idx + 1;
-                          joursRefs.current[nextIdx]?.focus();
-                          e.preventDefault();
-                        } else if (e.key === "ArrowLeft") {
-                          nextIdx = idx === 0 ? 30 : idx - 1;
-                          joursRefs.current[nextIdx]?.focus();
-                          e.preventDefault();
-                        } else if (e.key === "ArrowDown") {
-                          nextIdx = idx + 7 > 30 ? col : idx + 7;
-                          joursRefs.current[nextIdx]?.focus();
-                          e.preventDefault();
-                        } else if (e.key === "ArrowUp") {
-                          nextIdx =
-                            idx - 7 < 0
-                              ? col + 28 > 30
-                                ? col + 21
-                                : col + 28
-                              : idx - 7;
-                          joursRefs.current[nextIdx]?.focus();
-                          e.preventDefault();
-                        } else if (e.key === "Enter") {
-                          joursRefs.current[idx]?.click();
-                          e.preventDefault();
-                        }
-                      }}>
-                      {jour}
-                    </button>
-                  )
-                )}
-              </div>
-              <div className='flex justify-between'>
-                <button
-                  type='button'
-                  onClick={prevStep}
-                  className='text-gray-600 dark:text-gray-400'>
-                  Précédent
-                </button>
-              </div>
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
-  );
-}
 
 export default PaiementRecurrent;

@@ -606,7 +606,18 @@ Mois précédent :
                     <div className='font-medium'>{item.nom}</div>
                     <div className='text-xs text-gray-400'>
                       {item.frequence} -{" "}
-                      {new Date(item.date).toLocaleDateString("fr-FR")}
+                      {item.jourPrelevement
+                        ? `Prélèvement : le ${item.jourPrelevement}`
+                        : (() => {
+                            try {
+                              const date = new Date(item.date);
+                              return isNaN(date.getTime())
+                                ? "Date invalide"
+                                : date.toLocaleDateString("fr-FR");
+                            } catch (e) {
+                              return "Date invalide";
+                            }
+                          })()}
                     </div>
                   </div>
                 </div>
