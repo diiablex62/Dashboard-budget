@@ -75,51 +75,54 @@ const PaiementEchelonne = () => {
     setNewPaiement((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
-  const handleAddOrEditPaiement = useCallback(() => {
-    if (
-      !newPaiement.nom ||
-      !newPaiement.montant ||
-      !newPaiement.mensualites ||
-      !newPaiement.debutDate
-    ) {
-      setError("Tous les champs sont obligatoires");
-      return;
-    }
+  const handleAddOrEditPaiement = useCallback(
+    (paiementOverride) => {
+      const paiementToSave = paiementOverride || newPaiement;
+      if (
+        !paiementToSave.nom ||
+        !paiementToSave.montant ||
+        !paiementToSave.mensualites ||
+        !paiementToSave.debutDate
+      ) {
+        setError("Tous les champs sont obligatoires");
+        return;
+      }
 
-    const paymentData = {
-      ...newPaiement,
-      montant: parseFloat(newPaiement.montant),
-      mensualites: parseInt(newPaiement.mensualites),
-    };
+      const paymentData = {
+        ...paiementToSave,
+        montant: parseFloat(paiementToSave.montant),
+        mensualites: parseInt(paiementToSave.mensualites),
+      };
 
-    if (editIndex !== null) {
-      // Edition locale
-      setPaiementsEchelonnes((prev) =>
-        prev.map((p) =>
-          p.id === editIndex ? { ...paymentData, id: editIndex } : p
-        )
-      );
-    } else {
-      // Ajout local
-      const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
-      setPaiementsEchelonnes((prev) => [
-        ...prev,
-        { ...paymentData, id: newId },
-      ]);
-    }
+      if (editIndex !== null) {
+        setPaiementsEchelonnes((prev) => {
+          const updated = prev.map((p) =>
+            p.id === editIndex ? { ...paymentData, id: editIndex } : p
+          );
+          return [...updated];
+        });
+      } else {
+        const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
+        setPaiementsEchelonnes((prev) => [
+          ...prev,
+          { ...paymentData, id: newId },
+        ]);
+      }
 
-    setNewPaiement({
-      nom: "",
-      montant: "",
-      mensualites: "",
-      debutDate: defaultDebutDate,
-      categorie: "",
-      type: "depense",
-    });
-    setEditIndex(null);
-    setShowModal(false);
-    setError(null);
-  }, [newPaiement, editIndex, defaultDebutDate, paiementsEchelonnes]);
+      setNewPaiement({
+        nom: "",
+        montant: "",
+        mensualites: "",
+        debutDate: defaultDebutDate,
+        categorie: "",
+        type: "depense",
+      });
+      setEditIndex(null);
+      setShowModal(false);
+      setError(null);
+    },
+    [newPaiement, editIndex, defaultDebutDate, paiementsEchelonnes]
+  );
 
   const handleEdit = useCallback((payment) => {
     setNewPaiement({
@@ -130,6 +133,7 @@ const PaiementEchelonne = () => {
       categorie: payment.categorie || "",
       type: payment.type || "depense",
     });
+    setIsRevenus(payment.type === "revenu");
     setEditIndex(payment.id);
     setShowModal(true);
   }, []);
@@ -389,6 +393,12 @@ const PaiementEchelonne = () => {
                   const montantMensuel =
                     parseFloat(paiement.montant) /
                     parseInt(paiement.mensualites);
+                  // Log pour debug catégorie
+                  console.log(
+                    "catégorie affichée",
+                    paiement.categorie,
+                    paiement
+                  );
                   return (
                     <CardDesign
                       key={paiement.id}
@@ -655,7 +665,10 @@ const PaiementEchelonne = () => {
                   onChange={(e) => {
                     handleChange(e);
                     if (e.target.value && e.target.value !== "") {
-                      handleAddOrEditPaiement();
+                      handleAddOrEditPaiement({
+                        ...newPaiement,
+                        categorie: e.target.value,
+                      });
                     }
                   }}
                   className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
