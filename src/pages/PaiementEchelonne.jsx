@@ -18,7 +18,7 @@ import ModalTransaction from "../components/ui/ModalTransaction";
 import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
-const PaiementEchelonne = () => {
+export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [paiementsEchelonnes, setPaiementsEchelonnes] = useState(
@@ -369,16 +369,23 @@ const PaiementEchelonne = () => {
                       </div>
                       {/* Infos mensualité et fin */}
                       <div className='flex flex-col gap-1 w-full text-sm text-gray-500 dark:text-gray-400'>
-                        <span>
-                          Mensualité {mensualitesPayees}/{paiement.mensualites}
-                        </span>
-                        <span>
-                          Début:{" "}
-                          {new Date(paiement.debutDate).toLocaleDateString(
-                            "fr-FR"
-                          )}
-                        </span>
-                        <span>Fin: {finDate.toLocaleDateString("fr-FR")}</span>
+                        <div className='flex justify-between items-center'>
+                          <span>
+                            Mensualité {mensualitesPayees}/
+                            {paiement.mensualites}
+                          </span>
+                          <div className='flex flex-col items-end'>
+                            <span>
+                              Début :{" "}
+                              {new Date(paiement.debutDate).toLocaleDateString(
+                                "fr-FR"
+                              )}
+                            </span>
+                            <span>
+                              Fin : {finDate.toLocaleDateString("fr-FR")}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </CardDesign>
                   );
