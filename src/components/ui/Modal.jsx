@@ -140,23 +140,6 @@ export function ModalDepenseRevenu({
     isKeyboardNavigation.current = false;
   }, []);
 
-  const handleDateChange = useCallback((e) => {
-    const newDate = e.target.value;
-    console.log("Date change event:", {
-      value: newDate,
-      inputType: e.nativeEvent.inputType,
-      type: e.type,
-      target: e.target.name,
-    });
-    // On met toujours à jour le formulaire
-    setForm((prev) => ({ ...prev, date: newDate }));
-    // Mais on ne déclenche la validation que si c'est une sélection directe
-    if (e.nativeEvent.inputType === undefined) {
-      console.log("Validation déclenchée par sélection calendrier");
-      shouldValidateDate.current = true;
-    }
-  }, []);
-
   const handleKeyDown = useCallback(
     (e) => {
       console.log("KeyDown event:", {
@@ -866,23 +849,6 @@ export function ModalEchelonne({
       shouldValidateCategory.current = true;
     }
     isKeyboardNavigation.current = false;
-  }, []);
-
-  const handleDateChange = useCallback((e) => {
-    const newDate = e.target.value;
-    console.log("Date change event:", {
-      value: newDate,
-      inputType: e.nativeEvent.inputType,
-      type: e.type,
-      target: e.target.name,
-    });
-    // On met toujours à jour le formulaire
-    setForm((prev) => ({ ...prev, debutDate: newDate }));
-    // Mais on ne déclenche la validation que si c'est une sélection directe
-    if (e.nativeEvent.inputType === undefined) {
-      console.log("Validation déclenchée par sélection calendrier");
-      shouldValidateDate.current = true;
-    }
   }, []);
 
   const handleKeyDown = useCallback(
