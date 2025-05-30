@@ -48,11 +48,15 @@ export function ModalDepenseRevenu({
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
 
+  // États locaux
+  const [localDate, setLocalDate] = useState("");
+
   // Effets
   useEffect(() => {
     if (visible) {
       console.log("Modal ouverte - Réinitialisation du formulaire");
       setForm(initialValues || defaultForm);
+      setLocalDate(initialValues?.date || defaultForm.date);
       setError(null);
       setStep(1);
       isKeyboardNavigation.current = false;
@@ -138,21 +142,56 @@ export function ModalDepenseRevenu({
   }, []);
 
   const handleDateChange = useCallback((e) => {
-    setForm((prev) => ({ ...prev, date: e.target.value }));
-    shouldValidateDate.current = true;
+    const newDate = e.target.value;
+    console.log("Date change event:", {
+      value: newDate,
+      inputType: e.nativeEvent.inputType,
+      type: e.type,
+      target: e.target.name,
+    });
+    // On met toujours à jour le formulaire
+    setForm((prev) => ({ ...prev, date: newDate }));
+    // Mais on ne déclenche la validation que si c'est une sélection directe
+    if (e.nativeEvent.inputType === undefined) {
+      console.log("Validation déclenchée par sélection calendrier");
+      shouldValidateDate.current = true;
+    }
   }, []);
 
   const handleKeyDown = useCallback(
     (e) => {
+      console.log("KeyDown event:", {
+        key: e.key,
+        type: current.type,
+        target: e.target.name,
+        inputType: e.nativeEvent.inputType,
+      });
+
       if (e.key === "Enter") {
         e.preventDefault();
         handleNext();
       } else if (current.type === "select") {
         isKeyboardNavigation.current = true;
+      } else if (current.type === "date") {
+        // On ne bloque plus la navigation avec les flèches
+        if (
+          ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+        ) {
+          console.log("Navigation avec flèches autorisée");
+          // On ne fait rien, on laisse le comportement par défaut
+        }
       }
     },
     [current.type, handleNext]
   );
+
+  // Effet pour la validation de la date
+  useEffect(() => {
+    if (shouldValidateDate.current && form.date && step === 4) {
+      handleNext();
+      shouldValidateDate.current = false;
+    }
+  }, [form.date, step]);
 
   const renderPreviousAnswers = useCallback(
     () => (
@@ -271,7 +310,7 @@ export function ModalDepenseRevenu({
               <input
                 type='date'
                 name={current.name}
-                value={form[current.name] || ""}
+                value={localDate}
                 onChange={handleDateChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
@@ -351,10 +390,14 @@ export function ModalRecurrent({
   const current = useMemo(() => steps[step - 1], [steps, step]);
   const days = useMemo(() => Array.from({ length: 31 }, (_, i) => i + 1), []);
 
+  // États locaux
+  const [localDate, setLocalDate] = useState("");
+
   // Effets
   useEffect(() => {
     if (visible) {
       setForm(initialValues || defaultForm);
+      setLocalDate(initialValues?.jour || defaultForm.jour);
       setError(null);
       setStep(1);
       isKeyboardNavigation.current = false;
@@ -446,7 +489,7 @@ export function ModalRecurrent({
   }, []);
 
   const handleDayClick = useCallback((day) => {
-    setForm((prev) => ({ ...prev, jour: day.toString() }));
+    setLocalDate(day.toString());
     shouldValidateDay.current = true;
   }, []);
 
@@ -482,7 +525,7 @@ export function ModalRecurrent({
             return;
         }
 
-        setForm((prev) => ({ ...prev, jour: newDay.toString() }));
+        setLocalDate(newDay.toString());
         const dayElement = gridRef.current.querySelector(
           `[data-day="${newDay}"]`
         );
@@ -712,11 +755,15 @@ export function ModalEchelonne({
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
 
+  // États locaux
+  const [localDate, setLocalDate] = useState("");
+
   // Effets
   useEffect(() => {
     if (visible) {
       console.log("Modal ouverte - Réinitialisation du formulaire");
       setForm(initialValues || defaultForm);
+      setLocalDate(initialValues?.debutDate || defaultForm.debutDate);
       setError(null);
       setStep(1);
       isKeyboardNavigation.current = false;
@@ -809,21 +856,57 @@ export function ModalEchelonne({
   }, []);
 
   const handleDateChange = useCallback((e) => {
-    setForm((prev) => ({ ...prev, debutDate: e.target.value }));
-    shouldValidateDate.current = true;
+    const newDate = e.target.value;
+    console.log("Date change event:", {
+      value: newDate,
+      inputType: e.nativeEvent.inputType,
+      type: e.type,
+      target: e.target.name,
+    });
+    // On met toujours à jour le formulaire
+    setForm((prev) => ({ ...prev, debutDate: newDate }));
+    // Mais on ne déclenche la validation que si c'est une sélection directe
+    if (e.nativeEvent.inputType === undefined) {
+      console.log("Validation déclenchée par sélection calendrier");
+      shouldValidateDate.current = true;
+    }
   }, []);
 
   const handleKeyDown = useCallback(
     (e) => {
+      console.log("KeyDown event:", {
+        key: e.key,
+        type: current.type,
+        target: e.target.name,
+        inputType: e.nativeEvent.inputType,
+      });
+
       if (e.key === "Enter") {
         e.preventDefault();
         handleNext();
       } else if (current.type === "select") {
         isKeyboardNavigation.current = true;
+      } else if (current.type === "date") {
+        // On ne bloque plus la navigation avec les flèches
+        if (
+          ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+        ) {
+          console.log("Navigation avec flèches autorisée");
+          // On ne fait rien, on laisse le comportement par défaut
+        }
       }
     },
     [current.type, handleNext]
   );
+
+  // Effet pour la validation de la date
+  useEffect(() => {
+    if (shouldValidateDate.current && form.debutDate && step === 5) {
+      console.log("Validation de la date déclenchée:", form.debutDate);
+      handleNext();
+      shouldValidateDate.current = false;
+    }
+  }, [form.debutDate, step]);
 
   const renderPreviousAnswers = useCallback(
     () => (
@@ -944,7 +1027,7 @@ export function ModalEchelonne({
               <input
                 type='date'
                 name={current.name}
-                value={form[current.name] || ""}
+                value={localDate}
                 onChange={handleDateChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
