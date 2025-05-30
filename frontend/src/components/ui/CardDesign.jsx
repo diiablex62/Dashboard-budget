@@ -2,9 +2,7 @@ import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
 
 const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
-  // LOG pour debug
   console.log("CardDesign - item:", item);
-  console.log("CardDesign - item.jourPrelevement:", item.jourPrelevement);
 
   // Fonction pour formater la date (utilisée uniquement si pas d'échelonné)
   const formatDate = () => {

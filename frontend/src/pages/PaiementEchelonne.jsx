@@ -1,90 +1,34 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   AiOutlinePlus,
   AiOutlineDollarCircle,
   AiOutlineCalendar,
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
-  AiOutlineEdit,
-  AiOutlineDelete,
 } from "react-icons/ai";
 import {
   DEPENSES_CATEGORIES,
   REVENUS_CATEGORIES,
   getMonthYear,
-  MONTHS,
-  CATEGORY_COLORS,
 } from "../utils/categoryUtils";
 import { fakePaiementsEchelonnes } from "../utils/fakeData";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import CardDesign from "../components/ui/CardDesign";
+import ModalTransaction from "../components/ui/ModalTransaction";
 import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 const PaiementEchelonne = () => {
-  const defaultDebutDate = useMemo(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  }, []);
-
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1);
-  const [newPaiement, setNewPaiement] = useState({
-    nom: "",
-    montant: "",
-    mensualites: "",
-    debutDate: defaultDebutDate,
-    categorie: "",
-    type: "depense",
-  });
   const [paiementsEchelonnes, setPaiementsEchelonnes] = useState(
     fakePaiementsEchelonnes
   );
-  const [error, setError] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRevenus, setIsRevenus] = useState(false);
 
-  const nomInputRef = useRef(null);
-  const montantInputRef = useRef(null);
-  const mensualitesInputRef = useRef(null);
-  const debutDateInputRef = useRef(null);
-  const categorieInputRef = useRef(null);
-
-  useEffect(() => {
-    if (showModal && step === 1 && nomInputRef.current)
-      nomInputRef.current.focus();
-    if (showModal && step === 2 && montantInputRef.current)
-      montantInputRef.current.focus();
-    if (showModal && step === 3 && mensualitesInputRef.current)
-      mensualitesInputRef.current.focus();
-    if (showModal && step === 4 && debutDateInputRef.current)
-      debutDateInputRef.current.focus();
-  }, [showModal, step]);
-
-  const handleNext = useCallback(() => setStep((s) => s + 1), []);
-  const handlePrev = useCallback(() => setStep((s) => s - 1), []);
-
-  const handleChange = useCallback((e) => {
-    setNewPaiement((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }, []);
-
   const handleEdit = useCallback((payment) => {
-    setNewPaiement({
-      nom: payment.nom,
-      montant: payment.montant.toString(),
-      mensualites: payment.mensualites.toString(),
-      debutDate: payment.debutDate,
-      categorie: payment.categorie || "",
-      type: payment.type || "depense",
-    });
-    setIsRevenus(payment.type === "revenu");
+    console.log("handleEdit - payment reçu:", payment);
     setEditIndex(payment.id);
     setShowModal(true);
   }, []);
@@ -155,7 +99,6 @@ const PaiementEchelonne = () => {
         const debut = new Date(paiement.debutDate);
         const fin = new Date(paiement.debutDate);
         fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
-        // Paiement actif si selectedDate >= debut et <= fin (mois/année)
         const afterStart =
           selectedDate.getFullYear() > debut.getFullYear() ||
           (selectedDate.getFullYear() === debut.getFullYear() &&
@@ -182,6 +125,84 @@ const PaiementEchelonne = () => {
       );
     }
   }, [totalDepenses]);
+
+  const handleSave = useCallback(
+    (formData) => {
+      console.log("handleSave - formData reçu:", formData);
+      const paymentData = {
+        ...formData,
+        montant: parseFloat(formData.montant),
+        mensualites: parseInt(formData.mensualites),
+        type: isRevenus ? "revenu" : "depense",
+        debutDate: formData.debutDate,
+      };
+      console.log("handleSave - paymentData créé:", paymentData);
+
+      if (editIndex !== null) {
+        console.log("handleSave - Modification du paiement ID:", editIndex);
+        setPaiementsEchelonnes((prev) => {
+          const updated = prev.map((p) =>
+            p.id === editIndex ? { ...paymentData, id: editIndex } : p
+          );
+          console.log("handleSave - paiementsEchelonnes mis à jour:", updated);
+          return updated;
+        });
+      } else {
+        const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
+        console.log("handleSave - Création nouveau paiement ID:", newId);
+        setPaiementsEchelonnes((prev) => {
+          const updated = [...prev, { ...paymentData, id: newId }];
+          console.log("handleSave - paiementsEchelonnes mis à jour:", updated);
+          return updated;
+        });
+      }
+      setEditIndex(null);
+      setShowModal(false);
+    },
+    [editIndex, isRevenus, paiementsEchelonnes]
+  );
+
+  const steps = [
+    {
+      name: "nom",
+      label: "Nom du paiement",
+      type: "text",
+      placeholder: "Ex: Crédit auto",
+      error: "Le nom est requis",
+    },
+    {
+      name: "categorie",
+      label: "Catégorie",
+      type: "select",
+      options: isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES,
+      error: "La catégorie est requise",
+    },
+    {
+      name: "montant",
+      label: "Montant total (€)",
+      type: "number",
+      min: "0.01",
+      step: "0.01",
+      placeholder: "Ex: 9999",
+      error: "Le montant est requis",
+    },
+    {
+      name: "mensualites",
+      label: "Nombre de mensualités",
+      type: "number",
+      min: "1",
+      step: "1",
+      placeholder: "Ex: 12",
+      error: "Le nombre de mensualités est requis",
+    },
+    {
+      name: "debutDate",
+      label: "Date de début",
+      type: "date",
+      icon: AiOutlineCalendar,
+      error: "La date de début est requise",
+    },
+  ];
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
@@ -271,19 +292,8 @@ const PaiementEchelonne = () => {
               <button
                 className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
                 onClick={() => {
-                  setNewPaiement({
-                    nom: "",
-                    montant: "",
-                    mensualites: "",
-                    debutDate: new Date(selectedDate)
-                      .toISOString()
-                      .split("T")[0],
-                    categorie: "",
-                    type: isRevenus ? "revenu" : "depense",
-                  });
                   setEditIndex(null);
                   setShowModal(true);
-                  setStep(1);
                 }}>
                 <span className='text-lg font-bold'>+</span>
                 <span>Ajouter</span>
@@ -344,12 +354,6 @@ const PaiementEchelonne = () => {
                   const montantMensuel =
                     parseFloat(paiement.montant) /
                     parseInt(paiement.mensualites);
-                  // Log pour debug catégorie
-                  console.log(
-                    "catégorie affichée",
-                    paiement.categorie,
-                    paiement
-                  );
                   return (
                     <CardDesign
                       key={paiement.id}
@@ -364,9 +368,15 @@ const PaiementEchelonne = () => {
                           style={{ width: `${pourcentage}%` }}></div>
                       </div>
                       {/* Infos mensualité et fin */}
-                      <div className='flex justify-between items-center w-full text-sm text-gray-500 dark:text-gray-400'>
+                      <div className='flex flex-col gap-1 w-full text-sm text-gray-500 dark:text-gray-400'>
                         <span>
                           Mensualité {mensualitesPayees}/{paiement.mensualites}
+                        </span>
+                        <span>
+                          Début:{" "}
+                          {new Date(paiement.debutDate).toLocaleDateString(
+                            "fr-FR"
+                          )}
                         </span>
                         <span>Fin: {finDate.toLocaleDateString("fr-FR")}</span>
                       </div>
@@ -378,340 +388,44 @@ const PaiementEchelonne = () => {
         </div>
       </div>
 
-      {/* Modale */}
-      {showModal && (
-        <div
-          className='fixed inset-0 z-[9999] flex items-center justify-center'
-          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}>
-          <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
-            <button
-              className='absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer'
-              onClick={() => {
-                setShowModal(false);
-                setStep(1);
-                setNewPaiement({
-                  nom: "",
-                  montant: "",
-                  mensualites: "",
-                  debutDate: new Date(selectedDate).toISOString().split("T")[0],
-                  categorie: "",
-                  type: isRevenus ? "revenu" : "depense",
-                });
-                setEditIndex(null);
-                setError(null);
-              }}
-              aria-label='Fermer'>
-              ✕
-            </button>
-            <div className='mb-6 text-lg font-semibold dark:text-white'>
-              {editIndex !== null ? "Modifier" : "Ajouter"} un paiement
-              échelonné
-            </div>
-
-            {error && (
-              <div className='mb-4 p-2 bg-red-100 border border-red-400 text-red-700 rounded'>
-                {error}
-              </div>
-            )}
-
-            {/* Étapes */}
-            {step === 1 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Nom du paiement
-                </label>
-                <input
-                  type='text'
-                  name='nom'
-                  value={newPaiement.nom}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  placeholder='Ex: Crédit auto'
-                  ref={nomInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.nom) handleNext();
-                  }}
-                />
-                <div className='flex justify-end'>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.nom}
-                    onClick={() => {
-                      if (!newPaiement.nom) {
-                        setError("Le nom est requis");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Catégorie
-                </label>
-                <select
-                  name='categorie'
-                  value={newPaiement.categorie}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  ref={categorieInputRef}
-                  autoFocus
-                  size={
-                    isRevenus
-                      ? REVENUS_CATEGORIES.length + 1
-                      : DEPENSES_CATEGORIES.length + 1
-                  }
-                  onKeyDown={(e) => {
-                    const categories = isRevenus
-                      ? REVENUS_CATEGORIES
-                      : DEPENSES_CATEGORIES;
-                    const currentIndex = categories.indexOf(
-                      newPaiement.categorie
-                    );
-                    if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      const nextIndex =
-                        currentIndex < categories.length - 1
-                          ? currentIndex + 1
-                          : 0;
-                      handleChange({
-                        target: {
-                          name: "categorie",
-                          value: categories[nextIndex],
-                        },
-                      });
-                    } else if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      const prevIndex =
-                        currentIndex > 0
-                          ? currentIndex - 1
-                          : categories.length - 1;
-                      handleChange({
-                        target: {
-                          name: "categorie",
-                          value: categories[prevIndex],
-                        },
-                      });
-                    } else if (e.key === "Enter" && newPaiement.categorie) {
-                      handleNext();
-                    }
-                  }}>
-                  <option value=''>Sélectionner une catégorie</option>
-                  {(isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES).map(
-                    (cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    )
-                  )}
-                </select>
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.categorie}
-                    onClick={() => {
-                      if (!newPaiement.categorie) {
-                        setError("La catégorie est requise");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Montant total (€)
-                </label>
-                <input
-                  type='number'
-                  name='montant'
-                  value={newPaiement.montant}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  min='0.01'
-                  step='0.01'
-                  placeholder='Ex: 9999'
-                  ref={montantInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.montant) handleNext();
-                  }}
-                />
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.montant}
-                    onClick={() => {
-                      if (!newPaiement.montant) {
-                        setError("Le montant est requis");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 4 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Nombre de mensualités
-                </label>
-                <input
-                  type='number'
-                  name='mensualites'
-                  value={newPaiement.mensualites}
-                  onChange={handleChange}
-                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 cursor-pointer'
-                  min='1'
-                  step='1'
-                  placeholder='Ex: 12'
-                  ref={mensualitesInputRef}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newPaiement.mensualites)
-                      handleNext();
-                  }}
-                />
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.mensualites}
-                    onClick={() => {
-                      if (!newPaiement.mensualites) {
-                        setError("Le nombre de mensualités est requis");
-                        return;
-                      }
-                      setError(null);
-                      handleNext();
-                    }}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 5 && (
-              <div>
-                <label className='block mb-2 font-medium dark:text-white'>
-                  Date de début
-                </label>
-                <div className='relative'>
-                  <input
-                    type='date'
-                    name='debutDate'
-                    value={newPaiement.debutDate}
-                    onChange={handleChange}
-                    className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 mb-4 appearance-none cursor-pointer [&::-webkit-calendar-picker-indicator]:hidden'
-                    ref={debutDateInputRef}
-                    style={{
-                      paddingRight: "2.5rem",
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newPaiement.debutDate) {
-                        if (
-                          !newPaiement.nom ||
-                          !newPaiement.montant ||
-                          !newPaiement.mensualites ||
-                          !newPaiement.debutDate ||
-                          !newPaiement.categorie
-                        ) {
-                          setError("Tous les champs sont obligatoires");
-                          return;
-                        }
-                        const paymentData = {
-                          ...newPaiement,
-                          montant: parseFloat(newPaiement.montant),
-                          mensualites: parseInt(newPaiement.mensualites),
-                        };
-                        if (editIndex !== null) {
-                          setPaiementsEchelonnes((prev) => {
-                            const updated = prev.map((p) =>
-                              p.id === editIndex
-                                ? { ...paymentData, id: editIndex }
-                                : p
-                            );
-                            return [...updated];
-                          });
-                        } else {
-                          const newId =
-                            Math.max(
-                              ...paiementsEchelonnes.map((p) => p.id),
-                              0
-                            ) + 1;
-                          setPaiementsEchelonnes((prev) => [
-                            ...prev,
-                            { ...paymentData, id: newId },
-                          ]);
-                        }
-                        setNewPaiement({
-                          nom: "",
-                          montant: "",
-                          mensualites: "",
-                          debutDate: defaultDebutDate,
-                          categorie: "",
-                          type: "depense",
-                        });
-                        setEditIndex(null);
-                        setShowModal(false);
-                        setError(null);
-                      }
-                    }}
-                  />
-                  <AiOutlineCalendar
-                    className='absolute right-3 top-3 text-xl text-gray-400 dark:text-white cursor-pointer'
-                    onClick={() => debutDateInputRef.current?.showPicker()}
-                  />
-                </div>
-                <div className='flex justify-between'>
-                  <button
-                    className='text-gray-600 dark:text-gray-400 cursor-pointer'
-                    onClick={handlePrev}>
-                    Précédent
-                  </button>
-                  <button
-                    className='bg-gray-900 text-white px-4 py-2 rounded cursor-pointer'
-                    disabled={!newPaiement.debutDate}
-                    onClick={handleNext}>
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* ModalTransaction */}
+      <ModalTransaction
+        visible={showModal}
+        onClose={() => {
+          console.log("Modal fermé");
+          setShowModal(false);
+          setEditIndex(null);
+        }}
+        onSave={handleSave}
+        steps={steps}
+        initialValues={
+          editIndex !== null
+            ? (() => {
+                const paiement = paiementsEchelonnes.find(
+                  (p) => p.id === editIndex
+                );
+                console.log(
+                  "Modal - paiement trouvé pour modification:",
+                  paiement
+                );
+                return {
+                  ...paiement,
+                  debutDate: paiement.debutDate,
+                };
+              })()
+            : {
+                nom: "",
+                montant: "",
+                mensualites: "",
+                debutDate: new Date(selectedDate).toISOString().split("T")[0],
+                categorie: "",
+                type: isRevenus ? "revenu" : "depense",
+              }
+        }
+        type={isRevenus ? "revenu" : "depense"}
+        title={editIndex !== null ? "Modifier" : "Ajouter"}
+        editMode={editIndex !== null}
+      />
     </div>
   );
 };
