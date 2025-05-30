@@ -27,8 +27,8 @@ export function ModalDepenseRevenu({
   const [form, setForm] = useState(defaultForm);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const inputRef = useRef(null);
+  const isKeyboardNavigation = useRef(false);
 
   useEffect(() => {
     if (visible) {
@@ -37,7 +37,7 @@ export function ModalDepenseRevenu({
       setError(null);
       setStep(1);
       setSelectedDate(null);
-      setSelectedCategory(null);
+      isKeyboardNavigation.current = false;
     }
   }, [visible, initialValues]);
 
@@ -61,9 +61,21 @@ export function ModalDepenseRevenu({
 
   const handleCategoryChange = (e) => {
     const newCategory = e.target.value;
-    console.log("handleCategoryChange - Nouvelle catégorie:", newCategory);
-    setSelectedCategory(newCategory);
+    console.log(
+      "handleCategoryChange - Nouvelle catégorie:",
+      newCategory,
+      "Navigation clavier:",
+      isKeyboardNavigation.current
+    );
     setForm((prev) => ({ ...prev, categorie: newCategory }));
+
+    // On ne valide que si ce n'est pas une navigation au clavier
+    if (!isKeyboardNavigation.current) {
+      if (validateStep()) {
+        handleNext();
+      }
+    }
+    isKeyboardNavigation.current = false;
   };
 
   const handleDateChange = (e) => {
@@ -78,7 +90,6 @@ export function ModalDepenseRevenu({
       currentStep: current.name,
       formValue: form[current.name],
       selectedDate,
-      selectedCategory,
     });
 
     if (!form[current.name]) {
@@ -112,19 +123,6 @@ export function ModalDepenseRevenu({
     }
   };
 
-  // Effet pour gérer la validation automatique de la catégorie
-  useEffect(() => {
-    if (selectedCategory && step === 2) {
-      console.log("Validation automatique de la catégorie:", selectedCategory);
-      const timer = setTimeout(() => {
-        if (validateStep()) {
-          handleNext();
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedCategory]);
-
   // Effet pour gérer la validation automatique de la date
   useEffect(() => {
     if (selectedDate && step === 4) {
@@ -143,25 +141,21 @@ export function ModalDepenseRevenu({
   };
 
   const handleKeyDown = (e) => {
+    console.log(
+      "handleKeyDown - Touche pressée:",
+      e.key,
+      "Type:",
+      current.type
+    );
+
     if (e.key === "Enter") {
+      console.log("handleKeyDown - Validation avec Entrée");
       e.preventDefault();
       handleNext();
     } else if (current.type === "select") {
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        handleNext();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        handlePrev();
-      }
-    } else {
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        handleNext();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        handlePrev();
-      }
+      console.log("handleKeyDown - Select détecté, navigation clavier");
+      isKeyboardNavigation.current = true;
+      return;
     }
   };
 
