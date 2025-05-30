@@ -51,26 +51,17 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
             )}
           </div>
           {/* Afficher la date ou le jour de prélèvement pour les paiements récurrents */}
-          {Number.isFinite(Number(item.jourPrelevement)) && (
+          {item.jourPrelevement && (
             <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
               Prélèvement : le {item.jourPrelevement} de chaque mois
             </div>
           )}
-          {/* Afficher la date uniquement si ce n'est pas un paiement échelonné et pas de jour de prélèvement, et si la date est valide */}
-          {!item.mensualites &&
-            !item.jourPrelevement &&
-            item.date &&
-            (() => {
-              const date = new Date(item.date);
-              if (!isNaN(date.getTime())) {
-                return (
-                  <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
-                    {date.toLocaleDateString("fr-FR")}
-                  </div>
-                );
-              }
-              return null;
-            })()}
+          {/* Afficher la date uniquement si ce n'est pas un paiement échelonné et pas de jour de prélèvement */}
+          {!item.mensualites && !item.jourPrelevement && item.date && (
+            <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
+              {formatDate()}
+            </div>
+          )}
         </div>
       </div>
       {/* Slot pour contenu additionnel (ex: barre de progression, infos) */}

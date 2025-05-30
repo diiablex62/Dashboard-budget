@@ -17,7 +17,7 @@ import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import TransactionCard from "../components/ui/TransactionCard";
-import ModalTransaction from "../components/ui/ModalTransaction";
+import { ModalDepenseRevenu } from "../components/ui/Modal";
 
 // Import des catégories et données centralisées
 import {
@@ -40,8 +40,7 @@ export default function DepensesRevenus() {
   const [currentTab, setCurrentTab] = useState("depense");
   const [depenses, setDepenses] = useState([]);
   const [revenus, setRevenus] = useState([]);
-  const [showDepenseModal, setShowDepenseModal] = useState(false);
-  const [showRevenuModal, setShowRevenuModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -60,43 +59,43 @@ export default function DepensesRevenus() {
     return () => window.removeEventListener("data-updated", handleDataUpdate);
   }, [fetchDepenseRevenu]);
 
-  const handleAddRevenu = useCallback(() => {
+  const handleAddTransaction = useCallback(() => {
     setSelectedItem(null);
-    setShowRevenuModal(true);
+    setShowModal(true);
   }, []);
 
-  const handleAddDepense = useCallback(() => {
-    setSelectedItem(null);
-    setShowDepenseModal(true);
-  }, []);
-
-  const handleSaveRevenu = useCallback(async (revenu) => {
-    setRevenus((prev) => {
-      if (revenu.id) {
-        // Edition locale
-        return prev.map((t) =>
-          t.id === revenu.id ? { ...revenu, type: "revenu" } : t
-        );
+  const handleSaveTransaction = useCallback(
+    async (transaction) => {
+      if (currentTab === "depense") {
+        setDepenses((prev) => {
+          if (transaction.id) {
+            return prev.map((t) =>
+              t.id === transaction.id ? { ...transaction, type: "depense" } : t
+            );
+          } else {
+            return [
+              ...prev,
+              { ...transaction, id: Date.now(), type: "depense" },
+            ];
+          }
+        });
       } else {
-        // Ajout local
-        return [...prev, { ...revenu, id: Date.now(), type: "revenu" }];
+        setRevenus((prev) => {
+          if (transaction.id) {
+            return prev.map((t) =>
+              t.id === transaction.id ? { ...transaction, type: "revenu" } : t
+            );
+          } else {
+            return [
+              ...prev,
+              { ...transaction, id: Date.now(), type: "revenu" },
+            ];
+          }
+        });
       }
-    });
-  }, []);
-
-  const handleSaveDepense = useCallback(async (depense) => {
-    setDepenses((prev) => {
-      if (depense.id) {
-        // Edition locale
-        return prev.map((t) =>
-          t.id === depense.id ? { ...depense, type: "depense" } : t
-        );
-      } else {
-        // Ajout local
-        return [...prev, { ...depense, id: Date.now(), type: "depense" }];
-      }
-    });
-  }, []);
+    },
+    [currentTab]
+  );
 
   const filteredDepenseRevenu = useMemo(() => {
     const items = currentTab === "depense" ? depenses : revenus;
@@ -248,13 +247,9 @@ export default function DepensesRevenus() {
                 <div className='flex space-x-3'>
                   <button
                     className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                    onClick={
-                      currentTab === "depense"
-                        ? handleAddDepense
-                        : handleAddRevenu
-                    }>
-                    <span className='text-lg font-bold'>+</span>
-                    <span className='cursor-pointer'>Ajouter</span>
+                    onClick={handleAddTransaction}>
+                    <AiOutlinePlus className='text-lg' />
+                    Ajouter
                   </button>
                 </div>
               </div>
@@ -275,8 +270,7 @@ export default function DepensesRevenus() {
                       currentTab={currentTab}
                       onEdit={() => {
                         setSelectedItem(depenseRevenuItem);
-                        if (currentTab === "depense") setShowDepenseModal(true);
-                        else setShowRevenuModal(true);
+                        setShowModal(true);
                       }}
                       onDelete={() => {
                         if (currentTab === "depense") {
@@ -299,92 +293,23 @@ export default function DepensesRevenus() {
               )}
             </div>
           </div>
-          {showRevenuModal && (
-            <ModalTransaction
-              visible={showRevenuModal}
-              onClose={() => setShowRevenuModal(false)}
-              onSave={handleSaveRevenu}
-              steps={[
-                {
-                  name: "nom",
-                  label: "Nom du revenu",
-                  type: "text",
-                  placeholder: "Ex: Salaire",
-                },
-                {
-                  name: "categorie",
-                  label: "Catégorie",
-                  type: "select",
-                  options: CATEGORIES,
-                },
-                {
-                  name: "montant",
-                  label: "Montant (€)",
-                  type: "number",
-                  placeholder: "Ex: 2000",
-                },
-                {
-                  name: "date",
-                  label: "Date",
-                  type: "date",
-                  icon: AiOutlineCalendar,
-                },
-              ]}
-              initialValues={
-                selectedItem || {
-                  nom: "",
-                  montant: "",
-                  categorie: "",
-                  date: new Date().toISOString().split("T")[0],
-                }
-              }
-              categories={CATEGORIES}
-              title='Ajouter un revenu'
-            />
-          )}
-          {showDepenseModal && (
-            <ModalTransaction
-              visible={showDepenseModal}
-              onClose={() => setShowDepenseModal(false)}
-              onSave={handleSaveDepense}
-              steps={[
-                {
-                  name: "nom",
-                  label: "Nom de la dépense",
-                  type: "text",
-                  placeholder: "Ex: Loyer",
-                },
-                {
-                  name: "categorie",
-                  label: "Catégorie",
-                  type: "select",
-                  options: CATEGORIES,
-                },
-                {
-                  name: "montant",
-                  label: "Montant (€)",
-                  type: "number",
-                  placeholder: "Ex: 500",
-                },
-                {
-                  name: "date",
-                  label: "Date",
-                  type: "date",
-                  icon: AiOutlineCalendar,
-                },
-              ]}
-              initialValues={
-                selectedItem || {
-                  nom: "",
-                  montant: "",
-                  categorie: "",
-                  date: new Date().toISOString().split("T")[0],
-                }
-              }
-              categories={CATEGORIES}
-              title='Ajouter une dépense'
-            />
-          )}
+          <ModalDepenseRevenu
+            visible={showModal}
+            onClose={() => setShowModal(false)}
+            onSave={handleSaveTransaction}
+            initialValues={selectedItem}
+            categories={
+              currentTab === "depense"
+                ? DEPENSES_CATEGORIES
+                : REVENUS_CATEGORIES
+            }
+            title={
+              currentTab === "depense"
+                ? "Ajouter une dépense"
+                : "Ajouter un revenu"
+            }
+            editMode={!!selectedItem}
+          />
         </div>
       );
     } catch (error) {
