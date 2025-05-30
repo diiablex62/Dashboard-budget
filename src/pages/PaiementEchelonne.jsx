@@ -14,7 +14,7 @@ import {
 import { fakePaiementsEchelonnes } from "../utils/fakeData";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import CardDesign from "../components/ui/CardDesign";
-import ModalTransaction from "../components/ui/ModalTransaction";
+import { ModalEchelonne } from "../components/ui/Modal";
 import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
@@ -161,48 +161,6 @@ export const PaiementEchelonne = () => {
     },
     [editIndex, isRevenus, paiementsEchelonnes]
   );
-
-  const steps = [
-    {
-      name: "nom",
-      label: "Nom du paiement",
-      type: "text",
-      placeholder: "Ex: Crédit auto",
-      error: "Le nom est requis",
-    },
-    {
-      name: "categorie",
-      label: "Catégorie",
-      type: "select",
-      options: isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES,
-      error: "La catégorie est requise",
-    },
-    {
-      name: "montant",
-      label: "Montant total (€)",
-      type: "number",
-      min: "0.01",
-      step: "0.01",
-      placeholder: "Ex: 9999",
-      error: "Le montant est requis",
-    },
-    {
-      name: "mensualites",
-      label: "Nombre de mensualités",
-      type: "number",
-      min: "1",
-      step: "1",
-      placeholder: "Ex: 12",
-      error: "Le nombre de mensualités est requis",
-    },
-    {
-      name: "debutDate",
-      label: "Date de début",
-      type: "date",
-      icon: AiOutlineCalendar,
-      error: "La date de début est requise",
-    },
-  ];
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
@@ -395,8 +353,8 @@ export const PaiementEchelonne = () => {
         </div>
       </div>
 
-      {/* ModalTransaction */}
-      <ModalTransaction
+      {/* ModalEchelonne */}
+      <ModalEchelonne
         visible={showModal}
         onClose={() => {
           console.log("Modal fermé");
@@ -404,7 +362,7 @@ export const PaiementEchelonne = () => {
           setEditIndex(null);
         }}
         onSave={handleSave}
-        steps={steps}
+        categories={isRevenus ? REVENUS_CATEGORIES : DEPENSES_CATEGORIES}
         initialValues={
           editIndex !== null
             ? (() => {
@@ -429,7 +387,6 @@ export const PaiementEchelonne = () => {
                 type: isRevenus ? "revenu" : "depense",
               }
         }
-        type={isRevenus ? "revenu" : "depense"}
         title={editIndex !== null ? "Modifier" : "Ajouter"}
         editMode={editIndex !== null}
       />
