@@ -32,7 +32,7 @@ import {
   deletePaiementWithUndo,
 } from "../utils/paiementActions.jsx";
 import CardDesign from "../components/ui/CardDesign";
-import ModalTransaction from "../components/ui/ModalTransaction";
+import { ModalRecurrent } from "../components/ui/Modal";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -90,17 +90,11 @@ const PaiementRecurrent = () => {
 
   const handleSavePaiement = useCallback(
     async (paiement) => {
-      // Correction : utiliser la valeur du champ jourPrelevement du formulaire
-      let jourPrelevement = Number.isFinite(Number(paiement.jourPrelevement))
-        ? Number(paiement.jourPrelevement)
-        : undefined;
-
       setPaiementsRecurrents((prev) => {
         const newPaiement = {
           ...paiement,
           type: currentTab,
-          jourPrelevement,
-          dateDebut: paiement.dateDebut,
+          jourPrelevement: Number(paiement.jour),
           montant: Number(paiement.montant),
         };
         if (paiement.id) {
@@ -243,62 +237,20 @@ const PaiementRecurrent = () => {
         </div>
       </div>
 
-      {/* Modale */}
-      {showModal && (
-        <ModalTransaction
-          visible={showModal}
-          onClose={() => {
-            setShowModal(false);
-            setStep(1);
-            setSelectedPaiement(null);
-          }}
-          onSave={handleSavePaiement}
-          steps={[
-            {
-              name: "nom",
-              label: "Nom du paiement",
-              type: "text",
-              placeholder: "Ex: Abonnement",
-            },
-            {
-              name: "categorie",
-              label: "Catégorie",
-              type: "select",
-              options:
-                currentTab === "depense"
-                  ? DEPENSES_CATEGORIES
-                  : REVENUS_CATEGORIES,
-            },
-            {
-              name: "montant",
-              label: "Montant (€)",
-              type: "number",
-              placeholder: "Ex: 50",
-            },
-            {
-              name: "jourPrelevement",
-              label: "Jour de prélèvement",
-              type: "grid-day",
-            },
-          ]}
-          initialValues={
-            selectedPaiement || {
-              nom: "",
-              montant: "",
-              categorie: "",
-              jourPrelevement: 1,
-            }
-          }
-          categories={
-            currentTab === "depense" ? DEPENSES_CATEGORIES : REVENUS_CATEGORIES
-          }
-          title={
-            selectedPaiement
-              ? "Modifier un paiement récurrent"
-              : "Ajouter un paiement récurrent"
-          }
-        />
-      )}
+      {/* Modal */}
+      <ModalRecurrent
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleSavePaiement}
+        initialValues={selectedPaiement}
+        categories={
+          currentTab === "depense" ? DEPENSES_CATEGORIES : REVENUS_CATEGORIES
+        }
+        title={`${selectedPaiement ? "Modifier" : "Ajouter"} une ${
+          currentTab === "depense" ? "dépense" : "revenu"
+        } récurrente`}
+        editMode={!!selectedPaiement}
+      />
     </div>
   );
 };
