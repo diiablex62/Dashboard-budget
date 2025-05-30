@@ -51,15 +51,11 @@ export function ModalDepenseRevenu({
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
 
-  // États locaux
-  const [localDate, setLocalDate] = useState("");
-
   // Effets
   useEffect(() => {
     if (visible) {
       console.log("Modal ouverte - Réinitialisation du formulaire");
       setForm(initialValues || defaultForm);
-      setLocalDate(initialValues?.date || defaultForm.date);
       setError(null);
       setStep(1);
       isKeyboardNavigation.current = false;
@@ -415,14 +411,10 @@ export function ModalRecurrent({
   const current = useMemo(() => steps[step - 1], [steps, step]);
   const days = useMemo(() => Array.from({ length: 31 }, (_, i) => i + 1), []);
 
-  // États locaux
-  const [localDate, setLocalDate] = useState("");
-
   // Effets
   useEffect(() => {
     if (visible) {
       setForm(initialValues || defaultForm);
-      setLocalDate(initialValues?.jour || defaultForm.jour);
       setError(null);
       setStep(1);
       isKeyboardNavigation.current = false;
@@ -514,7 +506,7 @@ export function ModalRecurrent({
   }, []);
 
   const handleDayClick = useCallback((day) => {
-    setLocalDate(day.toString());
+    setForm((prev) => ({ ...prev, jour: day.toString() }));
     shouldValidateDay.current = true;
   }, []);
 
@@ -550,7 +542,7 @@ export function ModalRecurrent({
             return;
         }
 
-        setLocalDate(newDay.toString());
+        setForm((prev) => ({ ...prev, jour: newDay.toString() }));
         const dayElement = gridRef.current.querySelector(
           `[data-day="${newDay}"]`
         );
@@ -780,15 +772,11 @@ export function ModalEchelonne({
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
 
-  // États locaux
-  const [localDate, setLocalDate] = useState("");
-
   // Effets
   useEffect(() => {
     if (visible) {
       console.log("Modal ouverte - Réinitialisation du formulaire");
       setForm(initialValues || defaultForm);
-      setLocalDate(initialValues?.debutDate || defaultForm.debutDate);
       setError(null);
       setStep(1);
       isKeyboardNavigation.current = false;
