@@ -5,6 +5,9 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { fr } from "date-fns/locale";
 
 export function ModalDepenseRevenu({
   visible,
@@ -74,7 +77,7 @@ export function ModalDepenseRevenu({
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
       console.log("Validation automatique de la catégorie:", form.categorie);
-      handleNext();
+    //   handleNext();
       shouldValidateCategory.current = false;
     }
   }, [form.categorie, step]);
@@ -307,15 +310,37 @@ export function ModalDepenseRevenu({
               <label className='block mb-2 font-medium dark:text-white'>
                 {current.label}
               </label>
-              <input
-                type='date'
-                name={current.name}
-                value={localDate}
-                onChange={handleDateChange}
+              <DatePicker
+                selected={form.date ? new Date(form.date) : null}
+                onChange={(date, event) => {
+                  if (
+                    event &&
+                    event.target &&
+                    event.target.className &&
+                    event.target.className.includes(
+                      "react-datepicker__navigation"
+                    )
+                  ) {
+                    // Navigation, on ignore la validation
+                    console.log("Navigation mois/année - validation ignorée");
+                  } else {
+                    setForm((prev) => ({
+                      ...prev,
+                      date: date ? date.toISOString().split("T")[0] : "",
+                    }));
+                    shouldValidateDate.current = true;
+                    console.log("Date sélectionnée - validation autorisée");
+                    // Si tu veux la validation auto, décommente la ligne suivante :
+                    // handleNext();
+                  }
+                }}
+                dateFormat='dd/MM/yyyy'
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
+                calendarClassName='dark:bg-gray-900 dark:text-white'
+                wrapperClassName='w-full'
+                locale={fr}
+                placeholderText='Choisir une date'
+                showPopperArrow={false}
               />
             </div>
           )}
@@ -1024,15 +1049,37 @@ export function ModalEchelonne({
               <label className='block mb-2 font-medium dark:text-white'>
                 {current.label}
               </label>
-              <input
-                type='date'
-                name={current.name}
-                value={localDate}
-                onChange={handleDateChange}
+              <DatePicker
+                selected={form.debutDate ? new Date(form.debutDate) : null}
+                onChange={(date, event) => {
+                  if (
+                    event &&
+                    event.target &&
+                    event.target.className &&
+                    event.target.className.includes(
+                      "react-datepicker__navigation"
+                    )
+                  ) {
+                    // Navigation, on ignore la validation
+                    console.log("Navigation mois/année - validation ignorée");
+                  } else {
+                    setForm((prev) => ({
+                      ...prev,
+                      debutDate: date ? date.toISOString().split("T")[0] : "",
+                    }));
+                    shouldValidateDate.current = true;
+                    console.log("Date sélectionnée - validation autorisée");
+                    // Si tu veux la validation auto, décommente la ligne suivante :
+                    // handleNext();
+                  }
+                }}
+                dateFormat='dd/MM/yyyy'
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
+                calendarClassName='dark:bg-gray-900 dark:text-white'
+                wrapperClassName='w-full'
+                locale={fr}
+                placeholderText='Choisir une date'
+                showPopperArrow={false}
               />
             </div>
           )}
