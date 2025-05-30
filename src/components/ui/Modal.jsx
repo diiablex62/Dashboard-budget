@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 
 export function ModalDepenseRevenu({
   visible,
@@ -9,47 +15,58 @@ export function ModalDepenseRevenu({
   title = "Ajouter une transaction",
   editMode = false,
 }) {
-  const steps = [
-    { name: "nom", label: "Nom", type: "text" },
-    { name: "categorie", label: "Catégorie", type: "select" },
-    { name: "montant", label: "Montant (€)", type: "number" },
-    { name: "date", label: "Date", type: "date" },
-  ];
+  // Configuration statique
+  const steps = useMemo(
+    () => [
+      { name: "nom", label: "Nom", type: "text" },
+      { name: "categorie", label: "Catégorie", type: "select" },
+      { name: "montant", label: "Montant (€)", type: "number" },
+      { name: "date", label: "Date", type: "date" },
+    ],
+    []
+  );
 
-  const defaultForm = {
-    nom: "",
-    categorie: "",
-    montant: "",
-    date: new Date().toISOString().split("T")[0],
-  };
+  const defaultForm = useMemo(
+    () => ({
+      nom: "",
+      categorie: "",
+      montant: "",
+      date: new Date().toISOString().split("T")[0],
+    }),
+    []
+  );
 
+  // États
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(defaultForm);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
   const inputRef = useRef(null);
   const isKeyboardNavigation = useRef(false);
   const shouldValidateCategory = useRef(false);
+  const shouldValidateDate = useRef(false);
 
+  // Références dérivées
+  const current = useMemo(() => steps[step - 1], [steps, step]);
+
+  // Effets
   useEffect(() => {
     if (visible) {
       console.log("Modal ouverte - Réinitialisation du formulaire");
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
-      setSelectedDate(null);
       isKeyboardNavigation.current = false;
       shouldValidateCategory.current = false;
+      shouldValidateDate.current = false;
     }
-  }, [visible, initialValues]);
+  }, [visible, initialValues, defaultForm]);
 
   useEffect(() => {
-    if (inputRef.current) {
+    if (visible && inputRef.current) {
       inputRef.current.focus();
     }
   }, [step, visible]);
 
-  // Effet pour gérer la validation de la catégorie
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
       console.log("Validation automatique de la catégorie:", form.categorie);
@@ -58,49 +75,24 @@ export function ModalDepenseRevenu({
     }
   }, [form.categorie, step]);
 
-  const current = steps[step - 1];
-
-  const handleChange = (e) => {
-    console.log(
-      "handleChange - Type:",
-      e.target.type,
-      "Valeur:",
-      e.target.value
-    );
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleCategoryChange = (e) => {
-    const newCategory = e.target.value;
-    console.log(
-      "handleCategoryChange - Nouvelle catégorie:",
-      newCategory,
-      "Navigation clavier:",
-      isKeyboardNavigation.current
-    );
-
-    setForm((prev) => ({ ...prev, categorie: newCategory }));
-
-    if (!isKeyboardNavigation.current) {
-      shouldValidateCategory.current = true;
+  useEffect(() => {
+    if (shouldValidateDate.current && form.date && step === 4) {
+      handleNext();
+      shouldValidateDate.current = false;
     }
-    isKeyboardNavigation.current = false;
-  };
+  }, [form.date, step]);
 
-  const handleDateChange = (e) => {
-    const newDate = e.target.value;
-    console.log("handleDateChange - Nouvelle date:", newDate);
-    setSelectedDate(newDate);
-    setForm((prev) => ({ ...prev, date: newDate }));
-  };
+  // Handlers
+  const handleBackdropClick = useCallback(
+    (e) => {
+      if (e.target === e.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-  const validateStep = () => {
-    console.log("validateStep - État actuel:", {
-      currentStep: current.name,
-      formValue: form[current.name],
-      selectedDate,
-    });
-
+  const validateStep = useCallback(() => {
     if (!form[current.name]) {
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
@@ -114,62 +106,57 @@ export function ModalDepenseRevenu({
     }
     setError(null);
     return true;
-  };
+  }, [current, form]);
 
-  const handleNext = () => {
-    console.log("handleNext - Avant validation");
-    if (!validateStep()) {
-      console.log("handleNext - Validation échouée");
-      return;
-    }
+  const handleNext = useCallback(() => {
+    if (!validateStep()) return;
+
     if (step < steps.length) {
-      console.log("handleNext - Passage à l'étape suivante:", step + 1);
       setStep(step + 1);
     } else {
-      console.log("handleNext - Validation finale du formulaire:", form);
       onSave(form);
       onClose();
     }
-  };
+  }, [step, steps.length, validateStep, form, onSave, onClose]);
 
-  // Effet pour gérer la validation automatique de la date
-  useEffect(() => {
-    if (selectedDate && step === 4) {
-      console.log("Validation automatique de la date:", selectedDate);
-      const timer = setTimeout(() => {
-        if (validateStep()) {
-          handleNext();
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedDate]);
-
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (step > 1) setStep(step - 1);
-  };
+  }, [step]);
 
-  const handleKeyDown = (e) => {
-    console.log(
-      "handleKeyDown - Touche pressée:",
-      e.key,
-      "Type:",
-      current.type
-    );
+  const handleChange = useCallback((e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
-    if (e.key === "Enter") {
-      console.log("handleKeyDown - Validation avec Entrée");
-      e.preventDefault();
-      handleNext();
-    } else if (current.type === "select") {
-      console.log("handleKeyDown - Select détecté, navigation clavier");
-      isKeyboardNavigation.current = true;
-      return;
+  const handleCategoryChange = useCallback((e) => {
+    const newCategory = e.target.value;
+    setForm((prev) => ({ ...prev, categorie: newCategory }));
+
+    if (!isKeyboardNavigation.current) {
+      shouldValidateCategory.current = true;
     }
-  };
+    isKeyboardNavigation.current = false;
+  }, []);
 
-  const renderPreviousAnswers = () => {
-    return (
+  const handleDateChange = useCallback((e) => {
+    setForm((prev) => ({ ...prev, date: e.target.value }));
+    shouldValidateDate.current = true;
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleNext();
+      } else if (current.type === "select") {
+        // On marque la navigation au clavier mais on ne bloque pas les flèches
+        isKeyboardNavigation.current = true;
+      }
+    },
+    [current.type, handleNext]
+  );
+
+  const renderPreviousAnswers = useCallback(
+    () => (
       <div className='mb-4 space-y-2'>
         {steps.slice(0, step - 1).map((s) => (
           <div key={s.name} className='text-sm'>
@@ -186,16 +173,11 @@ export function ModalDepenseRevenu({
           </div>
         ))}
       </div>
-    );
-  };
+    ),
+    [steps, step, form]
+  );
 
   if (!visible) return null;
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
 
   return (
     <div
