@@ -29,6 +29,7 @@ export function ModalDepenseRevenu({
   const [selectedDate, setSelectedDate] = useState(null);
   const inputRef = useRef(null);
   const isKeyboardNavigation = useRef(false);
+  const shouldValidateCategory = useRef(false);
 
   useEffect(() => {
     if (visible) {
@@ -38,6 +39,7 @@ export function ModalDepenseRevenu({
       setStep(1);
       setSelectedDate(null);
       isKeyboardNavigation.current = false;
+      shouldValidateCategory.current = false;
     }
   }, [visible, initialValues]);
 
@@ -46,6 +48,15 @@ export function ModalDepenseRevenu({
       inputRef.current.focus();
     }
   }, [step, visible]);
+
+  // Effet pour gérer la validation de la catégorie
+  useEffect(() => {
+    if (shouldValidateCategory.current && form.categorie && step === 2) {
+      console.log("Validation automatique de la catégorie:", form.categorie);
+      handleNext();
+      shouldValidateCategory.current = false;
+    }
+  }, [form.categorie, step]);
 
   const current = steps[step - 1];
 
@@ -67,13 +78,11 @@ export function ModalDepenseRevenu({
       "Navigation clavier:",
       isKeyboardNavigation.current
     );
+
     setForm((prev) => ({ ...prev, categorie: newCategory }));
 
-    // On ne valide que si ce n'est pas une navigation au clavier
     if (!isKeyboardNavigation.current) {
-      if (validateStep()) {
-        handleNext();
-      }
+      shouldValidateCategory.current = true;
     }
     isKeyboardNavigation.current = false;
   };
