@@ -77,7 +77,7 @@ export function ModalDepenseRevenu({
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
       console.log("Validation automatique de la catégorie:", form.categorie);
-    //   handleNext();
+      //   handleNext();
       shouldValidateCategory.current = false;
     }
   }, [form.categorie, step]);
