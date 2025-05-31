@@ -248,61 +248,62 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         </div>
 
         {/* Bloc du bas : Paramètres, Aide, Profil utilisateur */}
-        <div className='mt-auto flex flex-col border-t border-gray-100'>
-          <div className='px-2 pb-2 text-left mt-8 pt-4'>
-            {!isCollapsed && (
-              <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
-                PARAMÈTRES
-              </div>
-            )}
-            <ul className='space-y-1 mb-4'>
-              {settingsLinks.map((link) => (
-                <li key={link.to || link.key}>
-                  <NavItem
-                    to={link.to}
-                    icon={link.icon}
-                    label={link.label}
-                    onClick={link.onClick}
-                    isCollapsed={isCollapsed}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-          <NavLink
-            to='/profil'
-            className={({ isActive }) =>
-              `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
-                isActive
-                  ? "text-gray-900 dark:text-white font-semibold"
-                  : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
-              }`
-            }
-            title='Profil utilisateur'
-            tabIndex={0}>
-            <div className='w-12 h-12 rounded-full flex items-center justify-center overflow-hidden'>
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt='Avatar'
-                  className='w-12 h-12 object-cover rounded-full'
-                />
-              ) : (
-                <AiOutlineUser className='text-3xl text-gray-400' />
-              )}
+        <div
+          className={`${
+            isCollapsed ? "pb-2 mt-8 pt-4" : "px-2 pb-2 text-left mt-8 pt-4"
+          }`}>
+          {!isCollapsed && (
+            <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
+              PARAMÈTRES
             </div>
-            {!isCollapsed && (
-              <div className='flex flex-col justify-center'>
-                <span className='font-semibold text-gray-800 dark:text-white'>
-                  {user?.name || "Alexandre Janacek"}
-                </span>
-                <span className='text-xs text-gray-500 dark:text-gray-500'>
-                  {user?.email || "alexandre.janacek@gmail.com"}
-                </span>
-              </div>
-            )}
-          </NavLink>
+          )}
+          <ul className={`space-y-1 mb-4 ${isCollapsed ? "px-3" : ""}`}>
+            {settingsLinks.map((link) => (
+              <li key={link.to || link.key}>
+                <NavItem
+                  to={link.to}
+                  icon={link.icon}
+                  label={link.label}
+                  onClick={link.onClick}
+                  isCollapsed={isCollapsed}
+                />
+              </li>
+            ))}
+          </ul>
         </div>
+        <NavLink
+          to='/profil'
+          className={({ isActive }) =>
+            `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
+              isActive
+                ? "text-gray-900 dark:text-white font-semibold"
+                : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
+            }`
+          }
+          title='Profil utilisateur'
+          tabIndex={0}>
+          <div className='w-12 h-12 rounded-full flex items-center justify-center overflow-hidden'>
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt='Avatar'
+                className='w-12 h-12 object-cover rounded-full'
+              />
+            ) : (
+              <AiOutlineUser className='text-3xl text-gray-400' />
+            )}
+          </div>
+          {!isCollapsed && (
+            <div className='flex flex-col justify-center'>
+              <span className='font-semibold text-gray-800 dark:text-white'>
+                {user?.name || "Alexandre Janacek"}
+              </span>
+              <span className='text-xs text-gray-500 dark:text-gray-500'>
+                {user?.email || "alexandre.janacek@gmail.com"}
+              </span>
+            </div>
+          )}
+        </NavLink>
       </div>
     </>
   );
