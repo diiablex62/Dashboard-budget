@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AiOutlineEdit,
   AiOutlineCheckCircle,
@@ -8,6 +9,8 @@ import {
 } from "react-icons/ai";
 import { FiUpload } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
+import { AppContext } from "../context/AppContext";
+import { FaUser, FaEnvelope, FaLock, FaSignOutAlt } from "react-icons/fa";
 
 const initialUser = {
   avatar: null,
@@ -20,7 +23,18 @@ const initialUser = {
 };
 
 export default function Profil() {
-  const [user, setUser] = useState(initialUser);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { primaryColor } = useContext(AppContext);
+  const [avatar, setAvatar] = useState(user?.avatar || null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -30,19 +44,35 @@ export default function Profil() {
   const [infoSaved, setInfoSaved] = useState(false);
   const [securitySaved, setSecuritySaved] = useState(false);
   const fileInputRef = useRef();
-  const { setAvatar, avatar } = useAuth();
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const imageData = reader.result;
-        setAvatarPreview(imageData); // pour l'affichage local
-        setAvatar(imageData); // pour le contexte global (sidebar)
+        setAvatar(reader.result);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Logique de mise à jour du profil
+    setIsEditing(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/dashboard");
   };
 
   const handleInfoSave = (e) => {
@@ -59,189 +89,182 @@ export default function Profil() {
 
   return (
     <div className='w-full min-h-screen bg-white dark:bg-black dark:text-white py-10 p-8'>
-      {/* Avatar */}
-      <div className='flex flex-col items-center mb-8'>
-        <div className='relative'>
-          <img
-            src={avatarPreview || "/avatar-placeholder.png"}
-            alt='Avatar'
-            className='w-24 h-24 rounded-full object-cover border-4 border-white shadow'
-          />
+      <div className='max-w-4xl mx-auto'>
+        <h1 className='text-3xl font-bold mb-8'>Profil</h1>
+
+        {/* Section Avatar */}
+        <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6 shadow-sm'>
+          <div className='flex items-center gap-6'>
+            <div className='relative'>
+              <div className='w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700'>
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt='Avatar'
+                    className='w-full h-full object-cover'
+                  />
+                ) : (
+                  <div className='w-full h-full flex items-center justify-center text-gray-400'>
+                    <FaUser size={40} />
+                  </div>
+                )}
+              </div>
+              <label
+                htmlFor='avatar-upload'
+                className='absolute bottom-0 right-0 bg-yellow-500 text-white p-2 rounded-full cursor-pointer hover:bg-yellow-600 transition-colors'>
+                <FaUser size={16} />
+              </label>
+              <input
+                id='avatar-upload'
+                type='file'
+                accept='image/*'
+                className='hidden'
+                onChange={handleAvatarChange}
+              />
+            </div>
+            <div>
+              <h2 className='text-xl font-semibold mb-1'>{user?.name}</h2>
+              <p className='text-gray-500 dark:text-gray-400'>{user?.email}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Formulaire de profil */}
+        <form onSubmit={handleSubmit} className='space-y-6'>
+          <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm'>
+            <h2 className='text-xl font-semibold mb-4'>
+              Informations personnelles
+            </h2>
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  Nom
+                </label>
+                <div className='relative'>
+                  <input
+                    type='text'
+                    name='name'
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                  />
+                  <FaUser className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                </div>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  Email
+                </label>
+                <div className='relative'>
+                  <input
+                    type='email'
+                    name='email'
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                  />
+                  <FaEnvelope className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm'>
+            <h2 className='text-xl font-semibold mb-4'>Sécurité</h2>
+            <div className='space-y-4'>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  Mot de passe actuel
+                </label>
+                <div className='relative'>
+                  <input
+                    type='password'
+                    name='currentPassword'
+                    value={formData.currentPassword}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                  />
+                  <FaLock className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                </div>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  Nouveau mot de passe
+                </label>
+                <div className='relative'>
+                  <input
+                    type='password'
+                    name='newPassword'
+                    value={formData.newPassword}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                  />
+                  <FaLock className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                </div>
+              </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                  Confirmer le nouveau mot de passe
+                </label>
+                <div className='relative'>
+                  <input
+                    type='password'
+                    name='confirmPassword'
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                  />
+                  <FaLock className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className='flex justify-end gap-4'>
+            {isEditing ? (
+              <>
+                <button
+                  type='button'
+                  onClick={() => setIsEditing(false)}
+                  className='px-6 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+                  Annuler
+                </button>
+                <button
+                  type='submit'
+                  className='px-6 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors'>
+                  Enregistrer
+                </button>
+              </>
+            ) : (
+              <button
+                type='button'
+                onClick={() => setIsEditing(true)}
+                className='px-6 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors'>
+                Modifier
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* Section Déconnexion */}
+        <div className='mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-t border-gray-200 dark:border-gray-700'>
+          <h2 className='text-xl font-semibold mb-4'>Déconnexion</h2>
+          <p className='text-gray-600 dark:text-gray-400 mb-4'>
+            Vous pouvez vous déconnecter de votre compte à tout moment.
+          </p>
           <button
-            type='button'
-            onClick={() => fileInputRef.current.click()}
-            className='absolute bottom-0 right-0 bg-white border border-gray-200 rounded-full p-2 shadow hover:bg-gray-100'>
-            <FiUpload className='text-xl text-gray-700' />
+            onClick={handleLogout}
+            className='flex items-center gap-2 px-6 py-2 rounded-lg bg-gray-700 text-white hover:bg-red-600 transition-colors'>
+            <FaSignOutAlt />
+            Se déconnecter
           </button>
-          <input
-            type='file'
-            accept='image/*'
-            ref={fileInputRef}
-            className='hidden'
-            onChange={handleAvatarChange}
-          />
         </div>
-        <span className='mt-2 text-sm text-gray-500 dark:text-gray-300'>
-          Modifier votre photo de profil
-        </span>
       </div>
-
-      {/* Personal Information */}
-      <form
-        onSubmit={handleInfoSave}
-        className='w-full bg-white dark:bg-black rounded-xl shadow p-6 mb-8 border border-gray-100 dark:border-gray-800'>
-        <h2 className='text-lg font-semibold mb-4'>
-          Informations Personnelles
-        </h2>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
-          <div>
-            <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
-              Nom
-            </label>
-            <input
-              className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
-              value={user.name}
-              onChange={(e) => setUser((u) => ({ ...u, name: e.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
-              Email
-            </label>
-            <div className='relative'>
-              <input
-                className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
-                value={user.email}
-                onChange={(e) =>
-                  setUser((u) => ({ ...u, email: e.target.value }))
-                }
-                required
-                type='email'
-              />
-            </div>
-          </div>
-        </div>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
-          <div>
-            <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
-              Téléphone{" "}
-              <span className='text-xs text-gray-400'>(Optionnel)</span>
-            </label>
-            <div className='relative'>
-              <input
-                className='w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
-                value={user.phone}
-                onChange={(e) =>
-                  setUser((u) => ({ ...u, phone: e.target.value }))
-                }
-                type='tel'
-                placeholder='1234567890'
-              />
-            </div>
-          </div>
-        </div>
-        <button
-          type='submit'
-          className='bg-gray-900 text-white px-6 py-2 rounded shadow hover:bg-gray-800 transition font-semibold mt-2'>
-          {infoSaved ? "Enregistré !" : "Enregistrer"}
-        </button>
-      </form>
-
-      {/* Security */}
-      <form
-        onSubmit={handleSecuritySave}
-        className='w-full bg-white dark:bg-black rounded-xl shadow p-6 border border-gray-100 dark:border-gray-800'>
-        <h2 className='text-lg font-semibold mb-4'>Sécurité</h2>
-        <div className='mb-4'>
-          <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
-            Mot de passe
-          </label>
-          <div className='relative'>
-            <input
-              className='w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button
-              type='button'
-              className='absolute right-2 top-1/2 -translate-y-1/2 text-gray-500'
-              onClick={() => setShowPassword((v) => !v)}>
-              {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-            </button>
-          </div>
-          <div className='flex items-center gap-2 mt-1 text-xs'>
-            <span
-              className={
-                password.length >= 8 ? "text-green-600" : "text-gray-400"
-              }>
-              ✔ 8 Caractères
-            </span>
-            <span
-              className={
-                /[0-9]/.test(password) ? "text-green-600" : "text-gray-400"
-              }>
-              Chiffres
-            </span>
-            <span
-              className={
-                /[^A-Za-z0-9]/.test(password)
-                  ? "text-green-600"
-                  : "text-gray-400"
-              }>
-              Symboles
-            </span>
-          </div>
-        </div>
-        <div className='mb-4'>
-          <label className='block text-sm text-gray-600 dark:text-gray-300 mb-1'>
-            Confirmer le mot de passe
-          </label>
-          <div className='relative'>
-            <input
-              className='w-full border rounded px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-black dark:text-white dark:border-gray-700'
-              type={showConfirm ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <button
-              type='button'
-              className='absolute right-2 top-1/2 -translate-y-1/2 text-gray-500'
-              onClick={() => setShowConfirm((v) => !v)}>
-              {showConfirm ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-            </button>
-          </div>
-        </div>
-        <div className='mb-4 flex items-center'>
-          <input
-            id='2fa'
-            type='checkbox'
-            checked={twoFA}
-            onChange={(e) => setTwoFA(e.target.checked)}
-            className='mr-2 accent-blue-600'
-          />
-          <label
-            htmlFor='2fa'
-            className='text-sm text-gray-700 dark:text-gray-300'>
-            <span className='font-semibold'>
-              Authentification à deux facteurs
-            </span>
-            <span className='block text-xs text-gray-500 dark:text-gray-400'>
-              Activez cette option pour recevoir un code OTP sécurisé sur votre
-              email et votre numéro de téléphone lors de la connexion à votre
-              compte.
-            </span>
-          </label>
-        </div>
-        <button
-          type='submit'
-          className='bg-gray-900 text-white px-6 py-2 rounded shadow hover:bg-gray-800 transition font-semibold mt-2'>
-          {securitySaved ? "Enregistré !" : "Enregistrer"}
-        </button>
-      </form>
     </div>
   );
 }

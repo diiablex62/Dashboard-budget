@@ -48,7 +48,7 @@ export default function Auth() {
               email: result.email,
               name: result.email.split("@")[0], // Utiliser la partie avant @ comme nom
             });
-            navigate("/");
+            navigate("/dashboard");
           } else {
             console.error("Échec de la validation du token:", result.error);
             setError(

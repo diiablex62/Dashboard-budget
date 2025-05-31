@@ -57,6 +57,11 @@ export default function Dashboard() {
   // Tri des paiements récurrents du plus récent au plus ancien
   const paiementsRecurrentsTries = useMemo(() => {
     return [...paiementsRecurrents].sort((a, b) => {
+      // Si les paiements ont un jour de prélèvement, on trie par ce jour
+      if (a.jourPrelevement && b.jourPrelevement) {
+        return b.jourPrelevement - a.jourPrelevement;
+      }
+      // Sinon on utilise la date
       const dateA = new Date(a.date);
       const dateB = new Date(b.date);
       // Si les dates sont dans le même mois, on compare les jours
