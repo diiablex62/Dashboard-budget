@@ -24,7 +24,7 @@ const Modal = ({ open, onClose, children }) => {
   if (!open) return null;
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40'>
-      <div className='bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 animate-fadeIn'>
+      <div className='bg-white rounded-[40px] shadow-xl max-w-2xl w-full mx-4 animate-fadeIn overflow-hidden'>
         <div className='max-h-[80vh] overflow-y-auto'>
           <div className='sticky top-0 bg-white z-10 flex justify-end p-4'>
             <button

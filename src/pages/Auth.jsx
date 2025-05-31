@@ -246,10 +246,14 @@ export default function Auth() {
         </div>
       </div>
       <Modal open={modalType === "terms"} onClose={() => setModalType(null)}>
-        <Terms />
+        <div className='rounded-[40px]'>
+          <Terms />
+        </div>
       </Modal>
       <Modal open={modalType === "privacy"} onClose={() => setModalType(null)}>
-        <PrivacyPolicy />
+        <div className='rounded-[40px]'>
+          <PrivacyPolicy />
+        </div>
       </Modal>
     </div>
   );
