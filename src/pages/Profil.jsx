@@ -1,16 +1,14 @@
 import React, { useRef, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  AiOutlineEdit,
   AiOutlineCheckCircle,
-  AiOutlineCloseCircle,
   AiOutlineEye,
   AiOutlineEyeInvisible,
 } from "react-icons/ai";
 import { FiUpload } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { AppContext } from "../context/AppContext";
-import { FaUser, FaEnvelope, FaLock, FaSignOutAlt } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaSignOutAlt } from "react-icons/fa";
 
 const initialUser = {
   avatar: null,
@@ -23,11 +21,9 @@ const initialUser = {
 };
 
 export default function Profil() {
-  const { user, logout } = useAuth();
+  const { user, logout, avatar, setAvatar } = useAuth();
   const navigate = useNavigate();
   const { primaryColor } = useContext(AppContext);
-  const [avatar, setAvatar] = useState(user?.avatar || null);
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -35,12 +31,7 @@ export default function Profil() {
     newPassword: "",
     confirmPassword: "",
   });
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [password, setPassword] = useState(user.password);
-  const [confirmPassword, setConfirmPassword] = useState(user.confirmPassword);
-  const [twoFA, setTwoFA] = useState(user.twoFA);
   const [infoSaved, setInfoSaved] = useState(false);
   const [securitySaved, setSecuritySaved] = useState(false);
   const fileInputRef = useRef();
@@ -62,12 +53,6 @@ export default function Profil() {
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Logique de mise à jour du profil
-    setIsEditing(false);
   };
 
   const handleLogout = () => {
@@ -96,7 +81,9 @@ export default function Profil() {
         <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6 shadow-sm'>
           <div className='flex items-center gap-6'>
             <div className='relative'>
-              <div className='w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700'>
+              <div
+                className='w-24 h-24 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 group cursor-pointer relative'
+                onClick={() => fileInputRef.current.click()}>
                 {avatar ? (
                   <img
                     src={avatar}
@@ -105,17 +92,17 @@ export default function Profil() {
                   />
                 ) : (
                   <div className='w-full h-full flex items-center justify-center text-gray-400'>
-                    <FaUser size={40} />
+                    <FiUpload size={40} />
                   </div>
                 )}
+                <div className='absolute inset-0 rounded-full bg-gray-800 bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                  <span className='text-white text-xs text-center px-2'>
+                    Uploader une photo
+                  </span>
+                </div>
               </div>
-              <label
-                htmlFor='avatar-upload'
-                className='absolute bottom-0 right-0 bg-yellow-500 text-white p-2 rounded-full cursor-pointer hover:bg-yellow-600 transition-colors'>
-                <FaUser size={16} />
-              </label>
               <input
-                id='avatar-upload'
+                ref={fileInputRef}
                 type='file'
                 accept='image/*'
                 className='hidden'
@@ -130,7 +117,7 @@ export default function Profil() {
         </div>
 
         {/* Formulaire de profil */}
-        <form onSubmit={handleSubmit} className='space-y-6'>
+        <form className='space-y-6'>
           <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm'>
             <h2 className='text-xl font-semibold mb-4'>
               Informations personnelles
@@ -146,8 +133,7 @@ export default function Profil() {
                     name='name'
                     value={formData.name}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                   />
                   <FaUser className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
                 </div>
@@ -162,11 +148,23 @@ export default function Profil() {
                     name='email'
                     value={formData.email}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                   />
                   <FaEnvelope className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
                 </div>
+              </div>
+              <div className='flex justify-end mt-4'>
+                <button
+                  onClick={handleInfoSave}
+                  className='px-6 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors'>
+                  {infoSaved ? (
+                    <span className='flex items-center gap-2'>
+                      <AiOutlineCheckCircle /> Enregistré
+                    </span>
+                  ) : (
+                    "Enregistrer"
+                  )}
+                </button>
               </div>
             </div>
           </div>
@@ -180,14 +178,22 @@ export default function Profil() {
                 </label>
                 <div className='relative'>
                   <input
-                    type='password'
+                    type={showPassword ? "text" : "password"}
                     name='currentPassword'
                     value={formData.currentPassword}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                   />
-                  <FaLock className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'>
+                    {showPassword ? (
+                      <AiOutlineEyeInvisible />
+                    ) : (
+                      <AiOutlineEye />
+                    )}
+                  </button>
                 </div>
               </div>
               <div>
@@ -196,14 +202,22 @@ export default function Profil() {
                 </label>
                 <div className='relative'>
                   <input
-                    type='password'
+                    type={showPassword ? "text" : "password"}
                     name='newPassword'
                     value={formData.newPassword}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                   />
-                  <FaLock className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'>
+                    {showPassword ? (
+                      <AiOutlineEyeInvisible />
+                    ) : (
+                      <AiOutlineEye />
+                    )}
+                  </button>
                 </div>
               </div>
               <div>
@@ -212,42 +226,38 @@ export default function Profil() {
                 </label>
                 <div className='relative'>
                   <input
-                    type='password'
+                    type={showPassword ? "text" : "password"}
                     name='confirmPassword'
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50'
+                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                   />
-                  <FaLock className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'>
+                    {showPassword ? (
+                      <AiOutlineEyeInvisible />
+                    ) : (
+                      <AiOutlineEye />
+                    )}
+                  </button>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className='flex justify-end gap-4'>
-            {isEditing ? (
-              <>
+              <div className='flex justify-end mt-4'>
                 <button
-                  type='button'
-                  onClick={() => setIsEditing(false)}
-                  className='px-6 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
-                  Annuler
-                </button>
-                <button
-                  type='submit'
+                  onClick={handleSecuritySave}
                   className='px-6 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors'>
-                  Enregistrer
+                  {securitySaved ? (
+                    <span className='flex items-center gap-2'>
+                      <AiOutlineCheckCircle /> Enregistré
+                    </span>
+                  ) : (
+                    "Enregistrer"
+                  )}
                 </button>
-              </>
-            ) : (
-              <button
-                type='button'
-                onClick={() => setIsEditing(true)}
-                className='px-6 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors'>
-                Modifier
-              </button>
-            )}
+              </div>
+            </div>
           </div>
         </form>
 
