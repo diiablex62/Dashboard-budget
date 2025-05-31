@@ -2,13 +2,16 @@ import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./styles/tailwind.css";
 import Sidebar from "./components/navigation/Sidebar";
-// import Navbar from "./components/navigation/Navbar"; // supprimé
 import SettingsPanel from "./components/ui/SettingsPanel";
 import { AppContext } from "./context/AppContext";
 import AppRoutes from "./routes/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./context/AuthContext";
+import { BudgetProvider } from "./context/BudgetContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { AppProvider } from "./context/AppContext";
+import { SynchroProvider } from "./context/SynchroContext";
 
 // Composant principal qui utilise les contextes
 export default function App() {
@@ -110,36 +113,47 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <div className='app bg-white dark:bg-black min-h-screen'>
-        {!isIsolatedRoute && (
-          <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        )}
-        <div
-          className={
-            isIsolatedRoute
-              ? ""
-              : (isCollapsed ? "ml-20" : "ml-72") +
-                " relative bg-[#f8fafc] min-h-screen transition-all duration-300 ease-in-out rounded-l-3xl overflow-hidden"
-          }>
-          {/* {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />} */}
-          <AppRoutes />
-        </div>
-        {isSettingsOpen && (
-          <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
-        )}
-        <ToastContainer
-          position='top-right'
-          autoClose={5000}
-          hideProgressBar={true}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme='light'
-        />
-      </div>
+      <BudgetProvider>
+        <SynchroProvider>
+          <ThemeProvider>
+            <AppProvider>
+              <div className='app bg-white dark:bg-black min-h-screen'>
+                {!isIsolatedRoute && (
+                  <Sidebar
+                    isCollapsed={isCollapsed}
+                    setIsCollapsed={setIsCollapsed}
+                  />
+                )}
+                <div
+                  className={
+                    isIsolatedRoute
+                      ? ""
+                      : (isCollapsed ? "ml-20" : "ml-72") +
+                        " relative bg-[#f8fafc] min-h-screen transition-all duration-300 ease-in-out rounded-l-3xl overflow-hidden"
+                  }>
+                  {/* {!isIsolatedRoute && <Navbar primaryColor={primaryColor} />} */}
+                  <AppRoutes />
+                </div>
+                {isSettingsOpen && (
+                  <SettingsPanel setIsSettingsOpen={setIsSettingsOpen} />
+                )}
+                <ToastContainer
+                  position='top-right'
+                  autoClose={5000}
+                  hideProgressBar={true}
+                  newestOnTop
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme='light'
+                />
+              </div>
+            </AppProvider>
+          </ThemeProvider>
+        </SynchroProvider>
+      </BudgetProvider>
     </AuthProvider>
   );
 }

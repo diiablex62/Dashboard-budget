@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -6,12 +6,15 @@ import {
   AiOutlineRise,
   AiOutlineDollarCircle,
   AiOutlineInfoCircle,
+  AiOutlineSync,
 } from "react-icons/ai";
 import CATEGORY_PALETTE from "../utils/categoryPalette";
 import * as calculs from "../utils/calcul";
 import DepensesRevenus6Mois from "../components/graphiques/DepensesRevenus6Mois";
 import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
 import { useAuth } from "../context/AuthContext";
+import { useSynchro } from "../context/SynchroContext";
+import SynchroUpdateModal from "../components/ui/SynchroUpdateModal";
 
 // -------------------
 // Constantes globales
@@ -50,6 +53,8 @@ const moisEnCours =
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getData } = useAuth();
+  const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
+  const { balance } = useSynchro();
 
   // Utiliser getData pour les données
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = getData();
@@ -567,6 +572,35 @@ Mois précédent :
             </div>
           </div>
         </div>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
+          <div className='flex items-center text-blue-600 mb-2'>
+            <AiOutlineDollarCircle className='text-2xl mr-2' />
+            <span className='text-sm font-semibold dark:text-white'>Solde</span>
+          </div>
+          <div className='flex items-center justify-between w-full'>
+            <div
+              className={`text-2xl font-bold ${
+                balance > 0
+                  ? "text-green-600"
+                  : balance < 0
+                  ? "text-red-600"
+                  : "text-gray-500"
+              }`}>
+              {balance > 0 && "+"}
+              {balance < 0 && "-"}
+              {Math.abs(balance).toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+              })}{" "}
+              €
+            </div>
+            <button
+              onClick={() => setIsBalanceModalOpen(true)}
+              className='flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:hover:bg-blue-900/50'>
+              <AiOutlineSync className='text-lg' />
+              Mettre à jour
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Graphiques */}
@@ -670,6 +704,13 @@ Mois précédent :
           </button>
         </div>
       </div>
+
+      {/* Modal de mise à jour du solde */}
+      <SynchroUpdateModal
+        isOpen={isBalanceModalOpen}
+        onClose={() => setIsBalanceModalOpen(false)}
+        currentCalculatedBalance={totalEconomies}
+      />
     </div>
   );
 }
