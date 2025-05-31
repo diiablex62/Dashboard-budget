@@ -15,7 +15,7 @@ export default function App() {
   const { primaryColor, setPrimaryColor, isSettingsOpen, setIsSettingsOpen } =
     useContext(AppContext);
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const isolatedRoutes = ["/auth"];
   const isIsolatedRoute = isolatedRoutes.includes(location.pathname);

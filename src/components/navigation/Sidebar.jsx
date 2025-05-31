@@ -4,6 +4,7 @@ import React, {
   useRef,
   useMemo,
   useCallback,
+  useEffect,
 } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -94,7 +95,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     setHasUnreadNotifications(notifications.some((n) => !n.read));
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     handleNotificationsUpdate();
     window.addEventListener("notificationsUpdated", handleNotificationsUpdate);
     return () =>
@@ -104,14 +105,20 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       );
   }, [handleNotificationsUpdate]);
 
+  // Gérer le survol
+  const handleMouseEnter = useCallback(() => {
+    setIsCollapsed(false);
+  }, [setIsCollapsed]);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsCollapsed(true);
+  }, [setIsCollapsed]);
+
   const handleSearchClick = useCallback(() => {
     if (isCollapsed) {
-      setIsCollapsed(false);
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
+      searchInputRef.current?.focus();
     }
-  }, [isCollapsed, setIsCollapsed]);
+  }, [isCollapsed]);
 
   const overviewLinks = useMemo(
     () => [
@@ -177,20 +184,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       />
       {/* Sidebar réelle */}
       <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={`h-screen fixed top-0 left-0 z-30 bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col shadow-lg border-r border-gray-200 transition-all duration-500 ease-in-out rounded-r-3xl ${
           isCollapsed ? "w-20" : "w-72"
         }`}>
-        {/* Bouton de toggle */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className='absolute -right-5 top-6 w-5 h-12 bg-white border border-gray-200 hover:bg-gray-50 transition-colors z-40 flex items-center justify-center rounded-r-md dark:bg-[#18181b]'>
-          {isCollapsed ? (
-            <AiOutlineRight className='text-gray-600 dark:text-white' />
-          ) : (
-            <AiOutlineLeft className='text-gray-600 dark:text-white' />
-          )}
-        </button>
-
         {/* Bloc du haut : Logo, recherche, overview, menu */}
         <div>
           {/* Titre et recherche */}
