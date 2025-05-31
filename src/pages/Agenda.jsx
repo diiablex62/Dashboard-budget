@@ -6,12 +6,8 @@ import {
   AiOutlineArrowRight,
 } from "react-icons/ai";
 import AgendaEvenement from "../components/ui/AgendaEvenement";
-import {
-  fakeDepenseRevenu,
-  fakePaiementsRecurrents,
-  fakePaiementsEchelonnes,
-} from "../utils/fakeData";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
+import { useAuth } from "../context/AuthContext";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
@@ -41,22 +37,28 @@ function getMonthMatrix(year, month) {
 }
 
 export default function Agenda() {
+  const { getData } = useAuth();
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(
     new Date(today.getFullYear(), today.getMonth(), today.getDate())
   );
   const [selectedDay, setSelectedDay] = useState(today.getDate());
-  const [selectionEvenement, setSelectionEvenement] = useState([]); // [{ day, categorie }]
+  const [selectionEvenement, setSelectionEvenement] = useState([]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const daysMatrix = useMemo(() => getMonthMatrix(year, month), [year, month]);
 
+  // Utiliser getData pour les données
+  const depenseRevenu = getData([]);
+  const paiementsRecurrents = getData([]);
+  const paiementsEchelonnes = getData([]);
+
   // Événements du mois (pour les pastilles)
   const eventsByDay = useMemo(() => {
     const map = {};
     // Dépenses & Revenus
-    fakeDepenseRevenu.forEach((e) => {
+    depenseRevenu.forEach((e) => {
       const d = new Date(e.date);
       if (d.getMonth() === month && d.getFullYear() === year) {
         const day = d.getDate();
@@ -72,7 +74,7 @@ export default function Agenda() {
       }
     });
     // Récurrents
-    fakePaiementsRecurrents.forEach((e) => {
+    paiementsRecurrents.forEach((e) => {
       // Vérifie si le paiement est actif pour le mois/année affiché
       let actif = true;
       if (e.debut) {
@@ -94,7 +96,7 @@ export default function Agenda() {
       }
     });
     // Échelonnés
-    fakePaiementsEchelonnes.forEach((e) => {
+    paiementsEchelonnes.forEach((e) => {
       const debut = new Date(e.debutDate);
       const nbMensualites = parseInt(e.mensualites, 10);
       for (let m = 0; m < nbMensualites; m++) {

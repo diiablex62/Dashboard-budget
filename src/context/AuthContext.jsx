@@ -17,8 +17,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const getData = (data) => {
+    // Si l'utilisateur n'est pas connecté, retourne un tableau vide ou 0
+    if (!isAuthenticated) {
+      return Array.isArray(data) ? [] : 0;
+    }
+    return data;
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, user, login, logout, getData }}>
       {children}
     </AuthContext.Provider>
   );

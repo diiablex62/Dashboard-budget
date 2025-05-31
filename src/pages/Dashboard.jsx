@@ -16,6 +16,7 @@ import {
 import * as calculs from "../utils/calcul";
 import DepensesRevenus6Mois from "../components/graphiques/DepensesRevenus6Mois";
 import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
+import { useAuth } from "../context/AuthContext";
 
 // -------------------
 // Constantes globales
@@ -53,11 +54,12 @@ const moisEnCours =
 // -------------------
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { getData } = useAuth();
 
-  // Données factices utilisées directement
-  const depenseRevenu = fakeDepenseRevenu;
-  const paiementsRecurrents = fakePaiementsRecurrents;
-  const paiementsEchelonnes = fakePaiementsEchelonnes;
+  // Utiliser getData pour les données
+  const depenseRevenu = getData(fakeDepenseRevenu);
+  const paiementsRecurrents = getData(fakePaiementsRecurrents);
+  const paiementsEchelonnes = getData(fakePaiementsEchelonnes);
 
   // Tri des paiements récurrents du plus récent au plus ancien
   const paiementsRecurrentsTries = useMemo(() => {

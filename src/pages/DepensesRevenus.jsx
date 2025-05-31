@@ -18,6 +18,7 @@ import { FiEdit, FiTrash } from "react-icons/fi";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import TransactionCard from "../components/ui/TransactionCard";
 import { ModalDepenseRevenu } from "../components/ui/Modal";
+import { useAuth } from "../context/AuthContext";
 
 // Import des catégories et données centralisées
 import {
@@ -27,7 +28,6 @@ import {
   CATEGORY_COLORS,
   CATEGORIES,
 } from "../utils/categoryUtils";
-import { fakeDepenseRevenu } from "../utils/fakeData";
 
 import {
   calculTotalDepensesMois,
@@ -37,6 +37,7 @@ import {
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 export default function DepensesRevenus() {
+  const { getData } = useAuth();
   const [currentTab, setCurrentTab] = useState("depense");
   const [depenses, setDepenses] = useState([]);
   const [revenus, setRevenus] = useState([]);
@@ -45,9 +46,10 @@ export default function DepensesRevenus() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const fetchDepenseRevenu = useCallback(() => {
-    setDepenses(fakeDepenseRevenu.filter((t) => t.type === "depense"));
-    setRevenus(fakeDepenseRevenu.filter((t) => t.type === "revenu"));
-  }, []);
+    const data = getData([]);
+    setDepenses(data.filter((t) => t.type === "depense"));
+    setRevenus(data.filter((t) => t.type === "revenu"));
+  }, [getData]);
 
   useEffect(() => {
     fetchDepenseRevenu();
