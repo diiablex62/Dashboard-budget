@@ -3,7 +3,9 @@ import React from "react";
 export default function UserDataDeletion() {
   return (
     <div className='p-8'>
-      <h1>Suppression des données utilisateur</h1>
+      <h1 className='text-3xl font-bold text-center mb-8'>
+        Suppression des données utilisateur
+      </h1>
       <div>
         <br />
       </div>

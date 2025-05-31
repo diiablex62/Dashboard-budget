@@ -43,6 +43,16 @@ const AppRoutes = () => {
         <Route path='/terms' element={<Terms />} />
         <Route path='/privacy-policy' element={<PrivacyPolicy />} />
         <Route path='/user-data-deletion' element={<UserDataDeletion />} />
+        {/* Nouvelles routes légales en français */}
+        <Route path='/conditions-generales-dutilisation' element={<Terms />} />
+        <Route
+          path='/politique-de-confidentialite'
+          element={<PrivacyPolicy />}
+        />
+        <Route
+          path='/suppression-des-donnees-utilisateur'
+          element={<UserDataDeletion />}
+        />
       </Routes>
     </>
   );

@@ -3,7 +3,9 @@ import React from "react";
 export default function Terms() {
   return (
     <div className='p-8'>
-      <h1>Conditions générales d'utilisation</h1>
+      <h1 className='text-3xl font-bold text-center mb-8'>
+        Conditions générales d'utilisation
+      </h1>
       <div>
         <br />
       </div>

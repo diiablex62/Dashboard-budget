@@ -9,6 +9,40 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { fr } from "date-fns/locale";
 
+const Modal = ({ open, onClose, children }) => {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  if (!open) return null;
+  return (
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40'>
+      <div className='bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 animate-fadeIn'>
+        <div className='max-h-[80vh] overflow-y-auto'>
+          <div className='sticky top-0 bg-white z-10 flex justify-end p-4'>
+            <button
+              onClick={onClose}
+              className='w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-2xl text-gray-500 transition'
+              title='Fermer'>
+              &#10005;
+            </button>
+          </div>
+          <div className='px-8 pb-8 pt-0'>{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Modal;
+
 export function ModalDepenseRevenu({
   visible,
   onClose,
