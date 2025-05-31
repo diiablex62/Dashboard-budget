@@ -250,8 +250,7 @@ export function ModalDepenseRevenu({
 
   return (
     <div
-      className='fixed inset-0 z-[9999] flex items-center justify-center'
-      style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+      className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
       onClick={handleBackdropClick}>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
         <button
@@ -622,8 +621,7 @@ export function ModalRecurrent({
 
   return (
     <div
-      className='fixed inset-0 z-[9999] flex items-center justify-center'
-      style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+      className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
       onClick={handleBackdropClick}>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
         <button
@@ -964,8 +962,7 @@ export function ModalEchelonne({
 
   return (
     <div
-      className='fixed inset-0 z-[9999] flex items-center justify-center'
-      style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+      className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
       onClick={handleBackdropClick}>
       <div className='bg-white dark:bg-black rounded-lg shadow-lg p-8 w-full max-w-md relative'>
         <button

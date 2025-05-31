@@ -10,16 +10,26 @@ const ModalTransaction = ({
   categories,
   title,
 }) => {
+  const handleBackdropClick = (event) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <ModalDepenseRevenu
-      visible={visible}
-      onClose={onClose}
-      onSave={onSave}
-      initialValues={initialValues}
-      categories={categories}
-      title={title}
-      editMode={!!initialValues?.id}
-    />
+    <div
+      className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
+      onClick={handleBackdropClick}>
+      <ModalDepenseRevenu
+        visible={visible}
+        onClose={onClose}
+        onSave={onSave}
+        initialValues={initialValues}
+        categories={categories}
+        title={title}
+        editMode={!!initialValues?.id}
+      />
+    </div>
   );
 };
 
