@@ -140,7 +140,7 @@ export default function Auth() {
   };
 
   return (
-    <div className='h-screen flex items-stretch bg-white p-8 mt-16'>
+    <div className='h-screen flex items-stretch bg-white p-8 overflow-hidden'>
       {/* Flèche retour au dashboard */}
       <div className='absolute left-8 top-8 flex items-center gap-2'>
         <Link
@@ -162,18 +162,18 @@ export default function Auth() {
         </Link>
       </div>
       {/* Formulaire centré */}
-      <div className='flex-1 flex flex-col justify-center px-6 py-0 sm:px-12 md:px-24 lg:px-32 h-full'>
+      <div className='flex-1 flex flex-col justify-center px-6 py-0 sm:px-12 md:px-24 lg:px-32 overflow-y-auto'>
         <div className='w-full max-w-md mx-auto'>
-          <div className='mb-8'>
+          <div className='mb-6'>
             <h2 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
               Connexion
             </h2>
-            <p className='text-gray-500 dark:text-gray-400 mb-8'>
+            <p className='text-gray-500 dark:text-gray-400 mb-6'>
               Connectez-vous pour accéder à votre espace
             </p>
           </div>
           {/* Formulaire principal */}
-          <form className='space-y-5' onSubmit={handleEmailSubmit}>
+          <form className='space-y-4' onSubmit={handleEmailSubmit}>
             <div>
               <input
                 type='email'
@@ -192,12 +192,12 @@ export default function Auth() {
             </button>
           </form>
           {/* Boutons sociaux */}
-          <div className='flex items-center my-6'>
+          <div className='flex items-center my-4'>
             <div className='flex-1 h-px bg-gray-200' />
             <span className='mx-4 text-gray-400 text-sm'>ou</span>
             <div className='flex-1 h-px bg-gray-200' />
           </div>
-          <div className='flex gap-4 mb-8'>
+          <div className='flex gap-4 mb-6'>
             <button
               onClick={loginWithGoogle}
               className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
@@ -210,7 +210,7 @@ export default function Auth() {
             </button>
           </div>
           {/* Mentions légales centrées */}
-          <div className='flex justify-center items-center text-xs text-gray-400 mt-8 gap-4'>
+          <div className='flex justify-center items-center text-xs text-gray-400 mt-6 gap-4'>
             <div className='flex items-center gap-4'>
               <button
                 type='button'
@@ -236,7 +236,7 @@ export default function Auth() {
         </div>
       </div>
       {/* Image à droite arrondie */}
-      <div className='hidden md:flex md:w-1/2 items-stretch pl-8 h-full'>
+      <div className='hidden md:flex md:w-1/2 items-stretch pl-8'>
         <div className='w-full h-full bg-white rounded-[40px] overflow-hidden shadow-xl flex items-center justify-center'>
           <img
             src={orangeImage}
