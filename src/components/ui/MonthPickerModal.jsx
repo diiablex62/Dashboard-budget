@@ -19,6 +19,7 @@ const months = [
 export default function MonthPickerModal({
   selectedDate = new Date(),
   onDateChange,
+  size = "default", // "default" ou "small"
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
@@ -89,18 +90,31 @@ export default function MonthPickerModal({
   return (
     <div className='relative w-[480px]'>
       <div className='flex justify-end'>
-        <div className='bg-white border border-gray-200 rounded-2xl shadow-md py-3 px-6 text-xl font-bold text-[#1a2332] flex items-center justify-center gap-4 w-auto min-w-[200px]'>
+        <div
+          className={`bg-white border border-gray-200 rounded-2xl shadow-md flex items-center justify-center gap-3 w-auto
+          ${
+            size === "small"
+              ? "py-1.5 px-3 text-base min-w-[160px]"
+              : "py-2 px-4 text-lg min-w-[180px]"
+          } 
+          font-bold text-[#1a2332]`}>
           <AiOutlineArrowLeft
-            className='text-2xl cursor-pointer'
+            className={`${
+              size === "small" ? "text-lg" : "text-xl"
+            } cursor-pointer`}
             onClick={handlePrevMonth}
           />
           <button
             onClick={() => setIsOpen(true)}
-            className='mx-2 select-none text-center w-[170px]'>
+            className={`mx-2 select-none text-center ${
+              size === "small" ? "w-[120px]" : "w-[140px]"
+            }`}>
             {months[selectedMonth]} {selectedYear}
           </button>
           <AiOutlineArrowRight
-            className='text-2xl cursor-pointer'
+            className={`${
+              size === "small" ? "text-lg" : "text-xl"
+            } cursor-pointer`}
             onClick={handleNextMonth}
           />
         </div>

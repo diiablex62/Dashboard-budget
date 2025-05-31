@@ -149,6 +149,7 @@ export default function Agenda() {
               <MonthPickerModal
                 selectedDate={currentDate}
                 onDateChange={setCurrentDate}
+                size='small'
               />
             </div>
             <div className='grid grid-cols-7 gap-y-2 mb-4'>
