@@ -41,8 +41,9 @@ export default function Profil() {
 
   // État fictif pour la démo (à remplacer par ta logique réelle)
   const [linkedAccounts, setLinkedAccounts] = useState({
-    google: false,
-    github: false,
+    google: { linked: false, email: null },
+    github: { linked: false, username: null },
+    email: { linked: !!user?.email, email: user?.email || null },
   });
 
   const handleAvatarChange = (e) => {
@@ -81,12 +82,85 @@ export default function Profil() {
 
   const handleLinkGoogle = () => {
     loginWithGoogle();
-    setLinkedAccounts((prev) => ({ ...prev, google: true }));
+    setLinkedAccounts((prev) => ({
+      ...prev,
+      google: { linked: true, email: "user@gmail.com" },
+    }));
+  };
+  const handleUnlinkGoogle = () => {
+    setLinkedAccounts((prev) => ({
+      ...prev,
+      google: { linked: false, email: null },
+    }));
   };
   const handleLinkGithub = () => {
     loginWithGithub();
-    setLinkedAccounts((prev) => ({ ...prev, github: true }));
+    setLinkedAccounts((prev) => ({
+      ...prev,
+      github: { linked: true, username: "octocat" },
+    }));
   };
+  const handleUnlinkGithub = () => {
+    setLinkedAccounts((prev) => ({
+      ...prev,
+      github: { linked: false, username: null },
+    }));
+  };
+  const handleLinkEmail = () => {
+    // Ici, tu pourrais ouvrir un modal ou rediriger vers une page d'inscription
+    setLinkedAccounts((prev) => ({
+      ...prev,
+      email: { linked: true, email: formData.email },
+    }));
+  };
+  const handleUnlinkEmail = () => {
+    setLinkedAccounts((prev) => ({
+      ...prev,
+      email: { linked: false, email: null },
+    }));
+  };
+
+  const services = [
+    {
+      key: "email",
+      name: "Email",
+      icon: <FaEnvelope className='w-5 h-5 text-yellow-500' />,
+      linked: linkedAccounts.email.linked,
+      info: linkedAccounts.email.email,
+      onLink: handleLinkEmail,
+      onUnlink: handleUnlinkEmail,
+    },
+    {
+      key: "google",
+      name: "Google",
+      icon: (
+        <img
+          src='https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png'
+          alt='Google'
+          className='w-5 h-5'
+        />
+      ),
+      linked: linkedAccounts.google.linked,
+      info: linkedAccounts.google.email,
+      onLink: handleLinkGoogle,
+      onUnlink: handleUnlinkGoogle,
+    },
+    {
+      key: "github",
+      name: "GitHub",
+      icon: (
+        <img
+          src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
+          alt='GitHub'
+          className='w-5 h-5'
+        />
+      ),
+      linked: linkedAccounts.github.linked,
+      info: linkedAccounts.github.username,
+      onLink: handleLinkGithub,
+      onUnlink: handleUnlinkGithub,
+    },
+  ];
 
   return (
     <div className='w-full min-h-screen bg-white dark:bg-black dark:text-white py-10 p-8'>
@@ -193,44 +267,58 @@ export default function Profil() {
             Liez vos comptes pour une connexion simplifiée.
           </p>
           <ul className='space-y-4'>
-            <li className='flex items-center justify-between'>
-              <button
-                onClick={handleLinkGoogle}
-                type='button'
-                className='flex items-center gap-2 px-6 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors'>
-                <img
-                  src='https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png'
-                  alt='Google'
-                  className='w-5 h-5'
-                />
-                Google
-              </button>
-              <span
-                className={`ml-4 text-sm font-semibold ${
-                  linkedAccounts.google ? "text-green-600" : "text-gray-400"
-                }`}>
-                {linkedAccounts.google ? "Lié" : "Non lié"}
-              </span>
-            </li>
-            <li className='flex items-center justify-between'>
-              <button
-                onClick={handleLinkGithub}
-                type='button'
-                className='flex items-center gap-2 px-6 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors'>
-                <img
-                  src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
-                  alt='GitHub'
-                  className='w-5 h-5'
-                />
-                GitHub
-              </button>
-              <span
-                className={`ml-4 text-sm font-semibold ${
-                  linkedAccounts.github ? "text-green-600" : "text-gray-400"
-                }`}>
-                {linkedAccounts.github ? "Lié" : "Non lié"}
-              </span>
-            </li>
+            {services.map((service) => (
+              <li
+                key={service.key}
+                className='flex items-center justify-between gap-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900'>
+                <div className='flex items-center gap-3'>
+                  {service.icon}
+                  <span className='font-medium'>{service.name}</span>
+                  {service.linked ? (
+                    <span className='ml-2 text-green-600 text-xs font-semibold'>
+                      Lié
+                    </span>
+                  ) : (
+                    <span className='ml-2 text-gray-400 text-xs font-semibold'>
+                      Non lié
+                    </span>
+                  )}
+                  {service.linked && service.info && (
+                    <span className='ml-3 text-xs text-gray-500 italic'>
+                      {service.key === "google"
+                        ? service.info
+                        : `@${service.info}`}
+                    </span>
+                  )}
+                </div>
+                <div className='flex gap-2'>
+                  <button
+                    onClick={service.onLink}
+                    disabled={service.linked}
+                    className={`px-4 py-1 rounded-lg text-sm font-semibold border transition-colors
+                      ${
+                        service.linked
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed"
+                          : "bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
+                      }
+                    `}>
+                    Lier
+                  </button>
+                  <button
+                    onClick={service.onUnlink}
+                    disabled={!service.linked}
+                    className={`px-4 py-1 rounded-lg text-sm font-semibold border transition-colors
+                      ${
+                        !service.linked
+                          ? "bg-gray-200 dark:bg-gray-700 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed"
+                          : "bg-red-500 text-white border-red-500 hover:bg-red-600"
+                      }
+                    `}>
+                    Délier
+                  </button>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
 
