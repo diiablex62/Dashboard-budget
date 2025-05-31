@@ -21,20 +21,29 @@ const initialUser = {
 };
 
 export default function Profil() {
-  const { user, updateUser, logout, avatar, setAvatar } = useAuth();
+  const {
+    user,
+    updateUser,
+    logout,
+    avatar,
+    setAvatar,
+    loginWithGoogle,
+    loginWithGithub,
+  } = useAuth();
   const navigate = useNavigate();
   const { primaryColor } = useContext(AppContext);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [infoSaved, setInfoSaved] = useState(false);
-  const [securitySaved, setSecuritySaved] = useState(false);
   const fileInputRef = useRef();
+
+  // État fictif pour la démo (à remplacer par ta logique réelle)
+  const [linkedAccounts, setLinkedAccounts] = useState({
+    google: false,
+    github: false,
+  });
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -70,10 +79,13 @@ export default function Profil() {
     setTimeout(() => setInfoSaved(false), 1500);
   };
 
-  const handleSecuritySave = (e) => {
-    e.preventDefault();
-    setSecuritySaved(true);
-    setTimeout(() => setSecuritySaved(false), 1500);
+  const handleLinkGoogle = () => {
+    loginWithGoogle();
+    setLinkedAccounts((prev) => ({ ...prev, google: true }));
+  };
+  const handleLinkGithub = () => {
+    loginWithGithub();
+    setLinkedAccounts((prev) => ({ ...prev, github: true }));
   };
 
   return (
@@ -172,98 +184,55 @@ export default function Profil() {
               </div>
             </div>
           </div>
-
-          <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm'>
-            <h2 className='text-xl font-semibold mb-4'>Sécurité</h2>
-            <div className='space-y-4'>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                  Mot de passe actuel
-                </label>
-                <div className='relative'>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name='currentPassword'
-                    value={formData.currentPassword}
-                    onChange={handleInputChange}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
-                  />
-                  <button
-                    type='button'
-                    onClick={() => setShowPassword(!showPassword)}
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'>
-                    {showPassword ? (
-                      <AiOutlineEyeInvisible />
-                    ) : (
-                      <AiOutlineEye />
-                    )}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                  Nouveau mot de passe
-                </label>
-                <div className='relative'>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name='newPassword'
-                    value={formData.newPassword}
-                    onChange={handleInputChange}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
-                  />
-                  <button
-                    type='button'
-                    onClick={() => setShowPassword(!showPassword)}
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'>
-                    {showPassword ? (
-                      <AiOutlineEyeInvisible />
-                    ) : (
-                      <AiOutlineEye />
-                    )}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                  Confirmer le nouveau mot de passe
-                </label>
-                <div className='relative'>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name='confirmPassword'
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
-                  />
-                  <button
-                    type='button'
-                    onClick={() => setShowPassword(!showPassword)}
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'>
-                    {showPassword ? (
-                      <AiOutlineEyeInvisible />
-                    ) : (
-                      <AiOutlineEye />
-                    )}
-                  </button>
-                </div>
-              </div>
-              <div className='flex justify-end mt-4'>
-                <button
-                  onClick={handleSecuritySave}
-                  className='px-6 py-2 rounded-lg bg-yellow-500 text-white hover:bg-yellow-600 transition-colors'>
-                  {securitySaved ? (
-                    <span className='flex items-center gap-2'>
-                      <AiOutlineCheckCircle /> Enregistré
-                    </span>
-                  ) : (
-                    "Enregistrer"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
         </form>
+
+        {/* Section Connexion */}
+        <div className='mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-t border-gray-200 dark:border-gray-700'>
+          <h2 className='text-xl font-semibold mb-4'>Connexion</h2>
+          <p className='text-gray-600 dark:text-gray-400 mb-4'>
+            Liez vos comptes pour une connexion simplifiée.
+          </p>
+          <ul className='space-y-4'>
+            <li className='flex items-center justify-between'>
+              <button
+                onClick={handleLinkGoogle}
+                type='button'
+                className='flex items-center gap-2 px-6 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors'>
+                <img
+                  src='https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png'
+                  alt='Google'
+                  className='w-5 h-5'
+                />
+                Google
+              </button>
+              <span
+                className={`ml-4 text-sm font-semibold ${
+                  linkedAccounts.google ? "text-green-600" : "text-gray-400"
+                }`}>
+                {linkedAccounts.google ? "Lié" : "Non lié"}
+              </span>
+            </li>
+            <li className='flex items-center justify-between'>
+              <button
+                onClick={handleLinkGithub}
+                type='button'
+                className='flex items-center gap-2 px-6 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-900 transition-colors'>
+                <img
+                  src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
+                  alt='GitHub'
+                  className='w-5 h-5'
+                />
+                GitHub
+              </button>
+              <span
+                className={`ml-4 text-sm font-semibold ${
+                  linkedAccounts.github ? "text-green-600" : "text-gray-400"
+                }`}>
+                {linkedAccounts.github ? "Lié" : "Non lié"}
+              </span>
+            </li>
+          </ul>
+        </div>
 
         {/* Section Déconnexion */}
         <div className='mt-8 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border-t border-gray-200 dark:border-gray-700'>
