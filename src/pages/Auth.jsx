@@ -188,7 +188,7 @@ export default function Auth() {
             <button
               type='submit'
               className='w-full py-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold text-lg shadow transition mb-2'>
-              Recevoir un lien magique
+              Recevoir un lien par email
             </button>
           </form>
           {/* Boutons sociaux */}
@@ -224,25 +224,12 @@ export default function Auth() {
                 |
               </Link>
             </div>
-            <div className='flex items-center gap-4'>
+            <div className='flex items-center'>
               <button
                 type='button'
                 onClick={() => setModalType("privacy")}
                 className='underline hover:text-yellow-500 transition-colors'>
                 Politique de confidentialité
-              </button>
-              <Link
-                to='/politique-de-confidentialite'
-                className='text-gray-400 hover:text-yellow-500 transition-colors'>
-                |
-              </Link>
-            </div>
-            <div className='flex items-center'>
-              <button
-                type='button'
-                onClick={() => setModalType("deletion")}
-                className='underline hover:text-yellow-500 transition-colors'>
-                Suppression des données
               </button>
             </div>
           </div>
@@ -263,9 +250,6 @@ export default function Auth() {
       </Modal>
       <Modal open={modalType === "privacy"} onClose={() => setModalType(null)}>
         <PrivacyPolicy />
-      </Modal>
-      <Modal open={modalType === "deletion"} onClose={() => setModalType(null)}>
-        <UserDataDeletion />
       </Modal>
     </div>
   );

@@ -31,11 +31,12 @@ export default function PrivacyPolicy() {
       <div>
         Pour plus d'informations sur la suppression de vos données utilisateur,
         veuillez consulter la page dédiée :{" "}
-        <Link
-          to='/suppression-des-donnees-utilisateur'
+        <button
+          type='button'
+          onClick={() => setOpenUserDataModal(true)}
           className='text-blue-500 hover:underline outline-none focus:underline'>
           Suppression des données utilisateur
-        </Link>
+        </button>
         .
       </div>
       <Modal
