@@ -21,7 +21,7 @@ const initialUser = {
 };
 
 export default function Profil() {
-  const { user, logout, avatar, setAvatar } = useAuth();
+  const { user, updateUser, logout, avatar, setAvatar } = useAuth();
   const navigate = useNavigate();
   const { primaryColor } = useContext(AppContext);
   const [formData, setFormData] = useState({
@@ -62,6 +62,10 @@ export default function Profil() {
 
   const handleInfoSave = (e) => {
     e.preventDefault();
+    updateUser({
+      name: formData.name,
+      email: formData.email,
+    });
     setInfoSaved(true);
     setTimeout(() => setInfoSaved(false), 1500);
   };

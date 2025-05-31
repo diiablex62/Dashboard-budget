@@ -106,6 +106,16 @@ export function AuthProvider({ children }) {
     };
   };
 
+  // Nouvelle fonction pour mettre à jour l'utilisateur
+  const updateUser = (newUserData) => {
+    setUser((prev) => ({
+      ...prev,
+      ...newUserData,
+    }));
+    // Met à jour aussi le localStorage
+    localStorage.setItem("user", JSON.stringify({ ...user, ...newUserData }));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -119,6 +129,7 @@ export function AuthProvider({ children }) {
         loginWithGoogle,
         loginWithGithub,
         getData,
+        updateUser,
       }}>
       {children}
     </AuthContext.Provider>
