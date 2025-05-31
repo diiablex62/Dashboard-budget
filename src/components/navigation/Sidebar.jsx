@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   AiOutlineHome,
@@ -75,7 +75,8 @@ const NavItem = React.memo(({ to, icon, label, isCollapsed, onClick }) => {
 });
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
-  const { user, loading } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const { setIsSettingsOpen } = useContext(AppContext);
   const searchInputRef = useRef(null);
@@ -164,8 +165,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     ],
     [setIsSettingsOpen]
   );
-
-  if (loading) return null;
 
   return (
     <>
@@ -271,39 +270,54 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
             ))}
           </ul>
         </div>
-        <NavLink
-          to='/profil'
-          className={({ isActive }) =>
-            `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
-              isActive
-                ? "text-gray-900 dark:text-white font-semibold"
-                : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
-            }`
-          }
-          title='Profil utilisateur'
-          tabIndex={0}>
-          <div className='w-12 h-12 rounded-full flex items-center justify-center overflow-hidden'>
-            {user?.avatar ? (
-              <img
-                src={user.avatar}
-                alt='Avatar'
-                className='w-12 h-12 object-cover rounded-full'
-              />
-            ) : (
-              <AiOutlineUser className='text-3xl text-gray-400' />
-            )}
-          </div>
-          {!isCollapsed && (
-            <div className='flex flex-col justify-center'>
-              <span className='font-semibold text-gray-800 dark:text-white'>
-                {user?.name || "Alexandre Janacek"}
-              </span>
-              <span className='text-xs text-gray-500 dark:text-gray-500'>
-                {user?.email || "alexandre.janacek@gmail.com"}
-              </span>
+
+        {isAuthenticated ? (
+          <NavLink
+            to='/profil'
+            className={({ isActive }) =>
+              `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
+                isActive
+                  ? "text-gray-900 dark:text-white font-semibold"
+                  : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
+              }`
+            }
+            title='Profil utilisateur'
+            tabIndex={0}>
+            <div className='w-12 h-12 rounded-full flex items-center justify-center overflow-hidden'>
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt='Avatar'
+                  className='w-12 h-12 object-cover rounded-full'
+                />
+              ) : (
+                <AiOutlineUser className='text-3xl text-gray-400' />
+              )}
             </div>
-          )}
-        </NavLink>
+            {!isCollapsed && (
+              <div className='flex flex-col justify-center'>
+                <span className='font-semibold text-gray-800 dark:text-white'>
+                  {user?.name || "Utilisateur"}
+                </span>
+                <span className='text-xs text-gray-500 dark:text-gray-500'>
+                  {user?.email || ""}
+                </span>
+              </div>
+            )}
+          </NavLink>
+        ) : (
+          <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
+            <button
+              className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
+              onClick={() => navigate("/auth")}>
+              <AiOutlineLogin className='mr-2 text-xl' />
+              <span>Se connecter / S'inscrire</span>
+            </button>
+            <p className='text-xs text-center text-gray-500 mt-2'>
+              Connexion simplifiée par email, Google ou GitHub
+            </p>
+          </div>
+        )}
       </div>
     </>
   );

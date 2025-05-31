@@ -13,8 +13,13 @@ import UserDataDeletion from "./UserDataDeletion";
 
 export default function Auth() {
   const { primaryColor } = useContext(AppContext);
-  const { loginWithGoogle, loginWithGithub, confirmEmailLogin, authError } =
-    useAuth();
+  const {
+    login,
+    loginWithGoogle,
+    loginWithGithub,
+    confirmEmailLogin,
+    authError,
+  } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -137,6 +142,16 @@ export default function Auth() {
     } catch (error) {
       setError(error.message || "Erreur lors de l'envoi du lien magique");
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Simulation de la connexion
+    login({
+      name: "Alexandre",
+      email: email,
+    });
+    navigate("/");
   };
 
   return (

@@ -142,7 +142,7 @@ export default function Profil() {
         </div>
         <button
           type='submit'
-          className='bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-semibold mt-2'>
+          className='bg-gray-900 text-white px-6 py-2 rounded shadow hover:bg-gray-800 transition font-semibold mt-2'>
           {infoSaved ? "Enregistré !" : "Enregistrer"}
         </button>
       </form>
@@ -237,7 +237,7 @@ export default function Profil() {
         </div>
         <button
           type='submit'
-          className='bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition font-semibold mt-2'>
+          className='bg-gray-900 text-white px-6 py-2 rounded shadow hover:bg-gray-800 transition font-semibold mt-2'>
           {securitySaved ? "Enregistré !" : "Enregistrer"}
         </button>
       </form>

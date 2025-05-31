@@ -1,6 +1,28 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const login = (userData) => {
+    // Simulation de la connexion
+    setIsAuthenticated(true);
+    setUser(userData);
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -10,73 +32,6 @@ export const useAuth = () => {
     );
   }
   return context;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetchUserProfile();
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchUserProfile = async () => {
-    try {
-      // Simulation d'un utilisateur pour le développement
-      const response = {
-        data: {
-          name: "Alexandre Janacek",
-          email: "alexandre.janacek@gmail.com",
-        },
-      };
-      setUser(response.data);
-      setError(null);
-    } catch (error) {
-      setError("Erreur lors de la récupération du profil");
-      localStorage.removeItem("token");
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (token) => {
-    try {
-      localStorage.setItem("token", token);
-      await fetchUserProfile();
-    } catch (error) {
-      console.error("Erreur lors de la connexion:", error);
-      throw error;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    window.location.href = "/auth";
-  };
-
-  const setAvatar = (avatar) => {
-    setUser((prev) => (prev ? { ...prev, avatar } : { avatar }));
-  };
-
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    logout,
-    fetchUserProfile,
-    setAvatar,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;
