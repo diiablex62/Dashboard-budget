@@ -7,6 +7,7 @@ import {
   AiOutlineDollarCircle,
   AiOutlineInfoCircle,
   AiOutlineSync,
+  AiOutlinePieChart,
 } from "react-icons/ai";
 import CATEGORY_PALETTE from "../utils/categoryPalette";
 import * as calculs from "../utils/calcul";
@@ -236,10 +237,11 @@ export default function Dashboard() {
     });
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
-  const totalRecurrents = useMemo(
-    () => calculs.calculTotalRecurrentsMois(paiementsRecurrents),
-    [paiementsRecurrents]
-  );
+  const totalRecurrents = useMemo(() => {
+    const recurrents = calculs.calculTotalRecurrentsMois(paiementsRecurrents);
+    const echelonnes = calculs.calculTotalEchelonnesMois(paiementsEchelonnes);
+    return recurrents + echelonnes;
+  }, [paiementsRecurrents, paiementsEchelonnes]);
 
   // --- Calculs pour le mois précédent ---
   const dateMoisPrecedent = useMemo(() => {
@@ -375,8 +377,143 @@ export default function Dashboard() {
     echelonnesDepenseMoisPrec,
   ]);
 
+  // Calcul du budget prévisionnel du mois en cours
+  const today = new Date();
+
+  // Dépenses et revenus récurrents/échelonnés à venir (déclaration unique)
+  const depensesRecEchAVenir =
+    calculs.calculTotalRecurrentsMois(paiementsRecurrents, today, false) +
+    calculs.calculTotalEchelonnesMois(paiementsEchelonnes, today, false, true);
+  const revenusRecEchAVenir =
+    calculs.calculTotalRecurrentsMois(
+      paiementsRecurrents,
+      today,
+      false,
+      "revenu"
+    ) +
+    calculs.calculTotalEchelonnesMois(
+      paiementsEchelonnes,
+      today,
+      false,
+      false,
+      "revenu"
+    );
+
+  // Dépenses et revenus classiques à venir
+  const depensesAVenir =
+    depenseRevenu
+      .filter(
+        (item) =>
+          item.type === "depense" &&
+          new Date(item.date).getMonth() === today.getMonth() &&
+          new Date(item.date).getFullYear() === today.getFullYear() &&
+          new Date(item.date) > today
+      )
+      .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0) +
+    depensesRecEchAVenir;
+  const revenusAVenir =
+    depenseRevenu
+      .filter(
+        (item) =>
+          item.type === "revenu" &&
+          new Date(item.date).getMonth() === today.getMonth() &&
+          new Date(item.date).getFullYear() === today.getFullYear() &&
+          new Date(item.date) > today
+      )
+      .reduce((acc, item) => acc + parseFloat(item.montant), 0) +
+    revenusRecEchAVenir;
+
+  const budgetPrevisionnel = totalEconomies - depensesAVenir + revenusAVenir;
+
+  // Calculs pour le détail du prévisionnel
+  const isCurrentMonth = (date) =>
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
+  const isPast = (date) => date <= today;
+  const isFuture = (date) => date > today;
+
+  // Dépenses actuelles (classiques)
+  const depensesClassiquesActuelles = depenseRevenu
+    .filter(
+      (item) =>
+        item.type === "depense" &&
+        isCurrentMonth(new Date(item.date)) &&
+        isPast(new Date(item.date))
+    )
+    .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0);
+
+  // Dépenses à venir (classiques)
+  const depensesClassiquesAVenir = depenseRevenu
+    .filter(
+      (item) =>
+        item.type === "depense" &&
+        isCurrentMonth(new Date(item.date)) &&
+        isFuture(new Date(item.date))
+    )
+    .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0);
+
+  // Revenus actuels (classiques)
+  const revenusClassiquesActuels = depenseRevenu
+    .filter(
+      (item) =>
+        item.type === "revenu" &&
+        isCurrentMonth(new Date(item.date)) &&
+        isPast(new Date(item.date))
+    )
+    .reduce((acc, item) => acc + parseFloat(item.montant), 0);
+
+  // Revenus à venir (classiques)
+  const revenusClassiquesAVenir = depenseRevenu
+    .filter(
+      (item) =>
+        item.type === "revenu" &&
+        isCurrentMonth(new Date(item.date)) &&
+        isFuture(new Date(item.date))
+    )
+    .reduce((acc, item) => acc + parseFloat(item.montant), 0);
+
+  // Dépenses récurrentes et échelonnées actuelles
+  const depensesRecEchActuelles =
+    calculs.calculTotalRecurrentsMois(paiementsRecurrents, today, true) +
+    calculs.calculTotalEchelonnesMois(paiementsEchelonnes, today, true, true);
+
+  // Revenus récurrents et échelonnés actuels
+  const revenusRecEchActuels =
+    calculs.calculTotalRecurrentsMois(
+      paiementsRecurrents,
+      today,
+      true,
+      "revenu"
+    ) +
+    calculs.calculTotalEchelonnesMois(
+      paiementsEchelonnes,
+      today,
+      true,
+      false,
+      "revenu"
+    );
+
+  // Totaux actuels et à venir
+  const totalDepenseActuelle =
+    depensesClassiquesActuelles + depensesRecEchActuelles;
+  const totalDepenseAVenir = depensesClassiquesAVenir + depensesRecEchAVenir;
+  const totalRevenuActuel = revenusClassiquesActuels + revenusRecEchActuels;
+  const totalRevenuAVenir = revenusClassiquesAVenir + revenusRecEchAVenir;
+
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
+      {/* DEBUG : Affichage temporaire des données */}
+      <pre
+        style={{
+          fontSize: 12,
+          background: "#f3f3f3",
+          padding: 8,
+          marginBottom: 16,
+        }}>
+        DEPENSES/REVENUS : {JSON.stringify(depenseRevenu, null, 2)}
+        RECURRENTS : {JSON.stringify(paiementsRecurrents, null, 2)}
+        ECHELONNES : {JSON.stringify(paiementsEchelonnes, null, 2)}
+      </pre>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
@@ -467,23 +604,94 @@ Mois précédent :
             Gérer →
           </button>
         </div>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative row-span-2'>
           <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>Économies actuelles</span>
+            <span className='text-gray-900 font-bold text-xl'>
+              Budget prévisionnel {moisEnCours}
+            </span>
+            <div className='relative group'>
+              <AiOutlinePieChart className='text-2xl text-blue-600' />
+              <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help ml-2' />
+              <div className='absolute right-0 bottom-full mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
+                <div className='font-semibold mb-2'>
+                  Détail du prévisionnel :
+                </div>
+                <ul className='space-y-1'>
+                  <li>
+                    Total dépenses actuelles :{" "}
+                    <span className='font-bold text-red-400'>
+                      {totalDepenseActuelle.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </span>
+                  </li>
+                  <li>
+                    Total revenus actuels :{" "}
+                    <span className='font-bold text-green-400'>
+                      {totalRevenuActuel.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </span>
+                  </li>
+                  <li>
+                    Total dépenses à venir :{" "}
+                    <span className='font-bold text-red-300'>
+                      {totalDepenseAVenir.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </span>
+                  </li>
+                  <li>
+                    Total revenus à venir :{" "}
+                    <span className='font-bold text-green-300'>
+                      {totalRevenuAVenir.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div
+            className={`text-2xl font-bold ${
+              budgetPrevisionnel >= 0 ? "text-green-600" : "text-red-600"
+            }`}>
+            {budgetPrevisionnel.toLocaleString("fr-FR", {
+              minimumFractionDigits: 2,
+            })}
+            €
+          </div>
+          <div className='text-xs text-gray-400 mt-1'>
+            Solde actuel ajusté des opérations à venir ce mois-ci.
+          </div>
+        </div>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
+          <div className='flex items-center justify-between'>
+            <span className='text-gray-500 font-medium'>
+              Économies actuelles
+            </span>
             <AiOutlineRise className='text-blue-600 text-xl' />
           </div>
-          <div className='text-2xl font-bold dark:text-white'>
-            {totalEconomies.toFixed(2)}€
-          </div>
-          <div className='text-xs text-gray-400 dark:text-'>
-            {differenceEconomiesMoisPrecedent >= 0 ? "+" : "-"}{" "}
-            {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
-              "fr-FR",
-              {
-                minimumFractionDigits: 2,
-              }
-            )}{" "}
-            € par rapport au mois dernier
+          <div className='flex items-center justify-between w-full mt-3'>
+            <div className='text-2xl font-bold dark:text-white'>
+              {totalEconomies.toFixed(2)}€
+            </div>
+            <div className='flex flex-col items-end'>
+              <span className='text-sm text-gray-500 font-medium mb-1'>
+                Votre compte n'est pas à jour&nbsp;?
+              </span>
+              <button
+                onClick={() => setIsBalanceModalOpen(true)}
+                className='flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:hover:bg-blue-900/50'>
+                <AiOutlineSync className='text-lg' />
+                Mettre à jour
+              </button>
+            </div>
           </div>
           {/* Tooltip des économies */}
           <div className='absolute bottom-2 right-2 group'>
@@ -570,37 +778,6 @@ Mois précédent :
                 dépenses du total des revenus.
               </div>
             </div>
-          </div>
-        </div>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
-          <div className='flex items-center text-blue-600 mb-2'>
-            <AiOutlineDollarCircle className='text-2xl mr-2' />
-            <span className='text-sm font-semibold dark:text-white'>
-              Solde prévisionnel mensuel
-            </span>
-          </div>
-          <div className='flex items-center justify-between w-full'>
-            <div
-              className={`text-2xl font-bold ${
-                balance > 0
-                  ? "text-green-600"
-                  : balance < 0
-                  ? "text-red-600"
-                  : "text-gray-500"
-              }`}>
-              {balance > 0 && "+"}
-              {balance < 0 && "-"}
-              {Math.abs(balance).toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
-            </div>
-            <button
-              onClick={() => setIsBalanceModalOpen(true)}
-              className='flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:hover:bg-blue-900/50'>
-              <AiOutlineSync className='text-lg' />
-              Mettre à jour
-            </button>
           </div>
         </div>
       </div>
