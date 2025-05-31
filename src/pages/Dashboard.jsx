@@ -469,7 +469,7 @@ Mois précédent :
         </div>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>Économies</span>
+            <span className='text-gray-500 font-medium'>Économies actuelles</span>
             <AiOutlineRise className='text-blue-600 text-xl' />
           </div>
           <div className='text-2xl font-bold dark:text-white'>
@@ -575,7 +575,9 @@ Mois précédent :
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
           <div className='flex items-center text-blue-600 mb-2'>
             <AiOutlineDollarCircle className='text-2xl mr-2' />
-            <span className='text-sm font-semibold dark:text-white'>Solde</span>
+            <span className='text-sm font-semibold dark:text-white'>
+              Solde prévisionnel mensuel
+            </span>
           </div>
           <div className='flex items-center justify-between w-full'>
             <div
