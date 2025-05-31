@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import Google from "../components/icones/Google";
 import GitHub from "../components/icones/GitHub";
 import { sendMagicLink } from "../email/login";
+import { FaApple } from "react-icons/fa";
 
 export default function Auth() {
   const { primaryColor } = useContext(AppContext);
@@ -143,220 +144,105 @@ export default function Auth() {
   };
 
   return (
-    <div className='h-screen flex bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 relative'>
-      {/* Image de gauche avec overlay */}
-      <div className='hidden lg:block lg:w-1/2 relative h-full'>
-        <img
-          src={orangeImage}
-          alt='Connexion'
-          className='h-full w-full object-cover'
-        />
-        <div className='absolute inset-0 bg-gradient-to-r from-orange-500/30 to-orange-600/30 flex items-center justify-center'>
-          <div className='text-white text-center p-8'>
-            <h1 className='text-4xl font-bold mb-4'>Bienvenue sur Budget</h1>
-            <p className='text-lg'>Gérez vos finances en toute simplicité</p>
+    <div className='h-screen flex items-stretch bg-white p-8'>
+      {/* Formulaire à gauche */}
+      <div className='flex-1 flex flex-col justify-center px-6 py-0 sm:px-12 md:px-24 lg:px-32 h-full'>
+        <div className='w-full max-w-md mx-auto'>
+          {/* Logo Futuro en haut à gauche */}
+          <div className='flex justify-start mb-8'>
+            <Link
+              to='/dashboard'
+              className='inline-flex items-center px-5 py-2 rounded-full border border-gray-300 text-gray-700 font-semibold text-base bg-transparent hover:bg-gray-100 transition shadow-none'>
+              Futuro
+            </Link>
+          </div>
+          <div className='mb-8'>
+            <h2 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
+              Create an account
+            </h2>
+            <p className='text-gray-500 dark:text-gray-400 mb-8'>
+              Sign up and get 30 day free trial
+            </p>
+          </div>
+          {/* Formulaire principal */}
+          <form className='space-y-5'>
+            {/* Champ nom (optionnel, pour inscription) */}
+            {/* <div>
+              <input type="text" placeholder="Full name" className="w-full px-5 py-3 rounded-full bg-gray-100 focus:bg-white border border-gray-200 focus:border-blue-400 outline-none text-gray-900 text-base placeholder-gray-400 transition" />
+            </div> */}
+            <div>
+              <input
+                type='email'
+                placeholder='Email'
+                className='w-full px-5 py-3 rounded-full bg-gray-100 focus:bg-white border border-gray-200 focus:border-blue-400 outline-none text-gray-900 text-base placeholder-gray-400 transition'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <input
+                type='password'
+                placeholder='Password'
+                className='w-full px-5 py-3 rounded-full bg-gray-100 focus:bg-white border border-gray-200 focus:border-blue-400 outline-none text-gray-900 text-base placeholder-gray-400 transition'
+                // value={password}
+                // onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              type='submit'
+              className='w-full py-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold text-lg shadow transition mb-2'>
+              Submit
+            </button>
+          </form>
+          {/* Boutons sociaux */}
+          <div className='flex items-center my-6'>
+            <div className='flex-1 h-px bg-gray-200' />
+            <span className='mx-4 text-gray-400 text-sm'>or</span>
+            <div className='flex-1 h-px bg-gray-200' />
+          </div>
+          <div className='flex gap-4 mb-8'>
+            <button className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
+              <FaApple className='w-5 h-5' /> Apple
+            </button>
+            <button
+              onClick={loginWithGoogle}
+              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
+              <Google className='w-5 h-5' /> Google
+            </button>
+          </div>
+          {/* Liens bas de page */}
+          <div className='flex justify-between items-center text-xs text-gray-400 mt-8'>
+            <span>
+              Have any account?{" "}
+              <a
+                href='#'
+                className='text-gray-700 dark:text-white underline font-medium'>
+                Sign in
+              </a>
+            </span>
+            <a href='#' className='underline'>
+              Terms & Conditions
+            </a>
           </div>
         </div>
       </div>
-
-      {/* Formulaire de droite */}
-      <div className='w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-6 lg:p-8 h-full'>
-        <div className='w-full max-w-md mx-auto'>
-          {/* Bouton retour */}
-          <Link
-            to='/'
-            className='mb-6 inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200'>
-            <svg
-              className='w-4 h-4 mr-2'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                d='M10 19l-7-7m0 0l7-7m-7 7h18'
-              />
-            </svg>
-            Retour au dashboard
-          </Link>
-
-          <div className='bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden'>
-            {/* En-tête */}
-            <div className='p-6 border-b border-gray-200 dark:border-gray-700'>
-              <h2 className='text-2xl font-bold text-center text-gray-900 dark:text-white'>
-                Connexion
-              </h2>
-              <p className='mt-1 text-center text-gray-600 dark:text-gray-400'>
-                Accédez à votre espace personnel
-              </p>
-            </div>
-
-            {/* Corps du formulaire */}
-            <div className='p-6'>
-              {error && (
-                <div className='mb-4 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded-lg flex items-center'>
-                  <svg
-                    className='w-5 h-5 mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'>
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                    />
-                  </svg>
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {emailLinkSent ? (
-                <div className='bg-green-50 dark:bg-green-900/50 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 px-4 py-2 rounded-lg'>
-                  <div className='flex items-center mb-1'>
-                    <svg
-                      className='w-5 h-5 mr-2'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'>
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth='2'
-                        d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                      />
-                    </svg>
-                    <span className='font-semibold'>Email envoyé !</span>
-                  </div>
-                  <p className='text-sm'>
-                    Un lien de connexion a été envoyé à {emailForSignIn}.
-                    Veuillez vérifier votre boîte de réception.
-                  </p>
-                </div>
-              ) : (
-                <div className='space-y-4'>
-                  {/* Boutons de connexion sociale */}
-                  <div className='grid grid-cols-2 gap-4'>
-                    <button
-                      onClick={loginWithGoogle}
-                      disabled={authLoading}
-                      className='flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200'>
-                      <Google className='h-5 w-5 mr-2' />
-                      <span>Google</span>
-                    </button>
-
-                    <button
-                      onClick={loginWithGithub}
-                      disabled={authLoading}
-                      className='flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200'>
-                      <GitHub className='h-5 w-5 mr-2' />
-                      <span>GitHub</span>
-                    </button>
-                  </div>
-
-                  <div className='relative'>
-                    <div className='absolute inset-0 flex items-center'>
-                      <div className='w-full border-t border-gray-300 dark:border-gray-600'></div>
-                    </div>
-                    <div className='relative flex justify-center text-sm'>
-                      <span className='px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400'>
-                        Ou continuez avec
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Formulaire email */}
-                  {showEmailForm ? (
-                    <form onSubmit={handleEmailSubmit} className='space-y-4'>
-                      <div>
-                        <label
-                          htmlFor='email'
-                          className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                          Adresse email
-                        </label>
-                        <input
-                          id='email'
-                          name='email'
-                          type='email'
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className='w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200'
-                          placeholder='exemple@email.com'
-                        />
-                      </div>
-                      <button
-                        type='submit'
-                        disabled={authLoading}
-                        className='w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
-                        {authLoading ? (
-                          <>
-                            <svg
-                              className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
-                              xmlns='http://www.w3.org/2000/svg'
-                              fill='none'
-                              viewBox='0 0 24 24'>
-                              <circle
-                                className='opacity-25'
-                                cx='12'
-                                cy='12'
-                                r='10'
-                                stroke='currentColor'
-                                strokeWidth='4'></circle>
-                              <path
-                                className='opacity-75'
-                                fill='currentColor'
-                                d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                            </svg>
-                            Envoi en cours...
-                          </>
-                        ) : (
-                          "Envoyer le lien de connexion"
-                        )}
-                      </button>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => setShowEmailForm(true)}
-                      className='w-full flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200'>
-                      <svg
-                        className='w-5 h-5 mr-2'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'>
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth='2'
-                          d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
-                        />
-                      </svg>
-                      Continuer avec Email
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Pied de page */}
-            <div className='px-6 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700'>
-              <p className='text-center text-xs text-gray-600 dark:text-gray-400'>
-                En vous connectant, vous acceptez nos{" "}
-                <Link
-                  to='/terms'
-                  className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  conditions d'utilisation
-                </Link>{" "}
-                et notre{" "}
-                <Link
-                  to='/privacy-policy'
-                  className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  politique de confidentialité
-                </Link>
-              </p>
-            </div>
-          </div>
+      {/* Image à droite */}
+      <div className='hidden md:flex md:w-1/2 items-stretch pl-8 h-full relative'>
+        {/* Bouton croix en haut à droite */}
+        <button
+          onClick={() => navigate("/")}
+          className='absolute top-6 right-6 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-100 transition text-2xl text-gray-500'
+          title='Fermer'>
+          &times;
+        </button>
+        <div className='w-full h-full bg-white rounded-[40px] overflow-hidden shadow-xl flex items-center justify-center'>
+          <img
+            src={orangeImage}
+            alt='Connexion'
+            className='w-full h-full object-cover object-center'
+          />
         </div>
       </div>
     </div>
