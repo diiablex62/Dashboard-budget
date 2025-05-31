@@ -29,15 +29,13 @@ export default function PrivacyPolicy() {
         Suppression des données utilisateur
       </h2>
       <div>
-        Pour plus d'informations sur la suppression de vos données utilisateur,
-        veuillez consulter la page dédiée :{" "}
+        Vous pouvez demander la suppression de vos données à tout moment en
+        cliquant sur ce lien :{" "}
         <button
-          type='button'
           onClick={() => setOpenUserDataModal(true)}
-          className='text-blue-500 hover:underline outline-none focus:underline'>
+          className='text-orange-500 hover:text-orange-600 font-medium'>
           Suppression des données utilisateur
         </button>
-        .
       </div>
       <Modal
         open={openUserDataModal}

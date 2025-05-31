@@ -8,23 +8,14 @@ import React, {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { fr } from "date-fns/locale";
+import ScrollProgress from "./ScrollProgress";
 
 const Modal = ({ open, onClose, children }) => {
-  const [scrollProgress, setScrollProgress] = useState(0);
   const contentRef = useRef(null);
-
-  const handleScroll = useCallback(() => {
-    if (contentRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-      const progress = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      setScrollProgress(progress);
-    }
-  }, []);
 
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
-      setScrollProgress(0);
       if (contentRef.current) {
         contentRef.current.scrollTop = 0;
       }
@@ -48,7 +39,6 @@ const Modal = ({ open, onClose, children }) => {
       <div className='bg-white rounded-[40px] shadow-xl max-w-2xl w-full mx-4 animate-fadeIn overflow-hidden'>
         <div
           ref={contentRef}
-          onScroll={handleScroll}
           className='max-h-[80vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]'>
           <div className='sticky top-0 bg-white z-10 flex justify-end p-4'>
             <button
@@ -60,12 +50,7 @@ const Modal = ({ open, onClose, children }) => {
           </div>
           <div className='px-8 pb-8 pt-0'>{children}</div>
         </div>
-        <div className='h-2 bg-gray-200'>
-          <div
-            className='h-full bg-orange-500'
-            style={{ width: `${scrollProgress}%` }}
-          />
-        </div>
+        <ScrollProgress containerRef={contentRef} />
       </div>
     </div>
   );
