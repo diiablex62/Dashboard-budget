@@ -2,20 +2,23 @@ import React, { useState } from "react";
 import { useSynchro } from "../../context/SynchroContext";
 import { AiOutlineClose } from "react-icons/ai";
 
+const REASONS = ["Réconciliation bancaire", "Erreur de saisie", "Autre"];
+
 export default function SynchroUpdateModal({
   isOpen,
   onClose,
   currentCalculatedBalance,
 }) {
   const [newBalance, setNewBalance] = useState("");
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState(REASONS[0]);
+  const [customReason, setCustomReason] = useState("");
   const { updateBalance } = useSynchro();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const parsedBalance = parseFloat(newBalance);
     if (!isNaN(parsedBalance)) {
-      updateBalance(parsedBalance, reason);
+      updateBalance(parsedBalance, reason === "Autre" ? customReason : reason);
       onClose();
     }
   };
@@ -34,87 +37,107 @@ export default function SynchroUpdateModal({
     <div
       className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
       onClick={handleBackdropClick}>
-      <div className='bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md relative'>
+      <div className='bg-white dark:bg-gray-800 rounded-lg p-8 w-full max-w-lg relative shadow-lg'>
         <button
           onClick={onClose}
-          className='absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'>
-          <AiOutlineClose className='text-xl' />
+          className='absolute top-5 right-5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'>
+          <AiOutlineClose className='text-2xl' />
         </button>
-
-        <h2 className='text-xl font-bold mb-4 dark:text-white pr-8'>
-          Mise à jour du solde
+        <h2 className='text-2xl font-bold mb-2 dark:text-white pr-8'>
+          Mettre à jour le solde du compte
         </h2>
-
+        <div className='text-gray-500 text-base mb-8'>
+          Ajustez le solde pour refléter le montant réel de votre compte. Cela
+          permet de corriger les écarts dus à des transactions non saisies.
+        </div>
         <form onSubmit={handleSubmit}>
-          <div className='mb-4'>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Solde calculé actuel
-            </label>
-            <div className='text-lg font-semibold text-gray-900 dark:text-white'>
-              {currentCalculatedBalance.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
-            </div>
-          </div>
-
-          <div className='mb-4'>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Nouveau solde
-            </label>
-            <input
-              type='number'
-              step='0.01'
-              value={newBalance}
-              onChange={(e) => setNewBalance(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'
-              placeholder='0.00'
-              required
-            />
-          </div>
-
-          {newBalance && (
-            <div className='mb-4'>
-              <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-                Différence
+          <div className='flex flex-col gap-6'>
+            <div className='flex items-center justify-between'>
+              <label className='font-semibold text-base text-gray-900 dark:text-gray-200 min-w-[120px]'>
+                Solde actuel
               </label>
-              <div
-                className={`text-lg font-semibold ${
-                  difference > 0 ? "text-red-600" : "text-green-600"
-                }`}>
-                {difference > 0 ? "+" : ""}
-                {difference.toLocaleString("fr-FR", {
+              <span className='text-2xl font-bold text-gray-900 dark:text-white'>
+                {currentCalculatedBalance.toLocaleString("fr-FR", {
                   minimumFractionDigits: 2,
-                })}{" "}
+                  maximumFractionDigits: 2,
+                })}
                 €
-              </div>
+              </span>
             </div>
-          )}
-
-          <div className='mb-6'>
-            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
-              Raison de l'ajustement
-            </label>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white'
-              rows='3'
-              placeholder='Expliquez la raison de cet ajustement...'
-              required
-            />
+            <div className='flex items-center justify-between'>
+              <label className='font-semibold text-base text-gray-900 dark:text-gray-200 min-w-[120px]'>
+                Nouveau solde
+              </label>
+              <input
+                type='number'
+                step='0.01'
+                value={newBalance}
+                onChange={(e) => setNewBalance(e.target.value)}
+                className='w-56 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-lg text-right'
+                placeholder='0.00'
+                required
+              />
+            </div>
+            {newBalance && (
+              <div className='flex items-center justify-between'>
+                <label className='font-semibold text-base text-gray-900 dark:text-gray-200 min-w-[120px]'>
+                  Différence
+                </label>
+                <div
+                  className={`text-2xl font-bold ${
+                    difference > 0 ? "text-red-600" : "text-green-600"
+                  }`}>
+                  {difference > 0 ? "+" : ""}
+                  {difference.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                  €
+                </div>
+              </div>
+            )}
+            <div className='flex items-center justify-between'>
+              <label className='font-semibold text-base text-gray-900 dark:text-gray-200 min-w-[120px]'>
+                Raison
+              </label>
+              <select
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className='w-56 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base'
+                required>
+                {REASONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {reason === "Autre" && (
+              <div className='flex items-center justify-between'>
+                <label className='font-semibold text-base text-gray-900 dark:text-gray-200 min-w-[120px]'>
+                  Précisez
+                </label>
+                <input
+                  type='text'
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  className='w-56 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base'
+                  placeholder='Votre raison...'
+                  required
+                />
+              </div>
+            )}
           </div>
-
-          <div className='flex justify-end gap-4'>
+          <div className='flex justify-end gap-4 mt-8'>
             <button
               type='button'
               onClick={onClose}
-              className='px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'>
+              className='px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600'>
               Annuler
             </button>
             <button
               type='submit'
-              className='px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700'>
+              className='px-6 py-2 text-white bg-teal-500 rounded-md hover:bg-teal-600 font-semibold'>
               Mettre à jour
             </button>
           </div>
