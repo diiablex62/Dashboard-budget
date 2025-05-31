@@ -450,7 +450,7 @@ Mois précédent :
             Gérer →
           </button>
         </div>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow-lg p-6 flex flex-col gap-2 relative'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
               Paiements échelonnés
