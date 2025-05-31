@@ -5,7 +5,7 @@ import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import Google from "../components/icones/Google";
 import GitHub from "../components/icones/GitHub";
-import { sendMagicLink } from "../email/login";
+import { sendMagicLink, verifyMagicLink } from "../email/login";
 import Modal from "../components/ui/Modal";
 import Terms from "./Terms";
 import PrivacyPolicy from "./PrivacyPolicy";
@@ -13,18 +13,13 @@ import UserDataDeletion from "./UserDataDeletion";
 
 export default function Auth() {
   const { primaryColor } = useContext(AppContext);
-  const {
-    login,
-    loginWithGoogle,
-    loginWithGithub,
-    confirmEmailLogin,
-    authError,
-  } = useAuth();
+  const { login, loginWithGoogle, loginWithGithub, authError } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [modalType, setModalType] = useState(null); // 'terms' | 'privacy' | 'deletion' | null
+  const [isLoading, setIsLoading] = useState(false);
 
   // Utiliser l'erreur du contexte d'authentification si disponible
   useEffect(() => {
@@ -41,12 +36,18 @@ export default function Auth() {
 
       if (token) {
         try {
+          setIsLoading(true);
           setError(null);
           console.log("Token détecté dans l'URL, tentative de validation...");
-          const result = await confirmEmailLogin(token);
+          const result = await verifyMagicLink(token);
 
           if (result.success) {
             console.log("Authentification par email réussie !");
+            // Connecter l'utilisateur avec l'email vérifié
+            await login({
+              email: result.email,
+              name: result.email.split("@")[0], // Utiliser la partie avant @ comme nom
+            });
             navigate("/");
           } else {
             console.error("Échec de la validation du token:", result.error);
@@ -60,12 +61,14 @@ export default function Auth() {
           setError(
             "Impossible de vous authentifier avec ce lien. Veuillez réessayer."
           );
+        } finally {
+          setIsLoading(false);
         }
       }
     };
 
     checkUrlToken();
-  }, [confirmEmailLogin, navigate]);
+  }, [login, navigate]);
 
   // Appliquez immédiatement la couleur primaire au DOM avant le rendu
   useEffect(() => {
@@ -136,22 +139,20 @@ export default function Auth() {
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
     try {
-      await sendMagicLink(email);
-      navigate("/validation", { state: { email } });
+      const result = await sendMagicLink(email);
+      if (result.success) {
+        // En développement, on peut directement utiliser le token
+        const url = `${window.location.origin}/auth?token=${result.token}`;
+        console.log("URL de connexion (pour le développement):", url);
+        navigate("/validation", { state: { email } });
+      }
     } catch (error) {
       setError(error.message || "Erreur lors de l'envoi du lien magique");
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Simulation de la connexion
-    login({
-      name: "Alexandre",
-      email: email,
-    });
-    navigate("/");
   };
 
   return (
@@ -197,13 +198,15 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
               {error && <p className='mt-2 text-sm text-red-600'>{error}</p>}
             </div>
             <button
               type='submit'
-              className='w-full py-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold text-lg shadow transition mb-2'>
-              Recevoir un lien par email
+              className='w-full py-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold text-lg shadow transition mb-2 disabled:opacity-50 disabled:cursor-not-allowed'
+              disabled={isLoading}>
+              {isLoading ? "Envoi en cours..." : "Recevoir un lien par email"}
             </button>
           </form>
           {/* Boutons sociaux */}
@@ -260,16 +263,21 @@ export default function Auth() {
           />
         </div>
       </div>
-      <Modal open={modalType === "terms"} onClose={() => setModalType(null)}>
-        <div className='rounded-[40px]'>
-          <Terms />
-        </div>
-      </Modal>
-      <Modal open={modalType === "privacy"} onClose={() => setModalType(null)}>
-        <div className='rounded-[40px]'>
-          <PrivacyPolicy />
-        </div>
-      </Modal>
+      {/* Modals */}
+      {modalType === "terms" && (
+        <Modal onClose={() => setModalType(null)}>
+          <div className='rounded-[40px]'>
+            <Terms />
+          </div>
+        </Modal>
+      )}
+      {modalType === "privacy" && (
+        <Modal onClose={() => setModalType(null)}>
+          <div className='rounded-[40px]'>
+            <PrivacyPolicy />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

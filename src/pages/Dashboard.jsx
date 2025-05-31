@@ -8,11 +8,6 @@ import {
   AiOutlineInfoCircle,
 } from "react-icons/ai";
 import CATEGORY_PALETTE from "../utils/categoryPalette";
-import {
-  fakePaiementsRecurrents,
-  fakePaiementsEchelonnes,
-  fakeDepenseRevenu,
-} from "../utils/fakeData";
 import * as calculs from "../utils/calcul";
 import DepensesRevenus6Mois from "../components/graphiques/DepensesRevenus6Mois";
 import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
@@ -57,9 +52,7 @@ export default function Dashboard() {
   const { getData } = useAuth();
 
   // Utiliser getData pour les données
-  const depenseRevenu = getData(fakeDepenseRevenu);
-  const paiementsRecurrents = getData(fakePaiementsRecurrents);
-  const paiementsEchelonnes = getData(fakePaiementsEchelonnes);
+  const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = getData();
 
   // Tri des paiements récurrents du plus récent au plus ancien
   const paiementsRecurrentsTries = useMemo(() => {

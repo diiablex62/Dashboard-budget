@@ -50,9 +50,7 @@ export default function Agenda() {
   const daysMatrix = useMemo(() => getMonthMatrix(year, month), [year, month]);
 
   // Utiliser getData pour les données
-  const depenseRevenu = getData([]);
-  const paiementsRecurrents = getData([]);
-  const paiementsEchelonnes = getData([]);
+  const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = getData();
 
   // Événements du mois (pour les pastilles)
   const eventsByDay = useMemo(() => {

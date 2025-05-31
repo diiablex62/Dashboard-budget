@@ -75,7 +75,7 @@ const NavItem = React.memo(({ to, icon, label, isCollapsed, onClick }) => {
 });
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, avatar } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const { setIsSettingsOpen } = useContext(AppContext);
@@ -247,77 +247,79 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         </div>
 
         {/* Bloc du bas : Paramètres, Aide, Profil utilisateur */}
-        <div
-          className={`${
-            isCollapsed ? "pb-2 mt-8 pt-4" : "px-2 pb-2 text-left mt-8 pt-4"
-          }`}>
-          {!isCollapsed && (
-            <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
-              PARAMÈTRES
-            </div>
-          )}
-          <ul className={`space-y-1 mb-4 ${isCollapsed ? "px-3" : ""}`}>
-            {settingsLinks.map((link) => (
-              <li key={link.to || link.key}>
-                <NavItem
-                  to={link.to}
-                  icon={link.icon}
-                  label={link.label}
-                  onClick={link.onClick}
-                  isCollapsed={isCollapsed}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {isAuthenticated ? (
-          <NavLink
-            to='/profil'
-            className={({ isActive }) =>
-              `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
-                isActive
-                  ? "text-gray-900 dark:text-white font-semibold"
-                  : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
-              }`
-            }
-            title='Profil utilisateur'
-            tabIndex={0}>
-            <div className='w-12 h-12 rounded-full flex items-center justify-center overflow-hidden'>
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt='Avatar'
-                  className='w-12 h-12 object-cover rounded-full'
-                />
-              ) : (
-                <AiOutlineUser className='text-3xl text-gray-400' />
-              )}
-            </div>
+        <div className='mt-auto'>
+          <div
+            className={`${
+              isCollapsed ? "pb-2 mt-8 pt-4" : "px-2 pb-2 text-left mt-8 pt-4"
+            }`}>
             {!isCollapsed && (
-              <div className='flex flex-col justify-center'>
-                <span className='font-semibold text-gray-800 dark:text-white'>
-                  {user?.name || "Utilisateur"}
-                </span>
-                <span className='text-xs text-gray-500 dark:text-gray-500'>
-                  {user?.email || ""}
-                </span>
+              <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
+                PARAMÈTRES
               </div>
             )}
-          </NavLink>
-        ) : (
-          <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
-            <button
-              className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
-              onClick={() => navigate("/auth")}>
-              <AiOutlineLogin className='mr-2 text-xl' />
-              <span>Se connecter / S'inscrire</span>
-            </button>
-            <p className='text-xs text-center text-gray-500 mt-2'>
-              Connexion simplifiée par email, Google ou GitHub
-            </p>
+            <ul className={`space-y-1 mb-4 ${isCollapsed ? "px-3" : ""}`}>
+              {settingsLinks.map((link) => (
+                <li key={link.to || link.key}>
+                  <NavItem
+                    to={link.to}
+                    icon={link.icon}
+                    label={link.label}
+                    isCollapsed={isCollapsed}
+                    onClick={link.onClick}
+                  />
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
+
+          {isAuthenticated ? (
+            <NavLink
+              to='/profil'
+              className={({ isActive }) =>
+                `py-6 flex justify-center gap-3 items-center transition-all cursor-pointer group ${
+                  isActive
+                    ? "text-gray-900 dark:text-white font-semibold"
+                    : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
+                }`
+              }
+              title='Profil utilisateur'
+              tabIndex={0}>
+              <div className='w-12 h-12 rounded-full flex items-center justify-center overflow-hidden'>
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt='Avatar'
+                    className='w-12 h-12 object-cover rounded-full'
+                  />
+                ) : (
+                  <AiOutlineUser className='text-3xl text-gray-400' />
+                )}
+              </div>
+              {!isCollapsed && (
+                <div className='flex flex-col justify-center'>
+                  <span className='font-semibold text-gray-800 dark:text-white'>
+                    {user?.name || "Utilisateur"}
+                  </span>
+                  <span className='text-xs text-gray-500 dark:text-gray-500'>
+                    {user?.email || ""}
+                  </span>
+                </div>
+              )}
+            </NavLink>
+          ) : (
+            <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
+              <button
+                className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
+                onClick={() => navigate("/auth")}>
+                <AiOutlineLogin className='mr-2 text-xl' />
+                <span>Se connecter / S'inscrire</span>
+              </button>
+              <p className='text-xs text-center text-gray-500 mt-2'>
+                Connexion simplifiée par email, Google ou GitHub
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

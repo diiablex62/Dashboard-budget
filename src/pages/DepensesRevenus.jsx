@@ -46,9 +46,9 @@ export default function DepensesRevenus() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const fetchDepenseRevenu = useCallback(() => {
-    const data = getData([]);
-    setDepenses(data.filter((t) => t.type === "depense"));
-    setRevenus(data.filter((t) => t.type === "revenu"));
+    const { depenseRevenu } = getData();
+    setDepenses(depenseRevenu.filter((t) => t.type === "depense"));
+    setRevenus(depenseRevenu.filter((t) => t.type === "revenu"));
   }, [getData]);
 
   useEffect(() => {

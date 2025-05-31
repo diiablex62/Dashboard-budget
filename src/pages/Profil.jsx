@@ -30,15 +30,16 @@ export default function Profil() {
   const [infoSaved, setInfoSaved] = useState(false);
   const [securitySaved, setSecuritySaved] = useState(false);
   const fileInputRef = useRef();
-  const { setAvatar } = useAuth();
+  const { setAvatar, avatar } = useAuth();
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result); // pour l'affichage local
-        setAvatar(reader.result); // pour le contexte global (sidebar)
+        const imageData = reader.result;
+        setAvatarPreview(imageData); // pour l'affichage local
+        setAvatar(imageData); // pour le contexte global (sidebar)
       };
       reader.readAsDataURL(file);
     }

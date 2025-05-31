@@ -1,60 +1,54 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import { sendMagicLink } from "../email/login";
+import React from "react";
+import { useLocation, Link } from "react-router-dom";
 
-export default function Validation({ onResend }) {
+export default function Validation() {
   const location = useLocation();
-  const email = location.state?.email || "";
-  const [resent, setResent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(true);
-
-  const handleResend = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      await sendMagicLink(email);
-      setResent(true);
-      setSuccess(true);
-    } catch (err) {
-      setError("Erreur lors de l'envoi du lien. Veuillez réessayer.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const email = location.state?.email;
 
   return (
-    <div className='max-w-md mx-auto mt-16 bg-white p-8 rounded shadow'>
-      <h2 className='text-2xl font-bold mb-4 text-center'>
-        Vérifiez votre boîte mail
-      </h2>
-      {success && (
-        <p className='text-green-600 text-center mb-4'>
-          Un email de connexion vient de vous être envoyé à <b>{email}</b>.
-          <br />
-          Cliquez sur le lien dans votre boîte mail pour continuer.
-        </p>
-      )}
-      <p className='mb-4 text-center'>
-        Si vous n'avez rien reçu, vérifiez vos spams ou renvoyez le lien&nbsp;:
-      </p>
-      <button
-        className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition cursor-pointer'
-        onClick={handleResend}
-        disabled={resent || loading}>
-        {loading
-          ? "Envoi en cours..."
-          : resent
-          ? "Lien renvoyé !"
-          : "Renvoyer le lien"}
-      </button>
-      {resent && (
-        <p className='text-green-600 text-center mt-2'>
-          Un nouveau lien a été envoyé.
-        </p>
-      )}
-      {error && <p className='text-red-600 text-center mt-2'>{error}</p>}
+    <div className='min-h-screen flex items-center justify-center bg-white p-8'>
+      <div className='max-w-md w-full text-center'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-4'>
+            Vérifiez votre email
+          </h1>
+          <p className='text-gray-600 dark:text-gray-400'>
+            Un lien de connexion a été envoyé à{" "}
+            <span className='font-semibold'>{email}</span>
+          </p>
+        </div>
+
+        <div className='bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8'>
+          <p className='text-gray-600 dark:text-gray-400 mb-4'>
+            Pour vous connecter :
+          </p>
+          <ol className='text-left text-gray-600 dark:text-gray-400 space-y-2'>
+            <li className='flex items-start'>
+              <span className='mr-2'>1.</span>
+              <span>Ouvrez votre boîte mail</span>
+            </li>
+            <li className='flex items-start'>
+              <span className='mr-2'>2.</span>
+              <span>Cliquez sur le lien de connexion dans l'email</span>
+            </li>
+            <li className='flex items-start'>
+              <span className='mr-2'>3.</span>
+              <span>Vous serez automatiquement connecté</span>
+            </li>
+          </ol>
+        </div>
+
+        <div className='space-y-4'>
+          <p className='text-sm text-gray-500 dark:text-gray-400'>
+            Vous n'avez pas reçu l'email ?
+          </p>
+          <Link
+            to='/auth'
+            className='inline-block text-yellow-500 hover:text-yellow-600 font-medium'>
+            Réessayer avec une autre adresse
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
