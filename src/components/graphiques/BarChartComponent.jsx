@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import { formatMontant } from "../../utils/calcul";
 
 export default function DepensesRevenus6Mois({ data }) {
   const [barHover, setBarHover] = useState({
@@ -70,10 +71,7 @@ export default function DepensesRevenus6Mois({ data }) {
             }}
           />
           <span className='font-semibold text-gray-700'>
-            {barHover.value.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €
+            {formatMontant(barHover.value)}€
           </span>
         </div>
       )}

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useBalance } from "../../context/BalanceContext";
+import { formatMontant } from "../../utils/calcul";
 
 export default function BalanceUpdateModal({
   isOpen,
@@ -43,11 +44,8 @@ export default function BalanceUpdateModal({
             <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
               Solde calculé actuel
             </label>
-            <div className='text-lg font-semibold text-gray-900 dark:text-white'>
-              {currentCalculatedBalance.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+            <div className='text-2xl font-bold'>
+              {formatMontant(currentCalculatedBalance)}€
             </div>
           </div>
 
@@ -76,10 +74,9 @@ export default function BalanceUpdateModal({
                   difference > 0 ? "text-red-600" : "text-green-600"
                 }`}>
                 {difference > 0 ? "+" : ""}
-                {difference.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                })}{" "}
-                €
+                <div className='text-2xl font-bold'>
+                  {formatMontant(difference)}€
+                </div>
               </div>
             </div>
           )}

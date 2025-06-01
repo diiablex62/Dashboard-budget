@@ -33,6 +33,7 @@ import {
   calculTotalDepensesMois,
   totalRevenusGlobalMois,
   calculEconomies,
+  formatMontant,
 } from "../utils/calcul";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
@@ -162,10 +163,7 @@ export default function DepensesRevenus() {
                   </div>
                 </div>
                 <div className='text-2xl text-[#222] dark:text-white'>
-                  {totalDepenses.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}{" "}
-                  €
+                  {formatMontant(totalDepenses)}€
                 </div>
               </div>
               {/* Carte 2: Total Revenus */}
@@ -177,10 +175,7 @@ export default function DepensesRevenus() {
                   </span>
                 </div>
                 <div className='text-2xl text-[#222] dark:text-white'>
-                  {totalRevenus.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}{" "}
-                  €
+                  {formatMontant(totalRevenus)}€
                 </div>
               </div>
               {/* Carte 3: Solde */}
@@ -201,10 +196,7 @@ export default function DepensesRevenus() {
                   }`}>
                   {solde > 0 && "+"}
                   {solde < 0 && "-"}
-                  {Math.abs(solde).toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}{" "}
-                  €
+                  {formatMontant(Math.abs(solde))}€
                 </div>
               </div>
             </div>

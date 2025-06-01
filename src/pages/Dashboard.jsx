@@ -11,11 +11,12 @@ import {
 } from "react-icons/ai";
 import CATEGORY_PALETTE from "../utils/categoryPalette";
 import * as calculs from "../utils/calcul";
+import { formatMontant } from "../utils/calcul";
 import DepensesRevenus6Mois from "../components/graphiques/DepensesRevenus6Mois";
 import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
 import { useAuth } from "../context/AuthContext";
-import { useSynchro } from "../context/SynchroContext";
 import SynchroUpdateModal from "../components/ui/SynchroUpdateModal";
+import MonthPickerModal from "../components/ui/MonthPickerModal";
 
 // -------------------
 // Constantes globales
@@ -55,7 +56,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { getData } = useAuth();
   const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
-  const { balance } = useSynchro();
 
   // Utiliser getData pour les données
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = getData();
@@ -128,23 +128,6 @@ export default function Dashboard() {
     paiementsEchelonnes
   );
   const totalEconomies = calculs.calculEconomies(totalRevenus, totalDepense);
-
-  // Différence économies mois précédent
-  const differenceEconomiesMoisPrecedent = useMemo(() => {
-    return calculs.calculDifferenceEconomiesMoisPrecedent(
-      depenseRevenu,
-      paiementsRecurrents,
-      paiementsEchelonnes,
-      totalRevenus,
-      totalDepense
-    );
-  }, [
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    totalRevenus,
-    totalDepense,
-  ]);
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
   const depensesParCategorie = calculs.calculDepensesParCategorie(
@@ -331,9 +314,10 @@ export default function Dashboard() {
   }, [paiementsEchelonnes, dateMoisPrecedent]);
 
   // --- Calculs pour le mois courant (pour la différence) ---
-  const dateMoisCourant = useMemo(() => {
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }, [now]);
+  const dateMoisCourant = useMemo(
+    () => new Date(now.getFullYear(), now.getMonth(), 1),
+    [now]
+  );
 
   // Dépenses classiques du mois courant
   const depensesClassiquesMoisCourant = useMemo(() => {
@@ -342,10 +326,11 @@ export default function Dashboard() {
         (d) =>
           d.type === "depense" &&
           new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
-          new Date(d.date).getMonth() === dateMoisCourant.getMonth()
+          new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
+          new Date(d.date) <= now
       )
       .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-  }, [depenseRevenu, dateMoisCourant]);
+  }, [depenseRevenu, dateMoisCourant, now]);
 
   // Paiements récurrents (dépense) du mois courant
   const recurrentsDepenseMoisCourant = useMemo(() => {
@@ -357,10 +342,11 @@ export default function Dashboard() {
             new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
             (new Date(p.debut).getFullYear() ===
               dateMoisCourant.getFullYear() &&
-              new Date(p.debut).getMonth() <= dateMoisCourant.getMonth()))
+              new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
+          (!p.jourPrelevement || p.jourPrelevement <= now.getDate())
       )
       .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
-  }, [paiementsRecurrents, dateMoisCourant]);
+  }, [paiementsRecurrents, dateMoisCourant, now]);
 
   // Paiements échelonnés (dépense) du mois courant
   const echelonnesDepenseMoisCourant = useMemo(() => {
@@ -378,14 +364,15 @@ export default function Dashboard() {
           dateMoisCourant.getFullYear() < fin.getFullYear() ||
           (dateMoisCourant.getFullYear() === fin.getFullYear() &&
             dateMoisCourant.getMonth() <= fin.getMonth());
-        return afterStart && beforeEnd;
+        const jourPrelevement = debut.getDate();
+        return afterStart && beforeEnd && jourPrelevement <= now.getDate();
       })
       .reduce(
         (acc, e) =>
           acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
         0
       );
-  }, [paiementsEchelonnes, dateMoisCourant]);
+  }, [paiementsEchelonnes, dateMoisCourant, now]);
 
   // Différence dépenses mois précédent (alignée avec le détail du tooltip)
   const differenceMoisPrecedent = useMemo(() => {
@@ -459,76 +446,13 @@ export default function Dashboard() {
   const isCurrentMonth = (date) =>
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear();
-  const isPast = (date) => date <= today;
   const isFuture = (date) => date > today;
 
-  // Dépenses actuelles (classiques)
-  const depensesClassiquesActuelles = depenseRevenu
-    .filter(
-      (item) =>
-        item.type === "depense" &&
-        isCurrentMonth(new Date(item.date)) &&
-        isPast(new Date(item.date))
-    )
-    .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0);
-
-  // Dépenses à venir (classiques)
-  const depensesClassiquesAVenir = depenseRevenu
-    .filter(
-      (item) =>
-        item.type === "depense" &&
-        isCurrentMonth(new Date(item.date)) &&
-        isFuture(new Date(item.date))
-    )
-    .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0);
-
-  // Revenus actuels (classiques)
-  const revenusClassiquesActuels = depenseRevenu
-    .filter(
-      (item) =>
-        item.type === "revenu" &&
-        isCurrentMonth(new Date(item.date)) &&
-        isPast(new Date(item.date))
-    )
-    .reduce((acc, item) => acc + parseFloat(item.montant), 0);
-
-  // Revenus à venir (classiques)
-  const revenusClassiquesAVenir = depenseRevenu
-    .filter(
-      (item) =>
-        item.type === "revenu" &&
-        isCurrentMonth(new Date(item.date)) &&
-        isFuture(new Date(item.date))
-    )
-    .reduce((acc, item) => acc + parseFloat(item.montant), 0);
-
-  // Dépenses récurrentes et échelonnées actuelles
-  const depensesRecEchActuelles =
-    calculs.calculTotalRecurrentsMois(paiementsRecurrents, today, true) +
-    calculs.calculTotalEchelonnesMois(paiementsEchelonnes, today, true, true);
-
-  // Revenus récurrents et échelonnés actuels
-  const revenusRecEchActuels =
-    calculs.calculTotalRecurrentsMois(
-      paiementsRecurrents,
-      today,
-      true,
-      "revenu"
-    ) +
-    calculs.calculTotalEchelonnesMois(
-      paiementsEchelonnes,
-      today,
-      true,
-      false,
-      "revenu"
-    );
-
-  // Totaux actuels et à venir
-  const totalDepenseActuelle =
-    depensesClassiquesActuelles + depensesRecEchActuelles;
-  const totalDepenseAVenir = depensesClassiquesAVenir + depensesRecEchAVenir;
-  const totalRevenuActuel = revenusClassiquesActuels + revenusRecEchActuels;
-  const totalRevenuAVenir = revenusClassiquesAVenir + revenusRecEchAVenir;
+  // Calcul du total dépensé ce mois-ci jusqu'à aujourd'hui (identique au détail)
+  const totalDepensePrelevee =
+    depensesClassiquesMoisCourant +
+    recurrentsDepenseMoisCourant +
+    echelonnesDepenseMoisCourant;
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
@@ -537,12 +461,12 @@ export default function Dashboard() {
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
-              Total dépensé en {moisEnCours}
+              Total dépensé en {monthNames[now.getMonth()]} {now.getFullYear()}
             </span>
             <AiOutlineDollarCircle className='text-red-600 text-xl' />
           </div>
           <div className='text-2xl font-bold dark:text-white'>
-            {totalDepense.toFixed(2)}€
+            {formatMontant(totalDepensePrelevee)}€
           </div>
           <div className='text-xs text-gray-400'>
             {differenceMoisPrecedent < 0 ? "-" : "+"}{" "}
@@ -552,51 +476,58 @@ export default function Dashboard() {
             € par rapport au mois dernier
           </div>
           {/* Tooltip des dépenses */}
-          <div className='absolute bottom-2 right-2 group'>
-            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-            <div className='absolute -right-32 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+          <div className='absolute bottom-6 right-6 group'>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+            <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
               <div className='whitespace-pre-line'>
-                {`Mois Actuel : ${(
-                  depensesClassiquesMoisCourant +
-                  recurrentsDepenseMoisCourant +
-                  echelonnesDepenseMoisCourant
-                ).toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })} €
-- Dépenses classiques : ${depensesClassiquesMoisCourant.toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                )} €
-- Paiements récurrents : ${recurrentsDepenseMoisCourant.toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                )} €
-- Paiements échelonnés : ${echelonnesDepenseMoisCourant.toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                )} €
-
-Mois précédent : ${(
-                  depensesClassiquesMoisPrec +
-                  recurrentsDepenseMoisPrec +
-                  echelonnesDepenseMoisPrec
-                ).toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })} €
-- Dépenses classiques : ${depensesClassiquesMoisPrec.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })} €
-- Paiements récurrents (dépense) : ${recurrentsDepenseMoisPrec.toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                )} €
-- Paiements échelonnés (dépense) : ${echelonnesDepenseMoisPrec.toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-                )} €`}
+                <div>
+                  <div className='mb-2'>
+                    <span className='font-semibold'>Mois Actuel :</span>{" "}
+                    {formatMontant(
+                      depensesClassiquesMoisCourant +
+                        recurrentsDepenseMoisCourant +
+                        echelonnesDepenseMoisCourant
+                    )}
+                    €
+                  </div>
+                  <ul className='mb-2'>
+                    <li className='text-red-400'>
+                      Dépenses classiques :{" "}
+                      {formatMontant(depensesClassiquesMoisCourant)}€
+                    </li>
+                    <li className='text-blue-400'>
+                      Paiements récurrents :{" "}
+                      {formatMontant(recurrentsDepenseMoisCourant)}€
+                    </li>
+                    <li className='text-purple-400'>
+                      Paiements échelonnés :{" "}
+                      {formatMontant(echelonnesDepenseMoisCourant)}€
+                    </li>
+                  </ul>
+                  <div className='mb-2'>
+                    <span className='font-semibold'>Mois précédent :</span>{" "}
+                    {formatMontant(
+                      depensesClassiquesMoisPrec +
+                        recurrentsDepenseMoisPrec +
+                        echelonnesDepenseMoisPrec
+                    )}
+                    €
+                  </div>
+                  <ul>
+                    <li className='text-red-400'>
+                      Dépenses classiques :{" "}
+                      {formatMontant(depensesClassiquesMoisPrec)}€
+                    </li>
+                    <li className='text-blue-400'>
+                      Paiements récurrents (dépense) :{" "}
+                      {formatMontant(recurrentsDepenseMoisPrec)}€
+                    </li>
+                    <li className='text-purple-400'>
+                      Paiements échelonnés (dépense) :{" "}
+                      {formatMontant(echelonnesDepenseMoisPrec)}€
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -609,7 +540,7 @@ Mois précédent : ${(
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
           <div className='text-2xl font-bold dark:text-white'>
-            {totalRecurrents.toFixed(2)}€
+            {formatMontant(totalRecurrents)}€
           </div>
           <div className='text-xs text-gray-400'>en dépenses ce mois-ci</div>
           <button
@@ -626,7 +557,7 @@ Mois précédent : ${(
             <AiOutlineCreditCard className='text-green-600 text-xl dark:text-white' />
           </div>
           <div className='text-2xl font-bold dark:text-white'>
-            {totalEchelonnes.toFixed(2)}€
+            {formatMontant(totalEchelonnes)}€
           </div>
           <div className='text-xs text-gray-400'>en dépenses ce mois-ci</div>
           <button
@@ -646,86 +577,178 @@ Mois précédent : ${(
             className={`text-2xl font-bold ${
               budgetPrevisionnel >= 0 ? "text-green-600" : "text-red-600"
             }`}>
-            {budgetPrevisionnel.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-            €
+            {formatMontant(budgetPrevisionnel)}€
           </div>
           <div className='text-xs text-gray-400 mt-1'>
             Solde actuel ajusté des opérations à venir ce mois-ci.
           </div>
           <div className='absolute bottom-2 right-2 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-            <div className='absolute right-0 bottom-full mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
+            <div className='absolute right-0 top-0 mt-2 w-96 max-h-[600px] overflow-y-auto p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
+              <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help absolute top-2 right-2 text-lg' />
               <div className='font-semibold mb-2'>Montants à venir :</div>
-              <ul className='space-y-1 mb-2'>
-                <li>
-                  Dépense :{" "}
-                  <span className='font-bold text-red-400'>
-                    {depensesClassiquesAVenir.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-                <li>
-                  Revenu :{" "}
-                  <span className='font-bold text-green-400'>
-                    {revenusClassiquesAVenir.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-                <li>
-                  Récurrent :{" "}
-                  <span className='font-bold text-blue-400'>
-                    {revenusRecEchAVenir.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    € / -
-                    {depensesRecEchAVenir.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-                <li>
-                  Échelonné :{" "}
-                  <span className='font-bold text-purple-400'>
-                    {calculs
-                      .calculTotalEchelonnesMois(
-                        paiementsEchelonnes,
-                        today,
-                        false,
-                        false,
-                        "revenu"
-                      )
-                      .toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                    € / -
-                    {calculs
-                      .calculTotalEchelonnesMois(
-                        paiementsEchelonnes,
-                        today,
-                        false,
-                        true
-                      )
-                      .toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{" "}
-                    €
-                  </span>
-                </li>
-              </ul>
+              <div className='mb-2'>
+                {(() => {
+                  const depenses = [
+                    ...depenseRevenu.filter(
+                      (item) =>
+                        item.type === "depense" &&
+                        isCurrentMonth(new Date(item.date)) &&
+                        isFuture(new Date(item.date))
+                    ),
+                  ].sort((a, b) => new Date(a.date) - new Date(b.date));
+                  return depenses.length > 0 ? (
+                    <div className='mb-2'>
+                      <span className='font-bold text-red-400'>
+                        Dépenses classiques :
+                      </span>
+                      <ul className='ml-2 list-disc'>
+                        {depenses.map((item) => (
+                          <li key={item.id || item.nom + item.date}>
+                            {item.nom} : {formatMontant(item.montant)}€{" "}
+                            <span className='text-gray-300'>
+                              {(function () {
+                                const d = new Date(item.date);
+                                return `(le ${d.getDate()} ${
+                                  monthNames[d.getMonth()]
+                                })`;
+                              })()}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+              <div className='mb-2'>
+                {(() => {
+                  const revenus = [
+                    ...depenseRevenu.filter(
+                      (item) =>
+                        item.type === "revenu" &&
+                        isCurrentMonth(new Date(item.date)) &&
+                        isFuture(new Date(item.date))
+                    ),
+                  ].sort((a, b) => new Date(a.date) - new Date(b.date));
+                  return revenus.length > 0 ? (
+                    <div className='mb-2'>
+                      <span className='font-bold text-green-400'>
+                        Revenus classiques :
+                      </span>
+                      <ul className='ml-2 list-disc'>
+                        {revenus.map((item) => (
+                          <li key={item.id || item.nom + item.date}>
+                            {item.nom} : {formatMontant(item.montant)}€{" "}
+                            <span className='text-gray-300'>
+                              {(function () {
+                                const d = new Date(item.date);
+                                return `(le ${d.getDate()} ${
+                                  monthNames[d.getMonth()]
+                                })`;
+                              })()}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+              <div className='mb-2'>
+                {(() => {
+                  const recurrents = [
+                    ...paiementsRecurrents
+                      .filter((p) => (p.type === "revenu" ? false : true))
+                      .filter((p) => {
+                        if (p.jourPrelevement) {
+                          return (
+                            isCurrentMonth(
+                              new Date(
+                                today.getFullYear(),
+                                today.getMonth(),
+                                p.jourPrelevement
+                              )
+                            ) && p.jourPrelevement > today.getDate()
+                          );
+                        }
+                        return false;
+                      }),
+                  ].sort((a, b) => a.jourPrelevement - b.jourPrelevement);
+                  return recurrents.length > 0 ? (
+                    <div className='mb-2'>
+                      <span className='font-bold text-blue-400'>
+                        Récurrents à venir :
+                      </span>
+                      <ul className='ml-2 list-disc'>
+                        {recurrents.map((p) => (
+                          <li key={p.id || p.nom + p.jourPrelevement}>
+                            {p.nom} : {formatMontant(p.montant)}€{" "}
+                            <span className='text-gray-300'>
+                              {(function () {
+                                return `(le ${p.jourPrelevement} ${
+                                  monthNames[today.getMonth()]
+                                })`;
+                              })()}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+              <div className='mb-2'>
+                {(() => {
+                  const echelonnes = [
+                    ...paiementsEchelonnes
+                      .filter((e) => e.type === "depense")
+                      .flatMap((e) => {
+                        const debut = new Date(e.debutDate);
+                        const mensualites = parseInt(e.mensualites, 10);
+                        return Array.from({ length: mensualites }, (_, i) => {
+                          const datePrelevement = new Date(debut);
+                          datePrelevement.setMonth(debut.getMonth() + i);
+                          if (
+                            isCurrentMonth(datePrelevement) &&
+                            datePrelevement > today
+                          ) {
+                            return {
+                              id: e.id + "-" + i,
+                              nom: e.nom,
+                              montant:
+                                Math.abs(parseFloat(e.montant)) / mensualites,
+                              date: datePrelevement,
+                            };
+                          }
+                          return null;
+                        }).filter(Boolean);
+                      }),
+                  ].sort((a, b) => a.date - b.date);
+                  return echelonnes.length > 0 ? (
+                    <div className='mb-2'>
+                      <span className='font-bold text-purple-400'>
+                        Échelonnés à venir :
+                      </span>
+                      <ul className='ml-2 list-disc'>
+                        {echelonnes.map((ech) => (
+                          <li key={ech.id}>
+                            {ech.nom} : {formatMontant(ech.montant)}€{" "}
+                            <span className='text-gray-300'>
+                              {(function () {
+                                const d = ech.date;
+                                return `(le ${d.getDate()} ${
+                                  monthNames[d.getMonth()]
+                                })`;
+                              })()}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -743,11 +766,7 @@ Mois précédent : ${(
                 <AiOutlineRise className='text-blue-600 text-xl' />
               </div>
               <div className='text-2xl font-bold dark:text-white mt-3'>
-                {totalEconomies.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-                €
+                {formatMontant(totalEconomies)}€
               </div>
             </div>
             <div className='w-1/2 flex flex-col items-start'>
@@ -865,8 +884,8 @@ Mois précédent : ${(
       </div>
 
       {/* Graphiques */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 dark:text-white  '>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 dark:text-white'>
           <h2 className='text-lg font-semibold mb-4 text-center'>
             Dépenses du mois par catégorie
           </h2>
@@ -874,7 +893,7 @@ Mois précédent : ${(
             <DepensesParCategorieChart data={depensesParCategorie} />
           </div>
         </div>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 dark:text-white '>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 dark:text-white'>
           <h2 className='text-lg font-semibold mb-4 text-center'>
             Dépenses et revenus des 6 derniers mois
           </h2>
@@ -906,10 +925,8 @@ Mois précédent : ${(
                         : (() => {
                             try {
                               const date = new Date(item.date);
-                              return isNaN(date.getTime())
-                                ? "Date invalide"
-                                : date.toLocaleDateString("fr-FR");
-                            } catch (e) {
+                              return date.toLocaleDateString("fr-FR");
+                            } catch {
                               return "Date invalide";
                             }
                           })()}
@@ -917,10 +934,7 @@ Mois précédent : ${(
                   </div>
                 </div>
                 <div className='font-semibold'>
-                  {item.montant.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}
-                  €
+                  {formatMontant(item.montant)}€
                 </div>
               </div>
             ))}
@@ -950,10 +964,7 @@ Mois précédent : ${(
                   </div>
                 </div>
                 <div className='font-semibold'>
-                  {(item.montant / item.mensualites).toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}
-                  €
+                  {formatMontant(item.montant / item.mensualites)}€
                 </div>
               </div>
             ))}

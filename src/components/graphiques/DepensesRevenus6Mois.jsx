@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   ReferenceArea,
 } from "recharts";
+import { formatMontant } from "../../utils/calcul";
 
 export default function DepensesRevenus6Mois({ data }) {
   const [hoveredMonth, setHoveredMonth] = useState(null);
@@ -50,20 +51,12 @@ export default function DepensesRevenus6Mois({ data }) {
       {hoveredData && (
         <div className='mt-3 flex flex-col items-center text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-black px-4 py-2 rounded-lg shadow border border-gray-200 dark:border-gray-700'>
           <span className='font-medium'>{hoveredData.mois}</span>
-          <span>
-            Dépense :{" "}
-            {hoveredData.depenses.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €
-          </span>
-          <span>
-            Revenu :{" "}
-            {hoveredData.revenus.toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €
-          </span>
+          <div className='text-sm font-medium'>
+            {formatMontant(hoveredData.depenses)}€
+          </div>
+          <div className='text-sm font-medium'>
+            {formatMontant(hoveredData.revenus)}€
+          </div>
         </div>
       )}
     </div>

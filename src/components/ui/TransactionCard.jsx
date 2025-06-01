@@ -1,5 +1,6 @@
 import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
+import { formatMontant } from "../../utils/calcul";
 
 const TransactionCard = ({ item, currentTab, onEdit, onDelete }) => {
   return (
@@ -23,10 +24,9 @@ const TransactionCard = ({ item, currentTab, onEdit, onDelete }) => {
               currentTab === "depense" ? "text-red-600" : "text-green-600"
             } text-base truncate`}>
             {currentTab === "depense" ? "-" : "+"}
-            {parseFloat(item.montant).toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €
+            <div className='font-semibold'>
+              {formatMontant(parseFloat(item.montant))}€
+            </div>
           </div>
           <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
             {new Date(item.date).toLocaleDateString("fr-FR")}

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSynchro } from "../../context/SynchroContext";
+import { formatMontant } from "../../utils/calcul";
 
 const REASONS = ["Réconciliation bancaire", "Oublie de saisie", "Autre"];
 
@@ -76,12 +77,8 @@ export default function SynchroUpdateModal({
             <label className='block mb-2 font-medium dark:text-white'>
               Je corrige mon solde de
             </label>
-            <div className='text-2xl font-bold text-[#222] dark:text-white'>
-              {currentCalculatedBalance.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}{" "}
-              €
+            <div className='text-2xl font-bold'>
+              {formatMontant(currentCalculatedBalance)}€
             </div>
           </div>
           <div className='mb-4'>
@@ -108,11 +105,7 @@ export default function SynchroUpdateModal({
                   difference > 0 ? "text-red-600" : "text-green-600"
                 }`}>
                 {difference > 0 ? "+" : ""}
-                {difference.toLocaleString("fr-FR", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}{" "}
-                €
+                {formatMontant(difference)}€
               </div>
             </div>
           )}

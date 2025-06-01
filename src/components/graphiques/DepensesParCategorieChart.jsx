@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import AnimationDepensesParCategorieChart from "./AnimationDepensesParCategorieChart";
+import { formatMontant } from "../../utils/calcul";
 
 const COLORS = [
   "#FF6B6B",
@@ -95,12 +96,9 @@ export default function DepensesParCategorieChart({ data }) {
                     {item.name}
                   </span>
                 </div>
-                <span className='text-sm text-gray-600'>
-                  {item.value.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </span>
+                <div className='text-sm font-medium'>
+                  {formatMontant(item.value)}€
+                </div>
               </div>
             ))}
           </div>

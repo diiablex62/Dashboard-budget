@@ -25,6 +25,7 @@ import {
 import {
   calculTotalRevenusRecurrentsMois,
   calculTotalDepensesRecurrentesMois,
+  formatMontant,
 } from "../utils/calcul";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import {
@@ -145,11 +146,8 @@ const PaiementRecurrent = () => {
               <AiOutlineDollarCircle className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>Total Dépenses</span>
             </div>
-            <div className='text-2xl text-[#222] dark:text-white'>
-              {totalDepenses.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+            <div className='text-2xl font-bold dark:text-white'>
+              {formatMontant(totalDepenses)}€
             </div>
           </div>
           {/* Carte 2: Total Revenus */}
@@ -158,11 +156,8 @@ const PaiementRecurrent = () => {
               <AiOutlineCalendar className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>Total Revenus</span>
             </div>
-            <div className='text-2xl text-[#222] dark:text-white'>
-              {totalRevenus.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+            <div className='text-2xl font-bold dark:text-white'>
+              {formatMontant(totalRevenus)}€
             </div>
           </div>
         </div>

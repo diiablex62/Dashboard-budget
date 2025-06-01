@@ -390,3 +390,79 @@ export function calculDifferenceEconomiesMoisPrecedent(
   );
   return economieMoisActuel - economieMoisPrecedent;
 }
+
+// Calcule le total des dépenses déjà prélevées entre le 1er et aujourd'hui inclus pour le mois courant
+export function calculTotalDepensesPreleveesJusquaAujourdhui(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+
+  // Dépenses classiques déjà prélevées ce mois-ci
+  const depensesClassiquesPrelevees = depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date) >= startOfMonth &&
+        new Date(d.date) <= today
+    )
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+
+  // Paiements récurrents déjà prélevés ce mois-ci
+  const recurrentsPreleves = paiementsRecurrents
+    .filter((p) => {
+      if (p.type !== "depense") return false;
+      // Si le paiement a un jour de prélèvement, on vérifie qu'il est passé
+      if (p.jourPrelevement) {
+        return (
+          today.getDate() >= p.jourPrelevement &&
+          (!p.debut || new Date(p.debut) <= today)
+        );
+      }
+      // Sinon, on considère qu'il est prélevé le 1er
+      return true;
+    })
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+
+  // Paiements échelonnés déjà prélevés ce mois-ci
+  const echelonnesPreleves = paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "depense") return false;
+      const debut = new Date(e.debutDate);
+      const mensualites = parseInt(e.mensualites, 10);
+      for (let i = 0; i < mensualites; i++) {
+        const datePrelevement = new Date(debut);
+        datePrelevement.setMonth(debut.getMonth() + i);
+        if (
+          datePrelevement.getFullYear() === today.getFullYear() &&
+          datePrelevement.getMonth() === today.getMonth() &&
+          datePrelevement <= today
+        ) {
+          return true;
+        }
+      }
+      return false;
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
+
+  return depensesClassiquesPrelevees + recurrentsPreleves + echelonnesPreleves;
+}
+
+/**
+ * Formate un nombre avec 2 chiffres après la virgule
+ * @param {number} montant - Le montant à formater
+ * @returns {string} Le montant formaté avec 2 chiffres après la virgule
+ */
+export const formatMontant = (montant) => {
+  return montant.toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};

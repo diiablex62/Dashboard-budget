@@ -1,5 +1,6 @@
 import React from "react";
 import { useBalance } from "../../context/BalanceContext";
+import { formatMontant } from "../../utils/calcul";
 
 export default function BalanceHistory() {
   const { getBalanceHistory } = useBalance();
@@ -38,10 +39,9 @@ export default function BalanceHistory() {
                   : "text-gray-600 dark:text-gray-400"
               }`}>
               {adjustment.difference > 0 ? "+" : ""}
-              {adjustment.difference.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+              <div className='text-sm font-medium'>
+                {formatMontant(adjustment.difference)}€
+              </div>
             </div>
           </div>
 
@@ -50,10 +50,9 @@ export default function BalanceHistory() {
               Ancien solde
             </div>
             <div className='text-sm font-medium dark:text-white'>
-              {adjustment.previousAmount.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+              <div className='text-sm font-medium'>
+                {formatMontant(adjustment.previousAmount)}€
+              </div>
             </div>
           </div>
 
@@ -62,10 +61,9 @@ export default function BalanceHistory() {
               Nouveau solde
             </div>
             <div className='text-sm font-medium dark:text-white'>
-              {adjustment.newAmount.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+              <div className='text-sm font-medium'>
+                {formatMontant(adjustment.newAmount)}€
+              </div>
             </div>
           </div>
 

@@ -17,6 +17,7 @@ import CardDesign from "../components/ui/CardDesign";
 import { ModalEchelonne } from "../components/ui/Modal";
 import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
+import { formatMontant } from "../utils/calcul";
 
 export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -190,10 +191,7 @@ export const PaiementEchelonne = () => {
               <span className='text-sm font-semibold'>Total Mensuel</span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
-              {totalDepenses.toLocaleString("fr-FR", {
-                minimumFractionDigits: 2,
-              })}{" "}
-              €
+              {formatMontant(totalDepenses)}€
             </div>
           </div>
 
