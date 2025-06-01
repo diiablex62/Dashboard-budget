@@ -555,35 +555,48 @@ export default function Dashboard() {
           <div className='absolute bottom-2 right-2 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
             <div className='absolute -right-32 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-              <p className='font-semibold mb-1'>Détail du calcul :</p>
               <div className='whitespace-pre-line'>
-                {`- Dépenses du mois : ${calculs
-                  .totalDepensesMois(depenseRevenu)
-                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
-- Paiements récurrents : ${calculs
-                  .calculTotalRecurrentsMois(paiementsRecurrents)
-                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
-- Paiements échelonnés : ${calculs
-                  .calculTotalEchelonnesMois(paiementsEchelonnes)
-                  .toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
-
-Mois précédent :
-- Dépenses classiques : ${depensesClassiquesMoisPrec.toLocaleString("fr-FR", {
+                {`Mois Actuel : ${(
+                  depensesClassiquesMoisCourant +
+                  recurrentsDepenseMoisCourant +
+                  echelonnesDepenseMoisCourant
+                ).toLocaleString("fr-FR", {
                   minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 })} €
-- Paiements récurrents (dépense) : ${recurrentsDepenseMoisPrec.toLocaleString(
+- Dépenses classiques : ${depensesClassiquesMoisCourant.toLocaleString(
                   "fr-FR",
-                  { minimumFractionDigits: 2 }
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
                 )} €
-- Paiements échelonnés (dépense) : ${echelonnesDepenseMoisPrec.toLocaleString(
+- Paiements récurrents : ${recurrentsDepenseMoisCourant.toLocaleString(
                   "fr-FR",
-                  { minimumFractionDigits: 2 }
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
                 )} €
-- Total : ${(
+- Paiements échelonnés : ${echelonnesDepenseMoisCourant.toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )} €
+
+Mois précédent : ${(
                   depensesClassiquesMoisPrec +
                   recurrentsDepenseMoisPrec +
                   echelonnesDepenseMoisPrec
-                ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €`}
+                ).toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} €
+- Dépenses classiques : ${depensesClassiquesMoisPrec.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} €
+- Paiements récurrents (dépense) : ${recurrentsDepenseMoisPrec.toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )} €
+- Paiements échelonnés (dépense) : ${echelonnesDepenseMoisPrec.toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+                )} €`}
               </div>
             </div>
           </div>
@@ -645,52 +658,7 @@ Mois précédent :
           <div className='absolute bottom-2 right-2 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
             <div className='absolute right-0 bottom-full mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
-              <div className='font-semibold mb-2'>Détail du prévisionnel :</div>
-              <ul className='space-y-1'>
-                <li>
-                  Total dépenses actuelles :{" "}
-                  <span className='font-bold text-red-400'>
-                    {totalDepenseActuelle.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-                <li>
-                  Total revenus actuels :{" "}
-                  <span className='font-bold text-green-400'>
-                    {totalRevenuActuel.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-                <li>
-                  Total dépenses à venir :{" "}
-                  <span className='font-bold text-red-300'>
-                    {totalDepenseAVenir.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-                <li>
-                  Total revenus à venir :{" "}
-                  <span className='font-bold text-green-300'>
-                    {totalRevenuAVenir.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
-                </li>
-              </ul>
-              <div className='mt-3 mb-1 font-semibold text-xs text-gray-400'>
-                Montant à venir :
-              </div>
+              <div className='font-semibold mb-2'>Montants à venir :</div>
               <ul className='space-y-1 mb-2'>
                 <li>
                   Dépense :{" "}

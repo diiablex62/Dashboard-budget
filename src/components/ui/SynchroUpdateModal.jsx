@@ -28,6 +28,7 @@ export default function SynchroUpdateModal({
           montant: Math.abs(diff),
           nom: reason === "Autre" ? customReason : reason,
           date: new Date().toISOString(),
+          categorie: "Autres",
         };
         const synchroSolde = JSON.parse(
           localStorage.getItem("synchrosolde") || "[]"
