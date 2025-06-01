@@ -1,6 +1,5 @@
 import React, {
   useState,
-  useContext,
   useRef,
   useMemo,
   useCallback,
@@ -12,19 +11,15 @@ import {
   AiOutlineHome,
   AiOutlinePieChart,
   AiOutlineCalendar,
-  AiOutlineSetting,
   AiOutlineLogin,
   AiOutlineLeft,
   AiOutlineRight,
   AiOutlineBell,
   AiOutlineUser,
-  AiOutlineQuestionCircle,
   AiOutlineSearch,
   AiOutlineDollarCircle,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
-import { AppContext } from "../../context/AppContext";
-import SettingsPanel from "../ui/SettingsPanel";
 import { ThemeContext } from "../../context/ThemeContext";
 
 // Composant pour l'icône de notification
@@ -79,7 +74,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { isAuthenticated, user, avatar } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const { setIsSettingsOpen } = useContext(AppContext);
   const searchInputRef = useRef(null);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(() => {
     const notifications = JSON.parse(
@@ -156,23 +150,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     [hasUnreadNotifications]
   );
 
-  const settingsLinks = useMemo(
-    () => [
-      {
-        key: "settings-panel",
-        icon: <AiOutlineSetting className='text-2xl' />,
-        label: "Paramètres",
-        onClick: () => setIsSettingsOpen(true),
-      },
-      {
-        to: "/help",
-        icon: <AiOutlineQuestionCircle className='text-2xl' />,
-        label: "Aide",
-      },
-    ],
-    [setIsSettingsOpen]
-  );
-
   return (
     <>
       {/* Fond arrondi sous la sidebar */}
@@ -244,32 +221,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </div>
         </div>
 
-        {/* Bloc du bas : Paramètres, Aide, Profil utilisateur */}
+        {/* Bloc du bas : Profil utilisateur */}
         <div className='mt-auto'>
-          <div
-            className={`${
-              isCollapsed ? "pb-2 mt-8 pt-4" : "px-2 pb-2 text-left mt-8 pt-4"
-            }`}>
-            {!isCollapsed && (
-              <div className='text-xs font-bold text-gray-400 dark:text-gray-500 mb-2 ml-2 tracking-widest'>
-                PARAMÈTRES
-              </div>
-            )}
-            <ul className={`space-y-1 mb-4 ${isCollapsed ? "px-3" : ""}`}>
-              {settingsLinks.map((link) => (
-                <li key={link.to || link.key}>
-                  <NavItem
-                    to={link.to}
-                    icon={link.icon}
-                    label={link.label}
-                    isCollapsed={isCollapsed}
-                    onClick={link.onClick}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {isAuthenticated ? (
             <NavLink
               to='/profil'

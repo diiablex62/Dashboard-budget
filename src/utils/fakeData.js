@@ -110,7 +110,7 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 5,
     type: "depense",
     frequence: "mensuel",
-    debut: "2025-05-01",
+    debut: "2025-01-01",
   },
   {
     id: 2,
@@ -120,7 +120,7 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 10,
     type: "depense",
     frequence: "mensuel",
-    debut: "2025-05-01",
+    debut: "2025-01-01",
   },
   {
     id: 3,
@@ -130,7 +130,7 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 1,
     type: "revenu",
     frequence: "mensuel",
-    debut: "2025-05-01",
+    debut: "2025-01-01",
   },
 ];
 
@@ -142,7 +142,7 @@ export const fakePaiementsEchelonnes = [
     montant: 999,
     mensualites: 12,
     mensualitesPayees: 3,
-    debutDate: "2025-05-01",
+    debutDate: "2025-01-01",
     categorie: "Électronique",
     type: "depense",
   },
@@ -152,7 +152,7 @@ export const fakePaiementsEchelonnes = [
     montant: 1999,
     mensualites: 24,
     mensualitesPayees: 6,
-    debutDate: "2025-05-01",
+    debutDate: "2025-01-01",
     categorie: "Électronique",
     type: "depense",
   },
