@@ -635,6 +635,7 @@ Mois précédent :
             }`}>
             {budgetPrevisionnel.toLocaleString("fr-FR", {
               minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
             })}
             €
           </div>
@@ -651,6 +652,7 @@ Mois précédent :
                   <span className='font-bold text-red-400'>
                     {totalDepenseActuelle.toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     })}{" "}
                     €
                   </span>
@@ -660,6 +662,7 @@ Mois précédent :
                   <span className='font-bold text-green-400'>
                     {totalRevenuActuel.toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     })}{" "}
                     €
                   </span>
@@ -669,6 +672,7 @@ Mois précédent :
                   <span className='font-bold text-red-300'>
                     {totalDepenseAVenir.toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     })}{" "}
                     €
                   </span>
@@ -678,7 +682,78 @@ Mois précédent :
                   <span className='font-bold text-green-300'>
                     {totalRevenuAVenir.toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
                     })}{" "}
+                    €
+                  </span>
+                </li>
+              </ul>
+              <div className='mt-3 mb-1 font-semibold text-xs text-gray-400'>
+                Montant à venir :
+              </div>
+              <ul className='space-y-1 mb-2'>
+                <li>
+                  Dépense :{" "}
+                  <span className='font-bold text-red-400'>
+                    {depensesClassiquesAVenir.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+                <li>
+                  Revenu :{" "}
+                  <span className='font-bold text-green-400'>
+                    {revenusClassiquesAVenir.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+                <li>
+                  Récurrent :{" "}
+                  <span className='font-bold text-blue-400'>
+                    {revenusRecEchAVenir.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    € / -
+                    {depensesRecEchAVenir.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+                <li>
+                  Échelonné :{" "}
+                  <span className='font-bold text-purple-400'>
+                    {calculs
+                      .calculTotalEchelonnesMois(
+                        paiementsEchelonnes,
+                        today,
+                        false,
+                        false,
+                        "revenu"
+                      )
+                      .toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                    € / -
+                    {calculs
+                      .calculTotalEchelonnesMois(
+                        paiementsEchelonnes,
+                        today,
+                        false,
+                        true
+                      )
+                      .toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
                     €
                   </span>
                 </li>
@@ -700,7 +775,11 @@ Mois précédent :
                 <AiOutlineRise className='text-blue-600 text-xl' />
               </div>
               <div className='text-2xl font-bold dark:text-white mt-3'>
-                {totalEconomies.toFixed(2)}€
+                {totalEconomies.toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                €
               </div>
             </div>
             <div className='w-1/2 flex flex-col items-start'>
@@ -726,6 +805,7 @@ Mois précédent :
                   Total revenus :{" "}
                   {totalRevenus.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}{" "}
                   €
                 </li>
@@ -733,6 +813,7 @@ Mois précédent :
                   Total dépenses :{" "}
                   {totalDepense.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}{" "}
                   €
                 </li>
@@ -740,6 +821,7 @@ Mois précédent :
                   Total économies :{" "}
                   {totalEconomies.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
                   })}{" "}
                   €
                 </li>
@@ -760,7 +842,10 @@ Mois précédent :
                         1
                       )
                     )
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                    .toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
                   €
                 </li>
                 <li>
@@ -771,7 +856,10 @@ Mois précédent :
                       paiementsRecurrents,
                       paiementsEchelonnes
                     )
-                    .toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                    .toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{" "}
                   €
                 </li>
                 <li>
@@ -792,7 +880,10 @@ Mois précédent :
                         1
                       )
                     )
-                  ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                  ).toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
                   €
                 </li>
               </ul>

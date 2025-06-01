@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSynchro } from "../../context/SynchroContext";
 
-const REASONS = ["Réconciliation bancaire", "Erreur de saisie", "Autre"];
+const REASONS = ["Réconciliation bancaire", "Oublie de saisie", "Autre"];
 
 export default function SynchroUpdateModal({
   isOpen,
@@ -17,7 +17,25 @@ export default function SynchroUpdateModal({
     e.preventDefault();
     const parsedBalance = parseFloat(newBalance);
     if (!isNaN(parsedBalance)) {
+      const oldBalance = currentCalculatedBalance;
+      const diff = +(parsedBalance - oldBalance).toFixed(2);
       updateBalance(parsedBalance, reason === "Autre" ? customReason : reason);
+      // Ajout dans le localStorage si différence non nulle
+      if (diff !== 0) {
+        const op = {
+          id: Date.now(),
+          type: diff > 0 ? "revenu" : "depense",
+          montant: Math.abs(diff),
+          nom: reason === "Autre" ? customReason : reason,
+          date: new Date().toISOString(),
+        };
+        const synchroSolde = JSON.parse(
+          localStorage.getItem("synchrosolde") || "[]"
+        );
+        synchroSolde.push(op);
+        localStorage.setItem("synchrosolde", JSON.stringify(synchroSolde));
+        window.dispatchEvent(new Event("data-updated"));
+      }
       onClose();
     }
   };

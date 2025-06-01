@@ -99,8 +99,16 @@ export function AuthProvider({ children }) {
       fakePaiementsRecurrents,
       fakePaiementsEchelonnes,
     } = getFakeData();
+    // Fusionne les opérations de synchrosolde
+    const synchroSolde = JSON.parse(
+      localStorage.getItem("synchrosolde") || "[]"
+    );
+    // On fusionne et trie par date décroissante
+    const depenseRevenu = [...fakeDepenseRevenu, ...synchroSolde].sort(
+      (a, b) => new Date(b.date) - new Date(a.date)
+    );
     return {
-      depenseRevenu: fakeDepenseRevenu,
+      depenseRevenu,
       paiementsRecurrents: fakePaiementsRecurrents,
       paiementsEchelonnes: fakePaiementsEchelonnes,
     };
