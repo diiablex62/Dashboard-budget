@@ -622,7 +622,7 @@ Mois précédent :
             Gérer →
           </button>
         </div>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative row-span-2'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-900 font-bold text-xl'>
               Budget prévisionnel {moisEnCours}
@@ -686,26 +686,33 @@ Mois précédent :
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Carte Économies actuelles */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
-          <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>
-              Économies actuelles
-            </span>
-            <AiOutlineRise className='text-blue-600 text-xl' />
-          </div>
-          <div className='flex items-center justify-between w-full mt-3'>
-            <div className='text-2xl font-bold dark:text-white'>
-              {totalEconomies.toFixed(2)}€
+          <div className='flex'>
+            <div className='w-1/2'>
+              <div className='flex items-center gap-2'>
+                <span className='text-gray-500 font-medium'>
+                  Économies actuelles
+                </span>
+                <AiOutlineRise className='text-blue-600 text-xl' />
+              </div>
+              <div className='text-2xl font-bold dark:text-white mt-3'>
+                {totalEconomies.toFixed(2)}€
+              </div>
             </div>
-            <div className='flex flex-col items-end'>
-              <span className='text-sm text-gray-500 font-medium mb-1'>
-                Votre compte n'est pas à jour&nbsp;?
+            <div className='w-1/2 flex flex-col items-start'>
+              <span className='text-sm text-gray-500 font-medium mb-3'>
+                Vous n'avez pas {totalEconomies.toFixed(2)}€ sur votre
+                compte&nbsp;?
               </span>
               <button
                 onClick={() => setIsBalanceModalOpen(true)}
-                className='flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:hover:bg-blue-900/50'>
+                className='flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600'>
                 <AiOutlineSync className='text-lg' />
-                Mettre à jour
+                Mettre à jour mon solde actuel
               </button>
             </div>
           </div>

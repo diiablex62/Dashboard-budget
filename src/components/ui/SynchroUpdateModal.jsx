@@ -55,7 +55,7 @@ export default function SynchroUpdateModal({
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
             <label className='block mb-2 font-medium dark:text-white'>
-              Solde actuel
+              Je corrige mon solde de
             </label>
             <div className='text-2xl font-bold text-[#222] dark:text-white'>
               {currentCalculatedBalance.toLocaleString("fr-FR", {
