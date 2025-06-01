@@ -502,18 +502,6 @@ export default function Dashboard() {
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
-      {/* DEBUG : Affichage temporaire des données */}
-      <pre
-        style={{
-          fontSize: 12,
-          background: "#f3f3f3",
-          padding: 8,
-          marginBottom: 16,
-        }}>
-        DEPENSES/REVENUS : {JSON.stringify(depenseRevenu, null, 2)}
-        RECURRENTS : {JSON.stringify(paiementsRecurrents, null, 2)}
-        ECHELONNES : {JSON.stringify(paiementsEchelonnes, null, 2)}
-      </pre>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
@@ -609,53 +597,7 @@ Mois précédent :
             <span className='text-gray-900 font-bold text-xl'>
               Budget prévisionnel {moisEnCours}
             </span>
-            <div className='relative group'>
-              <AiOutlinePieChart className='text-2xl text-blue-600' />
-              <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help ml-2' />
-              <div className='absolute right-0 bottom-full mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
-                <div className='font-semibold mb-2'>
-                  Détail du prévisionnel :
-                </div>
-                <ul className='space-y-1'>
-                  <li>
-                    Total dépenses actuelles :{" "}
-                    <span className='font-bold text-red-400'>
-                      {totalDepenseActuelle.toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                      })}{" "}
-                      €
-                    </span>
-                  </li>
-                  <li>
-                    Total revenus actuels :{" "}
-                    <span className='font-bold text-green-400'>
-                      {totalRevenuActuel.toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                      })}{" "}
-                      €
-                    </span>
-                  </li>
-                  <li>
-                    Total dépenses à venir :{" "}
-                    <span className='font-bold text-red-300'>
-                      {totalDepenseAVenir.toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                      })}{" "}
-                      €
-                    </span>
-                  </li>
-                  <li>
-                    Total revenus à venir :{" "}
-                    <span className='font-bold text-green-300'>
-                      {totalRevenuAVenir.toLocaleString("fr-FR", {
-                        minimumFractionDigits: 2,
-                      })}{" "}
-                      €
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            <AiOutlinePieChart className='text-2xl text-blue-600' />
           </div>
           <div
             className={`text-2xl font-bold ${
@@ -668,6 +610,50 @@ Mois précédent :
           </div>
           <div className='text-xs text-gray-400 mt-1'>
             Solde actuel ajusté des opérations à venir ce mois-ci.
+          </div>
+          <div className='absolute bottom-2 right-2 group'>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+            <div className='absolute right-0 bottom-full mb-2 w-72 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
+              <div className='font-semibold mb-2'>Détail du prévisionnel :</div>
+              <ul className='space-y-1'>
+                <li>
+                  Total dépenses actuelles :{" "}
+                  <span className='font-bold text-red-400'>
+                    {totalDepenseActuelle.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+                <li>
+                  Total revenus actuels :{" "}
+                  <span className='font-bold text-green-400'>
+                    {totalRevenuActuel.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+                <li>
+                  Total dépenses à venir :{" "}
+                  <span className='font-bold text-red-300'>
+                    {totalDepenseAVenir.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+                <li>
+                  Total revenus à venir :{" "}
+                  <span className='font-bold text-green-300'>
+                    {totalRevenuAVenir.toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                    })}{" "}
+                    €
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>

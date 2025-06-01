@@ -8,8 +8,9 @@ const currentMonth = `${year}-${month}`;
 
 // Données fictives pour les dépenses et revenus
 export const fakeDepenseRevenu = [
+  // Mai 2025
   {
-    id: 1,
+    id: 6,
     nom: "Salaire",
     montant: 2500,
     categorie: "Salaire",
@@ -17,7 +18,7 @@ export const fakeDepenseRevenu = [
     type: "revenu",
   },
   {
-    id: 2,
+    id: 7,
     nom: "Loyer",
     montant: 800,
     categorie: "Logement",
@@ -25,27 +26,76 @@ export const fakeDepenseRevenu = [
     type: "depense",
   },
   {
+    id: 8,
+    nom: "Courses",
+    montant: 180,
+    categorie: "Alimentation",
+    date: "2025-05-12",
+    type: "depense",
+  },
+  {
+    id: 9,
+    nom: "Freelance",
+    montant: 600,
+    categorie: "Travail",
+    date: "2025-05-18",
+    type: "revenu",
+  },
+  {
+    id: 10,
+    nom: "Électricité",
+    montant: 85,
+    categorie: "Factures",
+    date: "2025-05-25",
+    type: "depense",
+  },
+  // Juin 2025
+  {
+    id: 1,
+    nom: "Salaire",
+    montant: 2500,
+    categorie: "Salaire",
+    date: "2025-06-01",
+    type: "revenu",
+  },
+  {
+    id: 2,
+    nom: "Loyer",
+    montant: 800,
+    categorie: "Logement",
+    date: "2025-06-05",
+    type: "depense",
+  },
+  {
     id: 3,
     nom: "Courses",
-    montant: 150,
+    montant: 220,
     categorie: "Alimentation",
-    date: "2025-05-10",
+    date: "2025-06-10",
     type: "depense",
   },
   {
     id: 4,
     nom: "Freelance",
-    montant: 500,
+    montant: 750,
     categorie: "Travail",
-    date: "2025-05-15",
+    date: "2025-06-15",
     type: "revenu",
   },
   {
     id: 5,
     nom: "Électricité",
-    montant: 80,
+    montant: 90,
     categorie: "Factures",
-    date: "2025-05-20",
+    date: "2025-06-20",
+    type: "depense",
+  },
+  {
+    id: 11,
+    nom: "Restaurant",
+    montant: 65,
+    categorie: "Alimentation",
+    date: "2025-06-25",
     type: "depense",
   },
 ];
@@ -60,7 +110,7 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 5,
     type: "depense",
     frequence: "mensuel",
-    debut: "2025-01-01",
+    debut: "2025-05-01",
   },
   {
     id: 2,
@@ -70,7 +120,7 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 10,
     type: "depense",
     frequence: "mensuel",
-    debut: "2025-01-01",
+    debut: "2025-05-01",
   },
   {
     id: 3,
@@ -80,7 +130,7 @@ export const fakePaiementsRecurrents = [
     jourPrelevement: 1,
     type: "revenu",
     frequence: "mensuel",
-    debut: "2025-01-01",
+    debut: "2025-05-01",
   },
 ];
 
@@ -92,7 +142,7 @@ export const fakePaiementsEchelonnes = [
     montant: 999,
     mensualites: 12,
     mensualitesPayees: 3,
-    debutDate: "2025-01-01",
+    debutDate: "2025-05-01",
     categorie: "Électronique",
     type: "depense",
   },
@@ -102,7 +152,7 @@ export const fakePaiementsEchelonnes = [
     montant: 1999,
     mensualites: 24,
     mensualitesPayees: 6,
-    debutDate: "2024-12-01",
+    debutDate: "2025-05-01",
     categorie: "Électronique",
     type: "depense",
   },

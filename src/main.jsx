@@ -9,18 +9,21 @@ import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { BudgetProvider } from "./context/BudgetContext";
 import { AuthProvider } from "./context/AuthContext";
+import { SynchroProvider } from "./context/SynchroContext";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
       <AppProvider>
         <AuthProvider>
-          <BudgetProvider>
-            <BrowserRouter>
-              <App />
-              {/* <Analytics /> */}
-            </BrowserRouter>
-          </BudgetProvider>
+          <SynchroProvider>
+            <BudgetProvider>
+              <BrowserRouter>
+                <App />
+                {/* <Analytics /> */}
+              </BrowserRouter>
+            </BudgetProvider>
+          </SynchroProvider>
         </AuthProvider>
       </AppProvider>
     </ThemeProvider>
