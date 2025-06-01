@@ -492,7 +492,9 @@ export default function Dashboard() {
                   </div>
                   <ul className='mb-2'>
                     <li className='text-red-400'>
-                      Dépenses classiques :{" "}
+                      <span className='font-bold' style={{ color: "#ef4444" }}>
+                        Dépenses :
+                      </span>{" "}
                       {formatMontant(depensesClassiquesMoisCourant)}€
                     </li>
                     <li className='text-blue-400'>
@@ -515,7 +517,9 @@ export default function Dashboard() {
                   </div>
                   <ul>
                     <li className='text-red-400'>
-                      Dépenses classiques :{" "}
+                      <span className='font-bold' style={{ color: "#ef4444" }}>
+                        Dépenses :
+                      </span>{" "}
                       {formatMontant(depensesClassiquesMoisPrec)}€
                     </li>
                     <li className='text-blue-400'>
@@ -599,8 +603,8 @@ export default function Dashboard() {
                   ].sort((a, b) => new Date(a.date) - new Date(b.date));
                   return depenses.length > 0 ? (
                     <div className='mb-2'>
-                      <span className='font-bold text-red-400'>
-                        Dépenses classiques :
+                      <span className='font-bold' style={{ color: "#ef4444" }}>
+                        Dépenses :
                       </span>
                       <ul className='ml-2 list-disc'>
                         {depenses.map((item) => (
@@ -633,8 +637,8 @@ export default function Dashboard() {
                   ].sort((a, b) => new Date(a.date) - new Date(b.date));
                   return revenus.length > 0 ? (
                     <div className='mb-2'>
-                      <span className='font-bold text-green-400'>
-                        Revenus classiques :
+                      <span className='font-bold' style={{ color: "#2ECC71" }}>
+                        Revenus :
                       </span>
                       <ul className='ml-2 list-disc'>
                         {revenus.map((item) => (
@@ -677,7 +681,7 @@ export default function Dashboard() {
                   ].sort((a, b) => a.jourPrelevement - b.jourPrelevement);
                   return recurrents.length > 0 ? (
                     <div className='mb-2'>
-                      <span className='font-bold text-blue-400'>
+                      <span className='font-bold' style={{ color: "#a78bfa" }}>
                         Récurrents à venir :
                       </span>
                       <ul className='ml-2 list-disc'>
@@ -727,7 +731,7 @@ export default function Dashboard() {
                   ].sort((a, b) => a.date - b.date);
                   return echelonnes.length > 0 ? (
                     <div className='mb-2'>
-                      <span className='font-bold text-purple-400'>
+                      <span className='font-bold' style={{ color: "#4ECDC4" }}>
                         Échelonnés à venir :
                       </span>
                       <ul className='ml-2 list-disc'>
