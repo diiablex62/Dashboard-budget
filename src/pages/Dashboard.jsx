@@ -457,7 +457,7 @@ export default function Dashboard() {
                 <div>
                   <div className='mb-2'>
                     <span className='font-semibold'>
-                      Mois Actuel (jusqu'à aujourd'hui) :
+                      Dépenses depuis le 1er du mois :
                     </span>{" "}
                     {formatMontant(
                       depensesClassiquesCourant +
@@ -663,7 +663,7 @@ export default function Dashboard() {
                 <div>
                   <div className='mb-2'>
                     <span className='font-semibold'>
-                      Mois Actuel (jusqu\'à aujourd\'hui) :
+                      Revenus depuis le 1er du mois :
                     </span>{" "}
                     {formatMontant(
                       revenusClassiquesCourant +
@@ -1080,7 +1080,7 @@ export default function Dashboard() {
               <div className='absolute bottom-2 right-2 group'>
                 <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
                 <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-                  <p className='font-semibold mb-0'>Détail du calcul :</p>
+                  <p className='font-semibold mb-0'>Comprendre le calcul : </p> 
                   <ul className='list-disc list-inside space-y-0.5'>
                     <li className='text-green-400'>
                       Total revenus :{" "}
@@ -1109,7 +1109,7 @@ export default function Dashboard() {
                   </ul>
                   <div className='h-1' />
                   <div className='font-semibold mt-1 mb-0'>
-                    Prévisionnel du mois :
+                    Prévisionnel pour la fin du mois :
                   </div>
                   <ul className='list-disc list-inside space-y-0.5'>
                     <li className='text-green-400'>
