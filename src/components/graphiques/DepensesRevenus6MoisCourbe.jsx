@@ -30,21 +30,21 @@ export default function DepensesRevenus6MoisCourbe({ data }) {
           <Legend />
           <Line
             type='monotone'
-            dataKey='depenses'
-            stroke='#EF4444'
-            strokeWidth={2}
-            dot={{ r: 4 }}
-            activeDot={{ r: 6 }}
-            name='Dépenses'
-          />
-          <Line
-            type='monotone'
             dataKey='revenus'
             stroke='#22C55E'
             strokeWidth={2}
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
             name='Revenus'
+          />
+          <Line
+            type='monotone'
+            dataKey='depenses'
+            stroke='#EF4444'
+            strokeWidth={2}
+            dot={{ r: 4 }}
+            activeDot={{ r: 6 }}
+            name='Dépenses'
           />
         </LineChart>
       </ResponsiveContainer>
