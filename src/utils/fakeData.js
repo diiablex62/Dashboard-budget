@@ -78,88 +78,43 @@ export const fakeDepenseRevenu = [
 
 // Données fictives pour les paiements récurrents
 export const fakePaiementsRecurrents = [
-  // Mai 2025
+ 
   {
     id: 1,
-    nom: "Netflix Mai",
+    nom: "Netflix",
     montant: 15.99,
     categorie: "Divertissement",
     jourPrelevement: 1,
     type: "depense",
-    frequence: "mensuel",
-    debut: "2025-05-01",
   },
   {
     id: 2,
-    nom: "Salaire Récurrent Mai",
-    montant: 2500,
-    categorie: "Salaire",
-    jourPrelevement: 1,
-    type: "revenu",
-    frequence: "mensuel",
-    debut: "2025-05-01",
-  },
-  {
-    id: 3,
-    nom: "Spotify Mai Fin",
-    montant: 9.99,
+    nom: "Spotify",
+    montant: 5.99,
     categorie: "Divertissement",
     jourPrelevement: 30,
     type: "depense",
-    frequence: "mensuel",
-    debut: "2025-05-30",
+  },
+
+  {
+    id: 3,
+    nom: "salaire Alex",
+    montant: 1800,
+    categorie: "Salaire",
+    jourPrelevement: 1,
+    type: "revenu",
   },
   {
     id: 4,
-    nom: "Prime Récurrente Mai Fin",
-    montant: 500,
-    categorie: "Travail",
-    jourPrelevement: 30,
-    type: "revenu",
-    frequence: "mensuel",
-    debut: "2025-05-30",
-  },
-  // Juin 2025
-  {
-    id: 5,
-    nom: "Netflix Juin",
-    montant: 15.99,
-    categorie: "Divertissement",
-    jourPrelevement: 1,
-    type: "depense",
-    frequence: "mensuel",
-    debut: "2025-06-01",
-  },
-  {
-    id: 6,
-    nom: "Salaire Récurrent Juin",
-    montant: 2500,
+    nom: "Salaire Audrey",
+    montant: 2200,
     categorie: "Salaire",
-    jourPrelevement: 1,
-    type: "revenu",
-    frequence: "mensuel",
-    debut: "2025-06-01",
-  },
-  {
-    id: 7,
-    nom: "Spotify Juin Fin",
-    montant: 9.99,
-    categorie: "Divertissement",
-    jourPrelevement: 30,
-    type: "depense",
-    frequence: "mensuel",
-    debut: "2025-06-30",
-  },
-  {
-    id: 8,
-    nom: "Prime Récurrente Juin Fin",
-    montant: 500,
-    categorie: "Travail",
     jourPrelevement: 30,
     type: "revenu",
-    frequence: "mensuel",
-    debut: "2025-06-30",
   },
+
+
+
 ];
 
 // Données fictives pour les paiements échelonnés
