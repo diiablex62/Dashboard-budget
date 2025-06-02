@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import {
   AiOutlineHome,
   AiOutlinePieChart,
@@ -20,7 +20,7 @@ import {
   AiOutlineDollarCircle,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
-import { ThemeContext } from "../../context/ThemeContext";
+import { ThemeContext } from "../context/ThemeContext";
 
 // Composant pour l'icône de notification
 const NotificationIcon = React.memo(({ hasUnread }) => (

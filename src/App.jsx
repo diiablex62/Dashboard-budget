@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "./styles/tailwind.css";
-import Sidebar from "./components/navigation/Sidebar";
+import Sidebar from "./pages/Sidebar";
 import SettingsPanel from "./components/ui/SettingsPanel";
 import { AppContext } from "./context/AppContext";
 import AppRoutes from "./routes/Routes";
