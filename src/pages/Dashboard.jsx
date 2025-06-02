@@ -594,7 +594,7 @@ export default function Dashboard() {
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium'>
-              Total dépensé en {monthNames[now.getMonth()]} {now.getFullYear()}
+              Total dépensé actuellement en {monthNames[now.getMonth()]} {now.getFullYear()}
             </span>
             <AiOutlineDollarCircle className='text-red-600 text-xl' />
           </div>
