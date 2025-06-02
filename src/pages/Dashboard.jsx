@@ -9,6 +9,8 @@ import {
   AiOutlineSync,
   AiOutlinePieChart,
 } from "react-icons/ai";
+import { MdCalculate } from "react-icons/md";
+import { BsCalculator } from "react-icons/bs";
 import CATEGORY_PALETTE from "../utils/categoryPalette";
 import * as calculs from "../utils/calcul";
 import { formatMontant } from "../utils/calcul";
@@ -57,6 +59,7 @@ export default function Dashboard() {
   const { getData } = useAuth();
   const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
   const [barChartData, setBarChartData] = useState([]);
+  const [isHoveringCalculator, setIsHoveringCalculator] = useState(false);
 
   // Utiliser getData pour les données
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
@@ -581,37 +584,95 @@ export default function Dashboard() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>
-              Total dépensé actuellement en {monthNames[now.getMonth()]} {now.getFullYear()}
-            </span>
-            <AiOutlineDollarCircle className='text-red-600 text-xl' />
+            <div className='relative flex-1'>
+              {!isHoveringCalculator ? (
+                <span className='text-gray-500 font-medium'>
+                  Total dépensé actuellement en {monthNames[now.getMonth()]}{" "}
+                  {now.getFullYear()}
+                </span>
+              ) : (
+                <span className='text-gray-500 font-medium'>
+                  Total des dépenses prévisionnelles du mois
+                </span>
+              )}
+            </div>
+            <button
+              className='text-gray-400 hover:text-gray-600 cursor-help text-lg'
+              onMouseEnter={() => setIsHoveringCalculator(true)}
+              onMouseLeave={() => setIsHoveringCalculator(false)}>
+              <BsCalculator />
+            </button>
           </div>
-          <div className='text-2xl font-bold dark:text-white'>
-            {formatMontant(totalDepensePrelevee)}€
+          <div className='relative'>
+            {!isHoveringCalculator ? (
+              <div className='text-2xl font-bold dark:text-white'>
+                {formatMontant(totalDepensePrelevee)}€
+              </div>
+            ) : (
+              <div className='text-2xl font-bold text-green-600'>
+                {formatMontant(totalDepense)}€
+              </div>
+            )}
           </div>
           <div
             className={`text-xs font-semibold ${
-              differenceMoisPrecedent < 0
+              !isHoveringCalculator
+                ? differenceMoisPrecedent < 0
+                  ? "text-green-600"
+                  : differenceMoisPrecedent > 0
+                  ? "text-red-600"
+                  : "text-gray-400"
+                : totalDepense - totalDepenseMoisPrecedent < 0
                 ? "text-green-600"
-                : differenceMoisPrecedent > 0
+                : totalDepense - totalDepenseMoisPrecedent > 0
                 ? "text-red-600"
                 : "text-gray-400"
             }`}>
-            {differenceMoisPrecedent < 0
-              ? "↓"
-              : differenceMoisPrecedent > 0
-              ? "↑"
-              : ""}{" "}
-            {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
-              minimumFractionDigits: 2,
-            })}{" "}
-            €{" "}
-            {differenceMoisPrecedent < 0
-              ? "de moins"
-              : differenceMoisPrecedent > 0
-              ? "de plus"
-              : ""}{" "}
-            que le mois dernier
+            {console.log("Valeurs actuelles:", {
+              totalDepense,
+              totalDepenseMoisPrecedent,
+              differenceMoisPrecedent,
+              totalDepensePrelevee,
+            })}
+            {!isHoveringCalculator ? (
+              <>
+                {differenceMoisPrecedent < 0
+                  ? "↓"
+                  : differenceMoisPrecedent > 0
+                  ? "↑"
+                  : ""}{" "}
+                {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                })}{" "}
+                €{" "}
+                {differenceMoisPrecedent < 0
+                  ? "de moins"
+                  : differenceMoisPrecedent > 0
+                  ? "de plus"
+                  : ""}{" "}
+                que le mois dernier
+              </>
+            ) : (
+              <>
+                {totalDepense - totalDepenseMoisPrecedent < 0
+                  ? "↓"
+                  : totalDepense - totalDepenseMoisPrecedent > 0
+                  ? "↑"
+                  : ""}{" "}
+                {Math.abs(
+                  totalDepense - totalDepenseMoisPrecedent
+                ).toLocaleString("fr-FR", {
+                  minimumFractionDigits: 2,
+                })}{" "}
+                €{" "}
+                {totalDepense - totalDepenseMoisPrecedent < 0
+                  ? "de moins"
+                  : totalDepense - totalDepenseMoisPrecedent > 0
+                  ? "de plus"
+                  : ""}{" "}
+                que le mois dernier
+              </>
+            )}
           </div>
           {/* Tooltip des dépenses */}
           <div className='absolute bottom-6 right-6 group'>
