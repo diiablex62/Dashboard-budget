@@ -575,18 +575,6 @@ export default function Dashboard() {
   const differenceEconomiesMoisPrecedent =
     totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
 
-  console.log("--- DEBUG ÉCONOMIES ---");
-  console.log("totalRevenusJusquaAujourdhui", totalRevenusJusquaAujourdhui);
-  console.log("totalDepenseJusquaAujourdhui", totalDepenseJusquaAujourdhui);
-  console.log("totalEconomiesJusquaAujourdhui", totalEconomiesJusquaAujourdhui);
-  console.log("totalRevenusMoisPrecedent", totalRevenusMoisPrecedent);
-  console.log("totalDepenseMoisPrecedent", totalDepenseMoisPrecedent);
-  console.log("totalEconomiesMoisPrecedent", totalEconomiesMoisPrecedent);
-  console.log(
-    "differenceEconomiesMoisPrecedent",
-    differenceEconomiesMoisPrecedent
-  );
-
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
       {/* Cartes du haut */}
