@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -56,6 +56,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { getData } = useAuth();
   const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
+  const [barChartData, setBarChartData] = useState([]);
 
   // Utiliser getData pour les données
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = getData();
@@ -138,11 +139,10 @@ export default function Dashboard() {
     new Date()
   );
 
-  // Préparation des données pour le graphique à barres (6 derniers mois)
-  const barChartData = useMemo(() => {
+  useEffect(() => {
     // 6 derniers mois
     const nowDate = new Date();
-    return Array.from({ length: 6 }, (_, i) => {
+    const data = Array.from({ length: 6 }, (_, i) => {
       // Calculer la date en commençant par le mois le plus ancien
       const d = new Date(nowDate.getFullYear(), nowDate.getMonth() - 5 + i, 1);
       const label = d.toLocaleString("fr-FR", { month: "short" });
@@ -248,6 +248,7 @@ export default function Dashboard() {
         revenus,
       };
     });
+    setBarChartData(data);
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   const totalRecurrents = useMemo(() => {

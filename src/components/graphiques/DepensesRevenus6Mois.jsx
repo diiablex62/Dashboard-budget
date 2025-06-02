@@ -52,9 +52,11 @@ export default function DepensesRevenus6Mois({ data }) {
         <div className='mt-3 flex flex-col items-center text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-black px-4 py-2 rounded-lg shadow border border-gray-200 dark:border-gray-700'>
           <span className='font-medium'>{hoveredData.mois}</span>
           <div className='text-sm font-medium'>
+            <span className='text-red-500'>Dépenses : </span>
             {formatMontant(hoveredData.depenses)}€
           </div>
           <div className='text-sm font-medium'>
+            <span className='text-green-500'>Revenus : </span>
             {formatMontant(hoveredData.revenus)}€
           </div>
         </div>
