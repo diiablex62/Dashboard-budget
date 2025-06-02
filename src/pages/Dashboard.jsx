@@ -773,7 +773,9 @@ export default function Dashboard() {
           <div className='text-2xl font-bold dark:text-white'>
             {formatMontant(totalRecurrents)}€
           </div>
-          <div className='text-xs text-gray-400'>en dépenses ce mois-ci</div>
+          <div className='text-xs text-gray-400'>
+            en dépenses récurentes tous les mois
+          </div>
           <button
             className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/recurrents")}>
@@ -782,15 +784,35 @@ export default function Dashboard() {
         </div>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>
+            <span className='text-gray-500 font-medium flex items-baseline gap-1'>
+              <span className='text-xl font-bold'>{(() => {
+                const now = new Date();
+                return paiementsEchelonnes.reduce((acc, e) => {
+                  const debut = new Date(e.debutDate);
+                  const nbMensualites = parseInt(e.mensualites, 10);
+                  for (let i = 0; i < nbMensualites; i++) {
+                    const dateMensualite = new Date(debut);
+                    dateMensualite.setMonth(debut.getMonth() + i);
+                    if (
+                      dateMensualite.getFullYear() === now.getFullYear() &&
+                      dateMensualite.getMonth() === now.getMonth() &&
+                      e.type === "depense"
+                    ) {
+                      acc++;
+                    }
+                  }
+                  return acc;
+                }, 0);
+              })()}</span>
               Paiements échelonnés
             </span>
             <AiOutlineCreditCard className='text-green-600 text-xl dark:text-white' />
           </div>
-          <div className='text-2xl font-bold dark:text-white'>
-            {formatMontant(totalEchelonnes)}€
+          <div className='flex items-baseline gap-1'>
+            <span className='text-xs text-gray-400 font-normal'>pour</span>
+            <span className='text-2xl font-bold dark:text-white'>{formatMontant(totalEchelonnes)}€</span>
           </div>
-          <div className='text-xs text-gray-400'>en dépenses ce mois-ci</div>
+          <div className='text-xs text-gray-400 font-normal'>ce mois-ci</div>
           <button
             className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/echelonne")}>
@@ -1080,7 +1102,7 @@ export default function Dashboard() {
               <div className='absolute bottom-2 right-2 group'>
                 <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
                 <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-                  <p className='font-semibold mb-0'>Comprendre le calcul : </p> 
+                  <p className='font-semibold mb-0'>Comprendre le calcul : </p>
                   <ul className='list-disc list-inside space-y-0.5'>
                     <li className='text-green-400'>
                       Total revenus :{" "}
