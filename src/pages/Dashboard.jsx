@@ -771,7 +771,7 @@ export default function Dashboard() {
               </span>
               <button
                 onClick={() => setIsBalanceModalOpen(true)}
-                className='flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors dark:bg-blue-500 dark:hover:bg-blue-600'>
+                className='flex items-center gap-2 px-4 py-2 text-sm font-medium bg-black text-white rounded-lg transition-colors dark:bg-blue-500 dark:hover:bg-blue-600'>
                 <AiOutlineSync className='text-lg' />
                 Mettre à jour mon solde actuel
               </button>
