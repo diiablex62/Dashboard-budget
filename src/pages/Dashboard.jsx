@@ -573,7 +573,7 @@ export default function Dashboard() {
   const totalEconomiesMoisPrecedent =
     totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
   const differenceEconomiesMoisPrecedent =
-    totalEconomiesJusquaAujourdhui - totalEconomiesMoisPrecedent;
+    totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
 
   console.log("--- DEBUG ÉCONOMIES ---");
   console.log("totalRevenusJusquaAujourdhui", totalRevenusJusquaAujourdhui);
@@ -996,57 +996,24 @@ export default function Dashboard() {
               <div className='font-semibold mt-1 mb-0'>Mois précédent :</div>
               <ul className='list-disc list-inside space-y-0.5'>
                 <li>
-                  Dépenses :{" "}
-                  {calculs
-                    .calculTotalDepensesMois(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes,
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth() - 1,
-                        1
-                      )
-                    )
-                    .toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
+                  Revenu :{" "}
+                  {totalRevenusMoisPrecedent.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
                   €
                 </li>
                 <li>
-                  Revenu :{" "}
-                  {calculs
-                    .calculRevenusMoisPrecedent(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes
-                    )
-                    .toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
+                  Dépenses :{" "}
+                  {totalDepenseMoisPrecedent.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
                   €
                 </li>
                 <li>
                   Total économies :{" "}
-                  {(
-                    calculs.calculRevenusMoisPrecedent(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes
-                    ) -
-                    calculs.calculTotalDepensesMois(
-                      depenseRevenu,
-                      paiementsRecurrents,
-                      paiementsEchelonnes,
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth() - 1,
-                        1
-                      )
-                    )
-                  ).toLocaleString("fr-FR", {
+                  {totalEconomiesMoisPrecedent.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
