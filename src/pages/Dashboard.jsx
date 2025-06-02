@@ -310,76 +310,65 @@ export default function Dashboard() {
     [now]
   );
 
-  // Dépenses classiques du mois courant
-  const depensesClassiquesMoisCourant = useMemo(() => {
-    return depenseRevenu
-      .filter(
-        (d) =>
-          d.type === "depense" &&
-          new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
-          new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
-          new Date(d.date) <= now
-      )
-      .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-  }, [depenseRevenu, dateMoisCourant, now]);
-
-  // Paiements récurrents (dépense) du mois courant
-  const recurrentsDepenseMoisCourant = useMemo(() => {
-    return paiementsRecurrents
-      .filter(
-        (p) =>
-          p.type === "depense" &&
-          (!p.debut ||
-            new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
-            (new Date(p.debut).getFullYear() ===
-              dateMoisCourant.getFullYear() &&
-              new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
-          (!p.jourPrelevement || p.jourPrelevement <= now.getDate())
-      )
-      .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
-  }, [paiementsRecurrents, dateMoisCourant, now]);
-
-  // Paiements échelonnés (dépense) du mois courant
-  const echelonnesDepenseMoisCourant = useMemo(() => {
-    return paiementsEchelonnes
-      .filter((e) => {
-        if (e.type !== "depense") return false;
-        const debut = new Date(e.debutDate);
-        const fin = new Date(e.debutDate);
-        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-        const afterStart =
-          dateMoisCourant.getFullYear() > debut.getFullYear() ||
-          (dateMoisCourant.getFullYear() === debut.getFullYear() &&
-            dateMoisCourant.getMonth() >= debut.getMonth());
-        const beforeEnd =
-          dateMoisCourant.getFullYear() < fin.getFullYear() ||
-          (dateMoisCourant.getFullYear() === fin.getFullYear() &&
-            dateMoisCourant.getMonth() <= fin.getMonth());
-        const jourPrelevement = debut.getDate();
-        return afterStart && beforeEnd && jourPrelevement <= now.getDate();
-      })
-      .reduce(
-        (acc, e) =>
-          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-        0
-      );
-  }, [paiementsEchelonnes, dateMoisCourant, now]);
+  // --- Détail des sous-totaux pour le mois courant ---
+  const depensesClassiquesCourant = depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
+        new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
+        new Date(d.date) <= now
+    )
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+  const recurrentsDepenseCourant = paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "depense" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
+          (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
+            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
+        (!p.jourPrelevement || p.jourPrelevement <= now.getDate())
+    )
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+  const echelonnesDepenseCourant = paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "depense") return false;
+      const debut = new Date(e.debutDate);
+      const fin = new Date(e.debutDate);
+      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+      const afterStart =
+        dateMoisCourant.getFullYear() > debut.getFullYear() ||
+        (dateMoisCourant.getFullYear() === debut.getFullYear() &&
+          dateMoisCourant.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        dateMoisCourant.getFullYear() < fin.getFullYear() ||
+        (dateMoisCourant.getFullYear() === fin.getFullYear() &&
+          dateMoisCourant.getMonth() <= fin.getMonth());
+      const jourPrelevement = debut.getDate();
+      return afterStart && beforeEnd && jourPrelevement <= now.getDate();
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
 
   // Différence dépenses mois précédent (alignée avec le détail du tooltip)
   const differenceMoisPrecedent = useMemo(() => {
     const totalCourant =
-      depensesClassiquesMoisCourant +
-      recurrentsDepenseMoisCourant +
-      echelonnesDepenseMoisCourant;
+      depensesClassiquesCourant +
+      recurrentsDepenseCourant +
+      echelonnesDepenseCourant;
     const totalPrec =
       depensesClassiquesMoisPrec +
       recurrentsDepenseMoisPrec +
       echelonnesDepenseMoisPrec;
     return totalCourant - totalPrec;
   }, [
-    depensesClassiquesMoisCourant,
-    recurrentsDepenseMoisCourant,
-    echelonnesDepenseMoisCourant,
+    depensesClassiquesCourant,
+    recurrentsDepenseCourant,
+    echelonnesDepenseCourant,
     depensesClassiquesMoisPrec,
     recurrentsDepenseMoisPrec,
     echelonnesDepenseMoisPrec,
@@ -441,9 +430,62 @@ export default function Dashboard() {
 
   // Calcul du total dépensé ce mois-ci jusqu'à aujourd'hui (identique au détail)
   const totalDepensePrelevee =
-    depensesClassiquesMoisCourant +
-    recurrentsDepenseMoisCourant +
-    echelonnesDepenseMoisCourant;
+    depensesClassiquesCourant +
+    recurrentsDepenseCourant +
+    echelonnesDepenseCourant;
+
+  // --- Totaux revenus jusqu'à aujourd'hui (identiques à la carte 1, ultra-précis) ---
+  const totalRevenusClassiquesJusquaAujourdhui = depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "revenu" &&
+        new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
+        new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
+        new Date(d.date) <= now
+    )
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+  const totalRecurrentsRevenusJusquaAujourdhui = paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "revenu" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
+          (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
+            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
+        p.jourPrelevement &&
+        p.jourPrelevement <= now.getDate()
+    )
+    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+  const totalEchelonnesRevenusJusquaAujourdhui = paiementsEchelonnes
+    .filter((e) => e.type === "revenu")
+    .flatMap((e) => {
+      const debut = new Date(e.debutDate);
+      const mensualites = parseInt(e.mensualites, 10);
+      return Array.from({ length: mensualites }, (_, i) => {
+        const datePrelevement = new Date(debut);
+        datePrelevement.setMonth(debut.getMonth() + i);
+        if (
+          datePrelevement.getFullYear() === dateMoisCourant.getFullYear() &&
+          datePrelevement.getMonth() === dateMoisCourant.getMonth() &&
+          datePrelevement.getDate() <= now.getDate()
+        ) {
+          return Math.abs(parseFloat(e.montant)) / mensualites;
+        }
+        return 0;
+      });
+    })
+    .reduce((acc, val) => acc + val, 0);
+  const totalRevenusJusquaAujourdhui =
+    totalRevenusClassiquesJusquaAujourdhui +
+    totalRecurrentsRevenusJusquaAujourdhui +
+    totalEchelonnesRevenusJusquaAujourdhui;
+
+  const totalDepenseJusquaAujourdhui =
+    depensesClassiquesCourant +
+    recurrentsDepenseCourant +
+    echelonnesDepenseCourant;
+  const totalEconomiesJusquaAujourdhui =
+    totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui;
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
@@ -475,9 +517,9 @@ export default function Dashboard() {
                   <div className='mb-2'>
                     <span className='font-semibold'>Mois Actuel :</span>{" "}
                     {formatMontant(
-                      depensesClassiquesMoisCourant +
-                        recurrentsDepenseMoisCourant +
-                        echelonnesDepenseMoisCourant
+                      depensesClassiquesCourant +
+                        recurrentsDepenseCourant +
+                        echelonnesDepenseCourant
                     )}
                     €
                   </div>
@@ -486,15 +528,15 @@ export default function Dashboard() {
                       <span className='font-bold' style={{ color: "#ef4444" }}>
                         Dépenses :
                       </span>{" "}
-                      {formatMontant(depensesClassiquesMoisCourant)}€
+                      {formatMontant(depensesClassiquesCourant)}€
                     </li>
                     <li className='text-blue-400'>
                       Paiements récurrents :{" "}
-                      {formatMontant(recurrentsDepenseMoisCourant)}€
+                      {formatMontant(recurrentsDepenseCourant)}€
                     </li>
                     <li className='text-purple-400'>
                       Paiements échelonnés :{" "}
-                      {formatMontant(echelonnesDepenseMoisCourant)}€
+                      {formatMontant(echelonnesDepenseCourant)}€
                     </li>
                   </ul>
                   <div className='mb-2'>
@@ -785,7 +827,7 @@ export default function Dashboard() {
               <ul className='list-disc list-inside space-y-0.5'>
                 <li>
                   Total revenus :{" "}
-                  {totalRevenus.toLocaleString("fr-FR", {
+                  {totalRevenusJusquaAujourdhui.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
@@ -793,7 +835,7 @@ export default function Dashboard() {
                 </li>
                 <li>
                   Total dépenses :{" "}
-                  {totalDepense.toLocaleString("fr-FR", {
+                  {totalDepenseJusquaAujourdhui.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
@@ -801,7 +843,7 @@ export default function Dashboard() {
                 </li>
                 <li>
                   Total économies :{" "}
-                  {totalEconomies.toLocaleString("fr-FR", {
+                  {totalEconomiesJusquaAujourdhui.toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}{" "}
