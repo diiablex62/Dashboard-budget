@@ -324,5 +324,48 @@ export default function DepensesRevenus() {
     }
   };
 
+  // Ajouter la gestion des fonctions manquantes
+  const handleAddDepense = async (depenseData) => {
+    try {
+      const currentDate = new Date().toISOString().split('T')[0];
+      await addDoc(collection(db, "depense"), {
+        ...depenseData,
+        date: depenseData.date || currentDate,
+        createdAt: serverTimestamp(),
+      });
+      // Recharger les données
+      const fetchData = async () => {
+        const depenseSnap = await getDocs(
+          query(collection(db, "depense"), orderBy("date", "desc"))
+        );
+        setDepenses(depenseSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      };
+      fetchData();
+    } catch (err) {
+      console.error("Erreur ajout dépense:", err);
+    }
+  };
+
+  const handleAddRevenu = async (revenuData) => {
+    try {
+      const currentDate = new Date().toISOString().split('T')[0];
+      await addDoc(collection(db, "revenu"), {
+        ...revenuData,
+        date: revenuData.date || currentDate,
+        createdAt: serverTimestamp(),
+      });
+      // Recharger les données
+      const fetchData = async () => {
+        const revenuSnap = await getDocs(
+          query(collection(db, "revenu"), orderBy("date", "desc"))
+        );
+        setRevenus(revenuSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      };
+      fetchData();
+    } catch (err) {
+      console.error("Erreur ajout revenu:", err);
+    }
+  };
+
   return renderContent();
 }

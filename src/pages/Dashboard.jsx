@@ -487,6 +487,106 @@ export default function Dashboard() {
   const totalEconomiesJusquaAujourdhui =
     totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui;
 
+  // --- Totaux du mois précédent (mois complet) ---
+  const totalRevenusMoisPrecedent =
+    depenseRevenu
+      .filter(
+        (d) =>
+          d.type === "revenu" &&
+          new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
+          new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
+      )
+      .reduce((acc, d) => acc + parseFloat(d.montant), 0) +
+    paiementsRecurrents
+      .filter(
+        (p) =>
+          p.type === "revenu" &&
+          (!p.debut ||
+            new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
+            (new Date(p.debut).getFullYear() ===
+              dateMoisPrecedent.getFullYear() &&
+              new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
+      )
+      .reduce((acc, p) => acc + parseFloat(p.montant), 0) +
+    paiementsEchelonnes
+      .filter((e) => {
+        if (e.type !== "revenu") return false;
+        const debut = new Date(e.debutDate);
+        const fin = new Date(e.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+        const afterStart =
+          dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
+          (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
+            dateMoisPrecedent.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
+          (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
+            dateMoisPrecedent.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      })
+      .reduce(
+        (acc, e) =>
+          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+        0
+      );
+  const totalDepenseMoisPrecedent =
+    depenseRevenu
+      .filter(
+        (d) =>
+          d.type === "depense" &&
+          new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
+          new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
+      )
+      .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0) +
+    paiementsRecurrents
+      .filter(
+        (p) =>
+          p.type === "depense" &&
+          (!p.debut ||
+            new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
+            (new Date(p.debut).getFullYear() ===
+              dateMoisPrecedent.getFullYear() &&
+              new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
+      )
+      .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0) +
+    paiementsEchelonnes
+      .filter((e) => {
+        if (e.type !== "depense") return false;
+        const debut = new Date(e.debutDate);
+        const fin = new Date(e.debutDate);
+        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+        const afterStart =
+          dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
+          (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
+            dateMoisPrecedent.getMonth() >= debut.getMonth());
+        const beforeEnd =
+          dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
+          (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
+            dateMoisPrecedent.getMonth() <= fin.getMonth());
+        return afterStart && beforeEnd;
+      })
+      .reduce(
+        (acc, e) =>
+          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+        0
+      );
+  const totalEconomiesMoisPrecedent =
+    totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
+  const differenceEconomiesMoisPrecedent =
+    totalEconomiesJusquaAujourdhui - totalEconomiesMoisPrecedent;
+
+  console.log("--- DEBUG ÉCONOMIES ---");
+  console.log("totalRevenusJusquaAujourdhui", totalRevenusJusquaAujourdhui);
+  console.log("totalDepenseJusquaAujourdhui", totalDepenseJusquaAujourdhui);
+  console.log("totalEconomiesJusquaAujourdhui", totalEconomiesJusquaAujourdhui);
+  console.log("totalRevenusMoisPrecedent", totalRevenusMoisPrecedent);
+  console.log("totalDepenseMoisPrecedent", totalDepenseMoisPrecedent);
+  console.log("totalEconomiesMoisPrecedent", totalEconomiesMoisPrecedent);
+  console.log(
+    "differenceEconomiesMoisPrecedent",
+    differenceEconomiesMoisPrecedent
+  );
+
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
       {/* Cartes du haut */}
@@ -501,12 +601,29 @@ export default function Dashboard() {
           <div className='text-2xl font-bold dark:text-white'>
             {formatMontant(totalDepensePrelevee)}€
           </div>
-          <div className='text-xs text-gray-400'>
-            {differenceMoisPrecedent < 0 ? "-" : "+"}{" "}
+          <div
+            className={`text-xs font-semibold ${
+              differenceMoisPrecedent < 0
+                ? "text-green-600"
+                : differenceMoisPrecedent > 0
+                ? "text-red-600"
+                : "text-gray-400"
+            }`}>
+            {differenceMoisPrecedent < 0
+              ? "↓"
+              : differenceMoisPrecedent > 0
+              ? "↑"
+              : ""}{" "}
             {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
               minimumFractionDigits: 2,
             })}{" "}
-            € par rapport au mois dernier
+            €{" "}
+            {differenceMoisPrecedent < 0
+              ? "de moins"
+              : differenceMoisPrecedent > 0
+              ? "de plus"
+              : ""}{" "}
+            que le mois dernier
           </div>
           {/* Tooltip des dépenses */}
           <div className='absolute bottom-6 right-6 group'>
@@ -803,13 +920,38 @@ export default function Dashboard() {
                 <AiOutlineRise className='text-blue-600 text-xl' />
               </div>
               <div className='text-2xl font-bold dark:text-white mt-3'>
-                {formatMontant(totalEconomies)}€
+                {formatMontant(totalEconomiesJusquaAujourdhui)}€
+              </div>
+              <div
+                className={`text-xs font-semibold ${
+                  differenceEconomiesMoisPrecedent < 0
+                    ? "text-red-600"
+                    : differenceEconomiesMoisPrecedent > 0
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}>
+                {differenceEconomiesMoisPrecedent < 0
+                  ? "↓"
+                  : differenceEconomiesMoisPrecedent > 0
+                  ? "↑"
+                  : ""}{" "}
+                {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2 }
+                )}{" "}
+                €{" "}
+                {differenceEconomiesMoisPrecedent < 0
+                  ? "de moins"
+                  : differenceEconomiesMoisPrecedent > 0
+                  ? "de plus"
+                  : ""}{" "}
+                que le mois dernier
               </div>
             </div>
             <div className='w-1/2 flex flex-col items-start'>
               <span className='text-sm text-gray-500 font-medium mb-3'>
-                Vous n'avez pas {totalEconomies.toFixed(2)}€ sur votre
-                compte&nbsp;?
+                Vous n'avez pas {totalEconomiesJusquaAujourdhui.toFixed(2)}€ sur
+                votre compte&nbsp;?
               </span>
               <button
                 onClick={() => setIsBalanceModalOpen(true)}
@@ -1018,7 +1160,7 @@ export default function Dashboard() {
       <SynchroUpdateModal
         isOpen={isBalanceModalOpen}
         onClose={() => setIsBalanceModalOpen(false)}
-        currentCalculatedBalance={totalEconomies}
+        currentCalculatedBalance={totalEconomiesJusquaAujourdhui}
       />
     </div>
   );

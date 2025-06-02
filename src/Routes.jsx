@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom"; // MANQUE Navigate
 import IfUserConnected from "./components/auth/IfUserConnected";
 import Auth from "./pages/Auth";
 import Profil from "./pages/Profil";
