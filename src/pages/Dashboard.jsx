@@ -62,6 +62,8 @@ export default function Dashboard() {
   const [isHoveringCalculator, setIsHoveringCalculator] = useState(false);
   const [isHoveringCalculatorRevenus, setIsHoveringCalculatorRevenus] =
     useState(false);
+  const [isHoveringCalculatorEconomies, setIsHoveringCalculatorEconomies] =
+    useState(false);
 
   // Utiliser getData pour les données
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
@@ -1306,42 +1308,192 @@ export default function Dashboard() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
           <div className='flex'>
+            {/* Partie gauche : calculatrice, titre, montant, différence, tooltip */}
             <div className='w-1/2'>
-              <div className='flex items-center gap-2'>
-                <span className='text-gray-500 font-medium'>
-                  Économies actuelles
-                </span>
-                <AiOutlineRise className='text-blue-600 text-xl' />
+              <div className='flex items-center justify-between'>
+                <div className='relative flex-1'>
+                  {!isHoveringCalculatorEconomies ? (
+                    <span className='text-gray-500 font-medium'>
+                      Économies actuelles
+                    </span>
+                  ) : (
+                    <span className='text-gray-500 font-medium'>
+                      Économies prévisionnelles du mois
+                    </span>
+                  )}
+                </div>
+                <button
+                  className='text-gray-400 hover:text-gray-600 cursor-help text-lg'
+                  onMouseEnter={() => setIsHoveringCalculatorEconomies(true)}
+                  onMouseLeave={() => setIsHoveringCalculatorEconomies(false)}>
+                  <BsCalculator />
+                </button>
               </div>
-              <div className='text-2xl font-bold dark:text-white mt-3'>
-                {formatMontant(totalEconomiesJusquaAujourdhui)}€
+              <div className='relative'>
+                {!isHoveringCalculatorEconomies ? (
+                  <div className='text-2xl font-bold dark:text-white'>
+                    {formatMontant(totalEconomiesJusquaAujourdhui)}€
+                  </div>
+                ) : (
+                  <div className='text-2xl font-bold text-green-600'>
+                    {formatMontant(totalEconomies)}€
+                  </div>
+                )}
               </div>
               <div
                 className={`text-xs font-semibold ${
-                  differenceEconomiesMoisPrecedent < 0
+                  !isHoveringCalculatorEconomies
+                    ? differenceEconomiesMoisPrecedent < 0
+                      ? "text-red-600"
+                      : differenceEconomiesMoisPrecedent > 0
+                      ? "text-green-600"
+                      : "text-gray-400"
+                    : totalEconomies - totalEconomiesMoisPrecedent < 0
                     ? "text-red-600"
-                    : differenceEconomiesMoisPrecedent > 0
+                    : totalEconomies - totalEconomiesMoisPrecedent > 0
                     ? "text-green-600"
                     : "text-gray-400"
                 }`}>
-                {differenceEconomiesMoisPrecedent < 0
-                  ? "↓"
-                  : differenceEconomiesMoisPrecedent > 0
-                  ? "↑"
-                  : ""}{" "}
-                {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2 }
-                )}{" "}
-                €{" "}
-                {differenceEconomiesMoisPrecedent < 0
-                  ? "de moins"
-                  : differenceEconomiesMoisPrecedent > 0
-                  ? "de plus"
-                  : ""}{" "}
-                que le mois dernier
+                {!isHoveringCalculatorEconomies ? (
+                  <>
+                    {differenceEconomiesMoisPrecedent < 0
+                      ? "↓"
+                      : differenceEconomiesMoisPrecedent > 0
+                      ? "↑"
+                      : ""}{" "}
+                    {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
+                      "fr-FR",
+                      { minimumFractionDigits: 2 }
+                    )}{" "}
+                    €{" "}
+                    {differenceEconomiesMoisPrecedent < 0
+                      ? "de moins"
+                      : differenceEconomiesMoisPrecedent > 0
+                      ? "de plus"
+                      : ""}{" "}
+                    que le mois dernier
+                  </>
+                ) : (
+                  <>
+                    {totalEconomies - totalEconomiesMoisPrecedent < 0
+                      ? "↓"
+                      : totalEconomies - totalEconomiesMoisPrecedent > 0
+                      ? "↑"
+                      : ""}{" "}
+                    {Math.abs(
+                      totalEconomies - totalEconomiesMoisPrecedent
+                    ).toLocaleString("fr-FR", {
+                      minimumFractionDigits: 2,
+                    })}{" "}
+                    €{" "}
+                    {totalEconomies - totalEconomiesMoisPrecedent < 0
+                      ? "de moins"
+                      : totalEconomies - totalEconomiesMoisPrecedent > 0
+                      ? "de plus"
+                      : ""}{" "}
+                    que le mois dernier
+                  </>
+                )}
+              </div>
+              {/* Tooltip économies */}
+              <div className='absolute bottom-2 right-2 group'>
+                <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
+                <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+                  <p className='font-semibold mb-0'>Détail du calcul :</p>
+                  <ul className='list-disc list-inside space-y-0.5'>
+                    <li className='text-green-400'>
+                      Total revenus :{" "}
+                      {totalRevenusJusquaAujourdhui.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                    <li className='text-red-400'>
+                      Total dépenses :{" "}
+                      {totalDepenseJusquaAujourdhui.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                    <li className='text-white'>
+                      Total économies :{" "}
+                      {totalEconomiesJusquaAujourdhui.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                  </ul>
+                  <div className='h-1' />
+                  <div className='font-semibold mt-1 mb-0'>
+                    Prévisionnel du mois :
+                  </div>
+                  <ul className='list-disc list-inside space-y-0.5'>
+                    <li className='text-green-400'>
+                      Total revenus :{" "}
+                      {totalRevenus.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                    <li className='text-red-400'>
+                      Total dépenses :{" "}
+                      {totalDepense.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                    <li className='text-white'>
+                      Total économies :{" "}
+                      {totalEconomies.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                  </ul>
+                  <div className='h-1' />
+                  <div className='font-semibold mt-1 mb-0'>
+                    Mois précédent :
+                  </div>
+                  <ul className='list-disc list-inside space-y-0.5'>
+                    <li className='text-green-400'>
+                      Revenu :{" "}
+                      {totalRevenusMoisPrecedent.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                    <li className='text-red-400'>
+                      Dépenses :{" "}
+                      {totalDepenseMoisPrecedent.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                    <li className='text-white'>
+                      Total économies :{" "}
+                      {totalEconomiesMoisPrecedent.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      €
+                    </li>
+                  </ul>
+                  <div className='mt-1 text-[10px] text-gray-300'>
+                    Les économies sont calculées en soustrayant le total des
+                    dépenses du total des revenus.
+                  </div>
+                </div>
               </div>
             </div>
+            {/* Partie droite : bouton synchronisation */}
             <div className='w-1/2 flex flex-col items-start'>
               <span className='text-sm text-gray-500 font-medium mb-3'>
                 Vous n'avez pas {totalEconomiesJusquaAujourdhui.toFixed(2)}€ sur
@@ -1353,71 +1505,6 @@ export default function Dashboard() {
                 <AiOutlineSync className='text-lg' />
                 Mettre à jour mon solde actuel
               </button>
-            </div>
-          </div>
-          {/* Tooltip des économies */}
-          <div className='absolute bottom-2 right-2 group'>
-            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-            <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-              <p className='font-semibold mb-0'>Détail du calcul :</p>
-              <ul className='list-disc list-inside space-y-0.5'>
-                <li className='text-green-400'>
-                  Total revenus :{" "}
-                  {totalRevenusJusquaAujourdhui.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-                <li className='text-red-400'>
-                  Total dépenses :{" "}
-                  {totalDepenseJusquaAujourdhui.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-                <li className='text-white'>
-                  Total économies :{" "}
-                  {totalEconomiesJusquaAujourdhui.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-              </ul>
-              <div className='h-1' />
-              <div className='font-semibold mt-1 mb-0'>Mois précédent :</div>
-              <ul className='list-disc list-inside space-y-0.5'>
-                <li className='text-green-400'>
-                  Revenu :{" "}
-                  {totalRevenusMoisPrecedent.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-                <li className='text-red-400'>
-                  Dépenses :{" "}
-                  {totalDepenseMoisPrecedent.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-                <li className='text-white'>
-                  Total économies :{" "}
-                  {totalEconomiesMoisPrecedent.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{" "}
-                  €
-                </li>
-              </ul>
-              <div className='mt-1 text-[10px] text-gray-300'>
-                Les économies sont calculées en soustrayant le total des
-                dépenses du total des revenus.
-              </div>
             </div>
           </div>
         </div>
