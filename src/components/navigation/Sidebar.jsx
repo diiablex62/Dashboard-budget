@@ -260,14 +260,24 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           ) : (
             <div className='p-4 border-t border-gray-200 dark:border-gray-800'>
               <button
-                className='w-full bg-[var(--primary-color)] text-white py-3 rounded-lg hover:bg-[var(--primary-hover-color)] transition duration-300 cursor-pointer flex items-center justify-center'
-                onClick={() => navigate("/auth")}>
-                <AiOutlineLogin className='mr-2 text-xl' />
-                <span>Se connecter / S'inscrire</span>
+                onClick={() => navigate("/auth")}
+                className={`flex bg-black text-white items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group hover:bg-gray-800 ${
+                  isCollapsed ? "justify-center px-4" : "justify-start px-4"
+                }`}>
+                <AiOutlineLogin
+                  className={`text-2xl ${isCollapsed ? "animate-pulse" : ""}`}
+                />
+                {!isCollapsed && (
+                  <span className='whitespace-nowrap'>
+                    Se connecter / S'inscrire
+                  </span>
+                )}
               </button>
-              <p className='text-xs text-center text-gray-500 mt-2'>
-                Connexion simplifiée par email, Google ou GitHub
-              </p>
+              {!isCollapsed && (
+                <p className='text-xs text-center text-gray-500 mt-2'>
+                  Connexion simplifiée par email, Google ou GitHub
+                </p>
+              )}
             </div>
           )}
         </div>
