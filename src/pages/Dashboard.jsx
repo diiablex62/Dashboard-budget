@@ -12,8 +12,31 @@ import {
 import { MdCalculate } from "react-icons/md";
 import { BsCalculator } from "react-icons/bs";
 import CATEGORY_PALETTE from "../utils/categoryPalette";
-import * as calculs from "../utils/calcul";
-import { formatMontant } from "../utils/calcul";
+import {
+  calculTotalDepensesMois,
+  totalRevenusGlobalMois,
+  calculEconomies,
+  calculDepensesParCategorie,
+  calculBarChartData,
+  calculTotalRecurrentsMois,
+  calculTotalEchelonnesMois,
+  calculDepensesClassiquesJusquaAujourdhui,
+  calculDepensesRecurrentesJusquaAujourdhui,
+  calculDepensesEchelonneesJusquaAujourdhui,
+  calculRevenusClassiquesJusquaAujourdhui,
+  calculRevenusRecurrentsJusquaAujourdhui,
+  calculRevenusEchelonnesJusquaAujourdhui,
+  calculTotalRevenusJusquaAujourdhui,
+  calculTotalDepensesJusquaAujourdhui,
+  calculEconomiesJusquaAujourdhui,
+  calculDepensesClassiquesMoisPrecedent,
+  calculDepensesRecurrentesMoisPrecedent,
+  calculDepensesEchelonneesMoisPrecedent,
+  calculRevenusClassiquesMoisPrecedent,
+  calculRevenusRecurrentsMoisPrecedent,
+  calculRevenusEchelonnesMoisPrecedent,
+  formatMontant,
+} from "../utils/calcul";
 import DepensesRevenus6MoisCourbe from "../components/graphiques/DepensesRevenus6MoisCourbe";
 import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
 import { useAuth } from "../context/AuthContext";
@@ -105,261 +128,147 @@ export default function Dashboard() {
   // Calcul du total des paiements échelonnés (dépenses) du mois
   const now = new Date();
   const totalEchelonnes = useMemo(() => {
-    return paiementsEchelonnes
-      .filter((paiement) => {
-        const debut = new Date(paiement.debutDate);
-        const fin = new Date(paiement.debutDate);
-        fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
-        const afterStart =
-          now.getFullYear() > debut.getFullYear() ||
-          (now.getFullYear() === debut.getFullYear() &&
-            now.getMonth() >= debut.getMonth());
-        const beforeEnd =
-          now.getFullYear() < fin.getFullYear() ||
-          (now.getFullYear() === fin.getFullYear() &&
-            now.getMonth() <= fin.getMonth());
-        return afterStart && beforeEnd;
-      })
-      .reduce((acc, paiement) => {
-        return (
-          acc + parseFloat(paiement.montant) / parseInt(paiement.mensualites)
-        );
-      }, 0);
+    return calculTotalEchelonnesMois(paiementsEchelonnes, now);
   }, [paiementsEchelonnes]);
 
   // Calcul des économies (revenus - tout ce qui sort)
-  const totalRevenus = calculs.totalRevenusGlobalMois(
+  const totalRevenus = totalRevenusGlobalMois(
     depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes
   );
-  const totalDepense = calculs.calculTotalDepensesMois(
+  const totalDepense = calculTotalDepensesMois(
     depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes
   );
-  const totalEconomies = calculs.calculEconomies(totalRevenus, totalDepense);
+  const totalEconomies = calculEconomies(totalRevenus, totalDepense);
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
-  const depensesParCategorie = calculs.calculDepensesParCategorie(
+  const depensesParCategorie = calculDepensesParCategorie(
     depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes,
     CATEGORY_PALETTE,
-    new Date()
+    now
   );
 
   useEffect(() => {
-    // 6 derniers mois
-    const nowDate = new Date();
-    const data = Array.from({ length: 6 }, (_, i) => {
-      // Calculer la date en commençant par le mois le plus ancien
-      const d = new Date(nowDate.getFullYear(), nowDate.getMonth() - 5 + i, 1);
-      const label = d.toLocaleString("fr-FR", { month: "short" });
-      const year = d.getFullYear();
-      const month = d.getMonth();
-
-      // Dépenses classiques
-      const depensesClassiques = depenseRevenu
-        .filter(
-          (item) =>
-            item.type === "depense" &&
-            new Date(item.date).getFullYear() === year &&
-            new Date(item.date).getMonth() === month
-        )
-        .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0);
-
-      // Paiements récurrents (dépense)
-      const recurrentsDepense = paiementsRecurrents
-        .filter(
-          (p) =>
-            p.type === "depense" &&
-            (!p.debut ||
-              new Date(p.debut).getFullYear() < year ||
-              (new Date(p.debut).getFullYear() === year &&
-                new Date(p.debut).getMonth() <= month))
-        )
-        .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
-
-      // Paiements échelonnés (dépense)
-      const echelonnesDepense = paiementsEchelonnes
-        .filter((e) => {
-          if (e.type !== "depense") return false;
-          const debut = new Date(e.debutDate);
-          const fin = new Date(e.debutDate);
-          fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-          const afterStart =
-            year > debut.getFullYear() ||
-            (year === debut.getFullYear() && month >= debut.getMonth());
-          const beforeEnd =
-            year < fin.getFullYear() ||
-            (year === fin.getFullYear() && month <= fin.getMonth());
-          return afterStart && beforeEnd;
-        })
-        .reduce(
-          (acc, e) =>
-            acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-          0
-        );
-
-      // Total dépenses
-      const depenses =
-        depensesClassiques + recurrentsDepense + echelonnesDepense;
-
-      // Revenus classiques
-      const revenusClassiques = depenseRevenu
-        .filter(
-          (item) =>
-            item.type === "revenu" &&
-            new Date(item.date).getFullYear() === year &&
-            new Date(item.date).getMonth() === month
-        )
-        .reduce((acc, item) => acc + parseFloat(item.montant), 0);
-
-      // Paiements récurrents (revenu)
-      const recurrentsRevenu = paiementsRecurrents
-        .filter(
-          (p) =>
-            p.type === "revenu" &&
-            (!p.debut ||
-              new Date(p.debut).getFullYear() < year ||
-              (new Date(p.debut).getFullYear() === year &&
-                new Date(p.debut).getMonth() <= month))
-        )
-        .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-
-      // Paiements échelonnés (revenu)
-      const echelonnesRevenu = paiementsEchelonnes
-        .filter((e) => {
-          if (e.type !== "revenu") return false;
-          const debut = new Date(e.debutDate);
-          const fin = new Date(e.debutDate);
-          fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-          const afterStart =
-            year > debut.getFullYear() ||
-            (year === debut.getFullYear() && month >= debut.getMonth());
-          const beforeEnd =
-            year < fin.getFullYear() ||
-            (year === fin.getFullYear() && month <= fin.getMonth());
-          return afterStart && beforeEnd;
-        })
-        .reduce(
-          (acc, e) =>
-            acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-          0
-        );
-
-      // Total revenus
-      const revenus = revenusClassiques + recurrentsRevenu + echelonnesRevenu;
-
-      return {
-        mois: label.charAt(0).toUpperCase() + label.slice(1),
-        depenses,
-        revenus,
-      };
-    });
+    const data = calculBarChartData(
+      depenseRevenu,
+      paiementsRecurrents,
+      paiementsEchelonnes
+    );
     setBarChartData(data);
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   const totalRecurrents = useMemo(() => {
-    const recurrents = calculs.calculTotalRecurrentsMois(paiementsRecurrents);
-    const echelonnes = calculs.calculTotalEchelonnesMois(paiementsEchelonnes);
-    return recurrents + echelonnes;
-  }, [paiementsRecurrents, paiementsEchelonnes]);
+    return calculTotalRecurrentsMois(paiementsRecurrents, now);
+  }, [paiementsRecurrents]);
 
   // --- Calculs pour le mois précédent ---
   const dateMoisPrecedent = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  // Détail des sous-totaux pour le mois précédent
-  const depensesClassiquesMoisPrec = depenseRevenu
-    .filter(
-      (d) =>
-        d.type === "depense" &&
-        new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
-        new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
-    )
-    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-  const recurrentsDepenseMoisPrec = paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "depense" &&
-        (!p.debut ||
-          new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
-          (new Date(p.debut).getFullYear() ===
-            dateMoisPrecedent.getFullYear() &&
-            new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
-    )
-    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
-  const echelonnesDepenseMoisPrec = paiementsEchelonnes
-    .filter((e) => {
-      if (e.type !== "depense") return false;
-      const debut = new Date(e.debutDate);
-      const fin = new Date(e.debutDate);
-      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-      const afterStart =
-        dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
-        (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
-          dateMoisPrecedent.getMonth() >= debut.getMonth());
-      const beforeEnd =
-        dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
-        (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
-          dateMoisPrecedent.getMonth() <= fin.getMonth());
-      return afterStart && beforeEnd;
-    })
-    .reduce(
-      (acc, e) =>
-        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-      0
-    );
-
-  // --- Calculs pour le mois courant (pour la différence) ---
-  const dateMoisCourant = useMemo(
-    () => new Date(now.getFullYear(), now.getMonth(), 1),
-    [now]
-  );
 
   // --- Détail des sous-totaux pour le mois courant ---
-  const depensesClassiquesCourant = depenseRevenu
-    .filter(
-      (d) =>
-        d.type === "depense" &&
-        new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
-        new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
-        new Date(d.date) <= now
-    )
-    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-  const recurrentsDepenseCourant = paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "depense" &&
-        (!p.debut ||
-          new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
-          (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
-            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
-        (!p.jourPrelevement || p.jourPrelevement <= now.getDate())
-    )
-    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
-  const echelonnesDepenseCourant = paiementsEchelonnes
-    .filter((e) => {
-      if (e.type !== "depense") return false;
-      const debut = new Date(e.debutDate);
-      const fin = new Date(e.debutDate);
-      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-      const afterStart =
-        dateMoisCourant.getFullYear() > debut.getFullYear() ||
-        (dateMoisCourant.getFullYear() === debut.getFullYear() &&
-          dateMoisCourant.getMonth() >= debut.getMonth());
-      const beforeEnd =
-        dateMoisCourant.getFullYear() < fin.getFullYear() ||
-        (dateMoisCourant.getFullYear() === fin.getFullYear() &&
-          dateMoisCourant.getMonth() <= fin.getMonth());
-      const jourPrelevement = debut.getDate();
-      return afterStart && beforeEnd && jourPrelevement <= now.getDate();
-    })
-    .reduce(
-      (acc, e) =>
-        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-      0
-    );
+  const depensesClassiquesCourant = calculDepensesClassiquesJusquaAujourdhui(
+    depenseRevenu,
+    now
+  );
+  const recurrentsDepenseCourant = calculDepensesRecurrentesJusquaAujourdhui(
+    paiementsRecurrents,
+    now
+  );
+  const echelonnesDepenseCourant = calculDepensesEchelonneesJusquaAujourdhui(
+    paiementsEchelonnes,
+    now
+  );
+
+  // --- Détail des sous-totaux pour le mois précédent ---
+  const depensesClassiquesMoisPrec = calculDepensesClassiquesMoisPrecedent(
+    depenseRevenu,
+    dateMoisPrecedent
+  );
+  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesMoisPrecedent(
+    paiementsRecurrents,
+    dateMoisPrecedent
+  );
+  const echelonnesDepenseMoisPrec = calculDepensesEchelonneesMoisPrecedent(
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+
+  // --- Détail des revenus pour le mois précédent ---
+  const revenusClassiquesMoisPrec = calculRevenusClassiquesMoisPrecedent(
+    depenseRevenu,
+    dateMoisPrecedent
+  );
+  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsMoisPrecedent(
+    paiementsRecurrents,
+    dateMoisPrecedent
+  );
+  const echelonnesRevenuMoisPrec = calculRevenusEchelonnesMoisPrecedent(
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+
+  // --- Totaux revenus jusqu'à aujourd'hui ---
+  const totalRevenusJusquaAujourdhui = calculTotalRevenusJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    now
+  );
+
+  const totalDepenseJusquaAujourdhui = calculTotalDepensesJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    now
+  );
+
+  const totalEconomiesJusquaAujourdhui = calculEconomiesJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    now
+  );
+
+  // --- Totaux du mois précédent (mois complet) ---
+  const totalRevenusMoisPrecedent = totalRevenusGlobalMois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+
+  const totalDepenseMoisPrecedent = calculTotalDepensesMois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+
+  const totalEconomiesMoisPrecedent = calculEconomies(
+    totalRevenusMoisPrecedent,
+    totalDepenseMoisPrecedent
+  );
+
+  const differenceEconomiesMoisPrecedent =
+    totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
+
+  // --- Déclarations pour la carte revenus (tooltip) ---
+  const revenusClassiquesCourant = calculRevenusClassiquesJusquaAujourdhui(
+    depenseRevenu,
+    now
+  );
+  const recurrentsRevenuCourant = calculRevenusRecurrentsJusquaAujourdhui(
+    paiementsRecurrents,
+    now
+  );
+  const echelonnesRevenuCourant = calculRevenusEchelonnesJusquaAujourdhui(
+    paiementsEchelonnes,
+    now
+  );
 
   // Différence dépenses mois précédent (alignée avec le détail du tooltip)
   const differenceMoisPrecedent = useMemo(() => {
@@ -386,16 +295,11 @@ export default function Dashboard() {
 
   // Dépenses et revenus récurrents/échelonnés à venir (déclaration unique)
   const depensesRecEchAVenir =
-    calculs.calculTotalRecurrentsMois(paiementsRecurrents, today, false) +
-    calculs.calculTotalEchelonnesMois(paiementsEchelonnes, today, false, true);
+    calculTotalRecurrentsMois(paiementsRecurrents, today, false) +
+    calculTotalEchelonnesMois(paiementsEchelonnes, today, false, true);
   const revenusRecEchAVenir =
-    calculs.calculTotalRecurrentsMois(
-      paiementsRecurrents,
-      today,
-      false,
-      "revenu"
-    ) +
-    calculs.calculTotalEchelonnesMois(
+    calculTotalRecurrentsMois(paiementsRecurrents, today, false, "revenu") +
+    calculTotalEchelonnesMois(
       paiementsEchelonnes,
       today,
       false,
@@ -441,235 +345,12 @@ export default function Dashboard() {
     recurrentsDepenseCourant +
     echelonnesDepenseCourant;
 
-  // --- Totaux revenus jusqu'à aujourd'hui (identiques à la carte 1, ultra-précis) ---
-  const totalRevenusClassiquesJusquaAujourdhui = depenseRevenu
-    .filter(
-      (d) =>
-        d.type === "revenu" &&
-        new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
-        new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
-        new Date(d.date) <= now
-    )
-    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
-  const totalRecurrentsRevenusJusquaAujourdhui = paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "revenu" &&
-        (!p.debut ||
-          new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
-          (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
-            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth()))
-    )
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-  const totalEchelonnesRevenusJusquaAujourdhui = paiementsEchelonnes
-    .filter((e) => e.type === "revenu")
-    .flatMap((e) => {
-      const debut = new Date(e.debutDate);
-      const mensualites = parseInt(e.mensualites, 10);
-      return Array.from({ length: mensualites }, (_, i) => {
-        const datePrelevement = new Date(debut);
-        datePrelevement.setMonth(debut.getMonth() + i);
-        if (
-          datePrelevement.getFullYear() === dateMoisCourant.getFullYear() &&
-          datePrelevement.getMonth() === dateMoisCourant.getMonth() &&
-          datePrelevement.getDate() <= now.getDate()
-        ) {
-          return Math.abs(parseFloat(e.montant)) / mensualites;
-        }
-        return 0;
-      });
-    })
-    .reduce((acc, val) => acc + val, 0);
-  const totalRevenusJusquaAujourdhui =
-    totalRevenusClassiquesJusquaAujourdhui +
-    totalRecurrentsRevenusJusquaAujourdhui +
-    totalEchelonnesRevenusJusquaAujourdhui;
-
-  const totalDepenseJusquaAujourdhui =
-    depensesClassiquesCourant +
-    recurrentsDepenseCourant +
-    echelonnesDepenseCourant;
-  const totalEconomiesJusquaAujourdhui =
-    totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui;
-
-  // --- Totaux du mois précédent (mois complet) ---
-  const totalRevenusMoisPrecedent =
-    depenseRevenu
-      .filter(
-        (d) =>
-          d.type === "revenu" &&
-          new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
-          new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
-      )
-      .reduce((acc, d) => acc + parseFloat(d.montant), 0) +
-    paiementsRecurrents
-      .filter(
-        (p) =>
-          p.type === "revenu" &&
-          (!p.debut ||
-            new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
-            (new Date(p.debut).getFullYear() ===
-              dateMoisPrecedent.getFullYear() &&
-              new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
-      )
-      .reduce((acc, p) => acc + parseFloat(p.montant), 0) +
-    paiementsEchelonnes
-      .filter((e) => {
-        if (e.type !== "revenu") return false;
-        const debut = new Date(e.debutDate);
-        const fin = new Date(e.debutDate);
-        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-        const afterStart =
-          dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
-          (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
-            dateMoisPrecedent.getMonth() >= debut.getMonth());
-        const beforeEnd =
-          dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
-          (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
-            dateMoisPrecedent.getMonth() <= fin.getMonth());
-        return afterStart && beforeEnd;
-      })
-      .reduce(
-        (acc, e) =>
-          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-        0
-      );
-  const totalDepenseMoisPrecedent =
-    depenseRevenu
-      .filter(
-        (d) =>
-          d.type === "depense" &&
-          new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
-          new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
-      )
-      .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0) +
-    paiementsRecurrents
-      .filter(
-        (p) =>
-          p.type === "depense" &&
-          (!p.debut ||
-            new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
-            (new Date(p.debut).getFullYear() ===
-              dateMoisPrecedent.getFullYear() &&
-              new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
-      )
-      .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0) +
-    paiementsEchelonnes
-      .filter((e) => {
-        if (e.type !== "depense") return false;
-        const debut = new Date(e.debutDate);
-        const fin = new Date(e.debutDate);
-        fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-        const afterStart =
-          dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
-          (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
-            dateMoisPrecedent.getMonth() >= debut.getMonth());
-        const beforeEnd =
-          dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
-          (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
-            dateMoisPrecedent.getMonth() <= fin.getMonth());
-        return afterStart && beforeEnd;
-      })
-      .reduce(
-        (acc, e) =>
-          acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-        0
-      );
-  const totalEconomiesMoisPrecedent =
-    totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
-  const differenceEconomiesMoisPrecedent =
-    totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
-
   // Différence revenus mois précédent (alignée avec le détail du tooltip)
   const differenceRevenusMoisPrecedent = useMemo(() => {
     const totalCourant = totalRevenusJusquaAujourdhui;
     const totalPrec = totalRevenusMoisPrecedent;
     return totalCourant - totalPrec;
   }, [totalRevenusJusquaAujourdhui, totalRevenusMoisPrecedent]);
-
-  // --- Déclarations pour la carte revenus (tooltip) ---
-  const revenusClassiquesCourant = depenseRevenu
-    .filter(
-      (d) =>
-        d.type === "revenu" &&
-        new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
-        new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
-        new Date(d.date) <= now
-    )
-    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
-  const recurrentsRevenuCourant = paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "revenu" &&
-        (!p.debut ||
-          new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
-          (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
-            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
-        (!p.jourPrelevement || p.jourPrelevement <= now.getDate())
-    )
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-  const echelonnesRevenuCourant = paiementsEchelonnes
-    .filter((e) => {
-      if (e.type !== "revenu") return false;
-      const debut = new Date(e.debutDate);
-      const fin = new Date(debut);
-      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-      const afterStart =
-        dateMoisCourant.getFullYear() > debut.getFullYear() ||
-        (dateMoisCourant.getFullYear() === debut.getFullYear() &&
-          dateMoisCourant.getMonth() >= debut.getMonth());
-      const beforeEnd =
-        dateMoisCourant.getFullYear() < fin.getFullYear() ||
-        (dateMoisCourant.getFullYear() === fin.getFullYear() &&
-          dateMoisCourant.getMonth() <= fin.getMonth());
-      const jourPrelevement = debut.getDate();
-      return afterStart && beforeEnd && jourPrelevement <= now.getDate();
-    })
-    .reduce(
-      (acc, e) =>
-        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-      0
-    );
-  const revenusClassiquesMoisPrec = depenseRevenu
-    .filter(
-      (d) =>
-        d.type === "revenu" &&
-        new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
-        new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
-    )
-    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
-  const recurrentsRevenuMoisPrec = paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "revenu" &&
-        (!p.debut ||
-          new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
-          (new Date(p.debut).getFullYear() ===
-            dateMoisPrecedent.getFullYear() &&
-            new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
-    )
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-  const echelonnesRevenuMoisPrec = paiementsEchelonnes
-    .filter((e) => {
-      if (e.type !== "revenu") return false;
-      const debut = new Date(e.debutDate);
-      const fin = new Date(debut);
-      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
-      const afterStart =
-        dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
-        (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
-          dateMoisPrecedent.getMonth() >= debut.getMonth());
-      const beforeEnd =
-        dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
-        (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
-          dateMoisPrecedent.getMonth() <= fin.getMonth());
-      return afterStart && beforeEnd;
-    })
-    .reduce(
-      (acc, e) =>
-        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
-      0
-    );
 
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>

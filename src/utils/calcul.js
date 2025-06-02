@@ -466,3 +466,311 @@ export const formatMontant = (montant) => {
     maximumFractionDigits: 2,
   });
 };
+
+// =====================
+// CALCULS DÉTAILLÉS POUR LE DASHBOARD
+// =====================
+
+// Calcul des dépenses classiques jusqu'à aujourd'hui
+export function calculDepensesClassiquesJusquaAujourdhui(
+  depenseRevenu,
+  date = new Date()
+) {
+  return depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date).getFullYear() === date.getFullYear() &&
+        new Date(d.date).getMonth() === date.getMonth() &&
+        new Date(d.date) <= date
+    )
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+}
+
+// Calcul des dépenses récurrentes jusqu'à aujourd'hui
+export function calculDepensesRecurrentesJusquaAujourdhui(
+  paiementsRecurrents,
+  date = new Date()
+) {
+  return paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "depense" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < date.getFullYear() ||
+          (new Date(p.debut).getFullYear() === date.getFullYear() &&
+            new Date(p.debut).getMonth() <= date.getMonth())) &&
+        (!p.jourPrelevement || p.jourPrelevement <= date.getDate())
+    )
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+}
+
+// Calcul des dépenses échelonnées jusqu'à aujourd'hui
+export function calculDepensesEchelonneesJusquaAujourdhui(
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  return paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "depense") return false;
+      const debut = new Date(e.debutDate);
+      const fin = new Date(e.debutDate);
+      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+      const afterStart =
+        date.getFullYear() > debut.getFullYear() ||
+        (date.getFullYear() === debut.getFullYear() &&
+          date.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        date.getFullYear() < fin.getFullYear() ||
+        (date.getFullYear() === fin.getFullYear() &&
+          date.getMonth() <= fin.getMonth());
+      const jourPrelevement = debut.getDate();
+      return afterStart && beforeEnd && jourPrelevement <= date.getDate();
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
+}
+
+// Calcul des revenus classiques jusqu'à aujourd'hui
+export function calculRevenusClassiquesJusquaAujourdhui(
+  depenseRevenu,
+  date = new Date()
+) {
+  return depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "revenu" &&
+        new Date(d.date).getFullYear() === date.getFullYear() &&
+        new Date(d.date).getMonth() === date.getMonth() &&
+        new Date(d.date) <= date
+    )
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+}
+
+// Calcul des revenus récurrents jusqu'à aujourd'hui
+export function calculRevenusRecurrentsJusquaAujourdhui(
+  paiementsRecurrents,
+  date = new Date()
+) {
+  return paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "revenu" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < date.getFullYear() ||
+          (new Date(p.debut).getFullYear() === date.getFullYear() &&
+            new Date(p.debut).getMonth() <= date.getMonth()))
+    )
+    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+}
+
+// Calcul des revenus échelonnés jusqu'à aujourd'hui
+export function calculRevenusEchelonnesJusquaAujourdhui(
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  return paiementsEchelonnes
+    .filter((e) => e.type === "revenu")
+    .flatMap((e) => {
+      const debut = new Date(e.debutDate);
+      const mensualites = parseInt(e.mensualites, 10);
+      return Array.from({ length: mensualites }, (_, i) => {
+        const datePrelevement = new Date(debut);
+        datePrelevement.setMonth(debut.getMonth() + i);
+        if (
+          datePrelevement.getFullYear() === date.getFullYear() &&
+          datePrelevement.getMonth() === date.getMonth() &&
+          datePrelevement.getDate() <= date.getDate()
+        ) {
+          return Math.abs(parseFloat(e.montant)) / mensualites;
+        }
+        return 0;
+      });
+    })
+    .reduce((acc, val) => acc + val, 0);
+}
+
+// Calcul du total des revenus jusqu'à aujourd'hui
+export function calculTotalRevenusJusquaAujourdhui(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  const revenusClassiques = calculRevenusClassiquesJusquaAujourdhui(
+    depenseRevenu,
+    date
+  );
+  const revenusRecurrents = calculRevenusRecurrentsJusquaAujourdhui(
+    paiementsRecurrents,
+    date
+  );
+  const revenusEchelonnes = calculRevenusEchelonnesJusquaAujourdhui(
+    paiementsEchelonnes,
+    date
+  );
+  return revenusClassiques + revenusRecurrents + revenusEchelonnes;
+}
+
+// Calcul du total des dépenses jusqu'à aujourd'hui
+export function calculTotalDepensesJusquaAujourdhui(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  const depensesClassiques = calculDepensesClassiquesJusquaAujourdhui(
+    depenseRevenu,
+    date
+  );
+  const depensesRecurrentes = calculDepensesRecurrentesJusquaAujourdhui(
+    paiementsRecurrents,
+    date
+  );
+  const depensesEchelonnees = calculDepensesEchelonneesJusquaAujourdhui(
+    paiementsEchelonnes,
+    date
+  );
+  return depensesClassiques + depensesRecurrentes + depensesEchelonnees;
+}
+
+// Calcul des économies jusqu'à aujourd'hui
+export function calculEconomiesJusquaAujourdhui(
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  const totalRevenus = calculTotalRevenusJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    date
+  );
+  const totalDepenses = calculTotalDepensesJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    date
+  );
+  return totalRevenus - totalDepenses;
+}
+
+export const calculDepensesClassiquesMoisPrecedent = (
+  depenseRevenu,
+  dateMoisPrecedent
+) => {
+  return depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
+        new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
+    )
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+};
+
+export const calculDepensesRecurrentesMoisPrecedent = (
+  paiementsRecurrents,
+  dateMoisPrecedent
+) => {
+  return paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "depense" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
+          (new Date(p.debut).getFullYear() ===
+            dateMoisPrecedent.getFullYear() &&
+            new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
+    )
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+};
+
+export const calculDepensesEchelonneesMoisPrecedent = (
+  paiementsEchelonnes,
+  dateMoisPrecedent
+) => {
+  return paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "depense") return false;
+      const debut = new Date(e.debutDate);
+      const fin = new Date(e.debutDate);
+      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+      const afterStart =
+        dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
+        (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
+          dateMoisPrecedent.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
+        (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
+          dateMoisPrecedent.getMonth() <= fin.getMonth());
+      return afterStart && beforeEnd;
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
+};
+
+export const calculRevenusClassiquesMoisPrecedent = (
+  depenseRevenu,
+  dateMoisPrecedent
+) => {
+  return depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "revenu" &&
+        new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
+        new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
+    )
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+};
+
+export const calculRevenusRecurrentsMoisPrecedent = (
+  paiementsRecurrents,
+  dateMoisPrecedent
+) => {
+  return paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "revenu" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
+          (new Date(p.debut).getFullYear() ===
+            dateMoisPrecedent.getFullYear() &&
+            new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
+    )
+    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+};
+
+export const calculRevenusEchelonnesMoisPrecedent = (
+  paiementsEchelonnes,
+  dateMoisPrecedent
+) => {
+  return paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "revenu") return false;
+      const debut = new Date(e.debutDate);
+      const fin = new Date(e.debutDate);
+      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+      const afterStart =
+        dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
+        (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
+          dateMoisPrecedent.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
+        (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
+          dateMoisPrecedent.getMonth() <= fin.getMonth());
+      return afterStart && beforeEnd;
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
+};
