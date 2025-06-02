@@ -12,7 +12,7 @@ import {
 import CATEGORY_PALETTE from "../utils/categoryPalette";
 import * as calculs from "../utils/calcul";
 import { formatMontant } from "../utils/calcul";
-import DepensesRevenus6Mois from "../components/graphiques/DepensesRevenus6Mois";
+import DepensesRevenus6MoisCourbe from "../components/graphiques/DepensesRevenus6MoisCourbe";
 import DepensesParCategorieChart from "../components/graphiques/DepensesParCategorieChart";
 import { useAuth } from "../context/AuthContext";
 import SynchroUpdateModal from "../components/ui/SynchroUpdateModal";
@@ -903,7 +903,7 @@ export default function Dashboard() {
             Dépenses et revenus des 6 derniers mois
           </h2>
           <div className='h-[300px]'>
-            <DepensesRevenus6Mois data={barChartData} />
+            <DepensesRevenus6MoisCourbe data={barChartData} />
           </div>
         </div>
       </div>
