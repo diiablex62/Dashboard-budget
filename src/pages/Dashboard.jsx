@@ -60,6 +60,8 @@ export default function Dashboard() {
   const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
   const [barChartData, setBarChartData] = useState([]);
   const [isHoveringCalculator, setIsHoveringCalculator] = useState(false);
+  const [isHoveringCalculatorRevenus, setIsHoveringCalculatorRevenus] =
+    useState(false);
 
   // Utiliser getData pour les données
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
@@ -454,9 +456,7 @@ export default function Dashboard() {
         (!p.debut ||
           new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
           (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
-            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
-        p.jourPrelevement &&
-        p.jourPrelevement <= now.getDate()
+            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth()))
     )
     .reduce((acc, p) => acc + parseFloat(p.montant), 0);
   const totalEchelonnesRevenusJusquaAujourdhui = paiementsEchelonnes
@@ -578,10 +578,102 @@ export default function Dashboard() {
   const differenceEconomiesMoisPrecedent =
     totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
 
+  // Différence revenus mois précédent (alignée avec le détail du tooltip)
+  const differenceRevenusMoisPrecedent = useMemo(() => {
+    const totalCourant = totalRevenusJusquaAujourdhui;
+    const totalPrec = totalRevenusMoisPrecedent;
+    return totalCourant - totalPrec;
+  }, [totalRevenusJusquaAujourdhui, totalRevenusMoisPrecedent]);
+
+  // --- Déclarations pour la carte revenus (tooltip) ---
+  const revenusClassiquesCourant = depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "revenu" &&
+        new Date(d.date).getFullYear() === dateMoisCourant.getFullYear() &&
+        new Date(d.date).getMonth() === dateMoisCourant.getMonth() &&
+        new Date(d.date) <= now
+    )
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+  const recurrentsRevenuCourant = paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "revenu" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < dateMoisCourant.getFullYear() ||
+          (new Date(p.debut).getFullYear() === dateMoisCourant.getFullYear() &&
+            new Date(p.debut).getMonth() <= dateMoisCourant.getMonth())) &&
+        (!p.jourPrelevement || p.jourPrelevement <= now.getDate())
+    )
+    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+  const echelonnesRevenuCourant = paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "revenu") return false;
+      const debut = new Date(e.debutDate);
+      const fin = new Date(debut);
+      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+      const afterStart =
+        dateMoisCourant.getFullYear() > debut.getFullYear() ||
+        (dateMoisCourant.getFullYear() === debut.getFullYear() &&
+          dateMoisCourant.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        dateMoisCourant.getFullYear() < fin.getFullYear() ||
+        (dateMoisCourant.getFullYear() === fin.getFullYear() &&
+          dateMoisCourant.getMonth() <= fin.getMonth());
+      const jourPrelevement = debut.getDate();
+      return afterStart && beforeEnd && jourPrelevement <= now.getDate();
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
+  const revenusClassiquesMoisPrec = depenseRevenu
+    .filter(
+      (d) =>
+        d.type === "revenu" &&
+        new Date(d.date).getFullYear() === dateMoisPrecedent.getFullYear() &&
+        new Date(d.date).getMonth() === dateMoisPrecedent.getMonth()
+    )
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+  const recurrentsRevenuMoisPrec = paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "revenu" &&
+        (!p.debut ||
+          new Date(p.debut).getFullYear() < dateMoisPrecedent.getFullYear() ||
+          (new Date(p.debut).getFullYear() ===
+            dateMoisPrecedent.getFullYear() &&
+            new Date(p.debut).getMonth() <= dateMoisPrecedent.getMonth()))
+    )
+    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+  const echelonnesRevenuMoisPrec = paiementsEchelonnes
+    .filter((e) => {
+      if (e.type !== "revenu") return false;
+      const debut = new Date(e.debutDate);
+      const fin = new Date(debut);
+      fin.setMonth(fin.getMonth() + parseInt(e.mensualites) - 1);
+      const afterStart =
+        dateMoisPrecedent.getFullYear() > debut.getFullYear() ||
+        (dateMoisPrecedent.getFullYear() === debut.getFullYear() &&
+          dateMoisPrecedent.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        dateMoisPrecedent.getFullYear() < fin.getFullYear() ||
+        (dateMoisPrecedent.getFullYear() === fin.getFullYear() &&
+          dateMoisPrecedent.getMonth() <= fin.getMonth());
+      return afterStart && beforeEnd;
+    })
+    .reduce(
+      (acc, e) =>
+        acc + Math.abs(parseFloat(e.montant)) / parseInt(e.mensualites),
+      0
+    );
+
   return (
     <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
+        {/* Carte Dépenses */}
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <div className='relative flex-1'>
@@ -677,7 +769,7 @@ export default function Dashboard() {
           {/* Tooltip des dépenses */}
           <div className='absolute bottom-6 right-6 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
-            <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+            <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
               <div className='whitespace-pre-line'>
                 <div>
                   <div className='mb-2'>
@@ -787,6 +879,200 @@ export default function Dashboard() {
                     <li className='text-purple-400'>
                       Paiements échelonnés (dépense) :{" "}
                       {formatMontant(echelonnesDepenseMoisPrec)}€
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Carte Revenus */}
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+          <div className='flex items-center justify-between'>
+            <div className='relative flex-1'>
+              {!isHoveringCalculatorRevenus ? (
+                <span className='text-gray-500 font-medium'>
+                  Total revenus actuellement en {monthNames[now.getMonth()]}{" "}
+                  {now.getFullYear()}
+                </span>
+              ) : (
+                <span className='text-gray-500 font-medium'>
+                  Total des revenus prévisionnels du mois
+                </span>
+              )}
+            </div>
+            <button
+              className='text-gray-400 hover:text-gray-600 cursor-help text-lg'
+              onMouseEnter={() => setIsHoveringCalculatorRevenus(true)}
+              onMouseLeave={() => setIsHoveringCalculatorRevenus(false)}>
+              <BsCalculator />
+            </button>
+          </div>
+          <div className='relative'>
+            {!isHoveringCalculatorRevenus ? (
+              <div className='text-2xl font-bold dark:text-white'>
+                {formatMontant(totalRevenusJusquaAujourdhui)}€
+              </div>
+            ) : (
+              <div className='text-2xl font-bold text-green-600'>
+                {formatMontant(totalRevenus)}€
+              </div>
+            )}
+          </div>
+          <div
+            className={`text-xs font-semibold ${
+              !isHoveringCalculatorRevenus
+                ? differenceRevenusMoisPrecedent < 0
+                  ? "text-red-600"
+                  : differenceRevenusMoisPrecedent > 0
+                  ? "text-green-600"
+                  : "text-gray-400"
+                : totalRevenus - totalRevenusMoisPrecedent < 0
+                ? "text-red-600"
+                : totalRevenus - totalRevenusMoisPrecedent > 0
+                ? "text-green-600"
+                : "text-gray-400"
+            }`}>
+            {!isHoveringCalculatorRevenus ? (
+              <>
+                {differenceRevenusMoisPrecedent < 0
+                  ? "↓"
+                  : differenceRevenusMoisPrecedent > 0
+                  ? "↑"
+                  : ""}{" "}
+                {Math.abs(differenceRevenusMoisPrecedent).toLocaleString(
+                  "fr-FR",
+                  { minimumFractionDigits: 2 }
+                )}{" "}
+                €{" "}
+                {differenceRevenusMoisPrecedent < 0
+                  ? "de moins"
+                  : differenceRevenusMoisPrecedent > 0
+                  ? "de plus"
+                  : ""}{" "}
+                que le mois dernier
+              </>
+            ) : (
+              <>
+                {totalRevenus - totalRevenusMoisPrecedent < 0
+                  ? "↓"
+                  : totalRevenus - totalRevenusMoisPrecedent > 0
+                  ? "↑"
+                  : ""}{" "}
+                {Math.abs(
+                  totalRevenus - totalRevenusMoisPrecedent
+                ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
+                €{" "}
+                {totalRevenus - totalRevenusMoisPrecedent < 0
+                  ? "de moins"
+                  : totalRevenus - totalRevenusMoisPrecedent > 0
+                  ? "de plus"
+                  : ""}{" "}
+                que le mois dernier
+              </>
+            )}
+          </div>
+          {/* Tooltip des revenus */}
+          <div className='absolute bottom-6 right-6 group'>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+            <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+              <div className='whitespace-pre-line'>
+                <div>
+                  <div className='mb-2'>
+                    <span className='font-semibold'>
+                      Mois Actuel (jusqu\'à aujourd\'hui) :
+                    </span>{" "}
+                    {formatMontant(
+                      revenusClassiquesCourant +
+                        recurrentsRevenuCourant +
+                        echelonnesRevenuCourant
+                    )}
+                    €
+                  </div>
+                  <ul className='mb-2'>
+                    <li className='text-green-400'>
+                      <span className='font-bold'>Revenus :</span>{" "}
+                      {formatMontant(revenusClassiquesCourant)}€
+                    </li>
+                    <li className='text-blue-400'>
+                      Paiements récurrents :{" "}
+                      {formatMontant(recurrentsRevenuCourant)}€
+                    </li>
+                    <li className='text-purple-400'>
+                      Paiements échelonnés :{" "}
+                      {formatMontant(echelonnesRevenuCourant)}€
+                    </li>
+                  </ul>
+                  <div className='mb-2 mt-4'>
+                    <span className='font-semibold'>
+                      Mois Actuel (total prévisionnel) :
+                    </span>{" "}
+                    {formatMontant(totalRevenus)}€
+                  </div>
+                  <ul className='mb-2'>
+                    <li className='text-green-400'>
+                      <span className='font-bold'>Revenus :</span>{" "}
+                      {formatMontant(
+                        depenseRevenu
+                          .filter(
+                            (d) =>
+                              d.type === "revenu" &&
+                              isCurrentMonth(new Date(d.date))
+                          )
+                          .reduce((acc, d) => acc + parseFloat(d.montant), 0)
+                      )}
+                      €
+                    </li>
+                    <li className='text-blue-400'>
+                      Paiements récurrents :{" "}
+                      {formatMontant(
+                        paiementsRecurrents
+                          .filter(
+                            (p) =>
+                              p.type === "revenu" &&
+                              (!p.debut || new Date(p.debut) <= new Date())
+                          )
+                          .reduce((acc, p) => acc + parseFloat(p.montant), 0)
+                      )}
+                      €
+                    </li>
+                    <li className='text-purple-400'>
+                      Paiements échelonnés :{" "}
+                      {formatMontant(
+                        paiementsEchelonnes
+                          .filter((e) => e.type === "revenu")
+                          .reduce(
+                            (acc, e) =>
+                              acc +
+                              Math.abs(parseFloat(e.montant)) /
+                                parseInt(e.mensualites),
+                            0
+                          )
+                      )}
+                      €
+                    </li>
+                  </ul>
+                  <div className='mb-2'>
+                    <span className='font-semibold'>Mois précédent :</span>{" "}
+                    {formatMontant(
+                      revenusClassiquesMoisPrec +
+                        recurrentsRevenuMoisPrec +
+                        echelonnesRevenuMoisPrec
+                    )}
+                    €
+                  </div>
+                  <ul>
+                    <li className='text-green-400'>
+                      <span className='font-bold'>Revenus :</span>{" "}
+                      {formatMontant(revenusClassiquesMoisPrec)}€
+                    </li>
+                    <li className='text-blue-400'>
+                      Paiements récurrents :{" "}
+                      {formatMontant(recurrentsRevenuMoisPrec)}€
+                    </li>
+                    <li className='text-purple-400'>
+                      Paiements échelonnés :{" "}
+                      {formatMontant(echelonnesRevenuMoisPrec)}€
                     </li>
                   </ul>
                 </div>
