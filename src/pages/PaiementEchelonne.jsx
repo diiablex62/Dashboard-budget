@@ -17,7 +17,7 @@ import CardDesign from "../components/ui/CardDesign";
 import { ModalEchelonne } from "../components/ui/Modal";
 import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
-import { formatMontant } from "../utils/calcul";
+import { formatMontant, calculTotalEchelonnesMois } from "../utils/calcul";
 
 export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -70,28 +70,8 @@ export const PaiementEchelonne = () => {
   }, []);
 
   const totalDepenses = useMemo(() => {
-    return paiementsEchelonnes
-      .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
-      .filter((paiement) => {
-        const debut = new Date(paiement.debutDate);
-        const fin = new Date(paiement.debutDate);
-        fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
-        const afterStart =
-          selectedDate.getFullYear() > debut.getFullYear() ||
-          (selectedDate.getFullYear() === debut.getFullYear() &&
-            selectedDate.getMonth() >= debut.getMonth());
-        const beforeEnd =
-          selectedDate.getFullYear() < fin.getFullYear() ||
-          (selectedDate.getFullYear() === fin.getFullYear() &&
-            selectedDate.getMonth() <= fin.getMonth());
-        return afterStart && beforeEnd;
-      })
-      .reduce((acc, paiement) => {
-        return (
-          acc + parseFloat(paiement.montant) / parseInt(paiement.mensualites)
-        );
-      }, 0);
-  }, [paiementsEchelonnes, selectedDate, isRevenus]);
+    return calculTotalEchelonnesMois();
+  }, []);
 
   const paiementsActifsCount = useMemo(() => {
     return paiementsEchelonnes

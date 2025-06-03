@@ -35,6 +35,7 @@ import {
   calculRevenusClassiquesMoisPrecedent,
   calculRevenusRecurrentsMoisPrecedent,
   calculRevenusEchelonnesMoisPrecedent,
+  calculTotalRevenusRecurrentsMois,
   formatMontant,
 } from "../utils/calcul";
 import DepensesRevenus6MoisCourbe from "../components/graphiques/DepensesRevenus6MoisCourbe";
@@ -128,147 +129,58 @@ export default function Dashboard() {
   // Calcul du total des paiements échelonnés (dépenses) du mois
   const now = new Date();
   const totalEchelonnes = useMemo(() => {
-    return calculTotalEchelonnesMois(paiementsEchelonnes, now);
-  }, [paiementsEchelonnes]);
+    return calculTotalEchelonnesMois();
+  }, []);
 
   // Calcul des économies (revenus - tout ce qui sort)
-  const totalRevenus = totalRevenusGlobalMois(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes
-  );
-  const totalDepense = calculTotalDepensesMois(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes
-  );
-  const totalEconomies = calculEconomies(totalRevenus, totalDepense);
+  const totalRevenus = totalRevenusGlobalMois();
+  const totalDepense = calculTotalDepensesMois();
+  const totalEconomies = calculEconomies();
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
-  const depensesParCategorie = calculDepensesParCategorie(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    CATEGORY_PALETTE,
-    now
-  );
+  const depensesParCategorie = calculDepensesParCategorie();
 
   useEffect(() => {
-    const data = calculBarChartData(
-      depenseRevenu,
-      paiementsRecurrents,
-      paiementsEchelonnes
-    );
+    const data = calculBarChartData();
     setBarChartData(data);
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   const totalRecurrents = useMemo(() => {
-    return calculTotalRecurrentsMois(paiementsRecurrents, now);
+    return calculTotalRecurrentsMois();
   }, [paiementsRecurrents]);
 
-  // --- Calculs pour le mois précédent ---
-  const dateMoisPrecedent = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
   // --- Détail des sous-totaux pour le mois courant ---
-  const depensesClassiquesCourant = calculDepensesClassiquesJusquaAujourdhui(
-    depenseRevenu,
-    now
-  );
-  const recurrentsDepenseCourant = calculDepensesRecurrentesJusquaAujourdhui(
-    paiementsRecurrents,
-    now
-  );
-  const echelonnesDepenseCourant = calculDepensesEchelonneesJusquaAujourdhui(
-    paiementsEchelonnes,
-    now
-  );
+  const depensesClassiquesCourant = calculDepensesClassiquesJusquaAujourdhui();
+  const recurrentsDepenseCourant = calculDepensesRecurrentesJusquaAujourdhui();
+  const echelonnesDepenseCourant = calculDepensesEchelonneesJusquaAujourdhui();
 
   // --- Détail des sous-totaux pour le mois précédent ---
-  const depensesClassiquesMoisPrec = calculDepensesClassiquesMoisPrecedent(
-    depenseRevenu,
-    dateMoisPrecedent
-  );
-  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesMoisPrecedent(
-    paiementsRecurrents,
-    dateMoisPrecedent
-  );
-  const echelonnesDepenseMoisPrec = calculDepensesEchelonneesMoisPrecedent(
-    paiementsEchelonnes,
-    dateMoisPrecedent
-  );
+  const depensesClassiquesMoisPrec = calculDepensesClassiquesMoisPrecedent();
+  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesMoisPrecedent();
+  const echelonnesDepenseMoisPrec = calculDepensesEchelonneesMoisPrecedent();
 
   // --- Détail des revenus pour le mois précédent ---
-  const revenusClassiquesMoisPrec = calculRevenusClassiquesMoisPrecedent(
-    depenseRevenu,
-    dateMoisPrecedent
-  );
-  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsMoisPrecedent(
-    paiementsRecurrents,
-    dateMoisPrecedent
-  );
-  const echelonnesRevenuMoisPrec = calculRevenusEchelonnesMoisPrecedent(
-    paiementsEchelonnes,
-    dateMoisPrecedent
-  );
+  const revenusClassiquesMoisPrec = calculRevenusClassiquesMoisPrecedent();
+  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsMoisPrecedent();
+  const echelonnesRevenuMoisPrec = calculRevenusEchelonnesMoisPrecedent();
 
   // --- Totaux revenus jusqu'à aujourd'hui ---
-  const totalRevenusJusquaAujourdhui = calculTotalRevenusJusquaAujourdhui(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    now
-  );
-
-  const totalDepenseJusquaAujourdhui = calculTotalDepensesJusquaAujourdhui(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    now
-  );
-
-  const totalEconomiesJusquaAujourdhui = calculEconomiesJusquaAujourdhui(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    now
-  );
+  const totalRevenusJusquaAujourdhui = calculTotalRevenusJusquaAujourdhui();
+  const totalDepenseJusquaAujourdhui = calculTotalDepensesJusquaAujourdhui();
+  const totalEconomiesJusquaAujourdhui = calculEconomiesJusquaAujourdhui();
 
   // --- Totaux du mois précédent (mois complet) ---
-  const totalRevenusMoisPrecedent = totalRevenusGlobalMois(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    dateMoisPrecedent
-  );
-
-  const totalDepenseMoisPrecedent = calculTotalDepensesMois(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    dateMoisPrecedent
-  );
-
-  const totalEconomiesMoisPrecedent = calculEconomies(
-    totalRevenusMoisPrecedent,
-    totalDepenseMoisPrecedent
-  );
+  const totalRevenusMoisPrecedent = totalRevenusGlobalMois();
+  const totalDepenseMoisPrecedent = calculTotalDepensesMois();
+  const totalEconomiesMoisPrecedent = calculEconomies();
 
   const differenceEconomiesMoisPrecedent =
     totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
 
   // --- Déclarations pour la carte revenus (tooltip) ---
-  const revenusClassiquesCourant = calculRevenusClassiquesJusquaAujourdhui(
-    depenseRevenu,
-    now
-  );
-  const recurrentsRevenuCourant = calculRevenusRecurrentsJusquaAujourdhui(
-    paiementsRecurrents,
-    now
-  );
-  const echelonnesRevenuCourant = calculRevenusEchelonnesJusquaAujourdhui(
-    paiementsEchelonnes,
-    now
-  );
+  const revenusClassiquesCourant = calculRevenusClassiquesJusquaAujourdhui();
+  const recurrentsRevenuCourant = calculRevenusRecurrentsJusquaAujourdhui();
+  const echelonnesRevenuCourant = calculRevenusEchelonnesJusquaAujourdhui();
 
   // Différence dépenses mois précédent (alignée avec le détail du tooltip)
   const differenceMoisPrecedent = useMemo(() => {
@@ -295,41 +207,13 @@ export default function Dashboard() {
 
   // Dépenses et revenus récurrents/échelonnés à venir (déclaration unique)
   const depensesRecEchAVenir =
-    calculTotalRecurrentsMois(paiementsRecurrents, today, false) +
-    calculTotalEchelonnesMois(paiementsEchelonnes, today, false, true);
+    calculTotalRecurrentsMois() + calculTotalEchelonnesMois();
   const revenusRecEchAVenir =
-    calculTotalRecurrentsMois(paiementsRecurrents, today, false, "revenu") +
-    calculTotalEchelonnesMois(
-      paiementsEchelonnes,
-      today,
-      false,
-      false,
-      "revenu"
-    );
+    calculTotalRevenusRecurrentsMois() + calculTotalEchelonnesMois();
 
   // Dépenses et revenus classiques à venir
-  const depensesAVenir =
-    depenseRevenu
-      .filter(
-        (item) =>
-          item.type === "depense" &&
-          new Date(item.date).getMonth() === today.getMonth() &&
-          new Date(item.date).getFullYear() === today.getFullYear() &&
-          new Date(item.date) > today
-      )
-      .reduce((acc, item) => acc + Math.abs(parseFloat(item.montant)), 0) +
-    depensesRecEchAVenir;
-  const revenusAVenir =
-    depenseRevenu
-      .filter(
-        (item) =>
-          item.type === "revenu" &&
-          new Date(item.date).getMonth() === today.getMonth() &&
-          new Date(item.date).getFullYear() === today.getFullYear() &&
-          new Date(item.date) > today
-      )
-      .reduce((acc, item) => acc + parseFloat(item.montant), 0) +
-    revenusRecEchAVenir;
+  const depensesAVenir = calculTotalDepensesMois() + depensesRecEchAVenir;
+  const revenusAVenir = totalRevenusGlobalMois() + revenusRecEchAVenir;
 
   const budgetPrevisionnel = totalEconomies - depensesAVenir + revenusAVenir;
 
@@ -340,10 +224,7 @@ export default function Dashboard() {
   const isFuture = (date) => date > today;
 
   // Calcul du total dépensé ce mois-ci jusqu'à aujourd'hui (identique au détail)
-  const totalDepensePrelevee =
-    depensesClassiquesCourant +
-    recurrentsDepenseCourant +
-    echelonnesDepenseCourant;
+  const totalDepensePrelevee = calculTotalDepensesJusquaAujourdhui();
 
   // Différence revenus mois précédent (alignée avec le détail du tooltip)
   const differenceRevenusMoisPrecedent = useMemo(() => {
@@ -456,7 +337,7 @@ export default function Dashboard() {
           {/* Tooltip des dépenses */}
           <div className='absolute bottom-6 right-6 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
-            <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+            <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
               <div className='whitespace-pre-line'>
                 <div>
                   <div className='mb-2'>
@@ -483,7 +364,7 @@ export default function Dashboard() {
                     </li>
                     <li className='text-purple-400'>
                       Paiements échelonnés :{" "}
-                      {formatMontant(echelonnesDepenseCourant)}€
+                      {formatMontant(calculTotalEchelonnesMois())}€
                     </li>
                   </ul>
                   <div className='mb-2 mt-4'>
@@ -662,7 +543,7 @@ export default function Dashboard() {
           {/* Tooltip des revenus */}
           <div className='absolute bottom-6 right-6 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
-            <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+            <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
               <div className='whitespace-pre-line'>
                 <div>
                   <div className='mb-2'>
@@ -847,7 +728,7 @@ export default function Dashboard() {
           </div>
           <div className='absolute bottom-2 right-2 group'>
             <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-            <div className='absolute right-0 top-0 mt-2 w-96 max-h-[600px] overflow-y-auto p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
+            <div className='absolute top-0 left-full ml-2 w-96 max-h-[600px] overflow-y-auto p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
               <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help absolute top-2 right-2 text-lg' />
               <div className='font-semibold mb-2'>Montants à venir :</div>
               <div className='mb-2'>
@@ -1111,7 +992,7 @@ export default function Dashboard() {
               {/* Tooltip économies */}
               <div className='absolute bottom-2 right-2 group'>
                 <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-                <div className='absolute right-full mr-2 bottom-full mb-2 w-64 p-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
+                <div className='absolute top-0 left-full ml-2 w-96 max-h-[600px] overflow-y-auto p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 shadow-lg'>
                   <p className='font-semibold mb-0'>Comprendre le calcul : </p>
                   <ul className='list-disc list-inside space-y-0.5'>
                     <li className='text-green-400'>
