@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -352,8 +352,10 @@ export default function Dashboard() {
     return totalCourant - totalPrec;
   }, [totalRevenusJusquaAujourdhui, totalRevenusMoisPrecedent]);
 
+  const dashboardRef = useRef(null);
+
   return (
-    <div className='p-6 bg-gray-50 dark:bg-black min-h-screen'>
+    <div className='p-6 bg-gray-50 dark:bg-black min-h-screen' ref={dashboardRef}>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         {/* Carte Dépenses */}
@@ -785,32 +787,36 @@ export default function Dashboard() {
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium flex items-baseline gap-1'>
-              <span className='text-xl font-bold'>{(() => {
-                const now = new Date();
-                return paiementsEchelonnes.reduce((acc, e) => {
-                  const debut = new Date(e.debutDate);
-                  const nbMensualites = parseInt(e.mensualites, 10);
-                  for (let i = 0; i < nbMensualites; i++) {
-                    const dateMensualite = new Date(debut);
-                    dateMensualite.setMonth(debut.getMonth() + i);
-                    if (
-                      dateMensualite.getFullYear() === now.getFullYear() &&
-                      dateMensualite.getMonth() === now.getMonth() &&
-                      e.type === "depense"
-                    ) {
-                      acc++;
+              <span className='text-xl font-bold'>
+                {(() => {
+                  const now = new Date();
+                  return paiementsEchelonnes.reduce((acc, e) => {
+                    const debut = new Date(e.debutDate);
+                    const nbMensualites = parseInt(e.mensualites, 10);
+                    for (let i = 0; i < nbMensualites; i++) {
+                      const dateMensualite = new Date(debut);
+                      dateMensualite.setMonth(debut.getMonth() + i);
+                      if (
+                        dateMensualite.getFullYear() === now.getFullYear() &&
+                        dateMensualite.getMonth() === now.getMonth() &&
+                        e.type === "depense"
+                      ) {
+                        acc++;
+                      }
                     }
-                  }
-                  return acc;
-                }, 0);
-              })()}</span>
+                    return acc;
+                  }, 0);
+                })()}
+              </span>
               Paiements échelonnés
             </span>
             <AiOutlineCreditCard className='text-green-600 text-xl dark:text-white' />
           </div>
           <div className='flex items-baseline gap-1'>
             <span className='text-xs text-gray-400 font-normal'>pour</span>
-            <span className='text-2xl font-bold dark:text-white'>{formatMontant(totalEchelonnes)}€</span>
+            <span className='text-2xl font-bold dark:text-white'>
+              {formatMontant(totalEchelonnes)}€
+            </span>
           </div>
           <div className='text-xs text-gray-400 font-normal'>ce mois-ci</div>
           <button
@@ -1313,6 +1319,7 @@ export default function Dashboard() {
         onClose={() => setIsBalanceModalOpen(false)}
         currentCalculatedBalance={totalEconomiesJusquaAujourdhui}
       />
+
     </div>
   );
 }
