@@ -355,7 +355,9 @@ export default function Dashboard() {
   const dashboardRef = useRef(null);
 
   return (
-    <div className='p-6 bg-gray-50 dark:bg-black min-h-screen' ref={dashboardRef}>
+    <div
+      className='p-6 bg-gray-50 dark:bg-black min-h-screen'
+      ref={dashboardRef}>
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         {/* Carte Dépenses */}
@@ -767,16 +769,19 @@ export default function Dashboard() {
         </div>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium'>
+            <span className='text-gray-500 font-medium flex items-baseline gap-1'>
+              <span className='text-xl font-bold'>
+                {paiementsRecurrents.length}
+              </span>
               Paiements récurrents
             </span>
             <AiOutlineCalendar className='text-purple-400 text-xl' />
           </div>
           <div className='text-2xl font-bold dark:text-white'>
             {formatMontant(totalRecurrents)}€
-          </div>
-          <div className='text-xs text-gray-400'>
-            en dépenses récurentes tous les mois
+            <span className='text-xs text-gray-400 font-normal ml-1'>
+              /mois
+            </span>
           </div>
           <button
             className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
@@ -813,12 +818,11 @@ export default function Dashboard() {
             <AiOutlineCreditCard className='text-green-600 text-xl dark:text-white' />
           </div>
           <div className='flex items-baseline gap-1'>
-            <span className='text-xs text-gray-400 font-normal'>pour</span>
             <span className='text-2xl font-bold dark:text-white'>
               {formatMontant(totalEchelonnes)}€
             </span>
+            <span className='text-xs text-gray-400 font-normal'>/mois</span>
           </div>
-          <div className='text-xs text-gray-400 font-normal'>ce mois-ci</div>
           <button
             className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
             onClick={() => navigate("/echelonne")}>
@@ -1319,7 +1323,6 @@ export default function Dashboard() {
         onClose={() => setIsBalanceModalOpen(false)}
         currentCalculatedBalance={totalEconomiesJusquaAujourdhui}
       />
-
     </div>
   );
 }
