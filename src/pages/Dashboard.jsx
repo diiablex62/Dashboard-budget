@@ -134,7 +134,7 @@ export default function Dashboard() {
 
   // Calcul des économies (revenus - tout ce qui sort)
   const totalRevenus = totalRevenusGlobalMois();
-  const totalDepense = calculTotalDepensesMois();
+  const totalDepense = calculTotalDepensesMois(depenseRevenu);
   const totalEconomies = calculEconomies();
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
@@ -171,7 +171,10 @@ export default function Dashboard() {
 
   // --- Totaux du mois précédent (mois complet) ---
   const totalRevenusMoisPrecedent = totalRevenusGlobalMois();
-  const totalDepenseMoisPrecedent = calculTotalDepensesMois();
+  const totalDepenseMoisPrecedent = calculTotalDepensesMois(
+    depenseRevenu,
+    new Date(now.getFullYear(), now.getMonth() - 1)
+  );
   const totalEconomiesMoisPrecedent = calculEconomies();
 
   const differenceEconomiesMoisPrecedent =
@@ -212,7 +215,8 @@ export default function Dashboard() {
     calculTotalRevenusRecurrentsMois() + calculTotalEchelonnesMois();
 
   // Dépenses et revenus classiques à venir
-  const depensesAVenir = calculTotalDepensesMois() + depensesRecEchAVenir;
+  const depensesAVenir =
+    calculTotalDepensesMois(depenseRevenu) + depensesRecEchAVenir;
   const revenusAVenir = totalRevenusGlobalMois() + revenusRecEchAVenir;
 
   const budgetPrevisionnel = totalEconomies - depensesAVenir + revenusAVenir;

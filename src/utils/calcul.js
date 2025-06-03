@@ -1,13 +1,37 @@
 // Fichier central pour les fonctions de calcul du projet
 // ------------------------------------------------------
-
+// ONGLETS :
 // =====================
 // DÉPENSES & REVENUS
 // =====================
 
 // total calcul depense par mois : [calculTotalDepensesMois]
-export function calculTotalDepensesMois() {
-  return 0;
+export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
+  console.log("=== CALCUL TOTAL DÉPENSES DU MOIS ===");
+
+  // S'assurer que date est un objet Date
+  const dateObj = date instanceof Date ? date : new Date(date);
+  console.log(
+    "Mois calculé:",
+    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
+  );
+
+  // Dépenses classiques du mois
+  const total = depenseRevenu
+    .filter((d) => {
+      const dDate = new Date(d.date);
+      return (
+        d.type === "depense" &&
+        dDate.getMonth() === dateObj.getMonth() &&
+        dDate.getFullYear() === dateObj.getFullYear()
+      );
+    })
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
+
+  console.log("Total des dépenses du mois:", total);
+  console.log("================================");
+
+  return total;
 }
 
 // total calcul paiements échelonnés du mois : [calculTotalEchelonnesMois]
@@ -21,13 +45,45 @@ export function calculTotalRecurrentsMois() {
 }
 
 // total calcul revenus par mois : [totalRevenusGlobalMois]
-export function totalRevenusGlobalMois() {
-  return 0;
+export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
+  console.log("=== CALCUL TOTAL REVENUS DU MOIS ===");
+
+  // S'assurer que date est un objet Date
+  const dateObj = date instanceof Date ? date : new Date(date);
+  console.log(
+    "Mois calculé:",
+    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
+  );
+
+  // Revenus classiques du mois
+  const total = depenseRevenu
+    .filter((d) => {
+      const dDate = new Date(d.date);
+      return (
+        d.type === "revenu" &&
+        dDate.getMonth() === dateObj.getMonth() &&
+        dDate.getFullYear() === dateObj.getFullYear()
+      );
+    })
+    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+
+  console.log("Total des revenus du mois:", total);
+  console.log("================================");
+
+  return total;
 }
 
 // total calcul économies (revenus - dépenses) : [calculEconomies]
-export function calculEconomies() {
-  return 0;
+export function calculEconomies(revenus, depenses) {
+  console.log("=== CALCUL DES ÉCONOMIES ===");
+  console.log("Revenus:", revenus);
+  console.log("Dépenses:", depenses);
+
+  const economie = revenus - depenses;
+  console.log("Économies calculées:", economie);
+  console.log("================================");
+
+  return economie;
 }
 
 // =====================

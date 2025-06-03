@@ -112,11 +112,11 @@ export default function DepensesRevenus() {
   }, [currentTab, depenses, revenus, selectedDate]);
 
   const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(depenses, [], [], selectedDate),
+    () => calculTotalDepensesMois(depenses, selectedDate),
     [depenses, selectedDate]
   );
   const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(revenus, [], [], selectedDate),
+    () => totalRevenusGlobalMois(revenus, selectedDate),
     [revenus, selectedDate]
   );
   const solde = useMemo(
@@ -327,7 +327,7 @@ export default function DepensesRevenus() {
   // Ajouter la gestion des fonctions manquantes
   const handleAddDepense = async (depenseData) => {
     try {
-      const currentDate = new Date().toISOString().split('T')[0];
+      const currentDate = new Date().toISOString().split("T")[0];
       await addDoc(collection(db, "depense"), {
         ...depenseData,
         date: depenseData.date || currentDate,
@@ -338,7 +338,9 @@ export default function DepensesRevenus() {
         const depenseSnap = await getDocs(
           query(collection(db, "depense"), orderBy("date", "desc"))
         );
-        setDepenses(depenseSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+        setDepenses(
+          depenseSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        );
       };
       fetchData();
     } catch (err) {
@@ -348,7 +350,7 @@ export default function DepensesRevenus() {
 
   const handleAddRevenu = async (revenuData) => {
     try {
-      const currentDate = new Date().toISOString().split('T')[0];
+      const currentDate = new Date().toISOString().split("T")[0];
       await addDoc(collection(db, "revenu"), {
         ...revenuData,
         date: revenuData.date || currentDate,
@@ -359,7 +361,9 @@ export default function DepensesRevenus() {
         const revenuSnap = await getDocs(
           query(collection(db, "revenu"), orderBy("date", "desc"))
         );
-        setRevenus(revenuSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+        setRevenus(
+          revenuSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        );
       };
       fetchData();
     } catch (err) {
