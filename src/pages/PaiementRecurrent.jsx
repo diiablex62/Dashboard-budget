@@ -65,10 +65,19 @@ const PaiementRecurrent = () => {
   const paiementsFiltres = useMemo(() => {
     return paiementsRecurrents.filter((p) => {
       if (p.type !== currentTab) return false;
-      // On affiche tous les paiements récurrents du mois
-      return true;
+
+      const moisActuel = selectedMonth.getMonth() + 1; // +1 car getMonth() retourne 0-11
+      const anneeActuelle = selectedMonth.getFullYear();
+      const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
+
+      // Vérifie si la date actuelle est après ou égale à la date de début
+      const estApresDateDebut =
+        anneeActuelle > anneeDebut ||
+        (anneeActuelle === anneeDebut && moisActuel >= moisDebut);
+
+      return estApresDateDebut;
     });
-  }, [paiementsRecurrents, currentTab]);
+  }, [paiementsRecurrents, currentTab, selectedMonth]);
 
   // Trier les paiements par jour de prélèvement
   const paiementsTries = useMemo(() => {
@@ -96,6 +105,7 @@ const PaiementRecurrent = () => {
           ...paiement,
           type: currentTab,
           jourPrelevement: Number(paiement.jour),
+          moisPrelevement: Number(paiement.mois),
           montant: Number(paiement.montant),
         };
         if (paiement.id) {

@@ -78,7 +78,6 @@ export const fakeDepenseRevenu = [
 
 // Données fictives pour les paiements récurrents
 export const fakePaiementsRecurrents = [
- 
   {
     id: 1,
     nom: "Netflix",
@@ -86,6 +85,7 @@ export const fakePaiementsRecurrents = [
     categorie: "Divertissement",
     jourPrelevement: 1,
     type: "depense",
+    dateDebut: "2025-06",
   },
   {
     id: 2,
@@ -94,15 +94,16 @@ export const fakePaiementsRecurrents = [
     categorie: "Divertissement",
     jourPrelevement: 30,
     type: "depense",
+    dateDebut: "2025-06",
   },
-
   {
     id: 3,
-    nom: "salaire Alex",
+    nom: "Salaire Alex",
     montant: 1800,
     categorie: "Salaire",
     jourPrelevement: 1,
     type: "revenu",
+    dateDebut: "2025-06",
   },
   {
     id: 4,
@@ -111,10 +112,8 @@ export const fakePaiementsRecurrents = [
     categorie: "Salaire",
     jourPrelevement: 30,
     type: "revenu",
+    dateDebut: "2025-06",
   },
-
-
-
 ];
 
 // Données fictives pour les paiements échelonnés

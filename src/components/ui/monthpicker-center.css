@@ -1,0 +1,15 @@
+/* Force le centrage horizontal du conteneur interne de MonthPickerModal */
+.month-picker-modal-wrapper > div > div.flex.justify-end {
+  justify-content: center !important;
+}
+
+/* Force le centrage horizontal du conteneur interne de MonthPickerModal */
+.flex.justify-center .flex.justify-end {
+  justify-content: center !important;
+}
+
+/* Retire la bordure autour du bouton mois/année dans MonthPickerModal */
+.flex.justify-center .flex.justify-end > .bg-white.border {
+  border: none !important;
+  box-shadow: none !important;
+}

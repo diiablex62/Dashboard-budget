@@ -9,6 +9,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { fr } from "date-fns/locale";
 import ScrollProgress from "./ScrollProgress";
+import MonthPickerModal from "./MonthPickerModal";
+import "./monthpicker-center.css";
 
 const Modal = ({ open, onClose, children }) => {
   const contentRef = useRef(null);
@@ -189,6 +191,23 @@ export function ModalDepenseRevenu({
     isKeyboardNavigation.current = false;
   }, []);
 
+  const handleMonthChange = useCallback(
+    (e) => {
+      const newMonth = parseInt(e.target.value);
+      setForm((prev) => ({
+        ...prev,
+        date: new Date(
+          newMonth,
+          form.date.split("-")[1],
+          form.date.split("-")[2]
+        )
+          .toISOString()
+          .split("T")[0],
+      }));
+    },
+    [form.date]
+  );
+
   const handleKeyDown = useCallback(
     (e) => {
       console.log("KeyDown event:", {
@@ -295,22 +314,43 @@ export function ModalDepenseRevenu({
               <label className='block mb-2 font-medium dark:text-white'>
                 {current.label}
               </label>
-              <select
-                name={current.name}
-                value={form[current.name] || ""}
-                onChange={handleCategoryChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
-                size={categories.length + 1}>
-                <option value=''>Sélectionner une catégorie</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              {current.name === "categorie" ? (
+                <select
+                  name={current.name}
+                  value={form[current.name] || ""}
+                  onChange={handleCategoryChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  ref={inputRef}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                  style={{ height: `${(categories.length + 1) * 32}px` }}
+                  onClick={(e) => e.target.focus()}>
+                  <option value=''>Sélectionner une catégorie</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  name={current.name}
+                  value={form[current.name] || ""}
+                  onChange={handleMonthChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  ref={inputRef}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                  style={{ height: `${(months.length + 1) * 32}px` }}
+                  onClick={(e) => e.target.focus()}>
+                  <option value=''>Sélectionner un mois</option>
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
           {current.type === "number" && (
@@ -414,6 +454,7 @@ export function ModalRecurrent({
       { name: "categorie", label: "Catégorie", type: "select" },
       { name: "montant", label: "Montant (€)", type: "number" },
       { name: "jour", label: "Jour de prélèvement", type: "grid" },
+      { name: "dateDebut", label: "Mois et année de début", type: "date" },
     ],
     []
   );
@@ -424,6 +465,7 @@ export function ModalRecurrent({
       categorie: "",
       montant: "",
       jour: "",
+      dateDebut: new Date().toISOString().split("T")[0],
     }),
     []
   );
@@ -436,6 +478,7 @@ export function ModalRecurrent({
   const isKeyboardNavigation = useRef(false);
   const shouldValidateCategory = useRef(false);
   const shouldValidateDay = useRef(false);
+  const shouldValidateDate = useRef(false);
   const gridRef = useRef(null);
 
   // Références dérivées
@@ -451,6 +494,7 @@ export function ModalRecurrent({
       isKeyboardNavigation.current = false;
       shouldValidateCategory.current = false;
       shouldValidateDay.current = false;
+      shouldValidateDate.current = false;
     }
   }, [visible, initialValues, defaultForm]);
 
@@ -473,6 +517,13 @@ export function ModalRecurrent({
       shouldValidateDay.current = false;
     }
   }, [form.jour, step]);
+
+  useEffect(() => {
+    if (shouldValidateDate.current && form.dateDebut && step === 5) {
+      handleNext();
+      shouldValidateDate.current = false;
+    }
+  }, [form.dateDebut, step]);
 
   // Handlers
   const handleBackdropClick = useCallback(
@@ -513,7 +564,14 @@ export function ModalRecurrent({
     if (step < steps.length) {
       setStep(step + 1);
     } else {
-      onSave(form);
+      const dateDebut = new Date(form.dateDebut);
+      const formattedDate = `${dateDebut.getFullYear()}-${String(
+        dateDebut.getMonth() + 1
+      ).padStart(2, "0")}`;
+      onSave({
+        ...form,
+        dateDebut: formattedDate,
+      });
       onClose();
     }
   }, [step, steps.length, validateStep, form, onSave, onClose]);
@@ -608,6 +666,11 @@ export function ModalRecurrent({
                 ? `${form[s.name]} €`
                 : s.name === "jour"
                 ? `Le ${form[s.name]} de chaque mois`
+                : s.name === "dateDebut"
+                ? new Date(form[s.name]).toLocaleDateString("fr-FR", {
+                    year: "numeric",
+                    month: "long",
+                  })
                 : form[s.name]}
             </span>
           </div>
@@ -616,6 +679,92 @@ export function ModalRecurrent({
     ),
     [steps, step, form]
   );
+
+  const renderCurrentStep = useCallback(() => {
+    switch (current.type) {
+      case "text":
+      case "number":
+        return (
+          <input
+            ref={inputRef}
+            type={current.type}
+            name={current.name}
+            value={form[current.name]}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className='w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white'
+            placeholder={`Entrez ${current.label.toLowerCase()}`}
+          />
+        );
+      case "select":
+        if (current.name === "categorie") {
+          return (
+            <select
+              ref={inputRef}
+              name={current.name}
+              value={form[current.name]}
+              onChange={handleCategoryChange}
+              className='w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white'>
+              <option value=''>Sélectionnez une catégorie</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          );
+        }
+        break;
+      case "grid":
+        return (
+          <div
+            ref={gridRef}
+            className='grid grid-cols-7 gap-2 mt-2'
+            onKeyDown={handleKeyDown}>
+            {days.map((day) => (
+              <button
+                key={day}
+                type='button'
+                onClick={() => handleDayClick(day)}
+                className={`p-2 text-center rounded ${
+                  form.jour === day.toString()
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}>
+                {day}
+              </button>
+            ))}
+          </div>
+        );
+      case "date":
+        return (
+          <div className='flex justify-center w-full'>
+            <MonthPickerModal
+              selected={form.dateDebut ? new Date(form.dateDebut) : null}
+              onChange={(date) => {
+                setForm((prev) => ({
+                  ...prev,
+                  dateDebut: date ? date.toISOString().split("T")[0] : "",
+                }));
+                shouldValidateDate.current = true;
+              }}
+              className='border-none'
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  }, [
+    current,
+    form,
+    categories,
+    days,
+    handleChange,
+    handleCategoryChange,
+    handleDayClick,
+    handleKeyDown,
+  ]);
 
   if (!visible) return null;
 
@@ -644,93 +793,7 @@ export function ModalRecurrent({
             e.preventDefault();
             handleNext();
           }}>
-          {current.type === "text" && (
-            <div className='mb-4'>
-              <label className='block mb-2 font-medium dark:text-white'>
-                {current.label}
-              </label>
-              <input
-                type='text'
-                name={current.name}
-                value={form[current.name] || ""}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
-            </div>
-          )}
-          {current.type === "select" && (
-            <div className='mb-4'>
-              <label className='block mb-2 font-medium dark:text-white'>
-                {current.label}
-              </label>
-              <select
-                name={current.name}
-                value={form[current.name] || ""}
-                onChange={handleCategoryChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
-                size={categories.length + 1}>
-                <option value=''>Sélectionner une catégorie</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {current.type === "number" && (
-            <div className='mb-4'>
-              <label className='block mb-2 font-medium dark:text-white'>
-                {current.label}
-              </label>
-              <input
-                type='number'
-                name={current.name}
-                value={form[current.name] || ""}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                min='0.01'
-                step='0.01'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
-            </div>
-          )}
-          {current.type === "grid" && (
-            <div className='mb-6'>
-              <label className='block mb-2 font-medium dark:text-white'>
-                {current.label}
-              </label>
-              <div
-                ref={gridRef}
-                className='grid grid-cols-7 gap-2'
-                onKeyDown={handleKeyDown}
-                tabIndex={-1}>
-                {days.map((day) => (
-                  <button
-                    key={day}
-                    type='button'
-                    data-day={day}
-                    onClick={() => handleDayClick(day)}
-                    className={`p-2 text-center rounded focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white ${
-                      form.jour === day.toString()
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                    }`}
-                    tabIndex={0}>
-                    {day}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {renderCurrentStep()}
           <div className='flex justify-between mt-4'>
             {step > 1 && (
               <button
@@ -898,6 +961,23 @@ export function ModalEchelonne({
     isKeyboardNavigation.current = false;
   }, []);
 
+  const handleMonthChange = useCallback(
+    (e) => {
+      const newMonth = parseInt(e.target.value);
+      setForm((prev) => ({
+        ...prev,
+        date: new Date(
+          newMonth,
+          form.date.split("-")[1],
+          form.date.split("-")[2]
+        )
+          .toISOString()
+          .split("T")[0],
+      }));
+    },
+    [form.date]
+  );
+
   const handleKeyDown = useCallback(
     (e) => {
       console.log("KeyDown event:", {
@@ -1007,22 +1087,43 @@ export function ModalEchelonne({
               <label className='block mb-2 font-medium dark:text-white'>
                 {current.label}
               </label>
-              <select
-                name={current.name}
-                value={form[current.name] || ""}
-                onChange={handleCategoryChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
-                size={categories.length + 1}>
-                <option value=''>Sélectionner une catégorie</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              {current.name === "categorie" ? (
+                <select
+                  name={current.name}
+                  value={form[current.name] || ""}
+                  onChange={handleCategoryChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  ref={inputRef}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                  style={{ height: `${(categories.length + 1) * 32}px` }}
+                  onClick={(e) => e.target.focus()}>
+                  <option value=''>Sélectionner une catégorie</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  name={current.name}
+                  value={form[current.name] || ""}
+                  onChange={handleMonthChange}
+                  className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  ref={inputRef}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                  style={{ height: `${(months.length + 1) * 32}px` }}
+                  onClick={(e) => e.target.focus()}>
+                  <option value=''>Sélectionner un mois</option>
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
           {current.type === "number" && (
@@ -1036,8 +1137,8 @@ export function ModalEchelonne({
                 value={form[current.name] || ""}
                 onChange={handleChange}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                min={current.name === "mensualites" ? "1" : "0.01"}
-                step={current.name === "mensualites" ? "1" : "0.01"}
+                min='0.01'
+                step='0.01'
                 ref={inputRef}
                 onKeyDown={handleKeyDown}
                 autoFocus
@@ -1069,16 +1170,15 @@ export function ModalEchelonne({
                     }));
                     shouldValidateDate.current = true;
                     console.log("Date sélectionnée - validation autorisée");
-                    // Si tu veux la validation auto, décommente la ligne suivante :
-                    // handleNext();
                   }
                 }}
-                dateFormat='dd/MM/yyyy'
+                dateFormat='MMMM yyyy'
+                showMonthYearPicker
+                locale={fr}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 calendarClassName='dark:bg-gray-900 dark:text-white'
                 wrapperClassName='w-full'
-                locale={fr}
-                placeholderText='Choisir une date'
+                placeholderText='Choisir un mois et une année'
                 showPopperArrow={false}
               />
             </div>

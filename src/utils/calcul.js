@@ -184,8 +184,58 @@ export function calculRevenusEchelonnesMoisPrecedent() {
 }
 
 // total calcul dépenses récurrentes du mois : [calculTotalDepensesRecurrentesMois]
-export function calculTotalDepensesRecurrentesMois() {
-  return 0;
+export function calculTotalDepensesRecurrentesMois(
+  paiementsRecurrents = [],
+  date = new Date()
+) {
+  console.log("=== CALCUL TOTAL DÉPENSES RÉCURRENTES DU MOIS ===");
+  console.log("Paiements récurrents reçus:", paiementsRecurrents);
+
+  const dateObj = date instanceof Date ? date : new Date(date);
+  console.log(
+    "Mois calculé:",
+    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
+  );
+
+  const total = paiementsRecurrents
+    .filter((p) => {
+      if (!p || !p.jourPrelevement || !p.dateDebut || !p.moisPrelevement) {
+        console.log("Paiement invalide:", p);
+        return false;
+      }
+
+      const estDepense = p.type === "depense";
+      const jourPrelevement = parseInt(p.jourPrelevement);
+      const jourActuel = dateObj.getDate();
+      const dateDebut = new Date(p.dateDebut);
+      const estActif = dateDebut <= dateObj;
+      const moisActuel = dateObj.getMonth() + 1; // +1 car getMonth() retourne 0-11
+      const estMoisPrelevement = moisActuel >= p.moisPrelevement;
+
+      console.log(`Paiement ${p.nom}:`, {
+        estDepense,
+        montant: p.montant,
+        jourPrelevement,
+        jourActuel,
+        dateDebut: p.dateDebut,
+        estActif,
+        moisActuel,
+        moisPrelevement: p.moisPrelevement,
+        estMoisPrelevement,
+      });
+
+      return estDepense && estActif && estMoisPrelevement;
+    })
+    .reduce((acc, p) => {
+      const montant = Math.abs(parseFloat(p.montant));
+      console.log(`Montant ajouté pour ${p.nom}:`, montant);
+      return acc + montant;
+    }, 0);
+
+  console.log("Total des dépenses récurrentes:", total);
+  console.log("================================");
+
+  return total;
 }
 
 // total calcul revenus récurrents du mois : [calculTotalRevenusRecurrentsMois]
