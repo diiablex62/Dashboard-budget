@@ -178,8 +178,7 @@ export const PaiementEchelonne = () => {
             <div className='flex items-center text-blue-600 dark:text-blue-400 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>
-                Total Mensuel {isRevenus ? "Débit" : "Crédit"} -{" "}
-                {getMonthYear(selectedDate)}
+                Total Mensuel {isRevenus ? "Débit" : "Crédit"}
               </span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
