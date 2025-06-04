@@ -8,5 +8,4 @@ export default function Echelonne() {
   // Utiliser getData pour les données
   const paiementsEchelonnes = getData([]);
 
-  // ... rest of the code ...
 }
