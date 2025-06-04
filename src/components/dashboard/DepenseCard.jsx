@@ -152,6 +152,20 @@ const DepenseCard = ({
                 </span>{" "}
                 {formatMontant(totalDepense)}€
               </div>
+              <ul className='mb-2'>
+                <li className='text-red-400'>
+                  <span className='font-bold' style={{ color: "#ef4444" }}>
+                    Dépenses :
+                  </span>{" "}
+                  {formatMontant(0)}€
+                </li>
+                <li className='text-blue-400'>
+                  Paiements récurrents : {formatMontant(0)}€
+                </li>
+                <li className='text-purple-400'>
+                  Paiements échelonnés : {formatMontant(0)}€
+                </li>
+              </ul>
               <div className='mb-2'>
                 <span className='font-semibold'>Mois précédent :</span>{" "}
                 {formatMontant(

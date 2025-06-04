@@ -130,7 +130,9 @@ const RevenuCard = ({
               </div>
               <ul className='mb-2'>
                 <li className='text-green-400'>
-                  <span className='font-bold'>Revenus :</span>{" "}
+                  <span className='font-bold' style={{ color: "#22c55e" }}>
+                    Revenus :
+                  </span>{" "}
                   {formatMontant(revenusClassiquesCourant)}€
                 </li>
                 <li className='text-blue-400'>
@@ -148,6 +150,20 @@ const RevenuCard = ({
                 </span>{" "}
                 {formatMontant(totalRevenus)}€
               </div>
+              <ul className='mb-2'>
+                <li className='text-green-400'>
+                  <span className='font-bold' style={{ color: "#22c55e" }}>
+                    Revenus :
+                  </span>{" "}
+                  {formatMontant(0)}€
+                </li>
+                <li className='text-blue-400'>
+                  Paiements récurrents : {formatMontant(0)}€
+                </li>
+                <li className='text-purple-400'>
+                  Paiements échelonnés : {formatMontant(0)}€
+                </li>
+              </ul>
               <div className='mb-2'>
                 <span className='font-semibold'>Mois précédent :</span>{" "}
                 {formatMontant(
@@ -159,15 +175,17 @@ const RevenuCard = ({
               </div>
               <ul>
                 <li className='text-green-400'>
-                  <span className='font-bold'>Revenus :</span>{" "}
+                  <span className='font-bold' style={{ color: "#22c55e" }}>
+                    Revenus :
+                  </span>{" "}
                   {formatMontant(revenusClassiquesMoisPrec)}€
                 </li>
                 <li className='text-blue-400'>
-                  Paiements récurrents :{" "}
+                  Paiements récurrents (revenu) :{" "}
                   {formatMontant(recurrentsRevenuMoisPrec)}€
                 </li>
                 <li className='text-purple-400'>
-                  Paiements échelonnés :{" "}
+                  Paiements échelonnés (revenu) :{" "}
                   {formatMontant(echelonnesRevenuMoisPrec)}€
                 </li>
               </ul>
