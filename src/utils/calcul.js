@@ -5,19 +5,32 @@
 // DÉPENSES & REVENUS
 // =====================
 
-// total calcul depense par mois : [calculTotalDepensesMois]
-export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
-  console.log("=== CALCUL TOTAL DÉPENSES DU MOIS ===");
-
-  // S'assurer que date est un objet Date
-  const dateObj = date instanceof Date ? date : new Date(date);
-  console.log(
-    "Mois calculé:",
-    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
+/**
+ * Calcule le total des dépenses et revenus
+ * @param {Array} depenseRevenu - Tableau de dépenses et revenus
+ * @param {boolean} isDepense - Si true, calcule le montant en valeur absolue
+ * @returns {number} - Total des dépenses et revenus
+ */
+export const calculateDepenseRevenuTotal = (
+  depenseRevenu,
+  isDepense = false
+) => {
+  return depenseRevenu.reduce(
+    (acc, t) => acc + (isDepense ? Math.abs(t.montant || 0) : t.montant || 0),
+    0
   );
+};
 
-  // Dépenses classiques du mois
-  const total = depenseRevenu
+/**
+ * Calcule le total des dépenses du mois
+ * @param {Array} depenseRevenu - Tableau de dépenses et revenus
+ * @param {Date} date - Date de référence
+ * @returns {number} - Total des dépenses du mois
+ */
+export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
+  const dateObj = date instanceof Date ? date : new Date(date);
+
+  return depenseRevenu
     .filter((d) => {
       const dDate = new Date(d.date);
       return (
@@ -27,36 +40,18 @@ export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
       );
     })
     .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-
-  console.log("Total des dépenses du mois:", total);
-  console.log("================================");
-
-  return total;
 }
 
-// total calcul paiements échelonnés du mois : [calculTotalEchelonnesMois]
-export function calculTotalEchelonnesMois() {
-  return 0;
-}
-
-// total calcul paiements récurrents du mois : [calculTotalRecurrentsMois]
-export function calculTotalRecurrentsMois() {
-  return 0;
-}
-
-// total calcul revenus par mois : [totalRevenusGlobalMois]
+/**
+ * Calcule le total des revenus du mois
+ * @param {Array} depenseRevenu - Tableau de dépenses et revenus
+ * @param {Date} date - Date de référence
+ * @returns {number} - Total des revenus du mois
+ */
 export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
-  console.log("=== CALCUL TOTAL REVENUS DU MOIS ===");
-
-  // S'assurer que date est un objet Date
   const dateObj = date instanceof Date ? date : new Date(date);
-  console.log(
-    "Mois calculé:",
-    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
-  );
 
-  // Revenus classiques du mois
-  const total = depenseRevenu
+  return depenseRevenu
     .filter((d) => {
       const dDate = new Date(d.date);
       return (
@@ -66,141 +61,96 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
       );
     })
     .reduce((acc, d) => acc + parseFloat(d.montant), 0);
-
-  console.log("Total des revenus du mois:", total);
-  console.log("================================");
-
-  return total;
 }
 
-// total calcul économies (revenus - dépenses) : [calculEconomies]
+/**
+ * Calcule les économies (revenus - dépenses)
+ * @param {number} revenus - Total des revenus
+ * @param {number} depenses - Total des dépenses
+ * @returns {number} - Montant des économies
+ */
 export function calculEconomies(revenus, depenses) {
-  console.log("=== CALCUL DES ÉCONOMIES ===");
-  console.log("Revenus:", revenus);
-  console.log("Dépenses:", depenses);
-
-  const economie = revenus - depenses;
-  console.log("Économies calculées:", economie);
-  console.log("================================");
-
-  return economie;
+  return revenus - depenses;
 }
 
 // =====================
-// AGRÉGATIONS & GRAPHIQUES
+// RÉCURRENTS
 // =====================
 
-// calcul des dépenses par catégorie : [calculDepensesParCategorie]
-export function calculDepensesParCategorie() {
-  return [];
-}
-
-// calcul des données du bar chart (6 derniers mois) : [calculBarChartData]
-export function calculBarChartData() {
-  return [];
-}
-
-// =====================
-// CALCULS JUSQU'À AUJOURD'HUI
-// =====================
-
-// Calcul des dépenses classiques jusqu'à aujourd'hui
-export function calculDepensesClassiquesJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul des dépenses récurrentes jusqu'à aujourd'hui
-export function calculDepensesRecurrentesJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul des dépenses échelonnées jusqu'à aujourd'hui
-export function calculDepensesEchelonneesJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul des revenus classiques jusqu'à aujourd'hui
-export function calculRevenusClassiquesJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul des revenus récurrents jusqu'à aujourd'hui
-export function calculRevenusRecurrentsJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul des revenus échelonnés jusqu'à aujourd'hui
-export function calculRevenusEchelonnesJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul du total des revenus jusqu'à aujourd'hui
-export function calculTotalRevenusJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul du total des dépenses jusqu'à aujourd'hui
-export function calculTotalDepensesJusquaAujourdhui() {
-  return 0;
-}
-
-// Calcul des économies jusqu'à aujourd'hui
-export function calculEconomiesJusquaAujourdhui() {
-  return 0;
-}
-
-// =====================
-// CALCULS DU MOIS PRÉCÉDENT
-// =====================
-
-// Calcul des dépenses classiques du mois précédent
-export function calculDepensesClassiquesMoisPrecedent() {
-  return 0;
-}
-
-// Calcul des dépenses récurrentes du mois précédent
-export function calculDepensesRecurrentesMoisPrecedent() {
-  return 0;
-}
-
-// Calcul des dépenses échelonnées du mois précédent
-export function calculDepensesEchelonneesMoisPrecedent() {
-  return 0;
-}
-
-// Calcul des revenus classiques du mois précédent
-export function calculRevenusClassiquesMoisPrecedent() {
-  return 0;
-}
-
-// Calcul des revenus récurrents du mois précédent
-export function calculRevenusRecurrentsMoisPrecedent() {
-  return 0;
-}
-
-// Calcul des revenus échelonnés du mois précédent
-export function calculRevenusEchelonnesMoisPrecedent() {
-  return 0;
-}
-
-// total calcul dépenses récurrentes du mois : [calculTotalDepensesRecurrentesMois]
-export function calculTotalDepensesRecurrentesMois(
+/**
+ * Calcule le total des paiements récurrents du mois
+ * @param {Array} paiementsRecurrents - Tableau des paiements récurrents
+ * @param {Date} date - Date de référence
+ * @returns {number} - Total des paiements récurrents du mois
+ */
+export function calculTotalRecurrentsMois(
   paiementsRecurrents = [],
   date = new Date()
 ) {
+  console.log("=== CALCUL TOTAL RECURRENTS DU MOIS ===");
+  console.log("Date reçue:", date);
+  console.log("Type de date:", typeof date);
+
   const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+
+  console.log("Date convertie:", dateObj);
+  console.log("Mois:", mois, "Année:", annee);
+  console.log(
+    "Mois calculé:",
+    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
+  );
+  console.log("Nombre de paiements récurrents:", paiementsRecurrents.length);
+  console.log("Paiements reçus:", paiementsRecurrents);
 
   const total = paiementsRecurrents
     .filter((p) => {
+      console.log("\n--- Analyse du paiement ---");
+      console.log("Paiement complet:", p);
+
       if (!p || !p.jourPrelevement || !p.dateDebut) {
+        console.log("❌ Paiement ignoré - données manquantes:", {
+          paiement: p,
+          jourPrelevement: p?.jourPrelevement,
+          dateDebut: p?.dateDebut,
+        });
         return false;
       }
 
       const estDepense = p.type === "depense";
       const dateDebut = new Date(p.dateDebut + "-01");
+      const jourPrelevement = parseInt(p.jourPrelevement);
+
+      // Vérifie si le paiement est actif pour ce mois
       const estActif = dateDebut <= dateObj;
 
-      return estDepense && estActif;
+      // Vérifie si le jour de prélèvement est dans le mois en cours
+      const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
+      const estDansMoisCourant = jourPrelevement <= dernierJourDuMois;
+
+      console.log("Détails du paiement:", {
+        nom: p.nom,
+        type: p.type,
+        dateDebut: dateDebut.toLocaleDateString("fr-FR"),
+        jourPrelevement,
+        estDepense,
+        estActif,
+        dernierJourDuMois,
+        estDansMoisCourant,
+        montant: p.montant,
+      });
+
+      if (!estDepense) {
+      }
+      if (!estActif) {
+      }
+      if (!estDansMoisCourant) {
+      }
+
+      const estValide = estDepense && estActif && estDansMoisCourant;
+
+      return estValide;
     })
     .reduce((acc, p) => {
       const montant = Math.abs(parseFloat(p.montant));
@@ -210,8 +160,173 @@ export function calculTotalDepensesRecurrentesMois(
   return total;
 }
 
-// total calcul revenus récurrents du mois : [calculTotalRevenusRecurrentsMois]
-export function calculTotalRevenusRecurrentsMois() {
+/**
+ * Calcule le total des dépenses récurrentes du mois
+ * @param {Array} paiementsRecurrents - Tableau des paiements récurrents
+ * @param {Date} date - Date de référence
+ * @returns {number} - Total des dépenses récurrentes du mois
+ */
+export function calculTotalDepensesRecurrentesMois(
+  paiementsRecurrents = [],
+  date = new Date()
+) {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
+
+  return paiementsRecurrents
+    .filter((p) => {
+      // Vérification rapide des données requises
+      if (!p?.jourPrelevement || !p?.dateDebut || p.type !== "depense") {
+        return false;
+      }
+
+      const dateDebut = new Date(p.dateDebut + "-01");
+      const jourPrelevement = parseInt(p.jourPrelevement);
+
+      // Vérifie si le paiement est actif (commencé avant ou pendant le mois en cours)
+      const estActif = dateDebut <= dateObj;
+
+      // Vérifie si le jour de prélèvement est dans le mois en cours
+      return estActif && jourPrelevement <= dernierJourDuMois;
+    })
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
+}
+
+/**
+ * Calcule le total des revenus récurrents du mois
+ * @param {Array} paiementsRecurrents - Tableau des paiements récurrents
+ * @param {Date} date - Date de référence
+ * @returns {number} - Total des revenus récurrents du mois
+ */
+export function calculTotalRevenusRecurrentsMois(
+  paiementsRecurrents = [],
+  date = new Date()
+) {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
+
+  return paiementsRecurrents
+    .filter((p) => {
+      // Vérification rapide des données requises
+      if (!p?.jourPrelevement || !p?.dateDebut || p.type !== "revenu") {
+        return false;
+      }
+
+      // Conversion de la date de début (format YYYY-MM)
+      const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
+      const dateDebut = new Date(anneeDebut, moisDebut - 1); // -1 car les mois commencent à 0
+      const jourPrelevement = parseInt(p.jourPrelevement);
+
+      // Vérifie si le paiement est actif (commencé avant ou pendant le mois en cours)
+      const estActif = dateDebut <= dateObj;
+
+      // Vérifie si le jour de prélèvement est dans le mois en cours
+      return estActif && jourPrelevement <= dernierJourDuMois;
+    })
+    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
+}
+
+// =====================
+// ÉCHELONNÉS
+// =====================
+
+/**
+ * Calcule le total des paiements échelonnés du mois
+ * @returns {number} - Total des paiements échelonnés du mois
+ */
+export function calculTotalEchelonnesMois() {
+  return 0;
+}
+
+// =====================
+// DASHBOARD
+// =====================
+
+/**
+ * Calcule les dépenses par catégorie
+ * @returns {Array} - Tableau des dépenses par catégorie
+ */
+export function calculDepensesParCategorie() {
+  return [];
+}
+
+/**
+ * Calcule les données pour le graphique en barres (6 derniers mois)
+ * @returns {Array} - Données pour le graphique
+ */
+export function calculBarChartData() {
+  return [];
+}
+
+// =====================
+// CALCULS JUSQU'À AUJOURD'HUI
+// =====================
+
+export function calculDepensesClassiquesJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculDepensesRecurrentesJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculDepensesEchelonneesJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculRevenusClassiquesJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculRevenusRecurrentsJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculRevenusEchelonnesJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculTotalRevenusJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculTotalDepensesJusquaAujourdhui() {
+  return 0;
+}
+
+export function calculEconomiesJusquaAujourdhui() {
+  return 0;
+}
+
+// =====================
+// CALCULS DU MOIS PRÉCÉDENT
+// =====================
+
+export function calculDepensesClassiquesMoisPrecedent() {
+  return 0;
+}
+
+export function calculDepensesRecurrentesMoisPrecedent() {
+  return 0;
+}
+
+export function calculDepensesEchelonneesMoisPrecedent() {
+  return 0;
+}
+
+export function calculRevenusClassiquesMoisPrecedent() {
+  return 0;
+}
+
+export function calculRevenusRecurrentsMoisPrecedent() {
+  return 0;
+}
+
+export function calculRevenusEchelonnesMoisPrecedent() {
   return 0;
 }
 

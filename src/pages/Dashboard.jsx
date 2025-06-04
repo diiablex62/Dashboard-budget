@@ -146,44 +146,40 @@ export default function Dashboard() {
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   const totalRecurrents = useMemo(() => {
-    return calculTotalRecurrentsMois();
+    return 0; // Temporairement mis à 0 en attendant la finalisation des autres onglets
   }, [paiementsRecurrents]);
 
   // --- Détail des sous-totaux pour le mois courant ---
-  const depensesClassiquesCourant = calculDepensesClassiquesJusquaAujourdhui();
-  const recurrentsDepenseCourant = calculDepensesRecurrentesJusquaAujourdhui();
-  const echelonnesDepenseCourant = calculDepensesEchelonneesJusquaAujourdhui();
+  const depensesClassiquesCourant = 0;
+  const recurrentsDepenseCourant = 0;
+  const echelonnesDepenseCourant = 0;
 
   // --- Détail des sous-totaux pour le mois précédent ---
-  const depensesClassiquesMoisPrec = calculDepensesClassiquesMoisPrecedent();
-  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesMoisPrecedent();
-  const echelonnesDepenseMoisPrec = calculDepensesEchelonneesMoisPrecedent();
+  const depensesClassiquesMoisPrec = 0;
+  const recurrentsDepenseMoisPrec = 0;
+  const echelonnesDepenseMoisPrec = 0;
 
   // --- Détail des revenus pour le mois précédent ---
-  const revenusClassiquesMoisPrec = calculRevenusClassiquesMoisPrecedent();
-  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsMoisPrecedent();
-  const echelonnesRevenuMoisPrec = calculRevenusEchelonnesMoisPrecedent();
+  const revenusClassiquesMoisPrec = 0;
+  const recurrentsRevenuMoisPrec = 0;
+  const echelonnesRevenuMoisPrec = 0;
 
   // --- Totaux revenus jusqu'à aujourd'hui ---
-  const totalRevenusJusquaAujourdhui = calculTotalRevenusJusquaAujourdhui();
-  const totalDepenseJusquaAujourdhui = calculTotalDepensesJusquaAujourdhui();
-  const totalEconomiesJusquaAujourdhui = calculEconomiesJusquaAujourdhui();
+  const totalRevenusJusquaAujourdhui = 0;
+  const totalDepenseJusquaAujourdhui = 0;
+  const totalEconomiesJusquaAujourdhui = 0;
 
   // --- Totaux du mois précédent (mois complet) ---
-  const totalRevenusMoisPrecedent = totalRevenusGlobalMois();
-  const totalDepenseMoisPrecedent = calculTotalDepensesMois(
-    depenseRevenu,
-    new Date(now.getFullYear(), now.getMonth() - 1)
-  );
-  const totalEconomiesMoisPrecedent = calculEconomies();
+  const totalRevenusMoisPrecedent = 0;
+  const totalDepenseMoisPrecedent = 0;
+  const totalEconomiesMoisPrecedent = 0;
 
-  const differenceEconomiesMoisPrecedent =
-    totalEconomiesMoisPrecedent - totalEconomiesJusquaAujourdhui;
+  const differenceEconomiesMoisPrecedent = 0;
 
   // --- Déclarations pour la carte revenus (tooltip) ---
-  const revenusClassiquesCourant = calculRevenusClassiquesJusquaAujourdhui();
-  const recurrentsRevenuCourant = calculRevenusRecurrentsJusquaAujourdhui();
-  const echelonnesRevenuCourant = calculRevenusEchelonnesJusquaAujourdhui();
+  const revenusClassiquesCourant = 0;
+  const recurrentsRevenuCourant = 0;
+  const echelonnesRevenuCourant = 0;
 
   // Différence dépenses mois précédent (alignée avec le détail du tooltip)
   const differenceMoisPrecedent = useMemo(() => {
@@ -651,28 +647,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
-          <div className='flex items-center justify-between'>
-            <span className='text-gray-500 font-medium flex items-baseline gap-1'>
-              <span className='text-xl font-bold'>
-                {paiementsRecurrents.length}
-              </span>
-              Paiements récurrents
-            </span>
-            <AiOutlineCalendar className='text-purple-400 text-xl' />
-          </div>
-          <div className='text-2xl font-bold dark:text-white'>
-            {formatMontant(totalRecurrents)}€
-            <span className='text-xs text-gray-400 font-normal ml-1'>
-              /mois
-            </span>
-          </div>
-          <button
-            className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
-            onClick={() => navigate("/recurrents")}>
-            Gérer →
-          </button>
         </div>
         <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
           <div className='flex items-center justify-between'>
