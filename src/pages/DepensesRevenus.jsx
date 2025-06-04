@@ -39,7 +39,7 @@ import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 export default function DepensesRevenus() {
   const { getData } = useAuth();
-  const [currentTab, setCurrentTab] = useState("depense");
+  const [currentTab, setCurrentTab] = useState("revenu");
   const [depenses, setDepenses] = useState([]);
   const [revenus, setRevenus] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -128,9 +128,13 @@ export default function DepensesRevenus() {
             {/* Titre et sélecteur de mois */}
             <div className='mb-6 flex items-center justify-between'>
               <div>
-                <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>Dépenses et Revenus</h1>
+                <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>
+                  Dépenses et Revenus
+                </h1>
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  {currentTab === "depense" ? "Gérez vos dépenses mensuelles" : "Gérez vos revenus mensuels"}
+                  {currentTab === "depense"
+                    ? "Gérez vos dépenses mensuelles"
+                    : "Gérez vos revenus mensuels"}
                 </p>
               </div>
               <MonthPickerModal

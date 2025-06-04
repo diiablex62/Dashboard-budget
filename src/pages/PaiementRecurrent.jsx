@@ -39,7 +39,7 @@ const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
     fakePaiementsRecurrents
   );
-  const [currentTab, setCurrentTab] = useState("depense");
+  const [currentTab, setCurrentTab] = useState("revenu");
   const [error] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedPaiement, setSelectedPaiement] = useState(null);
