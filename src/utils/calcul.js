@@ -17,7 +17,7 @@ export const calculateDepenseRevenuTotal = (
   console.log(
     `[calculateDepenseRevenuTotal] Total ${
       isDepense ? "dépenses" : "revenus"
-    }: ${total}€`
+    }: ${formatMontant(total)}€`
   );
   return total;
 };
@@ -39,10 +39,8 @@ export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
   console.log(
     `[calculTotalDepensesMois] Total dépenses du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 }
@@ -71,10 +69,8 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
   console.log(
     `[totalRevenusGlobalMois] Total revenus du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 }
@@ -120,10 +116,8 @@ export function calculTotalRecurrentsMois(
   console.log(
     `[calculTotalRecurrentsMois] Total paiements récurrents du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 }
@@ -162,10 +156,8 @@ export const calculTotalDepensesRecurrentesMois = (
   console.log(
     `[calculTotalDepensesRecurrentesMois] Total dépenses récurrentes du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 };
@@ -201,10 +193,8 @@ export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
   console.log(
     `[calculTotalRevenusRecurrentsMois] Total revenus récurrents du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 };
@@ -249,10 +239,8 @@ export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
   console.log(
     `[calculTotalEchelonnesMois] Total paiements échelonnés du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 };
@@ -305,10 +293,8 @@ export const calculTotalCreditEchelonneesMois = (paiementsEchelonnes, date) => {
   console.log(
     `[calculTotalCreditEchelonneesMois] Total crédits échelonnés du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 };
@@ -361,10 +347,8 @@ export const calculTotalDebitEchelonneesMois = (paiementsEchelonnes, date) => {
   console.log(
     `[calculTotalDebitEchelonneesMois] Total débits échelonnés du mois ${dateObj.toLocaleDateString(
       "fr-FR",
-      {
-        month: "long",
-      }
-    )}: ${total}€`
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 };
@@ -375,9 +359,14 @@ export const calculPaiementsEchelonnesActifs = (
   date,
   isRevenus
 ) => {
-  if (!paiementsEchelonnes || !date) return 0;
+  if (!paiementsEchelonnes || !date) {
+    console.log(
+      `[calculPaiementsEchelonnesActifs] Nombre de paiements échelonnés actifs: 0 (données invalides)`
+    );
+    return 0;
+  }
 
-  return paiementsEchelonnes
+  const count = paiementsEchelonnes
     .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
     .filter((paiement) => {
       const debut = new Date(paiement.debutDate);
@@ -393,6 +382,13 @@ export const calculPaiementsEchelonnesActifs = (
           date.getMonth() <= fin.getMonth());
       return afterStart && beforeEnd;
     }).length;
+
+  console.log(
+    `[calculPaiementsEchelonnesActifs] Nombre de paiements échelonnés actifs (${
+      isRevenus ? "revenus" : "dépenses"
+    }): ${count}`
+  );
+  return count;
 };
 
 // Calcule les informations de progression d'un paiement échelonné
@@ -419,6 +415,13 @@ export const calculProgressionPaiementEchelonne = (paiement, dateReference) => {
   const nombreMensualites = parseInt(paiement.mensualites);
   const montantMensuel = montantTotal / nombreMensualites;
 
+  console.log(`[calculProgressionPaiementEchelonne] Progression du paiement:
+    - Mensualités payées: ${mensualitesPayees}/${nombreMensualites}
+    - Pourcentage: ${pourcentage.toFixed(2)}%
+    - Montant mensuel: ${formatMontant(montantMensuel)}€
+    - Montant total: ${formatMontant(montantTotal)}€
+    - Date de fin: ${finDate.toLocaleDateString("fr-FR")}`);
+
   return {
     mensualitesPayees,
     pourcentage,
@@ -437,7 +440,11 @@ export const calculProgressionPaiementEchelonne = (paiement, dateReference) => {
 export const calculEconomies = (totalRevenus, totalDepenses) => {
   const economie = totalRevenus - totalDepenses;
   console.log(
-    `[calculEconomies] Économies calculées: ${economie}€ (Revenus: ${totalRevenus}€ - Dépenses: ${totalDepenses}€)`
+    `[calculEconomies] Économies calculées: ${formatMontant(
+      economie
+    )}€ (Revenus: ${formatMontant(totalRevenus)}€ - Dépenses: ${formatMontant(
+      totalDepenses
+    )}€)`
   );
   return economie;
 };
@@ -533,4 +540,235 @@ export const formatMontant = (montant) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+};
+
+// Calcul du total des dépenses classiques du mois
+export const calculDepensesClassiquesMois = (depenses, date) => {
+  if (!depenses || !Array.isArray(depenses)) {
+    console.log("[calculDepensesClassiquesMois] Aucune dépense trouvée");
+    return 0;
+  }
+
+  const currentMonth = date.getMonth();
+  const currentYear = date.getFullYear();
+
+  const total = depenses
+    .filter(
+      (d) =>
+        d.date.getMonth() === currentMonth &&
+        d.date.getFullYear() === currentYear &&
+        d.date <= date
+    )
+    .reduce((total, d) => total + d.montant, 0);
+
+  console.log(
+    `[calculDepensesClassiquesMois] Total dépenses classiques: ${formatMontant(
+      total
+    )}€`
+  );
+  return total;
+};
+
+// Calcul du total des dépenses récurrentes du mois
+export const calculDepensesRecurrentesMois = (paiementsRecurrents, date) => {
+  if (!paiementsRecurrents || !Array.isArray(paiementsRecurrents)) {
+    console.log(
+      "[calculDepensesRecurrentesMois] Aucun paiement récurrent trouvé"
+    );
+    return 0;
+  }
+
+  const total = paiementsRecurrents
+    .filter((p) => p.type === "depense" && p.jourPrelevement <= date.getDate())
+    .reduce((total, p) => total + p.montant, 0);
+
+  console.log(
+    `[calculDepensesRecurrentesMois] Total dépenses récurrentes: ${formatMontant(
+      total
+    )}€`
+  );
+  return total;
+};
+
+// Calcul du total des dépenses échelonnées du mois
+export const calculDepensesEchelonneesMois = (paiementsEchelonnes, date) => {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
+    console.log(
+      "[calculDepensesEchelonneesMois] Aucun paiement échelonné trouvé"
+    );
+    return 0;
+  }
+
+  const currentMonth = date.getMonth();
+  const currentYear = date.getFullYear();
+
+  const total = paiementsEchelonnes
+    .filter(
+      (e) =>
+        e.type === "depense" &&
+        e.date.getMonth() === currentMonth &&
+        e.date.getFullYear() === currentYear &&
+        e.date <= date
+    )
+    .reduce((total, e) => total + e.montant, 0);
+
+  console.log(
+    `[calculDepensesEchelonneesMois] Total dépenses échelonnées: ${formatMontant(
+      total
+    )}€`
+  );
+  return total;
+};
+
+// Calcul du total général des dépenses du mois
+export const calculTotalDepenseGeneralMois = (data, date) => {
+  if (!data) {
+    console.log("[calculTotalDepenseGeneralMois] Aucune donnée fournie");
+    return {
+      total: 0,
+      depensesClassiques: 0,
+      depensesRecurrentes: 0,
+      depensesEchelonnees: 0,
+    };
+  }
+
+  const {
+    depenses = [],
+    paiementsRecurrents = [],
+    paiementsEchelonnes = [],
+  } = data;
+
+  const depensesClassiques = calculDepensesClassiquesMois(depenses, date);
+  const depensesRecurrentes = calculDepensesRecurrentesMois(
+    paiementsRecurrents,
+    date
+  );
+  const depensesEchelonnees = calculDepensesEchelonneesMois(
+    paiementsEchelonnes,
+    date
+  );
+
+  const total = depensesClassiques + depensesRecurrentes + depensesEchelonnees;
+
+  console.log(
+    `[calculTotalDepenseGeneralMois] Total général des dépenses: ${formatMontant(
+      total
+    )}€`
+  );
+  console.log(`[calculTotalDepenseGeneralMois] Détail:
+    - Dépenses classiques: ${formatMontant(depensesClassiques)}€
+    - Dépenses récurrentes: ${formatMontant(depensesRecurrentes)}€
+    - Dépenses échelonnées: ${formatMontant(depensesEchelonnees)}€`);
+
+  return {
+    total,
+    depensesClassiques,
+    depensesRecurrentes,
+    depensesEchelonnees,
+  };
+};
+
+// Calcul du total des revenus classiques du mois
+export const calculRevenusClassiquesMois = (revenus, date) => {
+  if (!revenus || !Array.isArray(revenus)) {
+    console.log("[calculRevenusClassiquesMois] Aucun revenu trouvé");
+    return 0;
+  }
+
+  const currentMonth = date.getMonth();
+  const currentYear = date.getFullYear();
+
+  const total = revenus
+    .filter(
+      (r) =>
+        r.date.getMonth() === currentMonth &&
+        r.date.getFullYear() === currentYear &&
+        r.date <= date
+    )
+    .reduce((total, r) => total + r.montant, 0);
+
+  console.log(
+    `[calculRevenusClassiquesMois] Total revenus classiques: ${formatMontant(
+      total
+    )}€`
+  );
+  return total;
+};
+
+// Calcul du total des revenus échelonnés du mois
+export const calculRevenusEchelonnesMois = (paiementsEchelonnes, date) => {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
+    console.log(
+      "[calculRevenusEchelonnesMois] Aucun paiement échelonné trouvé"
+    );
+    return 0;
+  }
+
+  const currentMonth = date.getMonth();
+  const currentYear = date.getFullYear();
+
+  const total = paiementsEchelonnes
+    .filter(
+      (e) =>
+        e.type === "revenu" &&
+        e.date.getMonth() === currentMonth &&
+        e.date.getFullYear() === currentYear &&
+        e.date <= date
+    )
+    .reduce((total, e) => total + e.montant, 0);
+
+  console.log(
+    `[calculRevenusEchelonnesMois] Total revenus échelonnés: ${formatMontant(
+      total
+    )}€`
+  );
+  return total;
+};
+
+// Calcul du total général des revenus du mois
+export const calculTotalRevenuGeneralMois = (data, date) => {
+  if (!data) {
+    console.log("[calculTotalRevenuGeneralMois] Aucune donnée fournie");
+    return {
+      total: 0,
+      revenusClassiques: 0,
+      revenusRecurrents: 0,
+      revenusEchelonnes: 0,
+    };
+  }
+
+  const {
+    revenus = [],
+    paiementsRecurrents = [],
+    paiementsEchelonnes = [],
+  } = data;
+
+  const revenusClassiques = calculRevenusClassiquesMois(revenus, date);
+  const revenusRecurrents = calculRevenusRecurrentsMois(
+    paiementsRecurrents,
+    date
+  );
+  const revenusEchelonnes = calculRevenusEchelonnesMois(
+    paiementsEchelonnes,
+    date
+  );
+
+  const total = revenusClassiques + revenusRecurrents + revenusEchelonnes;
+
+  console.log(
+    `[calculTotalRevenuGeneralMois] Total général des revenus: ${formatMontant(
+      total
+    )}€`
+  );
+  console.log(`[calculTotalRevenuGeneralMois] Détail:
+    - Revenus classiques: ${formatMontant(revenusClassiques)}€
+    - Revenus récurrents: ${formatMontant(revenusRecurrents)}€
+    - Revenus échelonnés: ${formatMontant(revenusEchelonnes)}€`);
+
+  return {
+    total,
+    revenusClassiques,
+    revenusRecurrents,
+    revenusEchelonnes,
+  };
 };
