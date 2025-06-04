@@ -129,24 +129,24 @@ export default function Dashboard() {
   // Calcul du total des paiements échelonnés (dépenses) du mois
   const now = new Date();
   const totalEchelonnes = useMemo(() => {
-    return calculTotalEchelonnesMois();
+    return 0;
   }, []);
 
   // Calcul des économies (revenus - tout ce qui sort)
-  const totalRevenus = totalRevenusGlobalMois(depenseRevenu, now);
-  const totalDepense = calculTotalDepensesMois(depenseRevenu);
-  const totalEconomies = totalRevenus - totalDepense;
+  const totalRevenus = 0;
+  const totalDepense = 0;
+  const totalEconomies = 0;
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
-  const depensesParCategorie = calculDepensesParCategorie();
+  const depensesParCategorie = [];
 
   useEffect(() => {
-    const data = calculBarChartData();
+    const data = [];
     setBarChartData(data);
   }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
   const totalRecurrents = useMemo(() => {
-    return 0; // Temporairement mis à 0 en attendant la finalisation des autres onglets
+    return 0;
   }, [paiementsRecurrents]);
 
   // --- Détail des sous-totaux pour le mois courant ---
@@ -205,18 +205,14 @@ export default function Dashboard() {
   const today = new Date();
 
   // Dépenses et revenus récurrents/échelonnés à venir (déclaration unique)
-  const depensesRecEchAVenir =
-    calculTotalRecurrentsMois() + calculTotalEchelonnesMois();
-  const revenusRecEchAVenir =
-    calculTotalRevenusRecurrentsMois() + calculTotalEchelonnesMois();
+  const depensesRecEchAVenir = 0;
+  const revenusRecEchAVenir = 0;
 
   // Dépenses et revenus classiques à venir
-  const depensesAVenir =
-    calculTotalDepensesMois(depenseRevenu) + depensesRecEchAVenir;
-  const revenusAVenir =
-    totalRevenusGlobalMois(depenseRevenu, now) + revenusRecEchAVenir;
+  const depensesAVenir = 0;
+  const revenusAVenir = 0;
 
-  const budgetPrevisionnel = totalEconomies - depensesAVenir + revenusAVenir;
+  const budgetPrevisionnel = 0;
 
   // Calculs pour le détail du prévisionnel
   const isCurrentMonth = (date) =>
@@ -225,7 +221,7 @@ export default function Dashboard() {
   const isFuture = (date) => date > today;
 
   // Calcul du total dépensé ce mois-ci jusqu'à aujourd'hui (identique au détail)
-  const totalDepensePrelevee = calculTotalDepensesJusquaAujourdhui();
+  const totalDepensePrelevee = 0;
 
   // Différence revenus mois précédent (alignée avec le détail du tooltip)
   const differenceRevenusMoisPrecedent = useMemo(() => {
