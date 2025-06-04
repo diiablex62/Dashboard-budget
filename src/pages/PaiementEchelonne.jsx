@@ -21,6 +21,8 @@ import {
   formatMontant,
   calculTotalCreditEchelonneesMois,
   calculTotalDebitEchelonneesMois,
+  calculPaiementsEchelonnesActifs,
+  calculProgressionPaiementEchelonne,
 } from "../utils/calcul";
 
 export const PaiementEchelonne = () => {
@@ -80,22 +82,11 @@ export const PaiementEchelonne = () => {
   }, [paiementsEchelonnes, selectedDate, isRevenus]);
 
   const paiementsActifsCount = useMemo(() => {
-    return paiementsEchelonnes
-      .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
-      .filter((paiement) => {
-        const debut = new Date(paiement.debutDate);
-        const fin = new Date(paiement.debutDate);
-        fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
-        const afterStart =
-          selectedDate.getFullYear() > debut.getFullYear() ||
-          (selectedDate.getFullYear() === debut.getFullYear() &&
-            selectedDate.getMonth() >= debut.getMonth());
-        const beforeEnd =
-          selectedDate.getFullYear() < fin.getFullYear() ||
-          (selectedDate.getFullYear() === fin.getFullYear() &&
-            selectedDate.getMonth() <= fin.getMonth());
-        return afterStart && beforeEnd;
-      }).length;
+    return calculPaiementsEchelonnesActifs(
+      paiementsEchelonnes,
+      selectedDate,
+      isRevenus
+    );
   }, [paiementsEchelonnes, selectedDate, isRevenus]);
 
   useEffect(() => {
@@ -278,39 +269,19 @@ export const PaiementEchelonne = () => {
                   return afterStart && beforeEnd;
                 })
                 .map((paiement) => {
-                  // Calcul dynamique du nombre de mensualités payées selon selectedDate
-                  const debut = new Date(paiement.debutDate);
-                  const moisEcoules =
-                    (selectedDate.getFullYear() - debut.getFullYear()) * 12 +
-                    (selectedDate.getMonth() - debut.getMonth()) +
-                    1;
-                  const mensualitesPayees = Math.max(
-                    1,
-                    Math.min(moisEcoules, paiement.mensualites)
+                  const progression = calculProgressionPaiementEchelonne(
+                    paiement,
+                    selectedDate
                   );
-                  const pourcentage =
-                    (mensualitesPayees / paiement.mensualites) * 100;
-                  const finDate = new Date(
-                    new Date(paiement.debutDate).setMonth(
-                      new Date(paiement.debutDate).getMonth() +
-                        parseInt(paiement.mensualites) -
-                        1
-                    )
-                  );
-
-                  // Calcul du montant mensuel
-                  const montantTotal = Math.abs(parseFloat(paiement.montant));
-                  const nombreMensualites = parseInt(paiement.mensualites);
-                  const montantMensuel = montantTotal / nombreMensualites;
 
                   return (
                     <CardDesign
                       key={paiement.id}
                       item={{
                         ...paiement,
-                        montant: montantMensuel,
-                        montantTotal: montantTotal,
-                        nombreMensualites: nombreMensualites,
+                        montant: progression.montantMensuel,
+                        montantTotal: progression.montantTotal,
+                        nombreMensualites: progression.nombreMensualites,
                       }}
                       currentTab={isRevenus ? "debit" : "credit"}
                       onEdit={() => handleEdit(paiement)}
@@ -320,12 +291,14 @@ export const PaiementEchelonne = () => {
                         <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
                           <div
                             className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
-                            style={{ width: `${pourcentage}%` }}></div>
+                            style={{
+                              width: `${progression.pourcentage}%`,
+                            }}></div>
                         </div>
                         {/* Infos mensualité et fin */}
                         <div className='flex justify-between items-center text-sm text-gray-500 dark:text-gray-400'>
                           <span className='font-medium'>
-                            Mensualité {mensualitesPayees}/
+                            Mensualité {progression.mensualitesPayees}/
                             {paiement.mensualites}
                           </span>
                           <div className='flex flex-col items-end'>
@@ -336,7 +309,8 @@ export const PaiementEchelonne = () => {
                               )}
                             </span>
                             <span>
-                              Fin : {finDate.toLocaleDateString("fr-FR")}
+                              Fin :{" "}
+                              {progression.finDate.toLocaleDateString("fr-FR")}
                             </span>
                           </div>
                         </div>

@@ -267,6 +267,66 @@ export const calculTotalDebitEchelonneesMois = (paiementsEchelonnes, date) => {
     }, 0);
 };
 
+// Calcule le nombre de paiements échelonnés actifs pour un mois donné
+export const calculPaiementsEchelonnesActifs = (
+  paiementsEchelonnes,
+  date,
+  isRevenus
+) => {
+  if (!paiementsEchelonnes || !date) return 0;
+
+  return paiementsEchelonnes
+    .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
+    .filter((paiement) => {
+      const debut = new Date(paiement.debutDate);
+      const fin = new Date(paiement.debutDate);
+      fin.setMonth(fin.getMonth() + parseInt(paiement.mensualites) - 1);
+      const afterStart =
+        date.getFullYear() > debut.getFullYear() ||
+        (date.getFullYear() === debut.getFullYear() &&
+          date.getMonth() >= debut.getMonth());
+      const beforeEnd =
+        date.getFullYear() < fin.getFullYear() ||
+        (date.getFullYear() === fin.getFullYear() &&
+          date.getMonth() <= fin.getMonth());
+      return afterStart && beforeEnd;
+    }).length;
+};
+
+// Calcule les informations de progression d'un paiement échelonné
+export const calculProgressionPaiementEchelonne = (paiement, dateReference) => {
+  const debut = new Date(paiement.debutDate);
+  const moisEcoules =
+    (dateReference.getFullYear() - debut.getFullYear()) * 12 +
+    (dateReference.getMonth() - debut.getMonth()) +
+    1;
+  const mensualitesPayees = Math.max(
+    1,
+    Math.min(moisEcoules, paiement.mensualites)
+  );
+  const pourcentage = (mensualitesPayees / paiement.mensualites) * 100;
+  const finDate = new Date(
+    new Date(paiement.debutDate).setMonth(
+      new Date(paiement.debutDate).getMonth() +
+        parseInt(paiement.mensualites) -
+        1
+    )
+  );
+
+  const montantTotal = Math.abs(parseFloat(paiement.montant));
+  const nombreMensualites = parseInt(paiement.mensualites);
+  const montantMensuel = montantTotal / nombreMensualites;
+
+  return {
+    mensualitesPayees,
+    pourcentage,
+    finDate,
+    montantMensuel,
+    montantTotal,
+    nombreMensualites,
+  };
+};
+
 // =====================
 // DASHBOARD
 // =====================
