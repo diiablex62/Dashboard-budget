@@ -265,12 +265,14 @@ export function ModalDepenseRevenu({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
-
-    if (!isKeyboardNavigation.current) {
-      shouldValidateCategory.current = true;
-    }
-    isKeyboardNavigation.current = false;
   }, []);
+
+  // Effet pour la validation de la catégorie
+  useEffect(() => {
+    if (step === 2 && form.categorie) {
+      handleNext();
+    }
+  }, [form.categorie, step, handleNext]);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -639,15 +641,22 @@ export function ModalRecurrent({
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
-  const handleCategoryChange = useCallback((e) => {
-    const newCategory = e.target.value;
-    setForm((prev) => ({ ...prev, categorie: newCategory }));
-
-    if (!isKeyboardNavigation.current) {
-      shouldValidateCategory.current = true;
-    }
-    isKeyboardNavigation.current = false;
-  }, []);
+  const handleCategoryChange = useCallback(
+    (e) => {
+      const newCategory = e.target.value;
+      setForm((prev) => {
+        const newForm = { ...prev, categorie: newCategory };
+        // On valide après la mise à jour de l'état
+        if (newCategory) {
+          setTimeout(() => {
+            handleNext();
+          }, 0);
+        }
+        return newForm;
+      });
+    },
+    [handleNext]
+  );
 
   const handleDayClick = useCallback((day) => {
     setForm((prev) => ({ ...prev, jour: day.toString() }));
@@ -1064,12 +1073,14 @@ export function ModalEchelonne({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
-
-    if (!isKeyboardNavigation.current) {
-      shouldValidateCategory.current = true;
-    }
-    isKeyboardNavigation.current = false;
   }, []);
+
+  // Effet pour la validation de la catégorie
+  useEffect(() => {
+    if (step === 2 && form.categorie) {
+      handleNext();
+    }
+  }, [form.categorie, step, handleNext]);
 
   const handleKeyDown = useCallback(
     (e) => {
