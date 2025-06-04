@@ -123,17 +123,13 @@ const DepenseCard = ({
         )}
       </div>
       {/* Nouveau Tooltip des dépenses */}
-      <div className='absolute bottom-4 right-4 group'>
-        <AiOutlineInfoCircle
-          className='text-gray-400 hover:text-gray-600 cursor-help text-lg'
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
+      <div className='absolute bottom-4 right-4'>
+        <TooltipDepense
+          depensesClassiques={[]}
+          depensesRecurrentes={[]}
+          depensesEchelonnees={[]}
+          totalDepense={0}
         />
-        {showTooltip && (
-          <div className='absolute bottom-0 right-full mr-2 z-50'>
-            <TooltipDepense data={tooltipData} />
-          </div>
-        )}
       </div>
     </div>
   );
