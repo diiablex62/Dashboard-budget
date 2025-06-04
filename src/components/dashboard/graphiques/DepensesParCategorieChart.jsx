@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import AnimationDepensesParCategorieChart from "./AnimationDepensesParCategorieChart";
-import { formatMontant } from "../../utils/calcul";
+import { formatMontant } from "../../../utils/calcul";
 
 const COLORS = [
   "#FF6B6B",

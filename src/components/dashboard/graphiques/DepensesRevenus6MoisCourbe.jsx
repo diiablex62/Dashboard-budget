@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { formatMontant } from "../../utils/calcul";
+import { formatMontant } from "../../../utils/calcul";
 
 export default function DepensesRevenus6MoisCourbe({ data }) {
   return (
