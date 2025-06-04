@@ -231,80 +231,69 @@ export const calculTotalDepensesEchelonneesMois = (
 
   // Initialisation des variables
   const dateObj = new Date(date);
-  const mois = dateObj.getMonth() + 1; // +1 car getMonth() retourne 0-11
+  const mois = dateObj.getMonth() + 1;
   const annee = dateObj.getFullYear();
+  const dateActuelle = new Date(annee, mois - 1);
+  const dateActuelleFin = new Date(annee, mois, 0);
 
   console.log(`\n=== Calcul des mensualités pour ${mois}/${annee} ===`);
 
   // Calcul des totaux par type
-  let totalCredit = 0;
-  let totalDebit = 0;
+  const { credits, debits } = paiementsEchelonnes.reduce(
+    (acc, p) => {
+      if (!p.debutDate || !p.mensualites || !p.montant) return acc;
 
-  paiementsEchelonnes.forEach((p) => {
-    if (!p.debutDate || !p.mensualites || !p.montant) return;
+      const dateDebut = new Date(p.debutDate);
+      const dateFin = new Date(dateDebut);
+      dateFin.setMonth(dateFin.getMonth() + Number(p.mensualites) - 1);
 
-    const dateDebut = new Date(p.debutDate);
-    const dateFin = new Date(dateDebut);
-    dateFin.setMonth(dateFin.getMonth() + Number(p.mensualites) - 1);
+      // Vérifie si le paiement est actif pour ce mois
+      const estActif =
+        // Commence ce mois-ci
+        (dateDebut.getMonth() === dateActuelle.getMonth() &&
+          dateDebut.getFullYear() === dateActuelle.getFullYear()) ||
+        // Se termine ce mois-ci
+        (dateFin.getMonth() === dateActuelle.getMonth() &&
+          dateFin.getFullYear() === dateActuelle.getFullYear()) ||
+        // Est en cours ce mois-ci
+        (dateActuelle <= dateFin && dateActuelleFin >= dateDebut);
 
-    // Vérifie si le mois actuel est dans la période de paiement
-    const dateActuelle = new Date(annee, mois - 1);
-    const dateActuelleFin = new Date(annee, mois, 0); // Dernier jour du mois
+      if (estActif) {
+        const mensualite = Number(p.montant) / Number(p.mensualites);
+        const moisEcoules =
+          (dateActuelle.getFullYear() - dateDebut.getFullYear()) * 12 +
+          (dateActuelle.getMonth() - dateDebut.getMonth());
+        const numeroMensualite = moisEcoules + 1;
 
-    // Un paiement est valide si :
-    // 1. Il commence ce mois-ci
-    // 2. Il se termine ce mois-ci
-    // 3. Il est en cours ce mois-ci
-    const commenceCeMois =
-      dateDebut.getMonth() === dateActuelle.getMonth() &&
-      dateDebut.getFullYear() === dateActuelle.getFullYear();
-    const termineCeMois =
-      dateFin.getMonth() === dateActuelle.getMonth() &&
-      dateFin.getFullYear() === dateActuelle.getFullYear();
-    const estEnCours = dateActuelle <= dateFin && dateActuelleFin >= dateDebut;
+        console.log(`\n${p.nom}:`);
+        console.log(`- Type: ${p.type}`);
+        console.log(`- Montant total: ${p.montant}€`);
+        console.log(`- Nombre de mensualités: ${p.mensualites}`);
+        console.log(`- Mensualité: ${mensualite}€`);
+        console.log(
+          `- Période: ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`
+        );
+        console.log(
+          `- Mensualité ${numeroMensualite}/${p.mensualites} pour ${mois}/${annee}`
+        );
 
-    if (commenceCeMois || termineCeMois || estEnCours) {
-      const montantTotal = Number(p.montant);
-      const nombreMensualites = Number(p.mensualites);
-      const mensualite = montantTotal / nombreMensualites;
-
-      // Calcul du numéro de la mensualité actuelle
-      const moisEcoules =
-        (dateActuelle.getFullYear() - dateDebut.getFullYear()) * 12 +
-        (dateActuelle.getMonth() - dateDebut.getMonth());
-      const numeroMensualite = moisEcoules + 1;
-
-      console.log(`\n${p.nom}:`);
-      console.log(`- Type: ${p.type}`);
-      console.log(`- Montant total: ${montantTotal}€`);
-      console.log(`- Nombre de mensualités: ${nombreMensualites}`);
-      console.log(`- Mensualité: ${mensualite}€`);
-      console.log(
-        `- Période: ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`
-      );
-      console.log(
-        `- Mensualité ${numeroMensualite}/${nombreMensualites} pour ${mois}/${annee}`
-      );
-      console.log(`- Commence ce mois: ${commenceCeMois}`);
-      console.log(`- Termine ce mois: ${termineCeMois}`);
-      console.log(`- Est en cours: ${estEnCours}`);
-
-      if (p.type === "credit") {
-        totalCredit += mensualite;
-      } else if (p.type === "debit") {
-        totalDebit += mensualite;
+        if (p.type === "credit") {
+          acc.credits += mensualite;
+        } else if (p.type === "debit") {
+          acc.debits += mensualite;
+        }
       }
-    }
-  });
+
+      return acc;
+    },
+    { credits: 0, debits: 0 }
+  );
 
   console.log(`\nRésultat final pour ${mois}/${annee}:`);
-  console.log(`- Total Crédits: ${totalCredit}€`);
-  console.log(`- Total Débits: ${totalDebit}€`);
+  console.log(`- Total Crédits: ${credits}€`);
+  console.log(`- Total Débits: ${debits}€`);
 
-  return {
-    credits: totalCredit,
-    debits: totalDebit,
-  };
+  return { credits, debits };
 };
 
 // =====================
