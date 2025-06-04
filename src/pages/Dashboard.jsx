@@ -19,6 +19,7 @@ import {
   calculBarChartData,
   calculTotalRecurrentsMois,
   calculTotalEchelonnesMois,
+  calculPaiementsEchelonnesActifs,
   calculDepensesClassiquesJusquaAujourdhui,
   calculDepensesRecurrentesJusquaAujourdhui,
   calculDepensesEchelonneesJusquaAujourdhui,
@@ -646,25 +647,11 @@ export default function Dashboard() {
           <div className='flex items-center justify-between'>
             <span className='text-gray-500 font-medium flex items-baseline gap-1'>
               <span className='text-xl font-bold'>
-                {(() => {
-                  const now = new Date();
-                  return paiementsEchelonnes.reduce((acc, e) => {
-                    const debut = new Date(e.debutDate);
-                    const nbMensualites = parseInt(e.mensualites, 10);
-                    for (let i = 0; i < nbMensualites; i++) {
-                      const dateMensualite = new Date(debut);
-                      dateMensualite.setMonth(debut.getMonth() + i);
-                      if (
-                        dateMensualite.getFullYear() === now.getFullYear() &&
-                        dateMensualite.getMonth() === now.getMonth() &&
-                        e.type === "depense"
-                      ) {
-                        acc++;
-                      }
-                    }
-                    return acc;
-                  }, 0);
-                })()}
+                {calculPaiementsEchelonnesActifs(
+                  paiementsEchelonnes,
+                  now,
+                  false
+                )}
               </span>
               Paiements échelonnés
             </span>
@@ -672,7 +659,10 @@ export default function Dashboard() {
           </div>
           <div className='flex items-baseline gap-1'>
             <span className='text-2xl font-bold dark:text-white'>
-              {formatMontant(totalEchelonnes)}€
+              {formatMontant(
+                calculTotalEchelonnesMois(paiementsEchelonnes, now)
+              )}
+              €
             </span>
             <span className='text-xs text-gray-400 font-normal'>/mois</span>
           </div>
