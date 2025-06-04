@@ -35,13 +35,19 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
         {/* Colonne droite : montant et date (date seulement si pas d'échelonné) */}
         <div className='flex flex-col items-end justify-center min-w-0'>
           <div
-            className={`font-bold text-gray-900 dark:text-white text-base truncate`}>
+            className={`font-bold text-base truncate ${
+              currentTab === "depense"
+                ? "text-red-600 dark:text-red-400"
+                : "text-green-600 dark:text-green-400"
+            }`}>
             {!isNaN(parseFloat(item.montant)) &&
             item.montant !== "" &&
             item.montant != null ? (
-              `${item.montant.toLocaleString("fr-FR", {
+              `${
+                currentTab === "depense" ? "-" : "+"
+              }${item.montant.toLocaleString("fr-FR", {
                 minimumFractionDigits: 2,
-              })}€ / mois`
+              })}€`
             ) : (
               <span className='opacity-50'>&nbsp;</span>
             )}

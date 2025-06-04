@@ -147,7 +147,7 @@ export const calculTotalDepensesRecurrentesMois = (
 
       return estActif && p.jourPrelevement <= dernierJourDuMois;
     })
-    .reduce((total, p) => total + p.montant, 0);
+    .reduce((total, p) => total + Math.abs(parseFloat(p.montant)), 0);
 };
 
 /**
@@ -175,7 +175,7 @@ export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
 
       return estActif && p.jourPrelevement <= dernierJourDuMois;
     })
-    .reduce((total, p) => total + p.montant, 0);
+    .reduce((total, p) => total + Math.abs(parseFloat(p.montant)), 0);
 };
 
 // =====================
