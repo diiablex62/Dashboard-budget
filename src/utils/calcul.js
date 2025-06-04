@@ -49,6 +49,10 @@ export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
  * @returns {number} - Total des revenus du mois
  */
 export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
+  if (!depenseRevenu || !Array.isArray(depenseRevenu)) {
+    return 0;
+  }
+
   const dateObj = date instanceof Date ? date : new Date(date);
 
   return depenseRevenu

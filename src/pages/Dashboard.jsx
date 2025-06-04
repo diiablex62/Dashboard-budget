@@ -133,9 +133,9 @@ export default function Dashboard() {
   }, []);
 
   // Calcul des économies (revenus - tout ce qui sort)
-  const totalRevenus = totalRevenusGlobalMois();
+  const totalRevenus = totalRevenusGlobalMois(depenseRevenu, now);
   const totalDepense = calculTotalDepensesMois(depenseRevenu);
-  const totalEconomies = calculEconomies();
+  const totalEconomies = calculEconomies(totalRevenus, totalDepense);
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
   const depensesParCategorie = calculDepensesParCategorie();
@@ -213,7 +213,8 @@ export default function Dashboard() {
   // Dépenses et revenus classiques à venir
   const depensesAVenir =
     calculTotalDepensesMois(depenseRevenu) + depensesRecEchAVenir;
-  const revenusAVenir = totalRevenusGlobalMois() + revenusRecEchAVenir;
+  const revenusAVenir =
+    totalRevenusGlobalMois(depenseRevenu, now) + revenusRecEchAVenir;
 
   const budgetPrevisionnel = totalEconomies - depensesAVenir + revenusAVenir;
 
@@ -288,12 +289,6 @@ export default function Dashboard() {
                 ? "text-red-600"
                 : "text-gray-400"
             }`}>
-            {console.log("Valeurs actuelles:", {
-              totalDepense,
-              totalDepenseMoisPrecedent,
-              differenceMoisPrecedent,
-              totalDepensePrelevee,
-            })}
             {!isHoveringCalculator ? (
               <>
                 {differenceMoisPrecedent < 0
