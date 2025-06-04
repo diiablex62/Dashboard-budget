@@ -98,7 +98,7 @@ export const fakePaiementsRecurrents = [
   },
   {
     id: 3,
-    nom: "Salaire Alex",
+    nom: "Salaire 1",
     montant: 1800,
     categorie: "Salaire",
     jourPrelevement: 1,
@@ -107,7 +107,7 @@ export const fakePaiementsRecurrents = [
   },
   {
     id: 4,
-    nom: "Salaire Audrey",
+    nom: "Salaire 2",
     montant: 2200,
     categorie: "Salaire",
     jourPrelevement: 30,

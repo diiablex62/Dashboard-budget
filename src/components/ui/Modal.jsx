@@ -175,9 +175,15 @@ export function ModalDepenseRevenu({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback((e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }, []);
+  const handleChange = useCallback(
+    (e) => {
+      setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+      if (e.target.name === "date") {
+        handleNext();
+      }
+    },
+    [handleNext]
+  );
 
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
@@ -414,6 +420,7 @@ export function ModalRecurrent({
       { name: "categorie", label: "Catégorie", type: "select" },
       { name: "montant", label: "Montant (€)", type: "number" },
       { name: "jour", label: "Jour de prélèvement", type: "grid" },
+      { name: "dateDebut", label: "Date de début", type: "month" },
     ],
     []
   );
@@ -424,6 +431,7 @@ export function ModalRecurrent({
       categorie: "",
       montant: "",
       jour: "",
+      dateDebut: new Date().toISOString().slice(0, 7), // Format YYYY-MM
     }),
     []
   );
@@ -522,9 +530,15 @@ export function ModalRecurrent({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback((e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }, []);
+  const handleChange = useCallback(
+    (e) => {
+      setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+      if (e.target.name === "dateDebut") {
+        handleNext();
+      }
+    },
+    [handleNext]
+  );
 
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
@@ -608,6 +622,11 @@ export function ModalRecurrent({
                 ? `${form[s.name]} €`
                 : s.name === "jour"
                 ? `Le ${form[s.name]} de chaque mois`
+                : s.name === "dateDebut"
+                ? new Date(form[s.name] + "-01").toLocaleDateString("fr-FR", {
+                    year: "numeric",
+                    month: "long",
+                  })
                 : form[s.name]}
             </span>
           </div>
@@ -729,6 +748,23 @@ export function ModalRecurrent({
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+          {current.type === "month" && (
+            <div className='mb-4'>
+              <label className='block mb-2 font-medium dark:text-white'>
+                {current.label}
+              </label>
+              <input
+                type='month'
+                name={current.name}
+                value={form[current.name] || ""}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
+                ref={inputRef}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
             </div>
           )}
           <div className='flex justify-between mt-4'>
@@ -884,9 +920,15 @@ export function ModalEchelonne({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback((e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }, []);
+  const handleChange = useCallback(
+    (e) => {
+      setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+      if (e.target.name === "debutDate") {
+        handleNext();
+      }
+    },
+    [handleNext]
+  );
 
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
