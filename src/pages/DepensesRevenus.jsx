@@ -119,10 +119,6 @@ export default function DepensesRevenus() {
     () => totalRevenusGlobalMois(revenus, selectedDate),
     [revenus, selectedDate]
   );
-  const solde = useMemo(
-    () => calculEconomies(totalRevenus, totalDepenses),
-    [totalRevenus, totalDepenses]
-  );
 
   const renderContent = () => {
     try {
@@ -176,27 +172,6 @@ export default function DepensesRevenus() {
                 </div>
                 <div className='text-2xl text-[#222] dark:text-white'>
                   {formatMontant(totalRevenus)}€
-                </div>
-              </div>
-              {/* Carte 3: Solde */}
-              <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
-                <div className='flex items-center text-blue-600 mb-2'>
-                  <AiOutlineDollarCircle className='text-2xl mr-2' />
-                  <span className='text-sm font-semibold dark:text-white'>
-                    Solde
-                  </span>
-                </div>
-                <div
-                  className={`text-2xl font-bold ${
-                    solde > 0
-                      ? "text-green-600"
-                      : solde < 0
-                      ? "text-red-600"
-                      : "text-gray-500"
-                  }`}>
-                  {solde > 0 && "+"}
-                  {solde < 0 && "-"}
-                  {formatMontant(Math.abs(solde))}€
                 </div>
               </div>
             </div>

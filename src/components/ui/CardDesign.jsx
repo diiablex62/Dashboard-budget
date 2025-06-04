@@ -2,7 +2,6 @@ import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
 
 const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
-
   // Fonction pour formater la date (utilisée uniquement si pas d'échelonné)
   const formatDate = () => {
     if (item.jourPrelevement) {
@@ -36,15 +35,13 @@ const CardDesign = ({ item, currentTab, onEdit, onDelete, children }) => {
         {/* Colonne droite : montant et date (date seulement si pas d'échelonné) */}
         <div className='flex flex-col items-end justify-center min-w-0'>
           <div
-            className={`font-bold ${
-              currentTab === "depense" ? "text-red-600" : "text-green-600"
-            } text-base truncate`}>
+            className={`font-bold text-gray-900 dark:text-white text-base truncate`}>
             {!isNaN(parseFloat(item.montant)) &&
             item.montant !== "" &&
             item.montant != null ? (
-              `${currentTab === "depense" ? "-" : "+"}${parseFloat(
-                item.montant
-              ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}`
+              `${item.montant.toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+              })}€ / mois`
             ) : (
               <span className='opacity-50'>&nbsp;</span>
             )}

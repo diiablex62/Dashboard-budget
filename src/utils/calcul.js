@@ -87,34 +87,12 @@ export function calculTotalRecurrentsMois(
   paiementsRecurrents = [],
   date = new Date()
 ) {
-  console.log("=== CALCUL TOTAL RECURRENTS DU MOIS ===");
-  console.log("Date reçue:", date);
-  console.log("Type de date:", typeof date);
-
   const dateObj = date instanceof Date ? date : new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
-
-  console.log("Date convertie:", dateObj);
-  console.log("Mois:", mois, "Année:", annee);
-  console.log(
-    "Mois calculé:",
-    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
-  );
-  console.log("Nombre de paiements récurrents:", paiementsRecurrents.length);
-  console.log("Paiements reçus:", paiementsRecurrents);
-
   const total = paiementsRecurrents
     .filter((p) => {
-      console.log("\n--- Analyse du paiement ---");
-      console.log("Paiement complet:", p);
-
       if (!p || !p.jourPrelevement || !p.dateDebut) {
-        console.log("❌ Paiement ignoré - données manquantes:", {
-          paiement: p,
-          jourPrelevement: p?.jourPrelevement,
-          dateDebut: p?.dateDebut,
-        });
         return false;
       }
 
@@ -128,25 +106,6 @@ export function calculTotalRecurrentsMois(
       // Vérifie si le jour de prélèvement est dans le mois en cours
       const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
       const estDansMoisCourant = jourPrelevement <= dernierJourDuMois;
-
-      console.log("Détails du paiement:", {
-        nom: p.nom,
-        type: p.type,
-        dateDebut: dateDebut.toLocaleDateString("fr-FR"),
-        jourPrelevement,
-        estDepense,
-        estActif,
-        dernierJourDuMois,
-        estDansMoisCourant,
-        montant: p.montant,
-      });
-
-      if (!estDepense) {
-      }
-      if (!estActif) {
-      }
-      if (!estDansMoisCourant) {
-      }
 
       const estValide = estDepense && estActif && estDansMoisCourant;
 
@@ -166,33 +125,30 @@ export function calculTotalRecurrentsMois(
  * @param {Date} date - Date de référence
  * @returns {number} - Total des dépenses récurrentes du mois
  */
-export function calculTotalDepensesRecurrentesMois(
-  paiementsRecurrents = [],
-  date = new Date()
-) {
-  const dateObj = date instanceof Date ? date : new Date(date);
+export const calculTotalDepensesRecurrentesMois = (
+  paiementsRecurrents,
+  date
+) => {
+  if (!paiementsRecurrents || !date) return 0;
+
+  const dateObj = new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
 
   return paiementsRecurrents
     .filter((p) => {
-      // Vérification rapide des données requises
-      if (!p?.jourPrelevement || !p?.dateDebut || p.type !== "depense") {
-        return false;
-      }
+      if (!p || !p.jourPrelevement || !p.dateDebut) return false;
+      if (p.type !== "depense") return false;
 
-      const dateDebut = new Date(p.dateDebut + "-01");
-      const jourPrelevement = parseInt(p.jourPrelevement);
+      const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
+      const estActif =
+        anneeDebut < annee || (anneeDebut === annee && moisDebut <= mois);
 
-      // Vérifie si le paiement est actif (commencé avant ou pendant le mois en cours)
-      const estActif = dateDebut <= dateObj;
-
-      // Vérifie si le jour de prélèvement est dans le mois en cours
-      return estActif && jourPrelevement <= dernierJourDuMois;
+      return estActif && p.jourPrelevement <= dernierJourDuMois;
     })
-    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant)), 0);
-}
+    .reduce((total, p) => total + p.montant, 0);
+};
 
 /**
  * Calcule le total des revenus récurrents du mois
@@ -200,35 +156,27 @@ export function calculTotalDepensesRecurrentesMois(
  * @param {Date} date - Date de référence
  * @returns {number} - Total des revenus récurrents du mois
  */
-export function calculTotalRevenusRecurrentsMois(
-  paiementsRecurrents = [],
-  date = new Date()
-) {
-  const dateObj = date instanceof Date ? date : new Date(date);
+export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
+  if (!paiementsRecurrents || !date) return 0;
+
+  const dateObj = new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
 
   return paiementsRecurrents
     .filter((p) => {
-      // Vérification rapide des données requises
-      if (!p?.jourPrelevement || !p?.dateDebut || p.type !== "revenu") {
-        return false;
-      }
+      if (!p || !p.jourPrelevement || !p.dateDebut) return false;
+      if (p.type !== "revenu") return false;
 
-      // Conversion de la date de début (format YYYY-MM)
       const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
-      const dateDebut = new Date(anneeDebut, moisDebut - 1); // -1 car les mois commencent à 0
-      const jourPrelevement = parseInt(p.jourPrelevement);
+      const estActif =
+        anneeDebut < annee || (anneeDebut === annee && moisDebut <= mois);
 
-      // Vérifie si le paiement est actif (commencé avant ou pendant le mois en cours)
-      const estActif = dateDebut <= dateObj;
-
-      // Vérifie si le jour de prélèvement est dans le mois en cours
-      return estActif && jourPrelevement <= dernierJourDuMois;
+      return estActif && p.jourPrelevement <= dernierJourDuMois;
     })
-    .reduce((acc, p) => acc + parseFloat(p.montant), 0);
-}
+    .reduce((total, p) => total + p.montant, 0);
+};
 
 // =====================
 // ÉCHELONNÉS
@@ -236,11 +184,128 @@ export function calculTotalRevenusRecurrentsMois(
 
 /**
  * Calcule le total des paiements échelonnés du mois
+ * @param {Array} paiementsEchelonnes - Tableau des paiements échelonnés
+ * @param {Date} date - Date de référence
  * @returns {number} - Total des paiements échelonnés du mois
  */
-export function calculTotalEchelonnesMois() {
-  return 0;
-}
+export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
+  if (!paiementsEchelonnes || !date) return 0;
+
+  const dateObj = new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+
+  return paiementsEchelonnes
+    .filter((p) => {
+      if (!p || !p.debutDate || !p.mensualites) return false;
+
+      const dateDebut = new Date(p.debutDate);
+      const dateFin = new Date(dateDebut);
+      dateFin.setMonth(dateFin.getMonth() + Number(p.mensualites) - 1);
+
+      // Vérifie si le mois actuel est dans la période de paiement
+      const dateActuelle = new Date(annee, mois);
+      return dateActuelle >= dateDebut && dateActuelle <= dateFin;
+    })
+    .reduce((total, p) => {
+      // Calcule le montant mensuel (montant total divisé par le nombre de mensualités)
+      const montantMensuel = Number(p.montant) / Number(p.mensualites);
+      return total + montantMensuel;
+    }, 0);
+};
+
+/**
+ * Calcule le total des dépenses échelonnées du mois
+ * @param {Array} paiementsEchelonnes - Tableau des paiements échelonnés
+ * @param {Date} date - Date de référence
+ * @returns {number} - Total des dépenses échelonnées du mois
+ */
+export const calculTotalDepensesEchelonneesMois = (
+  paiementsEchelonnes,
+  date
+) => {
+  // Vérification des paramètres
+  if (!paiementsEchelonnes?.length || !date) {
+    return { credits: 0, debits: 0 };
+  }
+
+  // Initialisation des variables
+  const dateObj = new Date(date);
+  const mois = dateObj.getMonth() + 1; // +1 car getMonth() retourne 0-11
+  const annee = dateObj.getFullYear();
+
+  console.log(`\n=== Calcul des mensualités pour ${mois}/${annee} ===`);
+
+  // Calcul des totaux par type
+  let totalCredit = 0;
+  let totalDebit = 0;
+
+  paiementsEchelonnes.forEach((p) => {
+    if (!p.debutDate || !p.mensualites || !p.montant) return;
+
+    const dateDebut = new Date(p.debutDate);
+    const dateFin = new Date(dateDebut);
+    dateFin.setMonth(dateFin.getMonth() + Number(p.mensualites) - 1);
+
+    // Vérifie si le mois actuel est dans la période de paiement
+    const dateActuelle = new Date(annee, mois - 1);
+    const dateActuelleFin = new Date(annee, mois, 0); // Dernier jour du mois
+
+    // Un paiement est valide si :
+    // 1. Il commence ce mois-ci
+    // 2. Il se termine ce mois-ci
+    // 3. Il est en cours ce mois-ci
+    const commenceCeMois =
+      dateDebut.getMonth() === dateActuelle.getMonth() &&
+      dateDebut.getFullYear() === dateActuelle.getFullYear();
+    const termineCeMois =
+      dateFin.getMonth() === dateActuelle.getMonth() &&
+      dateFin.getFullYear() === dateActuelle.getFullYear();
+    const estEnCours = dateActuelle <= dateFin && dateActuelleFin >= dateDebut;
+
+    if (commenceCeMois || termineCeMois || estEnCours) {
+      const montantTotal = Number(p.montant);
+      const nombreMensualites = Number(p.mensualites);
+      const mensualite = montantTotal / nombreMensualites;
+
+      // Calcul du numéro de la mensualité actuelle
+      const moisEcoules =
+        (dateActuelle.getFullYear() - dateDebut.getFullYear()) * 12 +
+        (dateActuelle.getMonth() - dateDebut.getMonth());
+      const numeroMensualite = moisEcoules + 1;
+
+      console.log(`\n${p.nom}:`);
+      console.log(`- Type: ${p.type}`);
+      console.log(`- Montant total: ${montantTotal}€`);
+      console.log(`- Nombre de mensualités: ${nombreMensualites}`);
+      console.log(`- Mensualité: ${mensualite}€`);
+      console.log(
+        `- Période: ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`
+      );
+      console.log(
+        `- Mensualité ${numeroMensualite}/${nombreMensualites} pour ${mois}/${annee}`
+      );
+      console.log(`- Commence ce mois: ${commenceCeMois}`);
+      console.log(`- Termine ce mois: ${termineCeMois}`);
+      console.log(`- Est en cours: ${estEnCours}`);
+
+      if (p.type === "credit") {
+        totalCredit += mensualite;
+      } else if (p.type === "debit") {
+        totalDebit += mensualite;
+      }
+    }
+  });
+
+  console.log(`\nRésultat final pour ${mois}/${annee}:`);
+  console.log(`- Total Crédits: ${totalCredit}€`);
+  console.log(`- Total Débits: ${totalDebit}€`);
+
+  return {
+    credits: totalCredit,
+    debits: totalDebit,
+  };
+};
 
 // =====================
 // DASHBOARD

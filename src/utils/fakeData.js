@@ -127,7 +127,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-05-01",
     categorie: "Électronique",
-    type: "depense",
+    type: "credit",
   },
   {
     id: 2,
@@ -137,7 +137,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-05-01",
     categorie: "Travail",
-    type: "revenu",
+    type: "debit",
   },
   {
     id: 3,
@@ -147,7 +147,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-05-30",
     categorie: "Électronique",
-    type: "depense",
+    type: "credit",
   },
   {
     id: 4,
@@ -157,7 +157,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-05-30",
     categorie: "Travail",
-    type: "revenu",
+    type: "debit",
   },
   // Juin 2025
   {
@@ -168,7 +168,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-06-01",
     categorie: "Électronique",
-    type: "depense",
+    type: "credit",
   },
   {
     id: 6,
@@ -178,7 +178,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-06-01",
     categorie: "Travail",
-    type: "revenu",
+    type: "debit",
   },
   {
     id: 7,
@@ -188,7 +188,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-06-30",
     categorie: "Électronique",
-    type: "depense",
+    type: "credit",
   },
   {
     id: 8,
@@ -198,7 +198,7 @@ export const fakePaiementsEchelonnes = [
     mensualitesPayees: 1,
     debutDate: "2025-06-30",
     categorie: "Travail",
-    type: "revenu",
+    type: "debit",
   },
 ];
 

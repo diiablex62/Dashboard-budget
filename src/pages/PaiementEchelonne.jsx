@@ -17,7 +17,10 @@ import CardDesign from "../components/ui/CardDesign";
 import { ModalEchelonne } from "../components/ui/Modal";
 import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
-import { formatMontant, calculTotalEchelonnesMois } from "../utils/calcul";
+import {
+  formatMontant,
+  calculTotalDepensesEchelonneesMois,
+} from "../utils/calcul";
 
 export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -70,12 +73,15 @@ export const PaiementEchelonne = () => {
   }, []);
 
   const totalDepenses = useMemo(() => {
-    return calculTotalEchelonnesMois();
-  }, []);
+    return calculTotalDepensesEchelonneesMois(
+      paiementsEchelonnes,
+      selectedDate
+    );
+  }, [paiementsEchelonnes, selectedDate]);
 
   const paiementsActifsCount = useMemo(() => {
     return paiementsEchelonnes
-      .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
+      .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
       .filter((paiement) => {
         const debut = new Date(paiement.debutDate);
         const fin = new Date(paiement.debutDate);
@@ -109,31 +115,34 @@ export const PaiementEchelonne = () => {
 
   const handleSave = useCallback(
     (formData) => {
-      console.log("handleSave - formData reçu:", formData);
       const paymentData = {
         ...formData,
         montant: parseFloat(formData.montant),
         mensualites: parseInt(formData.mensualites),
-        type: isRevenus ? "revenu" : "depense",
+        type: isRevenus ? "debit" : "credit",
         debutDate: formData.debutDate,
       };
-      console.log("handleSave - paymentData créé:", paymentData);
+      console.log("[handleSave] Donnée à enregistrer :", paymentData);
 
       if (editIndex !== null) {
-        console.log("handleSave - Modification du paiement ID:", editIndex);
         setPaiementsEchelonnes((prev) => {
           const updated = prev.map((p) =>
             p.id === editIndex ? { ...paymentData, id: editIndex } : p
           );
-          console.log("handleSave - paiementsEchelonnes mis à jour:", updated);
+          console.log(
+            "[handleSave] Paiements échelonnés après modification :",
+            updated
+          );
           return updated;
         });
       } else {
         const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
-        console.log("handleSave - Création nouveau paiement ID:", newId);
         setPaiementsEchelonnes((prev) => {
           const updated = [...prev, { ...paymentData, id: newId }];
-          console.log("handleSave - paiementsEchelonnes mis à jour:", updated);
+          console.log(
+            "[handleSave] Paiements échelonnés après ajout :",
+            updated
+          );
           return updated;
         });
       }
@@ -168,10 +177,16 @@ export const PaiementEchelonne = () => {
           <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
             <div className='flex items-center text-blue-600 dark:text-blue-400 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Mensuel</span>
+              <span className='text-sm font-semibold'>
+                Total Mensuel {isRevenus ? "Débit" : "Crédit"} -{" "}
+                {getMonthYear(selectedDate)}
+              </span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
-              {formatMontant(totalDepenses)}€
+              {formatMontant(
+                isRevenus ? totalDepenses.debits : totalDepenses.credits
+              )}
+              €
             </div>
           </div>
 
@@ -238,18 +253,18 @@ export const PaiementEchelonne = () => {
           </div>
 
           {paiementsEchelonnes.filter(
-            (p) => p.type === (isRevenus ? "revenu" : "depense")
+            (p) => p.type === (isRevenus ? "debit" : "credit")
           ).length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
               <p>
-                Aucun paiement échelonné {isRevenus ? "revenu" : "dépense"} pour{" "}
+                Aucun paiement échelonné {isRevenus ? "debit" : "credit"} pour{" "}
                 {getMonthYear(selectedDate)}.
               </p>
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
               {paiementsEchelonnes
-                .filter((p) => p.type === (isRevenus ? "revenu" : "depense"))
+                .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
                 .filter((paiement) => {
                   const debut = new Date(paiement.debutDate);
                   const fin = new Date(paiement.debutDate);
@@ -286,27 +301,40 @@ export const PaiementEchelonne = () => {
                         1
                     )
                   );
-                  // Montant mensuel calculé
-                  const montantMensuel =
-                    parseFloat(paiement.montant) /
-                    parseInt(paiement.mensualites);
+
+                  // Calcul du montant mensuel
+                  const montantTotal = Math.abs(parseFloat(paiement.montant));
+                  const nombreMensualites = parseInt(paiement.mensualites);
+                  const montantMensuel = montantTotal / nombreMensualites;
+
+                  console.log(`Calcul mensualité pour ${paiement.nom}:`, {
+                    montantTotal,
+                    nombreMensualites,
+                    montantMensuel,
+                  });
+
                   return (
                     <CardDesign
                       key={paiement.id}
-                      item={{ ...paiement, montant: montantMensuel }}
-                      currentTab={isRevenus ? "revenu" : "depense"}
+                      item={{
+                        ...paiement,
+                        montant: montantMensuel,
+                        montantTotal: montantTotal,
+                        nombreMensualites: nombreMensualites,
+                      }}
+                      currentTab={isRevenus ? "debit" : "credit"}
                       onEdit={() => handleEdit(paiement)}
                       onDelete={() => handleDelete(paiement.id, paiement.nom)}>
                       {/* Barre de progression */}
-                      <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-2'>
-                        <div
-                          className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
-                          style={{ width: `${pourcentage}%` }}></div>
-                      </div>
-                      {/* Infos mensualité et fin */}
-                      <div className='flex flex-col gap-1 w-full text-sm text-gray-500 dark:text-gray-400'>
-                        <div className='flex justify-between items-center'>
-                          <span>
+                      <div className='flex flex-col gap-2'>
+                        <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
+                          <div
+                            className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
+                            style={{ width: `${pourcentage}%` }}></div>
+                        </div>
+                        {/* Infos mensualité et fin */}
+                        <div className='flex justify-between items-center text-sm text-gray-500 dark:text-gray-400'>
+                          <span className='font-medium'>
                             Mensualité {mensualitesPayees}/
                             {paiement.mensualites}
                           </span>
@@ -362,7 +390,7 @@ export const PaiementEchelonne = () => {
                 mensualites: "",
                 debutDate: new Date(selectedDate).toISOString().split("T")[0],
                 categorie: "",
-                type: isRevenus ? "revenu" : "depense",
+                type: isRevenus ? "debit" : "credit",
               }
         }
         title={editIndex !== null ? "Modifier" : "Ajouter"}
