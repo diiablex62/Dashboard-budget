@@ -7,6 +7,7 @@ import React from "react";
 import { BsCalculator } from "react-icons/bs";
 import { AiOutlineSync } from "react-icons/ai";
 import { formatMontant } from "../../utils/calcul";
+import TooltipEconomie from "./tooltips/TooltipEconomie";
 
 const EconomieCard = ({
   totalEconomies,
@@ -16,12 +17,18 @@ const EconomieCard = ({
   isHoveringCalculatorEconomies,
   setIsHoveringCalculatorEconomies,
   onUpdateBalance,
+  totalRevenusJusquaAujourdhui,
+  totalDepenseJusquaAujourdhui,
+  totalRevenus,
+  totalDepense,
+  totalRevenusMoisPrecedent,
+  totalDepenseMoisPrecedent,
 }) => {
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
       <div className='flex'>
         {/* Partie gauche : calculatrice, titre, montant, différence */}
-        <div className='w-1/2'>
+        <div className='w-1/2 relative'>
           <div className='flex items-center justify-between'>
             <div className='relative flex-1'>
               {!isHoveringCalculatorEconomies ? (
@@ -105,6 +112,17 @@ const EconomieCard = ({
               </>
             )}
           </div>
+          <TooltipEconomie
+            totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
+            totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
+            totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
+            totalRevenus={totalRevenus}
+            totalDepense={totalDepense}
+            totalEconomies={totalEconomies}
+            totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
+            totalDepenseMoisPrecedent={totalDepenseMoisPrecedent}
+            totalEconomiesMoisPrecedent={totalEconomiesMoisPrecedent}
+          />
         </div>
         {/* Partie droite : bouton synchronisation */}
         <div className='w-1/2 flex flex-col items-start'>

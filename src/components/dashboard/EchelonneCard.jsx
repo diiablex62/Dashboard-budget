@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { AiOutlineCreditCard, AiOutlineInfoCircle } from "react-icons/ai";
+import { AiOutlineCreditCard } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { formatMontant } from "../../utils/calcul";
 
@@ -29,9 +29,6 @@ const EchelonneCard = () => {
         className='mt-2 border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg px-3 py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
         onClick={() => navigate("/echelonne")}>
         Gérer →
-      </button>
-      <button className='absolute bottom-4 right-4 text-gray-400 hover:text-gray-600 cursor-help text-lg'>
-        <AiOutlineInfoCircle />
       </button>
     </div>
   );

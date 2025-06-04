@@ -24,7 +24,11 @@ export const calculateDepenseRevenuTotal = (
 
 // Calcul du total des dépenses du mois
 export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
-  if (!depenseRevenu || !Array.isArray(depenseRevenu) || depenseRevenu.length === 0) {
+  if (
+    !depenseRevenu ||
+    !Array.isArray(depenseRevenu) ||
+    depenseRevenu.length === 0
+  ) {
     return 0;
   }
   const dateObj = date instanceof Date ? date : new Date(date);
@@ -38,13 +42,22 @@ export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
       );
     })
     .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-  console.log(`[calculTotalDepensesMois] Dépenses du mois ${dateObj.toLocaleDateString("fr-FR", { month: "long" })}: ${formatMontant(total)}€`);
+  console.log(
+    `[calculTotalDepensesMois] Dépenses du mois ${dateObj.toLocaleDateString(
+      "fr-FR",
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
+  );
   return total;
 }
 
 // Calcule le total des revenus du mois
 export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
-  if (!depenseRevenu || !Array.isArray(depenseRevenu) || depenseRevenu.length === 0) {
+  if (
+    !depenseRevenu ||
+    !Array.isArray(depenseRevenu) ||
+    depenseRevenu.length === 0
+  ) {
     return 0;
   }
   const dateObj = date instanceof Date ? date : new Date(date);
@@ -58,7 +71,12 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
       );
     })
     .reduce((acc, d) => acc + parseFloat(d.montant), 0);
-  console.log(`[totalRevenusGlobalMois] Revenus du mois ${dateObj.toLocaleDateString("fr-FR", { month: "long" })}: ${formatMontant(total)}€`);
+  console.log(
+    `[totalRevenusGlobalMois] Revenus du mois ${dateObj.toLocaleDateString(
+      "fr-FR",
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
+  );
   return total;
 }
 
