@@ -66,21 +66,14 @@ const PaiementRecurrent = () => {
     return paiementsRecurrents.filter((p) => {
       if (p.type !== currentTab) return false;
 
-      const moisActuel = selectedMonth.getMonth() + 1; // +1 car getMonth() retourne 0-11
-      const anneeActuelle = selectedMonth.getFullYear();
-      const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
-
-      // Vérifie si la date actuelle est après ou égale à la date de début
-      const estApresDateDebut =
-        anneeActuelle > anneeDebut ||
-        (anneeActuelle === anneeDebut && moisActuel >= moisDebut);
-
       // Vérifie si le jour de prélèvement est valide pour ce mois
+      const moisActuel = selectedMonth.getMonth() + 1;
+      const anneeActuelle = selectedMonth.getFullYear();
       const jourPrelevement = p.jourPrelevement;
       const joursDansMois = new Date(anneeActuelle, moisActuel, 0).getDate();
       const jourValide = jourPrelevement <= joursDansMois;
 
-      return estApresDateDebut && jourValide;
+      return jourValide;
     });
   }, [paiementsRecurrents, currentTab, selectedMonth]);
 
@@ -99,54 +92,33 @@ const PaiementRecurrent = () => {
   }, []);
 
   const handleAddPaiement = useCallback(() => {
-    // On initialise avec le mois actuel
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    const formattedMonth = String(currentMonth).padStart(2, "0");
-    const dateDebut = `${currentYear}-${formattedMonth}`;
-
-    console.log("Initialisation du paiement avec la date actuelle:", dateDebut);
-
     setSelectedPaiement({
       nom: "",
       categorie: "",
       montant: "",
       jour: "",
-      dateDebut: dateDebut,
     });
     setShowModal(true);
   }, []);
 
   const handleSavePaiement = useCallback(
     async (paiement) => {
-      console.log("handleSavePaiement - paiement reçu :", paiement);
-      console.log("Date de début reçue:", paiement.dateDebut);
-
       setPaiementsRecurrents((prev) => {
-        // On s'assure que la date de début est bien celle sélectionnée
         const newPaiement = {
           ...paiement,
           type: currentTab,
-          dateDebut: paiement.dateDebut, // On utilise la date sélectionnée par l'utilisateur
           jourPrelevement: Number(paiement.jour),
           montant: Number(paiement.montant),
         };
-        console.log(
-          "Nouveau paiement créé avec la date:",
-          newPaiement.dateDebut
-        );
 
         if (paiement.id) {
           const updatedPaiements = prev.map((t) =>
             t.id === paiement.id ? newPaiement : t
           );
-          console.log("Paiements après modification:", updatedPaiements);
           return updatedPaiements;
         } else {
           const newId = Math.max(...prev.map((p) => p.id), 0) + 1;
           const updatedPaiements = [...prev, { ...newPaiement, id: newId }];
-          console.log("Paiements après ajout:", updatedPaiements);
           return updatedPaiements;
         }
       });
@@ -185,26 +157,33 @@ const PaiementRecurrent = () => {
         </div>
         {/* Cartes de statistiques */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
-          {/* Carte 1: Total Dépenses */}
-          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
-            <div className='flex items-center text-red-600 mb-2'>
-              <AiOutlineDollarCircle className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Dépenses</span>
+          {currentTab === "depense" ? (
+            /* Carte Total Dépenses */
+            <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
+              <div className='flex items-center text-red-600 mb-2'>
+                <AiOutlineDollarCircle className='text-2xl mr-2' />
+                <span className='text-sm font-semibold'>
+                  Total dépenses mensuel
+                </span>
+              </div>
+              <div className='text-2xl font-bold dark:text-white'>
+                {formatMontant(totalDepenses)}€
+              </div>
             </div>
-            <div className='text-2xl font-bold dark:text-white'>
-              {formatMontant(totalDepenses)}€
+          ) : (
+            /* Carte Total Revenus */
+            <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
+              <div className='flex items-center text-green-600 mb-2'>
+                <AiOutlineCalendar className='text-2xl mr-2' />
+                <span className='text-sm font-semibold'>
+                  Total revenus mensuel
+                </span>
+              </div>
+              <div className='text-2xl font-bold dark:text-white'>
+                {formatMontant(totalRevenus)}€
+              </div>
             </div>
-          </div>
-          {/* Carte 2: Total Revenus */}
-          <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
-            <div className='flex items-center text-green-600 mb-2'>
-              <AiOutlineCalendar className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Total Revenus</span>
-            </div>
-            <div className='text-2xl font-bold dark:text-white'>
-              {formatMontant(totalRevenus)}€
-            </div>
-          </div>
+          )}
         </div>
         {/* Switch Dépenses/Revenus */}
         <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>

@@ -145,38 +145,87 @@ export function ModalDepenseRevenu({
   );
 
   const validateStep = useCallback(() => {
+    console.log(`\n=== Validation de l'étape ${step} (${current.name}) ===`);
+    console.log("Valeur à valider:", form[current.name]);
+
     if (!form[current.name]) {
-      // Si c'est la date de début et qu'elle est vide, on affiche l'erreur
-      if (current.name === "dateDebut") {
-        setError(`Le champ "${current.label}" est obligatoire`);
-        return false;
-      }
+      console.log(`❌ Le champ "${current.label}" est vide`);
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
-    if (
-      current.name === "montant" &&
-      (isNaN(parseFloat(form.montant)) || parseFloat(form.montant) <= 0)
-    ) {
-      setError("Le montant doit être un nombre positif");
-      return false;
+
+    if (current.name === "montant") {
+      const montant = parseFloat(form.montant);
+      console.log("Validation du montant:", montant);
+      if (isNaN(montant) || montant <= 0) {
+        console.log("❌ Montant invalide");
+        setError("Le montant doit être un nombre positif");
+        return false;
+      }
+      console.log("✅ Montant valide");
     }
+
+    if (current.name === "dateDebut") {
+      console.log("Validation de la date de début:", form.dateDebut);
+      if (!form.dateDebut) {
+        console.log("❌ Date de début manquante");
+        setError("La date de début est obligatoire");
+        return false;
+      }
+      console.log("✅ Date de début valide");
+    }
+
+    console.log("✅ Étape validée avec succès");
     setError(null);
     return true;
-  }, [current, form]);
+  }, [current, form, step]);
 
   const handleNext = useCallback(() => {
-    if (!validateStep()) return;
+    console.log("\n=== Passage à l'étape suivante ===");
+    console.log("Étape actuelle:", step);
+    console.log("Données du formulaire:", form);
+
+    if (!validateStep()) {
+      console.log("❌ Validation échouée, on reste sur l'étape actuelle");
+      return;
+    }
 
     if (step < steps.length) {
+      console.log("Passage à l'étape suivante:", step + 1);
       setStep(step + 1);
     } else {
-      console.log("Sauvegarde du formulaire avec la date:", form.date);
+      console.log("\n=== Finalisation du formulaire ===");
+      // Ajout automatique de la date de début au jour de prélèvement du mois en cours
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      const jourPrelevement = form.date.split("-")[2];
+
+      // On vérifie si le jour de prélèvement est déjà passé ce mois-ci
+      const today = currentDate.getDate();
+      let targetMonth = currentMonth;
+      let targetYear = currentYear;
+
+      if (today > jourPrelevement) {
+        // Si le jour est déjà passé, on commence au mois prochain
+        targetMonth = currentMonth + 1;
+        if (targetMonth > 12) {
+          targetMonth = 1;
+          targetYear++;
+        }
+      }
+
+      const dateDebut = `${targetYear}-${targetMonth
+        .toString()
+        .padStart(2, "0")}-${jourPrelevement.toString().padStart(2, "0")}`;
+
       const finalForm = {
         ...form,
-        date: form.date,
+        dateDebut,
       };
-      console.log("Formulaire final avant sauvegarde:", finalForm);
+      console.log("Données finales avec date de début:", finalForm);
+      console.log("Jour de prélèvement:", jourPrelevement);
+      console.log("Date de début calculée:", dateDebut);
       onSave(finalForm);
       onClose();
     }
@@ -448,7 +497,6 @@ export function ModalRecurrent({
       { name: "categorie", label: "Catégorie", type: "select" },
       { name: "montant", label: "Montant (€)", type: "number" },
       { name: "jour", label: "Jour de prélèvement", type: "grid" },
-      { name: "dateDebut", label: "Date de début", type: "month" },
     ],
     []
   );
@@ -459,7 +507,6 @@ export function ModalRecurrent({
       categorie: "",
       montant: "",
       jour: "",
-      dateDebut: "",
     }),
     []
   );
@@ -481,7 +528,6 @@ export function ModalRecurrent({
   // Effets
   useEffect(() => {
     if (visible) {
-      console.log("Modal ouverte - Valeurs initiales:", initialValues);
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
@@ -526,31 +572,61 @@ export function ModalRecurrent({
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
-    if (
-      current.name === "montant" &&
-      (isNaN(parseFloat(form.montant)) || parseFloat(form.montant) <= 0)
-    ) {
-      setError("Le montant doit être un nombre positif");
-      return false;
+
+    if (current.name === "montant") {
+      const montant = parseFloat(form.montant);
+      if (isNaN(montant) || montant <= 0) {
+        setError("Le montant doit être un nombre positif");
+        return false;
+      }
     }
-    if (
-      current.name === "jour" &&
-      (!form.jour || form.jour < 1 || form.jour > 31)
-    ) {
-      setError("Le jour doit être compris entre 1 et 31");
-      return false;
+
+    if (current.name === "jour") {
+      const jour = parseInt(form.jour);
+      if (!form.jour || jour < 1 || jour > 31) {
+        setError("Le jour doit être compris entre 1 et 31");
+        return false;
+      }
     }
+
     setError(null);
     return true;
-  }, [current, form]);
+  }, [current, form, step]);
 
   const handleNext = useCallback(() => {
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      return;
+    }
 
     if (step < steps.length) {
       setStep(step + 1);
     } else {
-      onSave(form);
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      const jourPrelevement = form.jour;
+
+      const today = currentDate.getDate();
+      let targetMonth = currentMonth;
+      let targetYear = currentYear;
+
+      if (today > jourPrelevement) {
+        targetMonth = currentMonth + 1;
+        if (targetMonth > 12) {
+          targetMonth = 1;
+          targetYear++;
+        }
+      }
+
+      const dateDebut = `${targetYear}-${targetMonth
+        .toString()
+        .padStart(2, "0")}-${jourPrelevement.toString().padStart(2, "0")}`;
+
+      const finalForm = {
+        ...form,
+        dateDebut,
+      };
+      onSave(finalForm);
       onClose();
     }
   }, [step, steps.length, validateStep, form, onSave, onClose]);
@@ -560,30 +636,7 @@ export function ModalRecurrent({
   }, [step]);
 
   const handleChange = useCallback((e) => {
-    console.log("handleChange - Événement reçu:", {
-      name: e.target.name,
-      value: e.target.value,
-      type: e.target.type,
-    });
-
-    if (e.target.name === "dateDebut") {
-      console.log("Date de début sélectionnée:", e.target.value);
-      setForm((prev) => {
-        const newForm = { ...prev, dateDebut: e.target.value };
-        console.log(
-          "Nouveau formulaire après mise à jour de la date:",
-          newForm
-        );
-        return newForm;
-      });
-      // On ne déclenche pas la validation automatiquement
-    } else {
-      setForm((prev) => {
-        const newForm = { ...prev, [e.target.name]: e.target.value };
-        console.log("Nouveau formulaire après mise à jour:", newForm);
-        return newForm;
-      });
-    }
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
   const handleCategoryChange = useCallback((e) => {
@@ -668,11 +721,6 @@ export function ModalRecurrent({
                 ? `${form[s.name]} €`
                 : s.name === "jour"
                 ? `Le ${form[s.name]} de chaque mois`
-                : s.name === "dateDebut"
-                ? new Date(form[s.name] + "-01").toLocaleDateString("fr-FR", {
-                    year: "numeric",
-                    month: "long",
-                  })
                 : form[s.name]}
             </span>
           </div>
@@ -796,23 +844,6 @@ export function ModalRecurrent({
               </div>
             </div>
           )}
-          {current.type === "month" && (
-            <div className='mb-4'>
-              <label className='block mb-2 font-medium dark:text-white'>
-                {current.label}
-              </label>
-              <input
-                type='month'
-                name={current.name}
-                value={form[current.name] || ""}
-                onChange={handleChange}
-                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
-                ref={inputRef}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
-            </div>
-          )}
           <div className='flex justify-between mt-4'>
             {step > 1 && (
               <button
@@ -929,40 +960,66 @@ export function ModalEchelonne({
   );
 
   const validateStep = useCallback(() => {
+    console.log(`\n=== Validation de l'étape ${step} (${current.name}) ===`);
+    console.log("Valeur à valider:", form[current.name]);
+
     if (!form[current.name]) {
-      // Si c'est la date de début et qu'elle est vide, on affiche l'erreur
-      if (current.name === "dateDebut") {
-        setError(`Le champ "${current.label}" est obligatoire`);
-        return false;
-      }
+      console.log(`❌ Le champ "${current.label}" est vide`);
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
-    if (
-      current.name === "montant" &&
-      (isNaN(parseFloat(form.montant)) || parseFloat(form.montant) <= 0)
-    ) {
-      setError("Le montant doit être un nombre positif");
-      return false;
+
+    if (current.name === "montant") {
+      const montant = parseFloat(form.montant);
+      console.log("Validation du montant:", montant);
+      if (isNaN(montant) || montant <= 0) {
+        console.log("❌ Montant invalide");
+        setError("Le montant doit être un nombre positif");
+        return false;
+      }
+      console.log("✅ Montant valide");
     }
+
     if (
       current.name === "mensualites" &&
       (isNaN(parseInt(form.mensualites)) || parseInt(form.mensualites) <= 0)
     ) {
+      console.log("❌ Nombre de mensualités invalide");
       setError("Le nombre de mensualités doit être un nombre positif");
       return false;
     }
+
+    if (current.name === "dateDebut") {
+      console.log("Validation de la date de début:", form.dateDebut);
+      if (!form.dateDebut) {
+        console.log("❌ Date de début manquante");
+        setError("La date de début est obligatoire");
+        return false;
+      }
+      console.log("✅ Date de début valide");
+    }
+
+    console.log("✅ Étape validée avec succès");
     setError(null);
     return true;
-  }, [current, form]);
+  }, [current, form, step]);
 
   const handleNext = useCallback(() => {
-    if (!validateStep()) return;
+    console.log("\n=== Passage à l'étape suivante ===");
+    console.log("Étape actuelle:", step);
+    console.log("Données du formulaire:", form);
+
+    if (!validateStep()) {
+      console.log("❌ Validation échouée, on reste sur l'étape actuelle");
+      return;
+    }
 
     if (step < steps.length) {
+      console.log("Passage à l'étape suivante:", step + 1);
       setStep(step + 1);
     } else {
-      console.log("Sauvegarde du formulaire avec la date:", form.debutDate);
+      console.log("\n=== Finalisation du formulaire ===");
+      console.log("Données finales:", form);
       const finalForm = {
         ...form,
         dateDebut: form.debutDate,

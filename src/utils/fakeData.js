@@ -85,7 +85,6 @@ export const fakePaiementsRecurrents = [
     categorie: "Divertissement",
     jourPrelevement: 1,
     type: "depense",
-    dateDebut: "2025-06",
   },
   {
     id: 2,
@@ -94,7 +93,6 @@ export const fakePaiementsRecurrents = [
     categorie: "Divertissement",
     jourPrelevement: 30,
     type: "depense",
-    dateDebut: "2025-06",
   },
   {
     id: 3,
@@ -103,7 +101,6 @@ export const fakePaiementsRecurrents = [
     categorie: "Salaire",
     jourPrelevement: 1,
     type: "revenu",
-    dateDebut: "2025-06",
   },
   {
     id: 4,
@@ -112,7 +109,6 @@ export const fakePaiementsRecurrents = [
     categorie: "Salaire",
     jourPrelevement: 30,
     type: "revenu",
-    dateDebut: "2025-06",
   },
 ];
 

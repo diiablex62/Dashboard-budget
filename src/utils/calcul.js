@@ -132,22 +132,25 @@ export const calculTotalDepensesRecurrentesMois = (
   if (!paiementsRecurrents || !date) return 0;
 
   const dateObj = new Date(date);
-  const mois = dateObj.getMonth();
+  const mois = dateObj.getMonth() + 1;
   const annee = dateObj.getFullYear();
-  const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
+  const dernierJourDuMois = new Date(annee, mois, 0).getDate();
 
-  return paiementsRecurrents
+  const total = paiementsRecurrents
     .filter((p) => {
-      if (!p || !p.jourPrelevement || !p.dateDebut) return false;
-      if (p.type !== "depense") return false;
+      if (!p || !p.jourPrelevement) {
+        return false;
+      }
+      if (p.type !== "depense") {
+        return false;
+      }
 
-      const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
-      const estActif =
-        anneeDebut < annee || (anneeDebut === annee && moisDebut <= mois);
-
-      return estActif && p.jourPrelevement <= dernierJourDuMois;
+      // Vérifie uniquement si le jour de prélèvement est valide pour ce mois
+      return p.jourPrelevement <= dernierJourDuMois;
     })
     .reduce((total, p) => total + Math.abs(parseFloat(p.montant)), 0);
+
+  return total;
 };
 
 /**
@@ -160,22 +163,25 @@ export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
   if (!paiementsRecurrents || !date) return 0;
 
   const dateObj = new Date(date);
-  const mois = dateObj.getMonth();
+  const mois = dateObj.getMonth() + 1;
   const annee = dateObj.getFullYear();
-  const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
+  const dernierJourDuMois = new Date(annee, mois, 0).getDate();
 
-  return paiementsRecurrents
+  const total = paiementsRecurrents
     .filter((p) => {
-      if (!p || !p.jourPrelevement || !p.dateDebut) return false;
-      if (p.type !== "revenu") return false;
+      if (!p || !p.jourPrelevement) {
+        return false;
+      }
+      if (p.type !== "revenu") {
+        return false;
+      }
 
-      const [anneeDebut, moisDebut] = p.dateDebut.split("-").map(Number);
-      const estActif =
-        anneeDebut < annee || (anneeDebut === annee && moisDebut <= mois);
-
-      return estActif && p.jourPrelevement <= dernierJourDuMois;
+      // Vérifie uniquement si le jour de prélèvement est valide pour ce mois
+      return p.jourPrelevement <= dernierJourDuMois;
     })
-    .reduce((total, p) => total + Math.abs(parseFloat(p.montant)), 0);
+    .reduce((total, p) => total + parseFloat(p.montant), 0);
+
+  return total;
 };
 
 // =====================
@@ -236,8 +242,6 @@ export const calculTotalDepensesEchelonneesMois = (
   const dateActuelle = new Date(annee, mois - 1);
   const dateActuelleFin = new Date(annee, mois, 0);
 
-  console.log(`\n=== Calcul des mensualités pour ${mois}/${annee} ===`);
-
   // Calcul des totaux par type
   const { credits, debits } = paiementsEchelonnes.reduce(
     (acc, p) => {
@@ -260,23 +264,6 @@ export const calculTotalDepensesEchelonneesMois = (
 
       if (estActif) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
-        const moisEcoules =
-          (dateActuelle.getFullYear() - dateDebut.getFullYear()) * 12 +
-          (dateActuelle.getMonth() - dateDebut.getMonth());
-        const numeroMensualite = moisEcoules + 1;
-
-        console.log(`\n${p.nom}:`);
-        console.log(`- Type: ${p.type}`);
-        console.log(`- Montant total: ${p.montant}€`);
-        console.log(`- Nombre de mensualités: ${p.mensualites}`);
-        console.log(`- Mensualité: ${mensualite}€`);
-        console.log(
-          `- Période: ${dateDebut.toLocaleDateString()} au ${dateFin.toLocaleDateString()}`
-        );
-        console.log(
-          `- Mensualité ${numeroMensualite}/${p.mensualites} pour ${mois}/${annee}`
-        );
-
         if (p.type === "credit") {
           acc.credits += mensualite;
         } else if (p.type === "debit") {
@@ -288,10 +275,6 @@ export const calculTotalDepensesEchelonneesMois = (
     },
     { credits: 0, debits: 0 }
   );
-
-  console.log(`\nRésultat final pour ${mois}/${annee}:`);
-  console.log(`- Total Crédits: ${credits}€`);
-  console.log(`- Total Débits: ${debits}€`);
 
   return { credits, debits };
 };
