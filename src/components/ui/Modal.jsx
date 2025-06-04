@@ -265,12 +265,15 @@ export function ModalDepenseRevenu({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
+    shouldValidateCategory.current = true;
   }, []);
 
   // Effet pour la validation de la catégorie
   useEffect(() => {
-    if (step === 2 && form.categorie) {
+    if (shouldValidateCategory.current && form.categorie && step === 2) {
+      setError(null);
       handleNext();
+      shouldValidateCategory.current = false;
     }
   }, [form.categorie, step, handleNext]);
 
@@ -641,22 +644,20 @@ export function ModalRecurrent({
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }, []);
 
-  const handleCategoryChange = useCallback(
-    (e) => {
-      const newCategory = e.target.value;
-      setForm((prev) => {
-        const newForm = { ...prev, categorie: newCategory };
-        // On valide après la mise à jour de l'état
-        if (newCategory) {
-          setTimeout(() => {
-            handleNext();
-          }, 0);
-        }
-        return newForm;
-      });
-    },
-    [handleNext]
-  );
+  const handleCategoryChange = useCallback((e) => {
+    const newCategory = e.target.value;
+    setForm((prev) => ({ ...prev, categorie: newCategory }));
+    shouldValidateCategory.current = true;
+  }, []);
+
+  // Effet pour la validation de la catégorie
+  useEffect(() => {
+    if (shouldValidateCategory.current && form.categorie && step === 2) {
+      setError(null);
+      handleNext();
+      shouldValidateCategory.current = false;
+    }
+  }, [form.categorie, step, handleNext]);
 
   const handleDayClick = useCallback((day) => {
     setForm((prev) => ({ ...prev, jour: day.toString() }));
@@ -1073,12 +1074,15 @@ export function ModalEchelonne({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
+    shouldValidateCategory.current = true;
   }, []);
 
   // Effet pour la validation de la catégorie
   useEffect(() => {
-    if (step === 2 && form.categorie) {
+    if (shouldValidateCategory.current && form.categorie && step === 2) {
+      setError(null);
       handleNext();
+      shouldValidateCategory.current = false;
     }
   }, [form.categorie, step, handleNext]);
 
