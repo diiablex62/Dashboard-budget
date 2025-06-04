@@ -17,24 +17,22 @@ const EconomieCard = ({
   const [showTooltip, setShowTooltip] = useState(false);
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
+      {/* Icône info dans le coin supérieur droit de la carte */}
+      <div
+        className='absolute top-2 right-2 z-10'
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}>
+        <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+        {showTooltip && (
+          <TooltipEconomie
+            totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
+            differenceEconomiesMoisPrecedent={differenceEconomiesMoisPrecedent}
+          />
+        )}
+      </div>
       <div className='flex'>
         {/* Partie gauche : titre, montant, différence */}
         <div className='w-1/2 relative'>
-          {/* Icône info dans le coin supérieur droit de la partie gauche */}
-          <div
-            className='absolute top-2 right-2 z-10'
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}>
-            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
-            {showTooltip && (
-              <TooltipEconomie
-                totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
-                differenceEconomiesMoisPrecedent={
-                  differenceEconomiesMoisPrecedent
-                }
-              />
-            )}
-          </div>
           <div className='flex items-center justify-between'>
             <div className='relative flex-1'>
               <span className='text-gray-500 font-medium'>
