@@ -162,9 +162,7 @@ const PaiementRecurrent = () => {
             <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
               <div className='flex items-center text-red-600 mb-2'>
                 <AiOutlineDollarCircle className='text-2xl mr-2' />
-                <span className='text-sm font-semibold'>
-                  Total dépenses mensuel
-                </span>
+                <span className='text-sm font-semibold'>Total Dépenses</span>
               </div>
               <div className='text-2xl font-bold dark:text-white'>
                 {formatMontant(totalDepenses)}€
@@ -175,9 +173,7 @@ const PaiementRecurrent = () => {
             <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
               <div className='flex items-center text-green-600 mb-2'>
                 <AiOutlineCalendar className='text-2xl mr-2' />
-                <span className='text-sm font-semibold'>
-                  Total revenus mensuel
-                </span>
+                <span className='text-sm font-semibold'>Total Revenus</span>
               </div>
               <div className='text-2xl font-bold dark:text-white'>
                 {formatMontant(totalRevenus)}€
@@ -214,11 +210,12 @@ const PaiementRecurrent = () => {
             <div>
               <div className='text-2xl font-bold text-[#222] dark:text-white'>
                 {currentTab === "depense"
-                  ? "Dépenses récurrentes"
-                  : "Revenus récurrents"}
+                  ? "Dépenses récurrentes mensuelles"
+                  : "Revenus récurrents mensuels"}
               </div>
               <div className='text-sm text-gray-500 mt-1 dark:text-white'>
                 {currentTab === "depense" ? "Dépenses" : "Revenus"} récurrents
+                mensuels
               </div>
             </div>
             {/* Bouton Ajouter */}

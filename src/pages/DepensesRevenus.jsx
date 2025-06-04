@@ -142,38 +142,32 @@ export default function DepensesRevenus() {
             </div>
 
             {/* Cartes de statistiques */}
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
-              {/* Carte 1: Total Dépenses */}
-              <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center relative'>
-                <div className='flex items-center text-red-600 mb-2'>
-                  <AiOutlineDollarCircle className='text-2xl mr-2' />
-                  <span className='text-sm font-semibold dark:text-white'>
-                    Total Dépenses
-                  </span>
-                  <div className='relative group ml-2'>
-                    <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help' />
-                    <div className='absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10'>
-                      Ce total correspond uniquement aux transactions de type
-                      dépense, hors paiements récurrents et échelonnés.
-                    </div>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+              {currentTab === "depense" ? (
+                /* Carte Total Dépenses */
+                <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
+                  <div className='flex items-center text-red-600 mb-2'>
+                    <AiOutlineDollarCircle className='text-2xl mr-2' />
+                    <span className='text-sm font-semibold'>
+                      Total Dépenses
+                    </span>
+                  </div>
+                  <div className='text-2xl font-bold dark:text-white'>
+                    {formatMontant(totalDepenses)}€
                   </div>
                 </div>
-                <div className='text-2xl text-[#222] dark:text-white'>
-                  {formatMontant(totalDepenses)}€
+              ) : (
+                /* Carte Total Revenus */
+                <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
+                  <div className='flex items-center text-green-600 mb-2'>
+                    <AiOutlineCalendar className='text-2xl mr-2' />
+                    <span className='text-sm font-semibold'>Total Revenus</span>
+                  </div>
+                  <div className='text-2xl font-bold dark:text-white'>
+                    {formatMontant(totalRevenus)}€
+                  </div>
                 </div>
-              </div>
-              {/* Carte 2: Total Revenus */}
-              <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center'>
-                <div className='flex items-center text-green-600 mb-2'>
-                  <AiOutlineCalendar className='text-2xl mr-2' />
-                  <span className='text-sm font-semibold dark:text-white'>
-                    Total Revenus
-                  </span>
-                </div>
-                <div className='text-2xl text-[#222] dark:text-white'>
-                  {formatMontant(totalRevenus)}€
-                </div>
-              </div>
+              )}
             </div>
             {/* Switch Dépenses/Revenus */}
             <div className='flex w-full max-w-xl bg-[#f3f6fa] rounded-xl p-1 dark:bg-gray-900 mb-6 mx-auto'>

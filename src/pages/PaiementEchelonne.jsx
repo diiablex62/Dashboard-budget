@@ -307,11 +307,7 @@ export const PaiementEchelonne = () => {
                   const nombreMensualites = parseInt(paiement.mensualites);
                   const montantMensuel = montantTotal / nombreMensualites;
 
-                  console.log(`Calcul mensualité pour ${paiement.nom}:`, {
-                    montantTotal,
-                    nombreMensualites,
-                    montantMensuel,
-                  });
+              
 
                   return (
                     <CardDesign
