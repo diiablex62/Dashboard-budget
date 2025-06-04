@@ -153,7 +153,9 @@ export const PaiementEchelonne = () => {
               Paiements Échelonnés
             </h1>
             <p className='text-sm text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap'>
-              Gérez vos dépenses et revenus mensuels.
+              {isRevenus
+                ? "Gérez les paiements que vous effectuez en plusieurs mensualités"
+                : "Gérez les paiements que vous remboursez en plusieurs mensualités"}
             </p>
           </div>
           <MonthPickerModal

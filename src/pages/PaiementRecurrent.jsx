@@ -147,7 +147,9 @@ const PaiementRecurrent = () => {
               Paiements Récurrents
             </h1>
             <p className='text-sm text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap'>
-              Gérez vos dépenses et revenus mensuels.
+              {currentTab === "depense"
+                ? "Gérez vos dépenses qui sont les mêmes chaque mois"
+                : "Gérez vos revenus qui sont les mêmes chaque mois"}
             </p>
           </div>
           <MonthPickerModal

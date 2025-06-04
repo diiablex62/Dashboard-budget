@@ -133,8 +133,8 @@ export default function DepensesRevenus() {
                 </h1>
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   {currentTab === "depense"
-                    ? "Gérez vos dépenses mensuelles"
-                    : "Gérez vos revenus mensuels"}
+                    ? "Gérez vos dépenses ponctuelles"
+                    : "Gérez vos revenus ponctuels"}
                 </p>
               </div>
               <MonthPickerModal
