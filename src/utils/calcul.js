@@ -188,20 +188,11 @@ export function calculTotalDepensesRecurrentesMois(
   paiementsRecurrents = [],
   date = new Date()
 ) {
-  console.log("=== CALCUL TOTAL DÉPENSES RÉCURRENTES DU MOIS ===");
-  console.log("Paiements récurrents reçus:", paiementsRecurrents);
-
   const dateObj = date instanceof Date ? date : new Date(date);
-  console.log(
-    "Mois calculé:",
-    dateObj.toLocaleString("fr-FR", { month: "long", year: "numeric" })
-  );
 
   const total = paiementsRecurrents
     .filter((p) => {
-      console.log("Filtrage paiement :", p);
       if (!p || !p.jourPrelevement || !p.dateDebut) {
-        console.log("Paiement invalide:", p);
         return false;
       }
 
@@ -213,12 +204,8 @@ export function calculTotalDepensesRecurrentesMois(
     })
     .reduce((acc, p) => {
       const montant = Math.abs(parseFloat(p.montant));
-      console.log(`Montant ajouté pour ${p.nom}:`, montant);
       return acc + montant;
     }, 0);
-
-  console.log("Total des dépenses récurrentes:", total);
-  console.log("================================");
 
   return total;
 }

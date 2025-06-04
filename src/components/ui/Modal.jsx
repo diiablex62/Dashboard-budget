@@ -103,7 +103,7 @@ export function ModalDepenseRevenu({
   // Effets
   useEffect(() => {
     if (visible) {
-      console.log("Modal ouverte - Réinitialisation du formulaire");
+      console.log("Modal ouverte - Valeurs initiales:", initialValues);
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
@@ -146,6 +146,11 @@ export function ModalDepenseRevenu({
 
   const validateStep = useCallback(() => {
     if (!form[current.name]) {
+      // Si c'est la date de début et qu'elle est vide, on affiche l'erreur
+      if (current.name === "dateDebut") {
+        setError(`Le champ "${current.label}" est obligatoire`);
+        return false;
+      }
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
@@ -166,7 +171,13 @@ export function ModalDepenseRevenu({
     if (step < steps.length) {
       setStep(step + 1);
     } else {
-      onSave(form);
+      console.log("Sauvegarde du formulaire avec la date:", form.date);
+      const finalForm = {
+        ...form,
+        date: form.date,
+      };
+      console.log("Formulaire final avant sauvegarde:", finalForm);
+      onSave(finalForm);
       onClose();
     }
   }, [step, steps.length, validateStep, form, onSave, onClose]);
@@ -175,15 +186,32 @@ export function ModalDepenseRevenu({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback(
-    (e) => {
-      setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-      if (e.target.name === "date") {
-        handleNext();
-      }
-    },
-    [handleNext]
-  );
+  const handleChange = useCallback((e) => {
+    console.log("handleChange - Événement reçu:", {
+      name: e.target.name,
+      value: e.target.value,
+      type: e.target.type,
+    });
+
+    if (e.target.name === "dateDebut") {
+      console.log("Date de début sélectionnée:", e.target.value);
+      setForm((prev) => {
+        const newForm = { ...prev, dateDebut: e.target.value };
+        console.log(
+          "Nouveau formulaire après mise à jour de la date:",
+          newForm
+        );
+        return newForm;
+      });
+      // On ne déclenche pas la validation automatiquement
+    } else {
+      setForm((prev) => {
+        const newForm = { ...prev, [e.target.name]: e.target.value };
+        console.log("Nouveau formulaire après mise à jour:", newForm);
+        return newForm;
+      });
+    }
+  }, []);
 
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
@@ -431,7 +459,7 @@ export function ModalRecurrent({
       categorie: "",
       montant: "",
       jour: "",
-      dateDebut: new Date().toISOString().slice(0, 7), // Format YYYY-MM
+      dateDebut: "",
     }),
     []
   );
@@ -453,6 +481,7 @@ export function ModalRecurrent({
   // Effets
   useEffect(() => {
     if (visible) {
+      console.log("Modal ouverte - Valeurs initiales:", initialValues);
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
@@ -530,15 +559,32 @@ export function ModalRecurrent({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback(
-    (e) => {
-      setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-      if (e.target.name === "dateDebut") {
-        handleNext();
-      }
-    },
-    [handleNext]
-  );
+  const handleChange = useCallback((e) => {
+    console.log("handleChange - Événement reçu:", {
+      name: e.target.name,
+      value: e.target.value,
+      type: e.target.type,
+    });
+
+    if (e.target.name === "dateDebut") {
+      console.log("Date de début sélectionnée:", e.target.value);
+      setForm((prev) => {
+        const newForm = { ...prev, dateDebut: e.target.value };
+        console.log(
+          "Nouveau formulaire après mise à jour de la date:",
+          newForm
+        );
+        return newForm;
+      });
+      // On ne déclenche pas la validation automatiquement
+    } else {
+      setForm((prev) => {
+        const newForm = { ...prev, [e.target.name]: e.target.value };
+        console.log("Nouveau formulaire après mise à jour:", newForm);
+        return newForm;
+      });
+    }
+  }, []);
 
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
@@ -821,7 +867,7 @@ export function ModalEchelonne({
       categorie: "",
       montant: "",
       mensualites: "",
-      debutDate: new Date().toISOString().split("T")[0],
+      debutDate: "",
     }),
     []
   );
@@ -841,7 +887,7 @@ export function ModalEchelonne({
   // Effets
   useEffect(() => {
     if (visible) {
-      console.log("Modal ouverte - Réinitialisation du formulaire");
+      console.log("Modal ouverte - Valeurs initiales:", initialValues);
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
@@ -884,6 +930,11 @@ export function ModalEchelonne({
 
   const validateStep = useCallback(() => {
     if (!form[current.name]) {
+      // Si c'est la date de début et qu'elle est vide, on affiche l'erreur
+      if (current.name === "dateDebut") {
+        setError(`Le champ "${current.label}" est obligatoire`);
+        return false;
+      }
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
@@ -911,7 +962,13 @@ export function ModalEchelonne({
     if (step < steps.length) {
       setStep(step + 1);
     } else {
-      onSave(form);
+      console.log("Sauvegarde du formulaire avec la date:", form.debutDate);
+      const finalForm = {
+        ...form,
+        dateDebut: form.debutDate,
+      };
+      console.log("Formulaire final avant sauvegarde:", finalForm);
+      onSave(finalForm);
       onClose();
     }
   }, [step, steps.length, validateStep, form, onSave, onClose]);
@@ -920,15 +977,32 @@ export function ModalEchelonne({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback(
-    (e) => {
-      setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-      if (e.target.name === "debutDate") {
-        handleNext();
-      }
-    },
-    [handleNext]
-  );
+  const handleChange = useCallback((e) => {
+    console.log("handleChange - Événement reçu:", {
+      name: e.target.name,
+      value: e.target.value,
+      type: e.target.type,
+    });
+
+    if (e.target.name === "dateDebut") {
+      console.log("Date de début sélectionnée:", e.target.value);
+      setForm((prev) => {
+        const newForm = { ...prev, dateDebut: e.target.value };
+        console.log(
+          "Nouveau formulaire après mise à jour de la date:",
+          newForm
+        );
+        return newForm;
+      });
+      // On ne déclenche pas la validation automatiquement
+    } else {
+      setForm((prev) => {
+        const newForm = { ...prev, [e.target.name]: e.target.value };
+        console.log("Nouveau formulaire après mise à jour:", newForm);
+        return newForm;
+      });
+    }
+  }, []);
 
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;

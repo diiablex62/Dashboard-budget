@@ -75,7 +75,12 @@ const PaiementRecurrent = () => {
         anneeActuelle > anneeDebut ||
         (anneeActuelle === anneeDebut && moisActuel >= moisDebut);
 
-      return estApresDateDebut;
+      // Vérifie si le jour de prélèvement est valide pour ce mois
+      const jourPrelevement = p.jourPrelevement;
+      const joursDansMois = new Date(anneeActuelle, moisActuel, 0).getDate();
+      const jourValide = jourPrelevement <= joursDansMois;
+
+      return estApresDateDebut && jourValide;
     });
   }, [paiementsRecurrents, currentTab, selectedMonth]);
 
@@ -94,33 +99,55 @@ const PaiementRecurrent = () => {
   }, []);
 
   const handleAddPaiement = useCallback(() => {
+    // On initialise avec le mois actuel
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const formattedMonth = String(currentMonth).padStart(2, "0");
+    const dateDebut = `${currentYear}-${formattedMonth}`;
+
+    console.log("Initialisation du paiement avec la date actuelle:", dateDebut);
+
     setSelectedPaiement({
       nom: "",
       categorie: "",
       montant: "",
       jour: "",
-      dateDebut: selectedMonth.toISOString().slice(0, 7), // mois courant par défaut
+      dateDebut: dateDebut,
     });
     setShowModal(true);
-  }, [selectedMonth]);
+  }, []);
 
   const handleSavePaiement = useCallback(
     async (paiement) => {
       console.log("handleSavePaiement - paiement reçu :", paiement);
+      console.log("Date de début reçue:", paiement.dateDebut);
+
       setPaiementsRecurrents((prev) => {
-        // Toujours utiliser la valeur du picker (dateDebut)
+        // On s'assure que la date de début est bien celle sélectionnée
         const newPaiement = {
           ...paiement,
           type: currentTab,
-          dateDebut: paiement.dateDebut, // valeur du picker
+          dateDebut: paiement.dateDebut, // On utilise la date sélectionnée par l'utilisateur
           jourPrelevement: Number(paiement.jour),
           montant: Number(paiement.montant),
         };
+        console.log(
+          "Nouveau paiement créé avec la date:",
+          newPaiement.dateDebut
+        );
+
         if (paiement.id) {
-          return prev.map((t) => (t.id === paiement.id ? newPaiement : t));
+          const updatedPaiements = prev.map((t) =>
+            t.id === paiement.id ? newPaiement : t
+          );
+          console.log("Paiements après modification:", updatedPaiements);
+          return updatedPaiements;
         } else {
           const newId = Math.max(...prev.map((p) => p.id), 0) + 1;
-          return [...prev, { ...newPaiement, id: newId }];
+          const updatedPaiements = [...prev, { ...newPaiement, id: newId }];
+          console.log("Paiements après ajout:", updatedPaiements);
+          return updatedPaiements;
         }
       });
       setShowModal(false);
