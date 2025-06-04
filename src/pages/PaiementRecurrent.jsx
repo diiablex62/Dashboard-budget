@@ -94,18 +94,26 @@ const PaiementRecurrent = () => {
   }, []);
 
   const handleAddPaiement = useCallback(() => {
-    setSelectedPaiement(null);
+    setSelectedPaiement({
+      nom: "",
+      categorie: "",
+      montant: "",
+      jour: "",
+      dateDebut: selectedMonth.toISOString().slice(0, 7), // mois courant par défaut
+    });
     setShowModal(true);
-  }, []);
+  }, [selectedMonth]);
 
   const handleSavePaiement = useCallback(
     async (paiement) => {
+      console.log("handleSavePaiement - paiement reçu :", paiement);
       setPaiementsRecurrents((prev) => {
+        // Toujours utiliser la valeur du picker (dateDebut)
         const newPaiement = {
           ...paiement,
           type: currentTab,
+          dateDebut: paiement.dateDebut, // valeur du picker
           jourPrelevement: Number(paiement.jour),
-          moisPrelevement: Number(paiement.mois),
           montant: Number(paiement.montant),
         };
         if (paiement.id) {

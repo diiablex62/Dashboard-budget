@@ -199,32 +199,17 @@ export function calculTotalDepensesRecurrentesMois(
 
   const total = paiementsRecurrents
     .filter((p) => {
-      if (!p || !p.jourPrelevement || !p.dateDebut || !p.moisPrelevement) {
+      console.log("Filtrage paiement :", p);
+      if (!p || !p.jourPrelevement || !p.dateDebut) {
         console.log("Paiement invalide:", p);
         return false;
       }
 
       const estDepense = p.type === "depense";
-      const jourPrelevement = parseInt(p.jourPrelevement);
-      const jourActuel = dateObj.getDate();
-      const dateDebut = new Date(p.dateDebut);
+      const dateDebut = new Date(p.dateDebut + "-01");
       const estActif = dateDebut <= dateObj;
-      const moisActuel = dateObj.getMonth() + 1; // +1 car getMonth() retourne 0-11
-      const estMoisPrelevement = moisActuel >= p.moisPrelevement;
 
-      console.log(`Paiement ${p.nom}:`, {
-        estDepense,
-        montant: p.montant,
-        jourPrelevement,
-        jourActuel,
-        dateDebut: p.dateDebut,
-        estActif,
-        moisActuel,
-        moisPrelevement: p.moisPrelevement,
-        estMoisPrelevement,
-      });
-
-      return estDepense && estActif && estMoisPrelevement;
+      return estDepense && estActif;
     })
     .reduce((acc, p) => {
       const montant = Math.abs(parseFloat(p.montant));
