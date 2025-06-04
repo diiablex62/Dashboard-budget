@@ -307,8 +307,6 @@ export const PaiementEchelonne = () => {
                   const nombreMensualites = parseInt(paiement.mensualites);
                   const montantMensuel = montantTotal / nombreMensualites;
 
-              
-
                   return (
                     <CardDesign
                       key={paiement.id}
