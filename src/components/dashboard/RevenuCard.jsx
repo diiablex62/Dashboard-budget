@@ -33,34 +33,33 @@ const RevenuCard = ({
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+      {/* Icône info dans le coin supérieur droit de la carte */}
+      <div
+        className='absolute top-2 right-2 z-10'
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}>
+        <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+        {showTooltip && (
+          <TooltipRevenu
+            revenusClassiquesCourant={revenusClassiquesCourant}
+            recurrentsRevenuCourant={recurrentsRevenuCourant}
+            echelonnesRevenuCourant={echelonnesRevenuCourant}
+            totalRevenus={totalRevenusJusquaAujourdhui}
+            depenseRevenu={[]}
+            paiementsRecurrents={[]}
+            paiementsEchelonnes={[]}
+            revenusClassiquesMoisPrec={revenusClassiquesMoisPrec}
+            recurrentsRevenuMoisPrec={recurrentsRevenuMoisPrec}
+            echelonnesRevenuMoisPrec={echelonnesRevenuMoisPrec}
+          />
+        )}
+      </div>
       <div className='flex items-center justify-between'>
         <div className='relative flex-1'>
           <span className='text-gray-500 font-medium'>
             Total revenus actuellement en {MONTH_NAMES[now.getMonth()]}{" "}
             {now.getFullYear()}
           </span>
-        </div>
-        <div className='flex items-center gap-2'>
-          <div
-            className='relative'
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}>
-            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
-            {showTooltip && (
-              <TooltipRevenu
-                revenusClassiquesCourant={revenusClassiquesCourant}
-                recurrentsRevenuCourant={recurrentsRevenuCourant}
-                echelonnesRevenuCourant={echelonnesRevenuCourant}
-                totalRevenus={totalRevenusJusquaAujourdhui}
-                depenseRevenu={[]}
-                paiementsRecurrents={[]}
-                paiementsEchelonnes={[]}
-                revenusClassiquesMoisPrec={revenusClassiquesMoisPrec}
-                recurrentsRevenuMoisPrec={recurrentsRevenuMoisPrec}
-                echelonnesRevenuMoisPrec={echelonnesRevenuMoisPrec}
-              />
-            )}
-          </div>
         </div>
       </div>
       <div className='relative'>

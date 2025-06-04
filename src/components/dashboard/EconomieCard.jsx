@@ -3,126 +3,75 @@
  * @description Composant de carte pour afficher les informations des économies
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { BsCalculator } from "react-icons/bs";
-import { AiOutlineSync } from "react-icons/ai";
+import { AiOutlineSync, AiOutlineInfoCircle } from "react-icons/ai";
 import { formatMontant } from "../../utils/calcul";
 import TooltipEconomie from "./tooltips/TooltipEconomie";
 
 const EconomieCard = ({
-  totalEconomies,
   totalEconomiesJusquaAujourdhui,
-  totalEconomiesMoisPrecedent,
   differenceEconomiesMoisPrecedent,
-  isHoveringCalculatorEconomies,
-  setIsHoveringCalculatorEconomies,
   onUpdateBalance,
-  totalRevenusJusquaAujourdhui,
-  totalDepenseJusquaAujourdhui,
-  totalRevenus,
-  totalDepense,
-  totalRevenusMoisPrecedent,
-  totalDepenseMoisPrecedent,
 }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
       <div className='flex'>
-        {/* Partie gauche : calculatrice, titre, montant, différence */}
+        {/* Partie gauche : titre, montant, différence */}
         <div className='w-1/2 relative'>
+          {/* Icône info dans le coin supérieur droit de la partie gauche */}
+          <div
+            className='absolute top-2 right-2 z-10'
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}>
+            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+            {showTooltip && (
+              <TooltipEconomie
+                totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
+                differenceEconomiesMoisPrecedent={
+                  differenceEconomiesMoisPrecedent
+                }
+              />
+            )}
+          </div>
           <div className='flex items-center justify-between'>
             <div className='relative flex-1'>
-              {!isHoveringCalculatorEconomies ? (
-                <span className='text-gray-500 font-medium'>
-                  Économies actuelles
-                </span>
-              ) : (
-                <span className='text-gray-500 font-medium'>
-                  Économies prévisionnelles du mois
-                </span>
-              )}
+              <span className='text-gray-500 font-medium'>
+                Économies actuelles
+              </span>
             </div>
-            <button
-              className='text-gray-400 hover:text-gray-600 cursor-help text-lg'
-              onMouseEnter={() => setIsHoveringCalculatorEconomies(true)}
-              onMouseLeave={() => setIsHoveringCalculatorEconomies(false)}>
-              <BsCalculator />
-            </button>
           </div>
           <div className='relative'>
-            {!isHoveringCalculatorEconomies ? (
-              <div className='text-2xl font-bold dark:text-white'>
-                {formatMontant(totalEconomiesJusquaAujourdhui)}€
-              </div>
-            ) : (
-              <div className='text-2xl font-bold text-green-600'>
-                {formatMontant(totalEconomies)}€
-              </div>
-            )}
+            <div className='text-2xl font-bold dark:text-white'>
+              {formatMontant(totalEconomiesJusquaAujourdhui)}€
+            </div>
           </div>
           <div
             className={`text-xs font-semibold ${
-              !isHoveringCalculatorEconomies
-                ? differenceEconomiesMoisPrecedent < 0
-                  ? "text-red-600"
-                  : differenceEconomiesMoisPrecedent > 0
-                  ? "text-green-600"
-                  : "text-gray-400"
-                : totalEconomies - totalEconomiesMoisPrecedent < 0
+              differenceEconomiesMoisPrecedent < 0
                 ? "text-red-600"
-                : totalEconomies - totalEconomiesMoisPrecedent > 0
+                : differenceEconomiesMoisPrecedent > 0
                 ? "text-green-600"
                 : "text-gray-400"
             }`}>
-            {!isHoveringCalculatorEconomies ? (
-              <>
-                {differenceEconomiesMoisPrecedent < 0
-                  ? "↓"
-                  : differenceEconomiesMoisPrecedent > 0
-                  ? "↑"
-                  : ""}{" "}
-                {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
-                  "fr-FR",
-                  { minimumFractionDigits: 2 }
-                )}{" "}
-                €{" "}
-                {differenceEconomiesMoisPrecedent < 0
-                  ? "de moins"
-                  : differenceEconomiesMoisPrecedent > 0
-                  ? "de plus"
-                  : ""}{" "}
-                que le mois dernier
-              </>
-            ) : (
-              <>
-                {totalEconomies - totalEconomiesMoisPrecedent < 0
-                  ? "↓"
-                  : totalEconomies - totalEconomiesMoisPrecedent > 0
-                  ? "↑"
-                  : ""}{" "}
-                {Math.abs(
-                  totalEconomies - totalEconomiesMoisPrecedent
-                ).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}{" "}
-                €{" "}
-                {totalEconomies - totalEconomiesMoisPrecedent < 0
-                  ? "de moins"
-                  : totalEconomies - totalEconomiesMoisPrecedent > 0
-                  ? "de plus"
-                  : ""}{" "}
-                que le mois dernier
-              </>
-            )}
+            {differenceEconomiesMoisPrecedent < 0
+              ? "↓"
+              : differenceEconomiesMoisPrecedent > 0
+              ? "↑"
+              : ""}{" "}
+            {Math.abs(differenceEconomiesMoisPrecedent).toLocaleString(
+              "fr-FR",
+              { minimumFractionDigits: 2 }
+            )}{" "}
+            €{" "}
+            {differenceEconomiesMoisPrecedent < 0
+              ? "de moins"
+              : differenceEconomiesMoisPrecedent > 0
+              ? "de plus"
+              : ""}{" "}
+            que le mois dernier
           </div>
-          <TooltipEconomie
-            totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
-            totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
-            totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
-            totalRevenus={totalRevenus}
-            totalDepense={totalDepense}
-            totalEconomies={totalEconomies}
-            totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
-            totalDepenseMoisPrecedent={totalDepenseMoisPrecedent}
-            totalEconomiesMoisPrecedent={totalEconomiesMoisPrecedent}
-          />
         </div>
         {/* Partie droite : bouton synchronisation */}
         <div className='w-1/2 flex flex-col items-start'>

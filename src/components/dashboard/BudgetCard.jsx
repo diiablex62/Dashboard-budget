@@ -15,13 +15,16 @@ const BudgetCard = ({
   revenusAVenir,
   depensesRecEchAVenir,
   revenusRecEchAVenir,
-  depenses,
-  revenus,
-  recurrents,
-  echelonnes,
+  depenses = [],
+  revenus = [],
+  recurrents = [],
+  echelonnes = [],
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const today = new Date();
+
+  // Log pour debug : voir le contenu des listes passées au tooltip
+  console.log({ depenses, revenus, recurrents, echelonnes });
 
   const tooltipData = {
     depensesPrevisionnelles: depensesAVenir + depensesRecEchAVenir,
@@ -32,11 +35,32 @@ const BudgetCard = ({
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+      {/* Icône info dans le coin supérieur droit de la carte */}
+      <div
+        className='absolute top-2 right-2 z-10'
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}>
+        <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+        {showTooltip && (
+          <TooltipBudgetFuture
+            depenseRevenu={[...(depenses || []), ...(revenus || [])]}
+            paiementsRecurrents={recurrents || []}
+            paiementsEchelonnes={echelonnes || []}
+            isCurrentMonth={(date) =>
+              date.getMonth() === today.getMonth() &&
+              date.getFullYear() === today.getFullYear()
+            }
+            isFuture={(date) => date > today}
+            today={today}
+          />
+        )}
+      </div>
       <div className='flex items-center justify-between'>
-        <span className='text-gray-900 font-bold text-xl'>
-          Budget prévisionnel {CURRENT_MONTH}
-        </span>
-        <AiOutlinePieChart className='text-2xl text-blue-600' />
+        <div className='relative flex-1'>
+          <span className='text-gray-500 font-medium'>
+            Budget prévisionnel {CURRENT_MONTH}
+          </span>
+        </div>
       </div>
       <div
         className={`text-2xl font-bold ${
@@ -46,19 +70,6 @@ const BudgetCard = ({
       </div>
       <div className='text-xs text-gray-400 mt-1'>
         Solde actuel ajusté des opérations à venir ce mois-ci.
-      </div>
-      {/* Nouveau Tooltip du budget prévisionnel */}
-      <div className='absolute bottom-4 right-4 group'>
-        <AiOutlineInfoCircle
-          className='text-gray-400 hover:text-gray-600 cursor-help text-lg'
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-        />
-        {showTooltip && (
-          <div className='absolute bottom-0 right-full mr-2 z-50'>
-            <TooltipBudgetFuture data={tooltipData} />
-          </div>
-        )}
       </div>
     </div>
   );

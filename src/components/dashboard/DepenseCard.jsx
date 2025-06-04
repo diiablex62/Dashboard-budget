@@ -26,36 +26,35 @@ const DepenseCard = ({
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
+      {/* Icône info dans le coin supérieur droit de la carte */}
+      <div
+        className='absolute top-2 right-2 z-10'
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}>
+        <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
+        {showTooltip && (
+          <TooltipDepense
+            depensesClassiquesCourant={depensesClassiquesCourant}
+            recurrentsDepenseCourant={recurrentsDepenseCourant}
+            echelonnesDepenseCourant={echelonnesDepenseCourant}
+            totalDepense={totalDepenseJusquaAujourdhui}
+            depenseRevenu={[]}
+            paiementsRecurrents={[]}
+            paiementsEchelonnes={[]}
+            depensesClassiquesMoisPrec={depensesClassiquesMoisPrec}
+            recurrentsDepenseMoisPrec={recurrentsDepenseMoisPrec}
+            echelonnesDepenseMoisPrec={echelonnesDepenseMoisPrec}
+            calculTotalEchelonnesMois={() => 0}
+            isCurrentMonth={() => false}
+          />
+        )}
+      </div>
       <div className='flex items-center justify-between'>
         <div className='relative flex-1'>
           <span className='text-gray-500 font-medium'>
             Total dépensé actuellement en {MONTH_NAMES[now.getMonth()]}{" "}
             {now.getFullYear()}
           </span>
-        </div>
-        <div className='flex items-center gap-2'>
-          <div
-            className='relative'
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}>
-            <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
-            {showTooltip && (
-              <TooltipDepense
-                depensesClassiquesCourant={depensesClassiquesCourant}
-                recurrentsDepenseCourant={recurrentsDepenseCourant}
-                echelonnesDepenseCourant={echelonnesDepenseCourant}
-                totalDepense={totalDepenseJusquaAujourdhui}
-                depenseRevenu={[]}
-                paiementsRecurrents={[]}
-                paiementsEchelonnes={[]}
-                depensesClassiquesMoisPrec={depensesClassiquesMoisPrec}
-                recurrentsDepenseMoisPrec={recurrentsDepenseMoisPrec}
-                echelonnesDepenseMoisPrec={echelonnesDepenseMoisPrec}
-                calculTotalEchelonnesMois={() => 0}
-                isCurrentMonth={() => false}
-              />
-            )}
-          </div>
         </div>
       </div>
       <div className='relative'>

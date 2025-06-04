@@ -20,7 +20,7 @@ const TooltipRevenu = ({
   formatMontant = (v) =>
     Number(v).toLocaleString("fr-FR", { minimumFractionDigits: 2 }),
 }) => (
-  <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
+  <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
     <div>
       <div className='mb-2'>
         <span className='font-semibold'>Revenus depuis le 1er du mois :</span>{" "}
