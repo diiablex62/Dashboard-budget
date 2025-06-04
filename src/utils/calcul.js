@@ -5,12 +5,7 @@
 // DÉPENSES & REVENUS
 // =====================
 
-/**
- * Calcule le total des dépenses et revenus
- * @param {Array} depenseRevenu - Tableau de dépenses et revenus
- * @param {boolean} isDepense - Si true, calcule le montant en valeur absolue
- * @returns {number} - Total des dépenses et revenus
- */
+// Calcul du total des dépenses et revenus
 export const calculateDepenseRevenuTotal = (
   depenseRevenu,
   isDepense = false
@@ -21,12 +16,7 @@ export const calculateDepenseRevenuTotal = (
   );
 };
 
-/**
- * Calcule le total des dépenses du mois
- * @param {Array} depenseRevenu - Tableau de dépenses et revenus
- * @param {Date} date - Date de référence
- * @returns {number} - Total des dépenses du mois
- */
+// Calcul du total des dépenses du mois
 export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
   const dateObj = date instanceof Date ? date : new Date(date);
 
@@ -42,12 +32,7 @@ export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
     .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
 }
 
-/**
- * Calcule le total des revenus du mois
- * @param {Array} depenseRevenu - Tableau de dépenses et revenus
- * @param {Date} date - Date de référence
- * @returns {number} - Total des revenus du mois
- */
+// Calcule le total des revenus du mois
 export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
   if (!depenseRevenu || !Array.isArray(depenseRevenu)) {
     return 0;
@@ -67,26 +52,11 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     .reduce((acc, d) => acc + parseFloat(d.montant), 0);
 }
 
-/**
- * Calcule les économies (revenus - dépenses)
- * @param {number} revenus - Total des revenus
- * @param {number} depenses - Total des dépenses
- * @returns {number} - Montant des économies
- */
-export function calculEconomies(revenus, depenses) {
-  return revenus - depenses;
-}
-
 // =====================
 // RÉCURRENTS
 // =====================
 
-/**
- * Calcule le total des paiements récurrents du mois
- * @param {Array} paiementsRecurrents - Tableau des paiements récurrents
- * @param {Date} date - Date de référence
- * @returns {number} - Total des paiements récurrents du mois
- */
+// Calcule le total des paiements récurrents du mois
 export function calculTotalRecurrentsMois(
   paiementsRecurrents = [],
   date = new Date()
@@ -123,12 +93,7 @@ export function calculTotalRecurrentsMois(
   return total;
 }
 
-/**
- * Calcule le total des dépenses récurrentes du mois
- * @param {Array} paiementsRecurrents - Tableau des paiements récurrents
- * @param {Date} date - Date de référence
- * @returns {number} - Total des dépenses récurrentes du mois
- */
+// Calcule le total des dépenses récurrentes du mois
 export const calculTotalDepensesRecurrentesMois = (
   paiementsRecurrents,
   date
@@ -157,12 +122,7 @@ export const calculTotalDepensesRecurrentesMois = (
   return total;
 };
 
-/**
- * Calcule le total des revenus récurrents du mois
- * @param {Array} paiementsRecurrents - Tableau des paiements récurrents
- * @param {Date} date - Date de référence
- * @returns {number} - Total des revenus récurrents du mois
- */
+// Calcule le total des revenus récurrents du mois
 export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
   if (!paiementsRecurrents || !date) return 0;
 
@@ -192,12 +152,7 @@ export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
 // ÉCHELONNÉS
 // =====================
 
-/**
- * Calcule le total des paiements échelonnés du mois
- * @param {Array} paiementsEchelonnes - Tableau des paiements échelonnés
- * @param {Date} date - Date de référence
- * @returns {number} - Total des paiements échelonnés du mois
- */
+// Calcule le total des paiements échelonnés du mois
 export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
   if (!paiementsEchelonnes || !date) return 0;
 
@@ -220,36 +175,31 @@ export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
     .reduce((total, p) => {
       // Calcule le montant mensuel (montant total divisé par le nombre de mensualités)
       const montantMensuel = Number(p.montant) / Number(p.mensualites);
-      return total + montantMensuel;
+      return (
+        total + (p.type === "debit" ? Math.abs(montantMensuel) : montantMensuel)
+      );
     }, 0);
 };
 
-/**
- * Calcule le total des dépenses échelonnées du mois
- * @param {Array} paiementsEchelonnes - Tableau des paiements échelonnés
- * @param {Date} date - Date de référence
- * @returns {number} - Total des dépenses échelonnées du mois
- */
-export const calculTotalDepensesEchelonneesMois = (
-  paiementsEchelonnes,
-  date
-) => {
+// Calcule le total des crédits échelonnés du mois
+export const calculTotalCreditEchelonneesMois = (paiementsEchelonnes, date) => {
   // Vérification des paramètres
   if (!paiementsEchelonnes?.length || !date) {
-    return { credits: 0, debits: 0 };
+    return 0;
   }
 
   // Initialisation des variables
   const dateObj = new Date(date);
-  const mois = dateObj.getMonth() + 1;
+  const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
-  const dateActuelle = new Date(annee, mois - 1);
-  const dateActuelleFin = new Date(annee, mois, 0);
+  const dateActuelle = new Date(annee, mois);
+  const dateActuelleFin = new Date(annee, mois + 1, 0);
 
-  // Calcul des totaux par type
-  const { credits, debits } = paiementsEchelonnes.reduce(
-    (acc, p) => {
-      if (!p.debutDate || !p.mensualites || !p.montant) return acc;
+  // Calcul du total des crédits échelonnés
+  return paiementsEchelonnes
+    .filter((p) => {
+      if (!p.debutDate || !p.mensualites || !p.montant) return false;
+      if (p.type !== "credit") return false;
 
       const dateDebut = new Date(p.debutDate);
       const dateFin = new Date(dateDebut);
@@ -266,31 +216,67 @@ export const calculTotalDepensesEchelonneesMois = (
         // Est en cours ce mois-ci
         (dateActuelle <= dateFin && dateActuelleFin >= dateDebut);
 
-      if (estActif) {
-        const mensualite = Number(p.montant) / Number(p.mensualites);
-        if (p.type === "credit") {
-          acc.credits += mensualite;
-        } else if (p.type === "debit") {
-          acc.debits += mensualite;
-        }
-      }
+      return estActif;
+    })
+    .reduce((total, p) => {
+      const mensualite = Number(p.montant) / Number(p.mensualites);
+      return total + mensualite;
+    }, 0);
+};
 
-      return acc;
-    },
-    { credits: 0, debits: 0 }
-  );
+// Calcule le total des débits échelonnés du mois
+export const calculTotalDebitEchelonneesMois = (paiementsEchelonnes, date) => {
+  // Vérification des paramètres
+  if (!paiementsEchelonnes?.length || !date) {
+    return 0;
+  }
 
-  return { credits, debits };
+  // Initialisation des variables
+  const dateObj = new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  const dateActuelle = new Date(annee, mois);
+  const dateActuelleFin = new Date(annee, mois + 1, 0);
+
+  // Calcul du total des débits échelonnés
+  return paiementsEchelonnes
+    .filter((p) => {
+      if (!p.debutDate || !p.mensualites || !p.montant) return false;
+      if (p.type !== "debit") return false;
+
+      const dateDebut = new Date(p.debutDate);
+      const dateFin = new Date(dateDebut);
+      dateFin.setMonth(dateFin.getMonth() + Number(p.mensualites) - 1);
+
+      // Vérifie si le paiement est actif pour ce mois
+      const estActif =
+        // Commence ce mois-ci
+        (dateDebut.getMonth() === dateActuelle.getMonth() &&
+          dateDebut.getFullYear() === dateActuelle.getFullYear()) ||
+        // Se termine ce mois-ci
+        (dateFin.getMonth() === dateActuelle.getMonth() &&
+          dateFin.getFullYear() === dateActuelle.getFullYear()) ||
+        // Est en cours ce mois-ci
+        (dateActuelle <= dateFin && dateActuelleFin >= dateDebut);
+
+      return estActif;
+    })
+    .reduce((total, p) => {
+      const mensualite = Number(p.montant) / Number(p.mensualites);
+      return total + Math.abs(mensualite); // On prend la valeur absolue pour les débits
+    }, 0);
 };
 
 // =====================
 // DASHBOARD
 // =====================
 
-/**
- * Calcule les dépenses par catégorie
- * @returns {Array} - Tableau des dépenses par catégorie
- */
+// Calcule les économies (revenus - dépenses)
+export const calculEconomies = (totalRevenus, totalDepenses) => {
+  return totalRevenus - totalDepenses;
+};
+
+// Calcule le total des dépenses par catégorie
 export function calculDepensesParCategorie() {
   return [];
 }

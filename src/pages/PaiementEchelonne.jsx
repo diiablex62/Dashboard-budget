@@ -19,7 +19,8 @@ import { toast } from "react-toastify";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 import {
   formatMontant,
-  calculTotalDepensesEchelonneesMois,
+  calculTotalCreditEchelonneesMois,
+  calculTotalDebitEchelonneesMois,
 } from "../utils/calcul";
 
 export const PaiementEchelonne = () => {
@@ -32,7 +33,6 @@ export const PaiementEchelonne = () => {
   const [isRevenus, setIsRevenus] = useState(false);
 
   const handleEdit = useCallback((payment) => {
-    console.log("handleEdit - payment reçu:", payment);
     setEditIndex(payment.id);
     setShowModal(true);
   }, []);
@@ -73,11 +73,11 @@ export const PaiementEchelonne = () => {
   }, []);
 
   const totalDepenses = useMemo(() => {
-    return calculTotalDepensesEchelonneesMois(
-      paiementsEchelonnes,
-      selectedDate
-    );
-  }, [paiementsEchelonnes, selectedDate]);
+    if (isRevenus) {
+      return calculTotalDebitEchelonneesMois(paiementsEchelonnes, selectedDate);
+    }
+    return calculTotalCreditEchelonneesMois(paiementsEchelonnes, selectedDate);
+  }, [paiementsEchelonnes, selectedDate, isRevenus]);
 
   const paiementsActifsCount = useMemo(() => {
     return paiementsEchelonnes
@@ -182,10 +182,7 @@ export const PaiementEchelonne = () => {
               </span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
-              {formatMontant(
-                isRevenus ? totalDepenses.debits : totalDepenses.credits
-              )}
-              €
+              {formatMontant(totalDepenses)}€
             </div>
           </div>
 

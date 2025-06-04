@@ -15,7 +15,6 @@ import CATEGORY_PALETTE from "../utils/categoryPalette";
 import {
   calculTotalDepensesMois,
   totalRevenusGlobalMois,
-  calculEconomies,
   calculDepensesParCategorie,
   calculBarChartData,
   calculTotalRecurrentsMois,
@@ -135,7 +134,7 @@ export default function Dashboard() {
   // Calcul des économies (revenus - tout ce qui sort)
   const totalRevenus = totalRevenusGlobalMois(depenseRevenu, now);
   const totalDepense = calculTotalDepensesMois(depenseRevenu);
-  const totalEconomies = calculEconomies(totalRevenus, totalDepense);
+  const totalEconomies = totalRevenus - totalDepense;
 
   // Fusion de toutes les dépenses (dépenses classiques, récurrents, échelonnés)
   const depensesParCategorie = calculDepensesParCategorie();
