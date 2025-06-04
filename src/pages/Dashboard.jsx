@@ -22,42 +22,11 @@ import GraphiqueCard from "../components/dashboard/GraphiqueCard";
 import SectionTitle from "../components/dashboard/SectionTitle";
 import StatCard from "../components/dashboard/StatCard";
 import { useSortedPayments } from "../utils/useSortedPayments";
-
-// -------------------
-// Constantes du Dashboard
-// -------------------
-export const MONTH_NAMES = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-export const CURRENT_MONTH = MONTH_NAMES[new Date().getMonth()];
-
-export const DEFAULT_AMOUNTS = {
-  totalRevenus: 0,
-  totalDepense: 0,
-  totalEconomies: 0,
-  totalRevenusJusquaAujourdhui: 0,
-  totalDepenseJusquaAujourdhui: 0,
-  totalEconomiesJusquaAujourdhui: 0,
-  totalRevenusMoisPrecedent: 0,
-  totalDepenseMoisPrecedent: 0,
-  totalEconomiesMoisPrecedent: 0,
-  differenceEconomiesMoisPrecedent: 0,
-  differenceMoisPrecedent: 0,
-  differenceRevenusMoisPrecedent: 0,
-  budgetPrevisionnel: 0,
-};
+import {
+  MONTH_NAMES,
+  CURRENT_MONTH,
+  DEFAULT_AMOUNTS,
+} from "../components/dashboard/dashboardConstantes";
 
 // -------------------
 // Composant principal
@@ -115,6 +84,12 @@ export default function Dashboard() {
           differenceMoisPrecedent={differenceMoisPrecedent}
           isHoveringCalculator={isHoveringCalculator}
           setIsHoveringCalculator={setIsHoveringCalculator}
+          depensesClassiquesCourant={0}
+          recurrentsDepenseCourant={0}
+          echelonnesDepenseCourant={0}
+          depensesClassiquesMoisPrec={0}
+          recurrentsDepenseMoisPrec={0}
+          echelonnesDepenseMoisPrec={0}
         />
 
         {/* Carte Revenus */}
@@ -125,6 +100,12 @@ export default function Dashboard() {
           differenceRevenusMoisPrecedent={differenceRevenusMoisPrecedent}
           isHoveringCalculatorRevenus={isHoveringCalculatorRevenus}
           setIsHoveringCalculatorRevenus={setIsHoveringCalculatorRevenus}
+          revenusClassiquesCourant={0}
+          recurrentsRevenuCourant={0}
+          echelonnesRevenuCourant={0}
+          revenusClassiquesMoisPrec={0}
+          recurrentsRevenuMoisPrec={0}
+          echelonnesRevenuMoisPrec={0}
         />
 
         {/* Carte Paiements échelonnés */}
