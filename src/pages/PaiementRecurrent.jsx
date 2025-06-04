@@ -143,10 +143,10 @@ const PaiementRecurrent = () => {
         {/* Titre et sélecteur de mois */}
         <div className='mb-6 flex items-center justify-between'>
           <div>
-            <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+            <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>
               Paiements Récurrents
             </h1>
-            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap'>
               Gérez vos dépenses et revenus mensuels.
             </p>
           </div>

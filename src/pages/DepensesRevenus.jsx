@@ -128,11 +128,9 @@ export default function DepensesRevenus() {
             {/* Titre et sélecteur de mois */}
             <div className='mb-6 flex items-center justify-between'>
               <div>
-                <h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
-                  Dépenses et Revenus
-                </h1>
+                <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>Dépenses et Revenus</h1>
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Dépenses du mois de {getMonthYear(selectedDate)}
+                  {currentTab === "depense" ? "Gérez vos dépenses mensuelles" : "Gérez vos revenus mensuels"}
                 </p>
               </div>
               <MonthPickerModal
@@ -149,7 +147,7 @@ export default function DepensesRevenus() {
                   <div className='flex items-center text-red-600 mb-2'>
                     <AiOutlineDollarCircle className='text-2xl mr-2' />
                     <span className='text-sm font-semibold'>
-                      Total Dépenses
+                      Total dépenses mensuelles
                     </span>
                   </div>
                   <div className='text-2xl font-bold dark:text-white'>
