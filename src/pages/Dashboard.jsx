@@ -22,6 +22,7 @@ import GraphiqueCard from "../components/dashboard/GraphiqueCard";
 import SectionTitle from "../components/dashboard/SectionTitle";
 import StatCard from "../components/dashboard/StatCard";
 import VueSwitch from "../components/dashboard/VueSwitch";
+import DarkModeSwitch from "../components/ui/DarkModeSwitch";
 import { useSortedPayments } from "../utils/useSortedPayments";
 import {
   MONTH_NAMES,
@@ -81,7 +82,8 @@ export default function Dashboard() {
         <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-4'>
           DASHBOARD
         </h1>
-        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex justify-end'>
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex justify-between items-center'>
+          <DarkModeSwitch />
           <VueSwitch
             isPrevisionnel={isPrevisionnel}
             setIsPrevisionnel={setIsPrevisionnel}
