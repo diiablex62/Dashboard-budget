@@ -113,8 +113,13 @@ export default function Auth() {
       setIsLoading(true);
       const result = await sendMagicLink(email);
       if (result.success) {
-        // Afficher le token en console
-        console.log("Token de connexion:", result.token);
+        // Créer l'URL de connexion
+        const url = `${window.location.origin}/auth?token=${result.token}`;
+        // Afficher le lien cliquable en console
+        console.log(
+          `Lien magique envoyé à ${email} avec le token: ${result.token}`
+        );
+        console.log("Cliquez ici pour vous connecter:", url);
         // Rediriger vers la page de validation
         navigate("/validation", { state: { email } });
       }
