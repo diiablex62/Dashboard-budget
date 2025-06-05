@@ -17,7 +17,7 @@ const TooltipEconomie = ({
   totalEconomiesMoisPrecedent = 0,
 }) => (
   <div className='absolute top-0 right-full mr-2 w-96 max-h-[600px] overflow-y-auto p-3 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg'>
-    <p className='font-semibold mb-0'>Comprendre le calcul : </p>
+    <p className='font-semibold mb-2'>Comprendre le calcul : </p>
     <ul className='list-disc list-inside space-y-0.5'>
       <li className='text-green-400'>
         Total revenus :{" "}
@@ -45,7 +45,7 @@ const TooltipEconomie = ({
       </li>
     </ul>
     <div className='h-1' />
-    <div className='font-semibold mt-1 mb-0'>
+    <div className='font-semibold mt-1 mb-2'>
       Prévisionnel pour la fin du mois :
     </div>
     <ul className='list-disc list-inside space-y-0.5'>
@@ -93,7 +93,7 @@ const TooltipEconomie = ({
         })}{" "}
         €
       </li>
-      <li className='text-white'>
+      <li className='text-white mb-2'>
         Total économies :{" "}
         {totalEconomiesMoisPrecedent.toLocaleString("fr-FR", {
           minimumFractionDigits: 2,

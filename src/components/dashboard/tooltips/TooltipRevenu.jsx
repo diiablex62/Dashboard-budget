@@ -23,7 +23,7 @@ const TooltipRevenu = ({
   <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
     <div>
       <div className='mb-2'>
-        <span className='font-semibold'>Revenus depuis le 1er du mois :</span>{" "}
+        <span className='font-semibold'>Revenus du 1 du mois jusqu'à aujourd'hui:</span>{" "}
         {formatMontant(
           revenusClassiquesCourant +
             recurrentsRevenuCourant +
@@ -45,7 +45,7 @@ const TooltipRevenu = ({
       </ul>
       <div className='mb-2 mt-4'>
         <span className='font-semibold'>
-          Mois Actuel (total prévisionnel) :
+          Total prévisionnel à la fin du mois :
         </span>{" "}
         {formatMontant(totalRevenus)}€
       </div>
@@ -91,7 +91,9 @@ const TooltipRevenu = ({
         </li>
       </ul>
       <div className='mb-2'>
-        <span className='font-semibold'>Mois précédent :</span>{" "}
+        <span className='font-semibold'>
+          Total des revenus du mois précédent :
+        </span>{" "}
         {formatMontant(
           revenusClassiquesMoisPrec +
             recurrentsRevenuMoisPrec +
