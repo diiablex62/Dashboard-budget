@@ -80,7 +80,7 @@ const EconomieCard = ({
         <div className='w-1/2 flex justify-end items-center'>
           <button
             onClick={onUpdateBalance}
-            className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'>
+            className='flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors'>
             <AiOutlineSync className='text-lg' />
             <span>Synchroniser</span>
           </button>
