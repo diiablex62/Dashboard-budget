@@ -273,11 +273,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                   </span>
                 )}
               </button>
-              {!isCollapsed && (
-                <p className='text-xs text-center text-gray-500 mt-2'>
-                  Connexion simplifiée par email, Google ou GitHub
-                </p>
-              )}
             </div>
           )}
         </div>
