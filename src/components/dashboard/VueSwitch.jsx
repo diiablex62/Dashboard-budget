@@ -4,28 +4,26 @@
  */
 
 import React from "react";
-import { Switch } from "@headlessui/react";
 
 const VueSwitch = ({ isPrevisionnel, setIsPrevisionnel }) => {
   return (
-    <div className='flex items-center justify-end mb-6 bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-4'>
-      <span className='mr-3 text-sm font-medium text-gray-700 dark:text-gray-300'>
-        Vue actuelle
+    <div className='flex items-center gap-3'>
+      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+        Vue Actuelle
       </span>
-      <Switch
-        checked={isPrevisionnel}
-        onChange={setIsPrevisionnel}
-        className={`${
-          isPrevisionnel ? "bg-blue-600" : "bg-gray-200"
-        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}>
-        <span
-          className={`${
-            isPrevisionnel ? "translate-x-6" : "translate-x-1"
-          } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+
+      <label className='relative inline-flex items-center cursor-pointer'>
+        <input
+          type='checkbox'
+          checked={isPrevisionnel}
+          onChange={(e) => setIsPrevisionnel(e.target.checked)}
+          className='sr-only peer'
         />
-      </Switch>
-      <span className='ml-3 text-sm font-medium text-gray-700 dark:text-gray-300'>
-        Vue prévisionnelle
+        <div className='group peer ring-0 bg-rose-400 rounded-full outline-none duration-300 after:duration-300 w-16 h-8 shadow-md peer-checked:bg-emerald-500 peer-focus:outline-none after:content-["✖️"] after:rounded-full after:absolute after:bg-gray-50 after:outline-none after:h-6 after:w-6 after:top-1 after:left-1 after:-rotate-180 after:flex after:justify-center after:items-center after:text-xs peer-checked:after:translate-x-8 peer-checked:after:content-["✔️"] peer-hover:after:scale-95 peer-checked:after:rotate-0'></div>
+      </label>
+
+      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+        Vue Prévisionnelle
       </span>
     </div>
   );

@@ -81,10 +81,12 @@ export default function Dashboard() {
         <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-4'>
           DASHBOARD
         </h1>
-        <VueSwitch
-          isPrevisionnel={isPrevisionnel}
-          setIsPrevisionnel={setIsPrevisionnel}
-        />
+        <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex justify-end'>
+          <VueSwitch
+            isPrevisionnel={isPrevisionnel}
+            setIsPrevisionnel={setIsPrevisionnel}
+          />
+        </div>
       </div>
 
       {/* Cartes du haut */}
