@@ -9,6 +9,9 @@ import {
   calculDepensesClassiquesTotal,
   calculDepensesRecurrentesTotal,
   calculDepensesEchelonneesTotal,
+  calculDepensesClassiquesJusquaAujourdhui,
+  calculDepensesRecurrentesJusquaAujourdhui,
+  calculDepensesEchelonneesJusquaAujourdhui,
 } from "../calculDashboard";
 import { formatMontant } from "../../../utils/calcul";
 
@@ -28,6 +31,24 @@ const TooltipDepense = ({
     paiementsEchelonnes = [],
   } = getData() || {};
 
+  // Calculs du 1er au jour actuel accessibles partout
+  const depensesClassiquesJusquaAujourdhui =
+    calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date()) || 0;
+  const recurrentsJusquaAujourdhui =
+    calculDepensesRecurrentesJusquaAujourdhui(
+      paiementsRecurrents,
+      new Date()
+    ) || 0;
+  const echelonnesJusquaAujourdhui =
+    calculDepensesEchelonneesJusquaAujourdhui(
+      paiementsEchelonnes,
+      new Date()
+    ) || 0;
+  const totalDepensesJusquaAujourdhui =
+    depensesClassiquesJusquaAujourdhui +
+    recurrentsJusquaAujourdhui +
+    echelonnesJusquaAujourdhui;
+
   // Calcul du total prévisionnel pour le mois en cours
   const totalPrevisionnel = useMemo(() => {
     const date = new Date();
@@ -43,21 +64,6 @@ const TooltipDepense = ({
     // Calcul des dépenses échelonnées du mois
     const echelonnes =
       calculDepensesEchelonneesTotal(paiementsEchelonnes, date) || 0;
-
-    // Logs pour le débogage
-    console.log(
-      "Dépenses du 1er au jour actuel:",
-      totalDepenseJusquaAujourdhui
-    );
-    console.log(
-      "Total prévisionnel:",
-      depensesClassiques + recurrents + echelonnes
-    );
-    console.log("Total du mois précédent:", totalDepenseMoisPrecedent);
-    console.log("Détail du total prévisionnel:");
-    console.log("  - Dépenses classiques:", depensesClassiques);
-    console.log("  - Paiements récurrents:", recurrents);
-    console.log("  - Paiements échelonnés:", echelonnes);
 
     return depensesClassiques + recurrents + echelonnes;
   }, [
@@ -75,7 +81,7 @@ const TooltipDepense = ({
           <span className='font-semibold'>
             Dépenses du 1 du mois jusqu'à aujourd'hui :
           </span>{" "}
-          {formatMontant(totalDepenseJusquaAujourdhui || 0)}€
+          {formatMontant(totalDepensesJusquaAujourdhui || 0)}€
         </div>
         <ul className='mb-2'>
           <li className='text-red-400'>

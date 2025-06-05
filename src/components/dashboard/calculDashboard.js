@@ -89,24 +89,33 @@ export const calculDepensesEchelonneesJusquaAujourdhui = (
   const dateObj = date instanceof Date ? date : new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
-
-  const filtered = paiementsEchelonnes.filter((p) => {
-    if (!p || !p.debutDate || !p.mensualites) return false;
-    if (p.type !== "depense") return false;
-
+  let total = 0;
+  let mensualitesComptabilisees = [];
+  paiementsEchelonnes.forEach((p) => {
+    if (!p || !p.debutDate || !p.mensualites) return;
+    if (p.type !== "debit") return;
     const dateDebut = new Date(p.debutDate);
-    const dateFin = new Date(dateDebut);
-    dateFin.setMonth(dateFin.getMonth() + Number(p.mensualites) - 1);
-
-    return dateObj >= dateDebut && dateObj <= dateFin;
+    for (let i = 0; i < Number(p.mensualites); i++) {
+      const dateMensualite = new Date(dateDebut);
+      dateMensualite.setMonth(dateDebut.getMonth() + i);
+      if (
+        dateMensualite.getMonth() === mois &&
+        dateMensualite.getFullYear() === annee &&
+        dateMensualite <= dateObj
+      ) {
+        const mensualite = Number(p.montant) / Number(p.mensualites);
+        total += Math.abs(mensualite);
+        mensualitesComptabilisees.push({
+          nom: p.nom,
+          date: dateMensualite.toISOString().slice(0, 10),
+          montant: mensualite,
+        });
+      }
+    }
   });
-  const total = filtered.reduce((total, p) => {
-    const mensualite = Number(p.montant) / Number(p.mensualites);
-    return total + Math.abs(mensualite);
-  }, 0);
   console.log(
-    `[calculDepensesEchelonneesJusquaAujourdhui] Paiements filtrés:`,
-    filtered
+    "[calculDepensesEchelonneesJusquaAujourdhui] Mensualités comptabilisées :",
+    mensualitesComptabilisees
   );
   console.log(
     `[calculDepensesEchelonneesJusquaAujourdhui] Total: ${formatMontant(
