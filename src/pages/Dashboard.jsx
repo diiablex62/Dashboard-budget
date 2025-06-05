@@ -79,7 +79,7 @@ export default function Dashboard() {
       {/* En-tête avec le switch */}
       <div className='mb-6'>
         <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-4'>
-DASHBOARD
+          DASHBOARD
         </h1>
         <VueSwitch
           isPrevisionnel={isPrevisionnel}
