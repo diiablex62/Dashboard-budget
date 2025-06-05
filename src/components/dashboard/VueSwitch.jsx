@@ -19,7 +19,7 @@ const VueSwitch = ({ isPrevisionnel, setIsPrevisionnel }) => {
           onChange={(e) => setIsPrevisionnel(e.target.checked)}
           className='sr-only peer'
         />
-        <div className='group peer ring-0 bg-rose-400 rounded-full outline-none duration-300 after:duration-300 w-16 h-8 shadow-md peer-checked:bg-emerald-500 peer-focus:outline-none after:content-["✖️"] after:rounded-full after:absolute after:bg-gray-50 after:outline-none after:h-6 after:w-6 after:top-1 after:left-1 after:-rotate-180 after:flex after:justify-center after:items-center after:text-xs peer-checked:after:translate-x-8 peer-checked:after:content-["✔️"] peer-hover:after:scale-95 peer-checked:after:rotate-0'></div>
+        <div className='group peer ring-0 bg-rose-400 rounded-full outline-none duration-300 after:duration-300 w-14 h-7 shadow-md peer-checked:bg-emerald-500 peer-focus:outline-none after:content-["A"] after:rounded-full after:absolute after:bg-gray-50 after:outline-none after:h-5 after:w-5 after:top-1 after:left-1 after:rotate-0 after:flex after:justify-center after:items-center after:text-xs after:font-bold after:text-gray-800 peer-checked:after:translate-x-7 peer-checked:after:content-["P"] peer-hover:after:scale-95 peer-checked:after:rotate-[360deg]'></div>
       </label>
 
       <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
