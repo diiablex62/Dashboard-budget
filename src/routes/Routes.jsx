@@ -25,9 +25,12 @@ function PublicRoute({ children }) {
     setIsLoading(false);
   }, []);
 
-  // Ne rien afficher pendant le chargement
   if (isLoading) {
     return null;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to='/dashboard' replace />;
   }
 
   return children;
@@ -42,21 +45,37 @@ function ProtectedRoute({ children }) {
     setIsLoading(false);
   }, []);
 
-  // Ne rien afficher pendant le chargement
   if (isLoading) {
     return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to='/auth' replace />;
   }
 
   return children;
 }
 
 const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <>
       <ScrollToTop />
       <Routes>
+        {/* Route racine - redirection conditionnelle */}
+        <Route
+          path='/'
+          element={
+            isAuthenticated ? (
+              <Navigate to='/dashboard' replace />
+            ) : (
+              <Navigate to='/auth' replace />
+            )
+          }
+        />
+
         {/* Routes publiques qui ne doivent pas être accessibles si connecté */}
-        <Route path='/' element={<Navigate to='/dashboard' replace />} />
         <Route
           path='/auth'
           element={
@@ -115,11 +134,30 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Routes principales */}
-        <Route path='/recurrents' element={<PaiementRecurrent />} />
-        <Route path='/echelonne' element={<PaiementEchelonne />} />
-        <Route path='/notifications' element={<Notifications />} />
+        <Route
+          path='/recurrents'
+          element={
+            <ProtectedRoute>
+              <PaiementRecurrent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/echelonne'
+          element={
+            <ProtectedRoute>
+              <PaiementEchelonne />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path='/notifications'
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Routes d'authentification */}
         <Route path='/auth/confirm' element={<AuthConfirm />} />
