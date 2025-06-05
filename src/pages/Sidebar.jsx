@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   AiOutlineHome,
@@ -169,10 +169,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         {/* Bloc du haut : Logo, recherche, overview, menu */}
         <div>
           {/* Titre et recherche */}
-          <div className='flex  flex-col items-center py-4 px-4 border-b border-gray-100'>
-            <span className='text-3xl font-bold tracking-wide uppercase mb-8'>
+          <div className='flex flex-col items-center py-4 px-4 border-b border-gray-100'>
+            <Link
+              to='/dashboard'
+              className='text-3xl font-bold tracking-wide uppercase mb-8'>
               {!isCollapsed ? "Futurio" : "F"}
-            </span>
+            </Link>
             <div
               className={`flex items-center rounded-lg mb-2 ${
                 isCollapsed
