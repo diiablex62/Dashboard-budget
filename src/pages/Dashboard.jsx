@@ -36,6 +36,12 @@ import {
   calculDepensesEchelonneesTotal,
   calculDepensesClassiquesJusquaAujourdhui,
   calculDepensesClassiquesTotal,
+  calculRevenusClassiquesJusquaAujourdhui,
+  calculRevenusClassiquesTotal,
+  calculRevenusRecurrentsJusquaAujourdhui,
+  calculRevenusRecurrentsTotal,
+  calculRevenusEchelonnesJusquaAujourdhui,
+  calculRevenusEchelonnesTotal,
 } from "../components/dashboard/calculDashboard";
 
 // -------------------
@@ -60,11 +66,8 @@ export default function Dashboard() {
 
   // Utilisation des valeurs par défaut pour les revenus et économies
   const {
-    totalRevenus,
     totalEconomies,
-    totalRevenusJusquaAujourdhui,
     totalEconomiesJusquaAujourdhui,
-    totalRevenusMoisPrecedent,
     totalEconomiesMoisPrecedent,
     differenceEconomiesMoisPrecedent,
     budgetPrevisionnel,
@@ -180,10 +183,66 @@ export default function Dashboard() {
     echelonnesDepenseCourant,
   ]);
 
-  // Calcul de la différence des revenus avec le mois précédent
-  const differenceRevenusMoisPrecedent = useMemo(() => {
-    return totalRevenusJusquaAujourdhui - totalRevenusMoisPrecedent;
-  }, [totalRevenusJusquaAujourdhui, totalRevenusMoisPrecedent]);
+  // Calculs des revenus du mois courant
+  const revenusClassiquesCourant = useMemo(() => {
+    return isPrevisionnel
+      ? calculRevenusClassiquesTotal(depenseRevenu, new Date())
+      : calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+  }, [depenseRevenu, isPrevisionnel]);
+
+  const recurrentsRevenuCourant = useMemo(() => {
+    return isPrevisionnel
+      ? calculRevenusRecurrentsTotal(paiementsRecurrents, new Date())
+      : calculRevenusRecurrentsJusquaAujourdhui(
+          paiementsRecurrents,
+          new Date()
+        );
+  }, [paiementsRecurrents, isPrevisionnel]);
+
+  const echelonnesRevenuCourant = useMemo(() => {
+    return isPrevisionnel
+      ? calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date())
+      : calculRevenusEchelonnesJusquaAujourdhui(
+          paiementsEchelonnes,
+          new Date()
+        );
+  }, [paiementsEchelonnes, isPrevisionnel]);
+
+  // Calculs des revenus du mois précédent
+  const revenusClassiquesMoisPrec = useMemo(() => {
+    const dateMoisPrecedent = getPreviousMonth();
+    return calculRevenusClassiquesTotal(depenseRevenu, dateMoisPrecedent);
+  }, [depenseRevenu]);
+
+  const recurrentsRevenuMoisPrec = useMemo(() => {
+    const dateMoisPrecedent = getPreviousMonth();
+    return calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent);
+  }, [paiementsRecurrents]);
+
+  const echelonnesRevenuMoisPrec = useMemo(() => {
+    const dateMoisPrecedent = getPreviousMonth();
+    return calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent);
+  }, [paiementsEchelonnes]);
+
+  // Totaux globaux revenus
+  const totalRevenusJusquaAujourdhui =
+    revenusClassiquesCourant +
+    recurrentsRevenuCourant +
+    echelonnesRevenuCourant;
+  const totalRevenus =
+    calculRevenusClassiquesTotal(depenseRevenu, new Date()) +
+    calculRevenusRecurrentsTotal(paiementsRecurrents, new Date()) +
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date());
+  const totalRevenusMoisPrecedent =
+    revenusClassiquesMoisPrec +
+    recurrentsRevenuMoisPrec +
+    echelonnesRevenuMoisPrec;
+
+  // Différences avec le mois précédent
+  const differenceRevenusMoisPrecedentJusquaAujourdhui =
+    totalRevenusMoisPrecedent - totalRevenusJusquaAujourdhui;
+  const differenceRevenusMoisPrecedentPrevisionnel =
+    totalRevenusMoisPrecedent - totalRevenus;
 
   // Fonction pour calculer le total des paiements échelonnés du mois
   const calculTotalEchelonnesMois = useCallback(() => {
@@ -269,15 +328,17 @@ export default function Dashboard() {
           }
           totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
           totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
-          differenceRevenusMoisPrecedent={differenceRevenusMoisPrecedent}
-          isHoveringCalculatorRevenus={isHoveringCalculatorRevenus}
-          setIsHoveringCalculatorRevenus={setIsHoveringCalculatorRevenus}
-          revenusClassiquesCourant={0}
-          recurrentsRevenuCourant={0}
-          echelonnesRevenuCourant={0}
-          revenusClassiquesMoisPrec={0}
-          recurrentsRevenuMoisPrec={0}
-          echelonnesRevenuMoisPrec={0}
+          differenceRevenusMoisPrecedent={
+            isPrevisionnel
+              ? differenceRevenusMoisPrecedentPrevisionnel
+              : differenceRevenusMoisPrecedentJusquaAujourdhui
+          }
+          revenusClassiquesCourant={revenusClassiquesCourant}
+          recurrentsRevenuCourant={recurrentsRevenuCourant}
+          echelonnesRevenuCourant={echelonnesRevenuCourant}
+          revenusClassiquesMoisPrec={revenusClassiquesMoisPrec}
+          recurrentsRevenuMoisPrec={recurrentsRevenuMoisPrec}
+          echelonnesRevenuMoisPrec={echelonnesRevenuMoisPrec}
           isPrevisionnel={isPrevisionnel}
         />
 

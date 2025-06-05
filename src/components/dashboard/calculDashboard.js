@@ -259,3 +259,113 @@ export const calculEconomies = (totalRevenus, totalDepenses) => {
 export function calculDepensesParCategorie() {
   return [];
 }
+
+// REVENUS CLASSIQUES
+export const calculRevenusClassiquesJusquaAujourdhui = (revenus, date) => {
+  if (!revenus || !Array.isArray(revenus)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const jourActuel = dateObj.getDate();
+  return revenus
+    .filter(
+      (r) =>
+        r.type === "revenu" &&
+        new Date(r.date).getMonth() === dateObj.getMonth() &&
+        new Date(r.date).getFullYear() === dateObj.getFullYear() &&
+        new Date(r.date).getDate() <= jourActuel
+    )
+    .reduce((acc, r) => acc + Math.abs(parseFloat(r.montant || 0)), 0);
+};
+export const calculRevenusClassiquesTotal = (revenus, date) => {
+  if (!revenus || !Array.isArray(revenus)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return revenus
+    .filter(
+      (r) =>
+        r.type === "revenu" &&
+        new Date(r.date).getMonth() === dateObj.getMonth() &&
+        new Date(r.date).getFullYear() === dateObj.getFullYear()
+    )
+    .reduce((acc, r) => acc + Math.abs(parseFloat(r.montant || 0)), 0);
+};
+// REVENUS RECCURENTS
+export const calculRevenusRecurrentsJusquaAujourdhui = (
+  paiementsRecurrents,
+  date
+) => {
+  if (!paiementsRecurrents || !Array.isArray(paiementsRecurrents)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const jourActuel = dateObj.getDate();
+  return paiementsRecurrents
+    .filter(
+      (p) => p.type === "revenu" && parseInt(p.jourPrelevement) <= jourActuel
+    )
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant || 0)), 0);
+};
+export const calculRevenusRecurrentsTotal = (paiementsRecurrents, date) => {
+  if (!paiementsRecurrents || !Array.isArray(paiementsRecurrents)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
+  return paiementsRecurrents
+    .filter(
+      (p) =>
+        p.type === "revenu" &&
+        parseInt(p.jourPrelevement) >= 1 &&
+        parseInt(p.jourPrelevement) <= dernierJourDuMois
+    )
+    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant || 0)), 0);
+};
+// REVENUS ECHELONNES
+export const calculRevenusEchelonnesJusquaAujourdhui = (
+  paiementsEchelonnes,
+  date
+) => {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  let total = 0;
+  paiementsEchelonnes.forEach((p) => {
+    if (!p || !p.debutDate || !p.mensualites) return;
+    if (p.type !== "revenu") return;
+    const dateDebut = new Date(p.debutDate);
+    for (let i = 0; i < Number(p.mensualites); i++) {
+      const dateMensualite = new Date(dateDebut);
+      dateMensualite.setMonth(dateDebut.getMonth() + i);
+      if (
+        dateMensualite.getMonth() === mois &&
+        dateMensualite.getFullYear() === annee &&
+        dateMensualite <= dateObj
+      ) {
+        const mensualite = Number(p.montant) / Number(p.mensualites);
+        total += Math.abs(mensualite);
+      }
+    }
+  });
+  return total;
+};
+export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  let total = 0;
+  paiementsEchelonnes.forEach((p) => {
+    if (!p || !p.debutDate || !p.mensualites) return;
+    if (p.type !== "revenu") return;
+    const dateDebut = new Date(p.debutDate);
+    for (let i = 0; i < Number(p.mensualites); i++) {
+      const dateMensualite = new Date(dateDebut);
+      dateMensualite.setMonth(dateDebut.getMonth() + i);
+      if (
+        dateMensualite.getMonth() === mois &&
+        dateMensualite.getFullYear() === annee
+      ) {
+        const mensualite = Number(p.montant) / Number(p.mensualites);
+        total += Math.abs(mensualite);
+      }
+    }
+  });
+  return total;
+};
