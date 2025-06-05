@@ -20,6 +20,7 @@ const RevenuCard = ({
   revenusClassiquesMoisPrec,
   recurrentsRevenuMoisPrec,
   echelonnesRevenuMoisPrec,
+  isPrevisionnel,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const now = new Date();
@@ -57,14 +58,19 @@ const RevenuCard = ({
       <div className='flex items-center justify-between'>
         <div className='relative flex-1'>
           <span className='text-gray-500 font-medium'>
-            Total revenus actuellement en {MONTH_NAMES[now.getMonth()]}{" "}
-            {now.getFullYear()}
+            {isPrevisionnel
+              ? `Total prévisionnel des revenus en ${
+                  MONTH_NAMES[now.getMonth()]
+                } ${now.getFullYear()}`
+              : `Total revenus actuellement en ${
+                  MONTH_NAMES[now.getMonth()]
+                } ${now.getFullYear()}`}
           </span>
         </div>
       </div>
       <div className='relative'>
         <div className='text-2xl font-bold dark:text-white'>
-          {formatMontant(totalRevenusJusquaAujourdhui)}€
+          {formatMontant(totalRevenus)}€
         </div>
       </div>
       <div

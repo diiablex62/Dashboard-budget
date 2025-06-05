@@ -20,6 +20,7 @@ const DepenseCard = ({
   depensesClassiquesMoisPrec,
   recurrentsDepenseMoisPrec,
   echelonnesDepenseMoisPrec,
+  isPrevisionnel,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const now = new Date();
@@ -52,14 +53,19 @@ const DepenseCard = ({
       <div className='flex items-center justify-between'>
         <div className='relative flex-1'>
           <span className='text-gray-500 font-medium'>
-            Total dépensé actuellement en {MONTH_NAMES[now.getMonth()]}{" "}
-            {now.getFullYear()}
+            {isPrevisionnel
+              ? `Total prévisionnel des dépenses en ${
+                  MONTH_NAMES[now.getMonth()]
+                } ${now.getFullYear()}`
+              : `Total dépensé actuellement en ${
+                  MONTH_NAMES[now.getMonth()]
+                } ${now.getFullYear()}`}
           </span>
         </div>
       </div>
       <div className='relative'>
         <div className='text-2xl font-bold dark:text-white'>
-          {formatMontant(totalDepenseJusquaAujourdhui)}€
+          {formatMontant(totalDepense)}€
         </div>
       </div>
       <div

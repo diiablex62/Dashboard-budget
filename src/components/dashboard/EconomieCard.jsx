@@ -10,9 +10,12 @@ import { formatMontant } from "../../utils/calcul";
 import TooltipEconomie from "./tooltips/TooltipEconomie";
 
 const EconomieCard = ({
+  totalEconomies,
   totalEconomiesJusquaAujourdhui,
+  totalEconomiesMoisPrecedent,
   differenceEconomiesMoisPrecedent,
   onUpdateBalance,
+  isPrevisionnel,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   return (
@@ -36,13 +39,15 @@ const EconomieCard = ({
           <div className='flex items-center justify-between'>
             <div className='relative flex-1'>
               <span className='text-gray-500 font-medium'>
-                Économies actuelles
+                {isPrevisionnel
+                  ? "Économies prévisionnelles"
+                  : "Économies actuelles"}
               </span>
             </div>
           </div>
           <div className='relative'>
             <div className='text-2xl font-bold dark:text-white'>
-              {formatMontant(totalEconomiesJusquaAujourdhui)}€
+              {formatMontant(totalEconomies)}€
             </div>
           </div>
           <div
@@ -72,16 +77,12 @@ const EconomieCard = ({
           </div>
         </div>
         {/* Partie droite : bouton synchronisation */}
-        <div className='w-1/2 flex flex-col items-start'>
-          <span className='text-sm text-gray-500 font-medium mb-3'>
-            Vous n'avez pas {totalEconomiesJusquaAujourdhui.toFixed(2)}€ sur
-            votre compte&nbsp;?
-          </span>
+        <div className='w-1/2 flex justify-end items-center'>
           <button
             onClick={onUpdateBalance}
-            className='flex items-center gap-2 px-4 py-2 text-sm font-medium bg-black text-white rounded-lg transition dark:bg-blue-500 dark:hover:bg-blue-600'>
+            className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'>
             <AiOutlineSync className='text-lg' />
-            Mettre à jour mon solde actuel
+            <span>Synchroniser</span>
           </button>
         </div>
       </div>

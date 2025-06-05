@@ -21,6 +21,7 @@ import PaiementsEchelonnesList from "../components/dashboard/PaiementsEchelonnes
 import GraphiqueCard from "../components/dashboard/GraphiqueCard";
 import SectionTitle from "../components/dashboard/SectionTitle";
 import StatCard from "../components/dashboard/StatCard";
+import VueSwitch from "../components/dashboard/VueSwitch";
 import { useSortedPayments } from "../utils/useSortedPayments";
 import {
   MONTH_NAMES,
@@ -40,6 +41,7 @@ export default function Dashboard() {
     useState(false);
   const [isHoveringCalculatorEconomies, setIsHoveringCalculatorEconomies] =
     useState(false);
+  const [isPrevisionnel, setIsPrevisionnel] = useState(false);
 
   // Utiliser getData pour les données
   const { paiementsRecurrents, paiementsEchelonnes } = useMemo(
@@ -74,11 +76,24 @@ export default function Dashboard() {
     <div
       className='p-6 bg-gray-50 dark:bg-black min-h-screen'
       ref={dashboardRef}>
+      {/* En-tête avec le switch */}
+      <div className='mb-6'>
+        <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-4'>
+DASHBOARD
+        </h1>
+        <VueSwitch
+          isPrevisionnel={isPrevisionnel}
+          setIsPrevisionnel={setIsPrevisionnel}
+        />
+      </div>
+
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         {/* Carte Dépenses */}
         <DepenseCard
-          totalDepense={totalDepense}
+          totalDepense={
+            isPrevisionnel ? totalDepense : totalDepenseJusquaAujourdhui
+          }
           totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
           totalDepenseMoisPrecedent={totalDepenseMoisPrecedent}
           differenceMoisPrecedent={differenceMoisPrecedent}
@@ -90,11 +105,14 @@ export default function Dashboard() {
           depensesClassiquesMoisPrec={0}
           recurrentsDepenseMoisPrec={0}
           echelonnesDepenseMoisPrec={0}
+          isPrevisionnel={isPrevisionnel}
         />
 
         {/* Carte Revenus */}
         <RevenuCard
-          totalRevenus={totalRevenus}
+          totalRevenus={
+            isPrevisionnel ? totalRevenus : totalRevenusJusquaAujourdhui
+          }
           totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
           totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
           differenceRevenusMoisPrecedent={differenceRevenusMoisPrecedent}
@@ -106,6 +124,7 @@ export default function Dashboard() {
           revenusClassiquesMoisPrec={0}
           recurrentsRevenuMoisPrec={0}
           echelonnesRevenuMoisPrec={0}
+          isPrevisionnel={isPrevisionnel}
         />
 
         {/* Carte Paiements échelonnés */}
@@ -118,13 +137,16 @@ export default function Dashboard() {
       {/* Carte Économies actuelles */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <EconomieCard
-          totalEconomies={totalEconomies}
+          totalEconomies={
+            isPrevisionnel ? totalEconomies : totalEconomiesJusquaAujourdhui
+          }
           totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
           totalEconomiesMoisPrecedent={totalEconomiesMoisPrecedent}
           differenceEconomiesMoisPrecedent={differenceEconomiesMoisPrecedent}
           isHoveringCalculatorEconomies={isHoveringCalculatorEconomies}
           setIsHoveringCalculatorEconomies={setIsHoveringCalculatorEconomies}
           onUpdateBalance={() => setIsBalanceModalOpen(true)}
+          isPrevisionnel={isPrevisionnel}
         />
       </div>
 
