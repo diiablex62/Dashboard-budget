@@ -14,6 +14,7 @@ import Notifications from "../pages/Notifications";
 import Terms from "../pages/Terms";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import UserDataDeletion from "../pages/UserDataDeletion";
+import NotFound from "../pages/404NotFound";
 import ScrollToTop from "../components/ScrollToTop";
 
 // Composant pour les routes publiques qui ne doivent pas être accessibles si connecté
@@ -49,7 +50,12 @@ function ProtectedRoute({ children }) {
     return null;
   }
 
-  // On retourne simplement les enfants sans redirection
+  // Si non connecté, on redirige vers /dashboard
+  if (!isAuthenticated) {
+    return <Navigate to='/dashboard' replace />;
+  }
+
+  // Si connecté, on affiche le contenu protégé
   return children;
 }
 
@@ -60,8 +66,9 @@ const AppRoutes = () => {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Route racine - redirection vers dashboard */}
-        <Route path='/' element={<Navigate to='/dashboard' replace />} />
+        {/* Route racine - dashboard accessible à tous */}
+        <Route path='/' element={<Dashboard />} />
+        <Route path='/dashboard' element={<Dashboard />} />
 
         {/* Routes publiques qui ne doivent pas être accessibles si connecté */}
         <Route
@@ -90,14 +97,6 @@ const AppRoutes = () => {
         <Route path='/suppression-des-donnees' element={<UserDataDeletion />} />
 
         {/* Routes protégées */}
-        <Route
-          path='/dashboard'
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path='/depenses-revenus'
           element={
@@ -148,7 +147,17 @@ const AppRoutes = () => {
         />
 
         {/* Routes d'authentification */}
-        <Route path='/auth/confirm' element={<AuthConfirm />} />
+        <Route
+          path='/auth/confirm'
+          element={
+            <PublicRoute>
+              <AuthConfirm />
+            </PublicRoute>
+          }
+        />
+
+        {/* Route 404 - doit être la dernière route */}
+        <Route path='*' element={<NotFound />} />
       </Routes>
     </>
   );
