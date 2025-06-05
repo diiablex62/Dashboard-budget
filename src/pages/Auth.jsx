@@ -3,18 +3,18 @@ import { useNavigate, Link } from "react-router-dom";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
-import Google from "../components/icones/Google";
-import GitHub from "../components/icones/GitHub";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 import { sendMagicLink, verifyMagicLink } from "../email/login";
 import Modal from "../components/ui/Modal";
 import Terms from "./Terms";
 import PrivacyPolicy from "./PrivacyPolicy";
 import UserDataDeletion from "./UserDataDeletion";
+import { toast } from "react-toastify";
 
 export default function Auth() {
-  const { primaryColor } = useContext(AppContext);
   const { login, loginWithGoogle, loginWithGithub, authError } = useAuth();
   const navigate = useNavigate();
+  const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -70,72 +70,6 @@ export default function Auth() {
     checkUrlToken();
   }, [login, navigate]);
 
-  // Appliquez immédiatement la couleur primaire au DOM avant le rendu
-  useEffect(() => {
-    if (!primaryColor) return;
-    document.documentElement.style.setProperty("--primary-color", primaryColor);
-    const hoverColor = generateHoverColor(primaryColor);
-    document.documentElement.style.setProperty(
-      "--primary-hover-color",
-      hoverColor
-    );
-  }, [primaryColor]);
-
-  const generateHoverColor = (color) => {
-    const hexToHSL = (hex) => {
-      const r = parseInt(hex.slice(1, 3), 16) / 255;
-      const g = parseInt(hex.slice(3, 5), 16) / 255;
-      const b = parseInt(hex.slice(5, 7), 16) / 255;
-      const max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
-      const l = (max + min) / 2;
-      const s =
-        max === min
-          ? 0
-          : l > 0.5
-          ? (max - min) / (2 - max - min)
-          : (max - min) / (max + min);
-      const h =
-        max === min
-          ? 0
-          : max === r
-          ? (g - b) / (max - min) + (g < b ? 6 : 0)
-          : max === g
-          ? (b - r) / (max - min) + 2
-          : (r - g) / (max - min) + 4;
-      return { h: h * 60, s: s * 100, l: l * 100 };
-    };
-
-    const hslToHex = ({ h, s, l }) => {
-      const c = (1 - Math.abs((2 * l) / 100 - 1)) * (s / 100);
-      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-      const m = l / 100 - c / 2;
-      const [r, g, b] =
-        h < 60
-          ? [c, x, 0]
-          : h < 120
-          ? [x, c, 0]
-          : h < 180
-          ? [0, c, x]
-          : h < 240
-          ? [0, x, c]
-          : h < 300
-          ? [x, 0, c]
-          : [c, 0, x];
-      return `#${[r, g, b]
-        .map((v) =>
-          Math.round((v + m) * 255)
-            .toString(16)
-            .padStart(2, "0")
-        )
-        .join("")}`;
-    };
-
-    const hsl = hexToHSL(color);
-    hsl.l = Math.max(10, Math.min(90, hsl.l - 15));
-    return hslToHex(hsl);
-  };
-
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -150,6 +84,40 @@ export default function Auth() {
       }
     } catch (error) {
       setError(error.message || "Erreur lors de l'envoi du lien magique");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await loginWithGoogle();
+      navigate("/");
+    } catch (error) {
+      toast.error("Erreur lors de la connexion avec Google");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEmailSignIn = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Veuillez entrer une adresse email");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await loginWithGithub(email);
+      toast.success(
+        "Un lien de connexion a été envoyé à votre adresse email. Veuillez vérifier votre boîte de réception."
+      );
+    } catch (error) {
+      toast.error("Erreur lors de l'envoi du lien de connexion");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -181,15 +149,13 @@ export default function Auth() {
       <div className='flex-1 flex flex-col justify-center px-6 py-0 sm:px-12 md:px-24 lg:px-32 overflow-y-auto'>
         <div className='w-full max-w-md mx-auto'>
           <div className='mb-6'>
-            <h2 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
-              Connexion
-            </h2>
-            <p className='text-gray-500 dark:text-gray-400 mb-6'>
+            <h2 className='text-3xl font-bold text-gray-900 mb-2'>Connexion</h2>
+            <p className='text-gray-500 mb-6'>
               Connectez-vous pour accéder à votre espace
             </p>
           </div>
           {/* Formulaire principal */}
-          <form className='space-y-4' onSubmit={handleEmailSubmit}>
+          <form className='space-y-4' onSubmit={handleEmailSignIn}>
             <div>
               <input
                 type='email'
@@ -217,14 +183,14 @@ export default function Auth() {
           </div>
           <div className='flex gap-4 mb-6'>
             <button
-              onClick={loginWithGoogle}
+              onClick={handleGoogleSignIn}
               className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
-              <Google className='w-5 h-5' /> Google
+              <FaGoogle className='w-5 h-5' /> Google
             </button>
             <button
               onClick={loginWithGithub}
               className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
-              <GitHub className='w-5 h-5' /> GitHub
+              <FaGithub className='w-5 h-5' /> GitHub
             </button>
           </div>
           {/* Mentions légales centrées */}
