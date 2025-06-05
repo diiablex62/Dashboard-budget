@@ -206,6 +206,12 @@ export default function Dashboard() {
   const { paiementsRecurrentsTries, paiementsEchelonnesTries } =
     useSortedPayments(paiementsRecurrents, paiementsEchelonnes);
 
+  // Différences avec le mois précédent
+  const differenceAvecMoisDernierJusquaAujourdhui =
+    totalDepenseMoisPrecedent - totalDepenseJusquaAujourdhui;
+  const differenceAvecMoisDernierPrevisionnel =
+    totalDepenseMoisPrecedent - totalDepense;
+
   const dashboardRef = useRef(null);
 
   return (
@@ -235,7 +241,11 @@ export default function Dashboard() {
           }
           totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
           totalDepenseMoisPrecedent={totalDepenseMoisPrecedent}
-          differenceMoisPrecedent={differenceMoisPrecedent}
+          differenceMoisPrecedent={
+            isPrevisionnel
+              ? differenceAvecMoisDernierPrevisionnel
+              : differenceAvecMoisDernierJusquaAujourdhui
+          }
           isHoveringCalculator={isHoveringCalculator}
           setIsHoveringCalculator={setIsHoveringCalculator}
           depensesClassiquesCourant={depensesClassiquesCourant}

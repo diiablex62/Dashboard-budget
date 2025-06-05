@@ -74,6 +74,28 @@ const TooltipDepense = ({
     totalDepenseMoisPrecedent,
   ]);
 
+  // Calcul du mois précédent
+  const now = new Date();
+  const dateMoisPrecedent = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const depensesClassiquesMoisPrec =
+    calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent) || 0;
+  const recurrentsDepenseMoisPrec =
+    calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
+  const echelonnesDepenseMoisPrec =
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+
+  // Différences avec le mois précédent
+  const differenceAvecMoisDernierJusquaAujourdhui =
+    depensesClassiquesMoisPrec +
+    recurrentsDepenseMoisPrec +
+    echelonnesDepenseMoisPrec -
+    totalDepensesJusquaAujourdhui;
+  const differenceAvecMoisDernierPrevisionnel =
+    depensesClassiquesMoisPrec +
+    recurrentsDepenseMoisPrec +
+    echelonnesDepenseMoisPrec -
+    totalPrevisionnel;
+
   return (
     <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
       <div>
@@ -136,22 +158,27 @@ const TooltipDepense = ({
           <span className='font-semibold'>
             Total des dépenses du mois précédent :
           </span>{" "}
-          {formatMontant(totalDepenseMoisPrecedent || 0)}€
+          {formatMontant(
+            depensesClassiquesMoisPrec +
+              recurrentsDepenseMoisPrec +
+              echelonnesDepenseMoisPrec
+          )}
+          €
         </div>
         <ul>
           <li className='text-red-400'>
             <span className='font-bold' style={{ color: "#ef4444" }}>
               Dépenses :
             </span>{" "}
-            {formatMontant(depensesClassiquesCourant || 0)}€
+            {formatMontant(depensesClassiquesMoisPrec)}€
           </li>
           <li className='text-blue-400'>
             Paiements récurrents (dépense) :{" "}
-            {formatMontant(recurrentsDepenseCourant || 0)}€
+            {formatMontant(recurrentsDepenseMoisPrec)}€
           </li>
           <li className='text-purple-400'>
             Paiements échelonnés (dépense) :{" "}
-            {formatMontant(echelonnesDepenseCourant || 0)}€
+            {formatMontant(echelonnesDepenseMoisPrec)}€
           </li>
         </ul>
       </div>

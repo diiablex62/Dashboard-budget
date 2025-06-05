@@ -29,6 +29,8 @@ const DepenseCard = ({
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const now = new Date();
+  const isMoins = differenceMoisPrecedent > 0;
+  const isPlus = differenceMoisPrecedent < 0;
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
@@ -75,27 +77,13 @@ const DepenseCard = ({
       </div>
       <div
         className={`text-xs font-semibold ${
-          differenceMoisPrecedent < 0
-            ? "text-green-600"
-            : differenceMoisPrecedent > 0
-            ? "text-red-600"
-            : "text-gray-400"
+          isMoins ? "text-green-600" : isPlus ? "text-red-600" : "text-gray-400"
         }`}>
-        {differenceMoisPrecedent < 0
-          ? "↓"
-          : differenceMoisPrecedent > 0
-          ? "↑"
-          : ""}{" "}
+        {isMoins ? "↓" : isPlus ? "↑" : ""}{" "}
         {Math.abs(differenceMoisPrecedent).toLocaleString("fr-FR", {
           minimumFractionDigits: 2,
         })}{" "}
-        €{" "}
-        {differenceMoisPrecedent < 0
-          ? "de moins"
-          : differenceMoisPrecedent > 0
-          ? "de plus"
-          : ""}{" "}
-        que le mois dernier
+        € {isMoins ? "de moins" : isPlus ? "de plus" : ""} que le mois dernier
       </div>
     </div>
   );
