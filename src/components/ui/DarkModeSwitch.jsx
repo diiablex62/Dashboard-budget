@@ -15,7 +15,7 @@ const DarkModeSwitch = () => {
         Light
       </span>
 
-      <label className='inline-flex items-center relative'>
+      <label className='inline-flex items-center relative cursor-pointer'>
         <input
           className='peer hidden'
           type='checkbox'
@@ -23,7 +23,7 @@ const DarkModeSwitch = () => {
           onChange={toggleDarkMode}
           aria-label='Basculer entre mode clair et mode sombre'
         />
-        <div className="relative w-14 h-7 bg-white peer-checked:bg-zinc-500 rounded-full after:absolute after:content-[''] after:w-5 after:h-5 after:bg-gradient-to-r from-orange-500 to-yellow-400 peer-checked:after:from-zinc-900 peer-checked:after:to-zinc-900 after:rounded-full after:top-1 after:left-1 peer-checked:after:translate-x-7 shadow-sm duration-300 after:duration-300 after:shadow-md"></div>
+        <div className="relative w-14 h-7 bg-white peer-checked:bg-zinc-500 rounded-full after:absolute after:content-[''] after:w-5 after:h-5 after:bg-gradient-to-r from-orange-500 to-yellow-400 peer-checked:after:from-zinc-900 peer-checked:after:to-zinc-900 after:rounded-full after:top-1 after:left-1 peer-checked:after:translate-x-7 shadow-sm duration-300 after:duration-300 after:shadow-md "></div>
 
         <svg
           height='0'
