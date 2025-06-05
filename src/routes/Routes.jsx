@@ -49,10 +49,7 @@ function ProtectedRoute({ children }) {
     return null;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to='/auth' replace />;
-  }
-
+  // On retourne simplement les enfants sans redirection
   return children;
 }
 
@@ -63,17 +60,8 @@ const AppRoutes = () => {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Route racine - redirection conditionnelle */}
-        <Route
-          path='/'
-          element={
-            isAuthenticated ? (
-              <Navigate to='/dashboard' replace />
-            ) : (
-              <Navigate to='/auth' replace />
-            )
-          }
-        />
+        {/* Route racine - redirection vers dashboard */}
+        <Route path='/' element={<Navigate to='/dashboard' replace />} />
 
         {/* Routes publiques qui ne doivent pas être accessibles si connecté */}
         <Route

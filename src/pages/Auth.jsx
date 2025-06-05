@@ -111,16 +111,13 @@ export default function Auth() {
 
     try {
       setIsLoading(true);
-      await loginWithGithub(email);
-      // Production
-      // toast.success(
-      //   "Un lien de connexion a été envoyé à votre adresse email. Veuillez vérifier votre boîte de réception."
-      // );
-
-      //  local
-      toast.success(
-        "(Localhost) Le lien de connection avec token est envoyé en console. (Production) Un lien de connexion a été envoyé à votre adresse email. Veuillez vérifier votre boîte de réception."
-      );
+      const result = await sendMagicLink(email);
+      if (result.success) {
+        // Afficher le token en console
+        console.log("Token de connexion:", result.token);
+        // Rediriger vers la page de validation
+        navigate("/validation", { state: { email } });
+      }
     } catch (error) {
       toast.error("Erreur lors de l'envoi du lien de connexion");
       console.error(error);
