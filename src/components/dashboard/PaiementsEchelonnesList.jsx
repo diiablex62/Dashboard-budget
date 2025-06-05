@@ -34,7 +34,7 @@ const PaiementsEchelonnesList = ({ paiements, onViewAll }) => {
         ))}
       </div>
       <button
-        className='w-full border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800'
+        className='w-full border border-gray-200 text-gray-800 bg-white hover:bg-gray-100 rounded-lg py-2 text-sm font-semibold transition dark:border-gray-700 dark:text-white dark:bg-transparent dark:hover:bg-gray-800 cursor-pointer'
         onClick={onViewAll}>
         Voir tous les paiements échelonnés
       </button>
