@@ -15,7 +15,7 @@ import Terms from "../pages/Terms";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import UserDataDeletion from "../pages/UserDataDeletion";
 import NotFound from "../pages/404NotFound";
-import ScrollToTop from "../components/ScrollToTop";
+import ScrollToTop from "../components/ui/ScrollToTop";
 
 // Composant pour les routes publiques qui ne doivent pas être accessibles si connecté
 function PublicRoute({ children }) {

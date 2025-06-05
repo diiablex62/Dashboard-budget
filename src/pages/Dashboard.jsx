@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -29,6 +29,14 @@ import {
   CURRENT_MONTH,
   DEFAULT_AMOUNTS,
 } from "../components/dashboard/dashboardConstantes";
+import {
+  calculDepensesRecurrentesJusquaAujourdhui,
+  calculDepensesRecurrentesTotal,
+  calculDepensesEchelonneesJusquaAujourdhui,
+  calculDepensesEchelonneesTotal,
+  calculDepensesClassiquesJusquaAujourdhui,
+  calculDepensesClassiquesTotal,
+} from "../components/dashboard/calculDashboard";
 
 // -------------------
 // Composant principal
@@ -44,32 +52,159 @@ export default function Dashboard() {
     useState(false);
   const [isPrevisionnel, setIsPrevisionnel] = useState(false);
 
-  // Utiliser getData pour les données
-  const { paiementsRecurrents, paiementsEchelonnes } = useMemo(
+  // Récupérer toutes les données
+  const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
     () => getData(),
     [getData]
   );
 
+  // Utilisation des valeurs par défaut pour les revenus et économies
+  const {
+    totalRevenus,
+    totalEconomies,
+    totalRevenusJusquaAujourdhui,
+    totalEconomiesJusquaAujourdhui,
+    totalRevenusMoisPrecedent,
+    totalEconomiesMoisPrecedent,
+    differenceEconomiesMoisPrecedent,
+    budgetPrevisionnel,
+  } = DEFAULT_AMOUNTS;
+
+  // Fonction pour vérifier si une date est dans le mois courant
+  const isCurrentMonth = (date) => {
+    const now = new Date();
+    return (
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
+  };
+
+  // Fonction pour obtenir le mois précédent
+  const getPreviousMonth = () => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  };
+
+  // Calcul des dépenses classiques du mois courant
+  const depensesClassiquesCourant = useMemo(() => {
+    return isPrevisionnel
+      ? calculDepensesClassiquesTotal(depenseRevenu, new Date())
+      : calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+  }, [depenseRevenu, isPrevisionnel]);
+
+  // Calcul des paiements récurrents du mois courant
+  const recurrentsDepenseCourant = useMemo(() => {
+    return isPrevisionnel
+      ? calculDepensesRecurrentesTotal(paiementsRecurrents, new Date())
+      : calculDepensesRecurrentesJusquaAujourdhui(
+          paiementsRecurrents,
+          new Date()
+        );
+  }, [paiementsRecurrents, isPrevisionnel]);
+
+  // Calcul des paiements échelonnés du mois courant
+  const echelonnesDepenseCourant = useMemo(() => {
+    return isPrevisionnel
+      ? calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date())
+      : calculDepensesEchelonneesJusquaAujourdhui(
+          paiementsEchelonnes,
+          new Date()
+        );
+  }, [paiementsEchelonnes, isPrevisionnel]);
+
+  // Calcul des dépenses classiques du mois précédent
+  const depensesClassiquesMoisPrec = useMemo(() => {
+    const dateMoisPrecedent = getPreviousMonth();
+    return calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent);
+  }, [depenseRevenu]);
+
+  // Calcul des paiements récurrents du mois précédent
+  const recurrentsDepenseMoisPrec = useMemo(() => {
+    const dateMoisPrecedent = getPreviousMonth();
+    return calculDepensesRecurrentesTotal(
+      paiementsRecurrents,
+      dateMoisPrecedent
+    );
+  }, [paiementsRecurrents]);
+
+  // Calcul des paiements échelonnés du mois précédent
+  const echelonnesDepenseMoisPrec = useMemo(() => {
+    const dateMoisPrecedent = getPreviousMonth();
+    return calculDepensesEchelonneesTotal(
+      paiementsEchelonnes,
+      dateMoisPrecedent
+    );
+  }, [paiementsEchelonnes]);
+
+  // Calcul du total des dépenses jusqu'à aujourd'hui
+  const totalDepenseJusquaAujourdhui = useMemo(() => {
+    return (
+      depensesClassiquesCourant +
+      recurrentsDepenseCourant +
+      echelonnesDepenseCourant
+    );
+  }, [
+    depensesClassiquesCourant,
+    recurrentsDepenseCourant,
+    echelonnesDepenseCourant,
+  ]);
+
+  // Calcul du total des dépenses du mois précédent
+  const totalDepenseMoisPrecedent = useMemo(() => {
+    return (
+      depensesClassiquesMoisPrec +
+      recurrentsDepenseMoisPrec +
+      echelonnesDepenseMoisPrec
+    );
+  }, [
+    depensesClassiquesMoisPrec,
+    recurrentsDepenseMoisPrec,
+    echelonnesDepenseMoisPrec,
+  ]);
+
+  // Calcul de la différence avec le mois précédent
+  const differenceMoisPrecedent = useMemo(() => {
+    return totalDepenseJusquaAujourdhui - totalDepenseMoisPrecedent;
+  }, [totalDepenseJusquaAujourdhui, totalDepenseMoisPrecedent]);
+
+  // Calcul du total des dépenses (prévisionnel)
+  const totalDepense = useMemo(() => {
+    return (
+      depensesClassiquesCourant +
+      recurrentsDepenseCourant +
+      echelonnesDepenseCourant
+    );
+  }, [
+    depensesClassiquesCourant,
+    recurrentsDepenseCourant,
+    echelonnesDepenseCourant,
+  ]);
+
+  // Calcul de la différence des revenus avec le mois précédent
+  const differenceRevenusMoisPrecedent = useMemo(() => {
+    return totalRevenusJusquaAujourdhui - totalRevenusMoisPrecedent;
+  }, [totalRevenusJusquaAujourdhui, totalRevenusMoisPrecedent]);
+
+  // Fonction pour calculer le total des paiements échelonnés du mois
+  const calculTotalEchelonnesMois = useCallback(() => {
+    return paiementsEchelonnes
+      .filter(
+        (e) =>
+          e.type === "depense" &&
+          (!e.debut || new Date(e.debut) <= new Date()) &&
+          (!e.fin || new Date(e.fin) >= new Date())
+      )
+      .reduce(
+        (acc, e) =>
+          acc +
+          Math.abs(parseFloat(e.montant || 0)) / parseInt(e.mensualites || 1),
+        0
+      );
+  }, [paiementsEchelonnes]);
+
   // Utiliser le hook personnalisé pour le tri
   const { paiementsRecurrentsTries, paiementsEchelonnesTries } =
     useSortedPayments(paiementsRecurrents, paiementsEchelonnes);
-
-  // Utilisation des valeurs par défaut
-  const {
-    totalRevenus,
-    totalDepense,
-    totalEconomies,
-    totalRevenusJusquaAujourdhui,
-    totalDepenseJusquaAujourdhui,
-    totalEconomiesJusquaAujourdhui,
-    totalRevenusMoisPrecedent,
-    totalDepenseMoisPrecedent,
-    totalEconomiesMoisPrecedent,
-    differenceEconomiesMoisPrecedent,
-    differenceMoisPrecedent,
-    differenceRevenusMoisPrecedent,
-    budgetPrevisionnel,
-  } = DEFAULT_AMOUNTS;
 
   const dashboardRef = useRef(null);
 
@@ -103,13 +238,18 @@ export default function Dashboard() {
           differenceMoisPrecedent={differenceMoisPrecedent}
           isHoveringCalculator={isHoveringCalculator}
           setIsHoveringCalculator={setIsHoveringCalculator}
-          depensesClassiquesCourant={0}
-          recurrentsDepenseCourant={0}
-          echelonnesDepenseCourant={0}
-          depensesClassiquesMoisPrec={0}
-          recurrentsDepenseMoisPrec={0}
-          echelonnesDepenseMoisPrec={0}
+          depensesClassiquesCourant={depensesClassiquesCourant}
+          recurrentsDepenseCourant={recurrentsDepenseCourant}
+          echelonnesDepenseCourant={echelonnesDepenseCourant}
+          depensesClassiquesMoisPrec={depensesClassiquesMoisPrec}
+          recurrentsDepenseMoisPrec={recurrentsDepenseMoisPrec}
+          echelonnesDepenseMoisPrec={echelonnesDepenseMoisPrec}
           isPrevisionnel={isPrevisionnel}
+          depenseRevenu={depenseRevenu}
+          paiementsRecurrents={paiementsRecurrents}
+          paiementsEchelonnes={paiementsEchelonnes}
+          calculTotalEchelonnesMois={calculTotalEchelonnesMois}
+          isCurrentMonth={isCurrentMonth}
         />
 
         {/* Carte Revenus */}

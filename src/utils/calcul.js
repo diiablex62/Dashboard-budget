@@ -438,36 +438,6 @@ export const calculProgressionPaiementEchelonne = (paiement, dateReference) => {
 };
 
 // =====================
-// DASHBOARD
-// =====================
-
-// Calcule les économies (revenus - dépenses)
-export const calculEconomies = (totalRevenus, totalDepenses) => {
-  const economie = totalRevenus - totalDepenses;
-  console.log(
-    `[calculEconomies] Économies calculées: ${formatMontant(
-      economie
-    )}€ (Revenus: ${formatMontant(totalRevenus)}€ - Dépenses: ${formatMontant(
-      totalDepenses
-    )}€)`
-  );
-  return economie;
-};
-
-// Calcule le total des dépenses par catégorie
-export function calculDepensesParCategorie() {
-  return [];
-}
-
-/**
- * Calcule les données pour le graphique en barres (6 derniers mois)
- * @returns {Array} - Données pour le graphique
- */
-export function calculBarChartData() {
-  return [];
-}
-
-// =====================
 // CALCULS JUSQU'À AUJOURD'HUI
 // =====================
 
@@ -549,27 +519,31 @@ export const formatMontant = (montant) => {
 
 // Calcul du total des dépenses classiques du mois
 export const calculDepensesClassiquesMois = (depenses, date) => {
-  if (!depenses || !Array.isArray(depenses)) {
-    console.log("[calculDepensesClassiquesMois] Aucune dépense trouvée");
+  if (!depenses || !Array.isArray(depenses) || depenses.length === 0) {
     return 0;
   }
 
-  const currentMonth = date.getMonth();
-  const currentYear = date.getFullYear();
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
 
   const total = depenses
-    .filter(
-      (d) =>
-        d.date.getMonth() === currentMonth &&
-        d.date.getFullYear() === currentYear &&
-        d.date <= date
-    )
-    .reduce((total, d) => total + d.montant, 0);
+    .filter((d) => {
+      if (!d || !d.date) return false;
+      const dDate = new Date(d.date);
+      return (
+        d.type === "depense" &&
+        dDate.getMonth() === mois &&
+        dDate.getFullYear() === annee
+      );
+    })
+    .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant || 0)), 0);
 
   console.log(
-    `[calculDepensesClassiquesMois] Total dépenses classiques: ${formatMontant(
-      total
-    )}€`
+    `[calculDepensesClassiquesMois] Dépenses classiques du mois ${dateObj.toLocaleDateString(
+      "fr-FR",
+      { month: "long" }
+    )}: ${formatMontant(total)}€`
   );
   return total;
 };

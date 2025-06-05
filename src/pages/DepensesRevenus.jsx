@@ -32,9 +32,9 @@ import {
 import {
   calculTotalDepensesMois,
   totalRevenusGlobalMois,
-  calculEconomies,
   formatMontant,
 } from "../utils/calcul";
+import { calculEconomies } from "../components/dashboard/calculDashboard";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 export default function DepensesRevenus() {

@@ -21,6 +21,11 @@ const DepenseCard = ({
   recurrentsDepenseMoisPrec,
   echelonnesDepenseMoisPrec,
   isPrevisionnel,
+  depenseRevenu = [],
+  paiementsRecurrents = [],
+  paiementsEchelonnes = [],
+  calculTotalEchelonnesMois = () => 0,
+  isCurrentMonth = () => false,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const now = new Date();
@@ -39,14 +44,14 @@ const DepenseCard = ({
             recurrentsDepenseCourant={recurrentsDepenseCourant}
             echelonnesDepenseCourant={echelonnesDepenseCourant}
             totalDepense={totalDepenseJusquaAujourdhui}
-            depenseRevenu={[]}
-            paiementsRecurrents={[]}
-            paiementsEchelonnes={[]}
+            depenseRevenu={depenseRevenu}
+            paiementsRecurrents={paiementsRecurrents}
+            paiementsEchelonnes={paiementsEchelonnes}
             depensesClassiquesMoisPrec={depensesClassiquesMoisPrec}
             recurrentsDepenseMoisPrec={recurrentsDepenseMoisPrec}
             echelonnesDepenseMoisPrec={echelonnesDepenseMoisPrec}
-            calculTotalEchelonnesMois={() => 0}
-            isCurrentMonth={() => false}
+            calculTotalEchelonnesMois={calculTotalEchelonnesMois}
+            isCurrentMonth={isCurrentMonth}
           />
         )}
       </div>
