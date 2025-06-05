@@ -96,52 +96,19 @@ const AppRoutes = () => {
         />
         <Route path='/suppression-des-donnees' element={<UserDataDeletion />} />
 
-        {/* Routes protégées */}
-        <Route
-          path='/depenses-revenus'
-          element={
-            <ProtectedRoute>
-              <DepensesRevenus />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/agenda'
-          element={
-            <ProtectedRoute>
-              <Agenda />
-            </ProtectedRoute>
-          }
-        />
+        {/* Routes accessibles à tous sauf profil */}
+        <Route path='/depenses-revenus' element={<DepensesRevenus />} />
+        <Route path='/agenda' element={<Agenda />} />
+        <Route path='/recurrents' element={<PaiementRecurrent />} />
+        <Route path='/echelonne' element={<PaiementEchelonne />} />
+        <Route path='/notifications' element={<Notifications />} />
+
+        {/* Route protégée - uniquement profil */}
         <Route
           path='/profil'
           element={
             <ProtectedRoute>
               <Profil />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/recurrents'
-          element={
-            <ProtectedRoute>
-              <PaiementRecurrent />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/echelonne'
-          element={
-            <ProtectedRoute>
-              <PaiementEchelonne />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/notifications'
-          element={
-            <ProtectedRoute>
-              <Notifications />
             </ProtectedRoute>
           }
         />

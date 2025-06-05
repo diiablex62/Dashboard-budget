@@ -111,21 +111,32 @@ export default function Auth() {
 
     try {
       setIsLoading(true);
+      console.log("=== DÉBUT LOGS AUTH ===");
+      console.log("Email saisi:", email);
+
       const result = await sendMagicLink(email);
+      console.log("Résultat sendMagicLink:", result);
+
       if (result.success) {
         // Créer l'URL de connexion
         const url = `${window.location.origin}/auth?token=${result.token}`;
-        // Afficher le lien cliquable en console
-        console.log(
-          `Lien magique envoyé à ${email} avec le token: ${result.token}`
-        );
-        console.log("Cliquez ici pour vous connecter:", url);
-        // Rediriger vers la page de validation
-        navigate("/validation", { state: { email } });
+        console.log("URL créée:", url);
+
+        // Préparer le state
+        const state = {
+          email: email,
+          magicLink: url,
+        };
+        console.log("State préparé:", state);
+
+        // Rediriger vers la page de validation avec l'URL dans le state
+        console.log("Navigation vers /validation avec state:", state);
+        navigate("/validation", { state });
       }
+      console.log("=== FIN LOGS AUTH ===");
     } catch (error) {
+      console.error("Erreur dans handleEmailSignIn:", error);
       toast.error("Erreur lors de l'envoi du lien de connexion");
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
