@@ -288,8 +288,16 @@ export default function Dashboard() {
     calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
   const recurrentsRevenuJusquaAujourdhui =
     calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date());
-  const echelonnesRevenuJusquaAujourdhui =
-    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date());
+  const echelonnesRevenuJusquaAujourdhui = (() => {
+    console.log(
+      "[DASHBOARD] paiementsEchelonnes transmis à calculRevenusEchelonnesJusquaAujourdhui:",
+      paiementsEchelonnes
+    );
+    return calculRevenusEchelonnesJusquaAujourdhui(
+      paiementsEchelonnes,
+      new Date()
+    );
+  })();
 
   const totalRevenusJusquaAujourdhui = getTotalRevenusJusquaAujourdhui(
     depenseRevenu,
@@ -441,10 +449,6 @@ export default function Dashboard() {
     paiementsRecurrents,
     paiementsEchelonnes,
     isPrevisionnel
-  );
-  console.log(
-    "Détail du calcul graphique 6 mois :",
-    JSON.stringify(courbeData, null, 2)
   );
 
   return (

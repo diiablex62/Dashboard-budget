@@ -112,15 +112,7 @@ export function getCourbeRevenusDepenses6Mois(
           totalRevenusClassiques +
           totalRevenusRecurrents +
           totalRevenusEchelonnes;
-        console.log(`[GRAPH] Mois courant (${moisLabel}) - Prévisionnel :`);
-        console.log("  Dépenses classiques:", totalDepensesClassiques);
-        console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
-        console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
-        console.log("  Total Dépenses:", depenses);
-        console.log("  Revenus classiques:", totalRevenusClassiques);
-        console.log("  Revenus récurrents:", totalRevenusRecurrents);
-        console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
-        console.log("  Total Revenus:", revenus);
+   
       } else {
         // RÉALISÉ pour le mois courant (jusqu'à aujourd'hui)
         const aujourdHui = now;
@@ -156,15 +148,7 @@ export function getCourbeRevenusDepenses6Mois(
           totalRevenusClassiques +
           totalRevenusRecurrents +
           totalRevenusEchelonnes;
-        console.log(`[GRAPH] Mois courant (${moisLabel}) - Réalisé :`);
-        console.log("  Dépenses classiques:", totalDepensesClassiques);
-        console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
-        console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
-        console.log("  Total Dépenses:", depenses);
-        console.log("  Revenus classiques:", totalRevenusClassiques);
-        console.log("  Revenus récurrents:", totalRevenusRecurrents);
-        console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
-        console.log("  Total Revenus:", revenus);
+     
       }
     } else {
       // RÉEL pour les autres mois (utilise les mêmes fonctions que les encadrés)
@@ -201,15 +185,7 @@ export function getCourbeRevenusDepenses6Mois(
         totalRevenusClassiques +
         totalRevenusRecurrents +
         totalRevenusEchelonnes;
-      console.log(`[GRAPH] Mois ${moisLabel} - Détail calcul :`);
-      console.log("  Dépenses classiques:", totalDepensesClassiques);
-      console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
-      console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
-      console.log("  Total Dépenses:", depenses);
-      console.log("  Revenus classiques:", totalRevenusClassiques);
-      console.log("  Revenus récurrents:", totalRevenusRecurrents);
-      console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
-      console.log("  Total Revenus:", revenus);
+  
     }
     result.push({ mois: moisLabel, depenses, revenus, details });
   }

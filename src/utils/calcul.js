@@ -378,8 +378,45 @@ export function calculRevenusRecurrentsJusquaAujourdhui() {
   return 0;
 }
 
-export function calculRevenusEchelonnesJusquaAujourdhui() {
-  return 0;
+export function calculRevenusEchelonnesJusquaAujourdhui(
+  paiementsEchelonnes,
+  date = new Date()
+) {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
+    console.log("[Echelonne] Aucun paiement échelonné fourni.");
+    return 0;
+  }
+
+  let total = 0;
+  console.log(
+    "[Echelonne] --- Détail des revenus échelonnés jusqu'à aujourd'hui ---"
+  );
+  paiementsEchelonnes.forEach((e) => {
+    if (e.type !== "debit") return; // On ne prend que les revenus
+    const debut = new Date(e.debutDate);
+    const nbMois = parseInt(e.mensualites);
+    for (let i = 0; i < nbMois; i++) {
+      const moisEcheance = new Date(debut);
+      moisEcheance.setMonth(debut.getMonth() + i);
+      if (
+        (moisEcheance.getFullYear() < date.getFullYear() ||
+          (moisEcheance.getFullYear() === date.getFullYear() &&
+            moisEcheance.getMonth() <= date.getMonth())) &&
+        moisEcheance <= date
+      ) {
+        total += parseFloat(e.montant);
+        console.log(
+          `[Echelonne] +${e.montant}€ pour "${e.nom}" (échéance ${
+            i + 1
+          }/$${nbMois}) - Date: ${moisEcheance.toLocaleDateString("fr-FR")}`
+        );
+      }
+    }
+  });
+  console.log(
+    `[Echelonne] Total revenus échelonnés jusqu'à aujourd'hui : ${total}€`
+  );
+  return total;
 }
 
 export function calculTotalRevenusJusquaAujourdhui() {

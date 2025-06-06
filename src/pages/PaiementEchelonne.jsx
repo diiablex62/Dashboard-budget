@@ -292,11 +292,6 @@ export const PaiementEchelonne = () => {
                       currentTab={isDepense ? "depense" : "revenu"}
                       onEdit={() => handleEdit(paiement)}
                       onDelete={() => handleDelete(paiement.id, paiement.nom)}>
-                      {/* Montant affiché */}
-                      <div
-                        className={`font-bold text-base truncate ${montantClass}`}>
-                        {montantAffiche}
-                      </div>
                       {/* Barre de progression */}
                       <div className='flex flex-col gap-2'>
                         <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
