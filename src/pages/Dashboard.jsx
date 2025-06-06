@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useRef, useCallback } from "react";
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCalendar,
@@ -62,10 +68,21 @@ export default function Dashboard() {
     useState(false);
   const [isPrevisionnel, setIsPrevisionnel] = useState(false);
 
-  // Récupérer toutes les données
+  // Ajout d'une clé de rafraîchissement pour forcer le rechargement des données
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const handleDataUpdated = () => {
+      setRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("data-updated", handleDataUpdated);
+    return () => window.removeEventListener("data-updated", handleDataUpdated);
+  }, []);
+
+  // Utilisation de refreshKey dans le useMemo pour getData
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
     () => getData(),
-    [getData]
+    [getData, refreshKey]
   );
 
   // Utilisation des valeurs par défaut pour les revenus et économies

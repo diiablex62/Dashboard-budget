@@ -15,7 +15,6 @@ import Terms from "../pages/Terms";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import UserDataDeletion from "../pages/UserDataDeletion";
 import NotFound from "../pages/404NotFound";
-import ScrollToTop from "../components/ui/ScrollToTop";
 
 // Composant pour les routes publiques qui ne doivent pas être accessibles si connecté
 function PublicRoute({ children }) {
@@ -64,7 +63,6 @@ const AppRoutes = () => {
 
   return (
     <>
-      <ScrollToTop />
       <Routes>
         {/* Route racine - dashboard accessible à tous */}
         <Route path='/' element={<Dashboard />} />

@@ -32,6 +32,15 @@ function AppContent() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 10);
+  }, []);
+
   return (
     <div className='min-h-screen bg-gray-100'>
       {!isIsolatedRoute && (
