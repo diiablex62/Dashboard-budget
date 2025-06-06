@@ -16,7 +16,7 @@ const COLORS = [
   "#2ECC71",
 ];
 
-export default function DepensesParCategorieChart({ data }) {
+export default function DepensesParCategorieChart({ data, isPrevisionnel }) {
   const [activeIndex, setActiveIndex] = useState(null);
 
   // Trie et total optimisés avec useMemo
@@ -47,7 +47,7 @@ export default function DepensesParCategorieChart({ data }) {
           className='w-1/2 h-full flex items-center justify-center relative'
           onMouseLeave={() => setActiveIndex(null)}>
           <ResponsiveContainer width='100%' height={200}>
-            <PieChart>
+            <PieChart key={isPrevisionnel ? "previsionnel" : "actuel"}>
               <Pie
                 activeIndex={activeIndex}
                 activeShape={AnimationDepensesParCategorieChart}

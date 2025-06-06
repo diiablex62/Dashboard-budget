@@ -567,6 +567,7 @@ export default function Dashboard() {
               paiementsRecurrents,
               paiementsEchelonnes
             )}
+            isPrevisionnel={isPrevisionnel}
           />
         </GraphiqueCard>
         <GraphiqueCard title='Dépenses et revenus des 6 derniers mois'>
