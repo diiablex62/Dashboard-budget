@@ -296,27 +296,34 @@ export default function Dashboard() {
   //   new Date()
   // );
 
-  // Calcul explicite des économies
-  const totalEconomies = totalRevenus - totalDepense;
-  const totalEconomiesMoisPrecedent =
-    totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
+  // Calcul des économies actuelles
+  const totalEconomiesActuel = useMemo(() => {
+    return totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui;
+  }, [totalRevenusJusquaAujourdhui, totalDepenseJusquaAujourdhui]);
+
+  // Calcul des économies prévisionnelles
+  const totalEconomiesPrevisionnel = useMemo(() => {
+    return totalRevenus - totalDepense;
+  }, [totalRevenus, totalDepense]);
+
+  // Calcul des économies du mois précédent
+  const totalEconomiesMoisPrecedent = useMemo(() => {
+    return totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
+  }, [totalRevenusMoisPrecedent, totalDepenseMoisPrecedent]);
+
+  // Calcul de la différence des économies
+  const differenceEconomies = useMemo(() => {
+    return isPrevisionnel
+      ? totalEconomiesMoisPrecedent - totalEconomiesPrevisionnel
+      : totalEconomiesMoisPrecedent - totalEconomiesActuel;
+  }, [
+    isPrevisionnel,
+    totalEconomiesMoisPrecedent,
+    totalEconomiesPrevisionnel,
+    totalEconomiesActuel,
+  ]);
 
   const dashboardRef = useRef(null);
-
-  console.log("[DEBUG] Valeurs intermédiaires :");
-  console.log("totalRevenusMoisPrecedent:", totalRevenusMoisPrecedent);
-  console.log("totalDepenseMoisPrecedent:", totalDepenseMoisPrecedent);
-  console.log("totalRevenus:", totalRevenus);
-  console.log("totalDepense:", totalDepense);
-  console.log(
-    "[ECONOMIE CARD] totalEconomiesMoisPrecedent:",
-    totalEconomiesMoisPrecedent
-  );
-  console.log("[ECONOMIE CARD] totalEconomies:", totalEconomies);
-  console.log(
-    "[ECONOMIE CARD] differenceEconomiesMoisPrecedent:",
-    totalEconomiesMoisPrecedent - totalEconomies
-  );
 
   return (
     <div
@@ -407,15 +414,11 @@ export default function Dashboard() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
         <EconomieCard
           totalEconomies={
-            isPrevisionnel
-              ? totalEconomies
-              : totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui
+            isPrevisionnel ? totalEconomiesPrevisionnel : totalEconomiesActuel
           }
-          totalEconomiesJusquaAujourdhui={4664.01}
-          totalEconomiesMoisPrecedent={6928.02}
-          differenceEconomiesMoisPrecedent={
-            isPrevisionnel ? 6928.02 - totalEconomies : 6928.02 - 4664.01
-          }
+          totalEconomiesJusquaAujourdhui={totalEconomiesActuel}
+          totalEconomiesMoisPrecedent={totalEconomiesMoisPrecedent}
+          differenceEconomiesMoisPrecedent={differenceEconomies}
           totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
           totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
           totalRevenus={totalRevenus}
