@@ -70,65 +70,48 @@ export function getCourbeRevenusDepenses6Mois(
     };
 
     if (isCurrentMonth) {
-      // PRÉVISIONNEL pour le mois courant
-      details.depenses.classiques = depenseRevenu.filter(
-        (d) => d.type === "depense"
+      // PRÉVISIONNEL pour le mois courant (utilise les mêmes fonctions que les encadrés prévisionnels)
+      const dernierJour = new Date(annee, mois + 1, 0); // dernier jour du mois courant
+      const totalDepensesClassiques = calculDepensesClassiquesTotal(
+        depenseRevenu,
+        dernierJour
       );
-      details.depenses.recurrents = paiementsRecurrents.filter(
-        (d) => d.type === "depense"
+      const totalDepensesRecurrents = calculDepensesRecurrentesTotal(
+        paiementsRecurrents,
+        dernierJour
       );
-      details.depenses.echelonnes = paiementsEchelonnes.filter(
-        (d) => d.type === "depense" || d.type === "credit"
-      );
-      details.depenses.totalClassiques = details.depenses.classiques.reduce(
-        (acc, d) => acc + Number(d.montant),
-        0
-      );
-      details.depenses.totalRecurrents = details.depenses.recurrents.reduce(
-        (acc, d) => acc + Number(d.montant),
-        0
-      );
-      details.depenses.totalEchelonnes = details.depenses.echelonnes.reduce(
-        (acc, d) => acc + Number(d.montant),
-        0
+      const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
+        paiementsEchelonnes,
+        dernierJour
       );
       depenses =
-        details.depenses.totalClassiques +
-        details.depenses.totalRecurrents +
-        details.depenses.totalEchelonnes;
-      details.revenus.classiques = depenseRevenu.filter(
-        (d) => d.type === "revenu"
+        totalDepensesClassiques +
+        totalDepensesRecurrents +
+        totalDepensesEchelonnees;
+      const totalRevenusClassiques = calculRevenusClassiquesTotal(
+        depenseRevenu,
+        dernierJour
       );
-      details.revenus.recurrents = paiementsRecurrents.filter(
-        (d) => d.type === "revenu"
+      const totalRevenusRecurrents = calculRevenusRecurrentsTotal(
+        paiementsRecurrents,
+        dernierJour
       );
-      details.revenus.echelonnes = paiementsEchelonnes.filter(
-        (d) => d.type === "revenu"
-      );
-      details.revenus.totalClassiques = details.revenus.classiques.reduce(
-        (acc, d) => acc + Number(d.montant),
-        0
-      );
-      details.revenus.totalRecurrents = details.revenus.recurrents.reduce(
-        (acc, d) => acc + Number(d.montant),
-        0
-      );
-      details.revenus.totalEchelonnes = details.revenus.echelonnes.reduce(
-        (acc, d) => acc + Number(d.montant),
-        0
+      const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
+        paiementsEchelonnes,
+        dernierJour
       );
       revenus =
-        details.revenus.totalClassiques +
-        details.revenus.totalRecurrents +
-        details.revenus.totalEchelonnes;
-      console.log(`[GRAPH] Mois courant (${moisLabel}) - Détail calcul :`);
-      console.log("  Dépenses classiques:", details.depenses.classiques);
-      console.log("  Dépenses récurrentes:", details.depenses.recurrents);
-      console.log("  Dépenses échelonnées:", details.depenses.echelonnes);
+        totalRevenusClassiques +
+        totalRevenusRecurrents +
+        totalRevenusEchelonnes;
+      console.log(`[GRAPH] Mois courant (${moisLabel}) - Prévisionnel :`);
+      console.log("  Dépenses classiques:", totalDepensesClassiques);
+      console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
+      console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
       console.log("  Total Dépenses:", depenses);
-      console.log("  Revenus classiques:", details.revenus.classiques);
-      console.log("  Revenus récurrents:", details.revenus.recurrents);
-      console.log("  Revenus échelonnés:", details.revenus.echelonnes);
+      console.log("  Revenus classiques:", totalRevenusClassiques);
+      console.log("  Revenus récurrents:", totalRevenusRecurrents);
+      console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
       console.log("  Total Revenus:", revenus);
     } else {
       // RÉEL pour les autres mois (utilise les mêmes fonctions que les encadrés)
