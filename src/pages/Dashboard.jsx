@@ -246,41 +246,11 @@ export default function Dashboard() {
     dateMoisPrecedent,
   ]);
 
-  // LOGS DEBUG pour le mois précédent (dépenses)
-  console.log(
-    "[DEPENSE CARD] depensesClassiquesMoisPrec:",
-    depensesClassiquesMoisPrec
-  );
-  console.log(
-    "[DEPENSE CARD] recurrentsDepenseMoisPrec:",
-    recurrentsDepenseMoisPrec
-  );
-  console.log(
-    "[DEPENSE CARD] echelonnesDepenseMoisPrec:",
-    echelonnesDepenseMoisPrec
-  );
-  console.log(
-    "[DEPENSE CARD] totalDepenseMoisPrecedent:",
-    totalDepenseMoisPrecedent
-  );
-
-  console.log(
-    "[DEPENSE CARD] totalDepenseJusquaAujourdhui:",
-    totalDepenseJusquaAujourdhui
-  );
   // Correction du calcul de la différence pour la carte Dépenses
   const differenceAvecMoisDernierJusquaAujourdhui =
     totalDepenseMoisPrecedent - totalDepenseJusquaAujourdhui;
   const differenceAvecMoisDernierPrevisionnel =
     totalDepenseMoisPrecedent - totalDepense;
-  console.log(
-    "[DEPENSE CARD] differenceAvecMoisDernierJusquaAujourdhui:",
-    differenceAvecMoisDernierJusquaAujourdhui
-  );
-  console.log(
-    "[DEPENSE CARD] differenceAvecMoisDernierPrevisionnel:",
-    differenceAvecMoisDernierPrevisionnel
-  );
 
   // Calculs explicites pour les totaux à afficher dans la carte économies et le tooltip
   const totalRevenusJusquaAujourdhui =

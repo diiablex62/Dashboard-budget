@@ -60,50 +60,6 @@ const TooltipRevenu = () => {
   const totalMoisPrecedent =
     revenusClassiquesMoisPrec + recurrentsMoisPrec + echelonnesMoisPrec;
 
-  // LOGS DEBUG
-  console.log(
-    "[TOOLTIP REVENU] Classiques jusqu'à aujourd'hui:",
-    revenusClassiquesJusquaAujourdhui
-  );
-  console.log(
-    "[TOOLTIP REVENU] Récurrents jusqu'à aujourd'hui:",
-    recurrentsJusquaAujourdhui
-  );
-  console.log(
-    "[TOOLTIP REVENU] Échelonnés jusqu'à aujourd'hui:",
-    echelonnesJusquaAujourdhui
-  );
-  console.log(
-    "[TOOLTIP REVENU] Total jusqu'à aujourd'hui:",
-    totalJusquaAujourdhui
-  );
-  console.log(
-    "[TOOLTIP REVENU] Classiques prévisionnel:",
-    revenusClassiquesPrevisionnel
-  );
-  console.log(
-    "[TOOLTIP REVENU] Récurrents prévisionnel:",
-    recurrentsPrevisionnel
-  );
-  console.log(
-    "[TOOLTIP REVENU] Échelonnés prévisionnel:",
-    echelonnesPrevisionnel
-  );
-  console.log("[TOOLTIP REVENU] Total prévisionnel:", totalPrevisionnel);
-  console.log(
-    "[TOOLTIP REVENU] Classiques mois précédent:",
-    revenusClassiquesMoisPrec
-  );
-  console.log(
-    "[TOOLTIP REVENU] Récurrents mois précédent:",
-    recurrentsMoisPrec
-  );
-  console.log(
-    "[TOOLTIP REVENU] Échelonnés mois précédent:",
-    echelonnesMoisPrec
-  );
-  console.log("[TOOLTIP REVENU] Total mois précédent:", totalMoisPrecedent);
-
   const formatMontant = (v) =>
     Number(v).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
 
