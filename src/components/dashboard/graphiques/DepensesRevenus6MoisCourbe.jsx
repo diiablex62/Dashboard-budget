@@ -39,6 +39,8 @@ export default function DepensesRevenus6MoisCourbe({ data }) {
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
             name='Revenus'
+            isAnimationActive={true}
+            animationDuration={1200}
           />
           <Line
             type='monotone'
@@ -48,6 +50,8 @@ export default function DepensesRevenus6MoisCourbe({ data }) {
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
             name='Dépenses'
+            isAnimationActive={true}
+            animationDuration={1200}
           />
         </LineChart>
       </ResponsiveContainer>
