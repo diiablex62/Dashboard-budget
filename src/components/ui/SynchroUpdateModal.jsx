@@ -53,6 +53,11 @@ export default function SynchroUpdateModal({
 
   const difference = currentCalculatedBalance - parseFloat(newBalance || 0);
 
+  console.log(
+    "[MODAL] Valeur réelle reçue dans la modal :",
+    totalEconomiesActuel
+  );
+
   return (
     <div
       className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
@@ -74,7 +79,6 @@ export default function SynchroUpdateModal({
           </p>
         </div>
         <form onSubmit={handleSubmit}>
-        
           <div className='mb-4'>
             <label className='block mb-2 font-medium  dark:text-white'>
               Je corrige mon solde de

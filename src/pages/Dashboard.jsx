@@ -43,6 +43,10 @@ import {
   calculRevenusEchelonnesJusquaAujourdhui,
   calculRevenusEchelonnesTotal,
 } from "../components/dashboard/calculDashboard";
+import {
+  getTotalRevenusJusquaAujourdhui,
+  getTotalDepenseJusquaAujourdhui,
+} from "../components/dashboard/calculSynchro";
 
 // -------------------
 // Composant principal
@@ -215,16 +219,11 @@ export default function Dashboard() {
   }, [paiementsEchelonnes]);
 
   // Calcul du total des dépenses jusqu'à aujourd'hui (toujours réel, jamais prévisionnel)
-  const totalDepenseJusquaAujourdhui = useMemo(() => {
-    return (
-      calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date()) +
-      calculDepensesRecurrentesJusquaAujourdhui(
-        paiementsRecurrents,
-        new Date()
-      ) +
-      calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date())
-    );
-  }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
+  const totalDepenseJusquaAujourdhui = getTotalDepenseJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes
+  );
 
   // Calcul du total des dépenses du mois précédent (entier, pas jusqu'au même jour)
   const dateMoisPrecedent = getPreviousMonth();
@@ -248,10 +247,26 @@ export default function Dashboard() {
     totalDepenseMoisPrecedent - totalDepense;
 
   // Calculs explicites pour les totaux à afficher dans la carte économies et le tooltip
-  const totalRevenusJusquaAujourdhui =
-    revenusClassiquesCourant +
-    recurrentsRevenuCourant +
-    echelonnesRevenuCourant;
+  const revenusClassiquesJusquaAujourdhui =
+    calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+  const recurrentsRevenuJusquaAujourdhui =
+    calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date());
+  const echelonnesRevenuJusquaAujourdhui =
+    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date());
+
+  const totalRevenusJusquaAujourdhui = getTotalRevenusJusquaAujourdhui(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes
+  );
+
+  const depensesClassiquesJusquaAujourdhui =
+    calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+  const recurrentsDepenseJusquaAujourdhui =
+    calculDepensesRecurrentesJusquaAujourdhui(paiementsRecurrents, new Date());
+  const echelonnesDepenseJusquaAujourdhui =
+    calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date());
+
   const totalRevenus =
     revenusClassiquesPrevisionnel +
     recurrentsRevenuPrevisionnel +
@@ -324,6 +339,11 @@ export default function Dashboard() {
   ]);
 
   const dashboardRef = useRef(null);
+
+  console.log(
+    "[DASHBOARD] Valeur réelle passée à la modal :",
+    totalEconomiesActuel
+  );
 
   return (
     <div
