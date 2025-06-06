@@ -1,8 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSynchro } from "../../context/SynchroContext";
 import { formatMontant } from "../../utils/calcul";
 
-const REASONS = ["Réconciliation bancaire", "Oublie de saisie", "Autre"];
+const REASONS = [
+  "Oubli de saisie",
+  "Erreur de saisie",
+  "Remboursement ou régularisation",
+  "Ajustement exceptionnel",
+  "Autre",
+];
 
 export default function SynchroUpdateModal({
   isOpen,
@@ -14,6 +20,17 @@ export default function SynchroUpdateModal({
   const [reason, setReason] = useState(REASONS[0]);
   const [customReason, setCustomReason] = useState("");
   const { updateBalance } = useSynchro();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,11 +69,6 @@ export default function SynchroUpdateModal({
   if (!isOpen) return null;
 
   const difference = currentCalculatedBalance - parseFloat(newBalance || 0);
-
-  console.log(
-    "[MODAL] Valeur réelle reçue dans la modal :",
-    totalEconomiesActuel
-  );
 
   return (
     <div

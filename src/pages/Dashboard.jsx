@@ -340,11 +340,6 @@ export default function Dashboard() {
 
   const dashboardRef = useRef(null);
 
-  console.log(
-    "[DASHBOARD] Valeur réelle passée à la modal :",
-    totalEconomiesActuel
-  );
-
   return (
     <div
       className='p-6 bg-gray-50 dark:bg-black min-h-screen'
