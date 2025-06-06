@@ -3,57 +3,109 @@
  * @description Composant de tooltip pour afficher les détails des revenus (contenu seul, sans icône info)
  */
 
-import React, { useEffect } from "react";
+import React from "react";
+import { useAuth } from "../../../context/AuthContext";
+import {
+  calculRevenusClassiquesJusquaAujourdhui,
+  calculRevenusRecurrentsJusquaAujourdhui,
+  calculRevenusEchelonnesJusquaAujourdhui,
+  calculRevenusClassiquesTotal,
+  calculRevenusRecurrentsTotal,
+  calculRevenusEchelonnesTotal,
+} from "../calculDashboard";
 
-const TooltipRevenu = ({
-  revenusClassiquesCourant = 0,
-  recurrentsRevenuCourant = 0,
-  echelonnesRevenuCourant = 0,
-  totalRevenus = 0,
-  depenseRevenu = [],
-  paiementsRecurrents = [],
-  paiementsEchelonnes = [],
-  revenusClassiquesMoisPrec = 0,
-  recurrentsRevenuMoisPrec = 0,
-  echelonnesRevenuMoisPrec = 0,
-  revenusClassiquesPrevisionnel = 0,
-  recurrentsRevenuPrevisionnel = 0,
-  echelonnesRevenuPrevisionnel = 0,
-  isCurrentMonth = () => false,
-  formatMontant = (v) =>
-    Number(v).toLocaleString("fr-FR", { minimumFractionDigits: 2 }),
-}) => {
-  useEffect(() => {
-    console.log("[TooltipRevenu] Props:", {
-      revenusClassiquesCourant,
-      recurrentsRevenuCourant,
-      echelonnesRevenuCourant,
-      totalRevenus,
-      depenseRevenu,
-      paiementsRecurrents,
-      paiementsEchelonnes,
-      revenusClassiquesMoisPrec,
-      recurrentsRevenuMoisPrec,
-      echelonnesRevenuMoisPrec,
-      revenusClassiquesPrevisionnel,
-      recurrentsRevenuPrevisionnel,
-      echelonnesRevenuPrevisionnel,
-    });
-  }, [
-    revenusClassiquesCourant,
-    recurrentsRevenuCourant,
-    echelonnesRevenuCourant,
-    totalRevenus,
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    revenusClassiquesMoisPrec,
-    recurrentsRevenuMoisPrec,
-    echelonnesRevenuMoisPrec,
-    revenusClassiquesPrevisionnel,
-    recurrentsRevenuPrevisionnel,
-    echelonnesRevenuPrevisionnel,
-  ]);
+const TooltipRevenu = () => {
+  const { getData } = useAuth();
+  const {
+    depenseRevenu = [],
+    paiementsRecurrents = [],
+    paiementsEchelonnes = [],
+  } = getData() || {};
+
+  // Calculs jusqu'à aujourd'hui
+  const revenusClassiquesJusquaAujourdhui =
+    calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date()) || 0;
+  const recurrentsJusquaAujourdhui =
+    calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date()) ||
+    0;
+  const echelonnesJusquaAujourdhui =
+    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
+    0;
+  const totalJusquaAujourdhui =
+    revenusClassiquesJusquaAujourdhui +
+    recurrentsJusquaAujourdhui +
+    echelonnesJusquaAujourdhui;
+
+  // Calculs prévisionnels (fin de mois)
+  const revenusClassiquesPrevisionnel =
+    calculRevenusClassiquesTotal(depenseRevenu, new Date()) || 0;
+  const recurrentsPrevisionnel =
+    calculRevenusRecurrentsTotal(paiementsRecurrents, new Date()) || 0;
+  const echelonnesPrevisionnel =
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0;
+  const totalPrevisionnel =
+    revenusClassiquesPrevisionnel +
+    recurrentsPrevisionnel +
+    echelonnesPrevisionnel;
+
+  // Calculs du mois précédent
+  const now = new Date();
+  const dateMoisPrecedent = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const revenusClassiquesMoisPrec =
+    calculRevenusClassiquesTotal(depenseRevenu, dateMoisPrecedent) || 0;
+  const recurrentsMoisPrec =
+    calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
+  const echelonnesMoisPrec =
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+  const totalMoisPrecedent =
+    revenusClassiquesMoisPrec + recurrentsMoisPrec + echelonnesMoisPrec;
+
+  // LOGS DEBUG
+  console.log(
+    "[TOOLTIP REVENU] Classiques jusqu'à aujourd'hui:",
+    revenusClassiquesJusquaAujourdhui
+  );
+  console.log(
+    "[TOOLTIP REVENU] Récurrents jusqu'à aujourd'hui:",
+    recurrentsJusquaAujourdhui
+  );
+  console.log(
+    "[TOOLTIP REVENU] Échelonnés jusqu'à aujourd'hui:",
+    echelonnesJusquaAujourdhui
+  );
+  console.log(
+    "[TOOLTIP REVENU] Total jusqu'à aujourd'hui:",
+    totalJusquaAujourdhui
+  );
+  console.log(
+    "[TOOLTIP REVENU] Classiques prévisionnel:",
+    revenusClassiquesPrevisionnel
+  );
+  console.log(
+    "[TOOLTIP REVENU] Récurrents prévisionnel:",
+    recurrentsPrevisionnel
+  );
+  console.log(
+    "[TOOLTIP REVENU] Échelonnés prévisionnel:",
+    echelonnesPrevisionnel
+  );
+  console.log("[TOOLTIP REVENU] Total prévisionnel:", totalPrevisionnel);
+  console.log(
+    "[TOOLTIP REVENU] Classiques mois précédent:",
+    revenusClassiquesMoisPrec
+  );
+  console.log(
+    "[TOOLTIP REVENU] Récurrents mois précédent:",
+    recurrentsMoisPrec
+  );
+  console.log(
+    "[TOOLTIP REVENU] Échelonnés mois précédent:",
+    echelonnesMoisPrec
+  );
+  console.log("[TOOLTIP REVENU] Total mois précédent:", totalMoisPrecedent);
+
+  const formatMontant = (v) =>
+    Number(v).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
 
   return (
     <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
@@ -62,35 +114,25 @@ const TooltipRevenu = ({
           <span className='font-semibold'>
             Revenus du 1 du mois jusqu'à aujourd'hui:
           </span>{" "}
-          {formatMontant(
-            revenusClassiquesCourant +
-              recurrentsRevenuCourant +
-              echelonnesRevenuCourant
-          )}
-          €
+          {formatMontant(totalJusquaAujourdhui)}€
         </div>
         <ul className='mb-2'>
           <li className='text-green-400'>
             <span className='font-bold'>Revenus :</span>{" "}
-            {formatMontant(revenusClassiquesCourant)}€
+            {formatMontant(revenusClassiquesJusquaAujourdhui)}€
           </li>
           <li className='text-blue-400'>
-            Paiements récurrents : {formatMontant(recurrentsRevenuCourant)}€
+            Paiements récurrents : {formatMontant(recurrentsJusquaAujourdhui)}€
           </li>
           <li className='text-purple-400'>
-            Paiements échelonnés : {formatMontant(echelonnesRevenuCourant)}€
+            Paiements échelonnés : {formatMontant(echelonnesJusquaAujourdhui)}€
           </li>
         </ul>
         <div className='mb-2 mt-4'>
           <span className='font-semibold'>
             Total prévisionnel à la fin du mois :
           </span>{" "}
-          {formatMontant(
-            revenusClassiquesPrevisionnel +
-              recurrentsRevenuPrevisionnel +
-              echelonnesRevenuPrevisionnel
-          )}
-          €
+          {formatMontant(totalPrevisionnel)}€
         </div>
         <ul className='mb-2'>
           <li className='text-green-400'>
@@ -98,24 +140,17 @@ const TooltipRevenu = ({
             {formatMontant(revenusClassiquesPrevisionnel)}€
           </li>
           <li className='text-blue-400'>
-            Paiements récurrents : {formatMontant(recurrentsRevenuPrevisionnel)}
-            €
+            Paiements récurrents : {formatMontant(recurrentsPrevisionnel)}€
           </li>
           <li className='text-purple-400'>
-            Paiements échelonnés : {formatMontant(echelonnesRevenuPrevisionnel)}
-            €
+            Paiements échelonnés : {formatMontant(echelonnesPrevisionnel)}€
           </li>
         </ul>
         <div className='mb-2'>
           <span className='font-semibold'>
             Total des revenus du mois précédent :
           </span>{" "}
-          {formatMontant(
-            revenusClassiquesMoisPrec +
-              recurrentsRevenuMoisPrec +
-              echelonnesRevenuMoisPrec
-          )}
-          €
+          {formatMontant(totalMoisPrecedent)}€
         </div>
         <ul>
           <li className='text-green-400'>
@@ -123,10 +158,10 @@ const TooltipRevenu = ({
             {formatMontant(revenusClassiquesMoisPrec)}€
           </li>
           <li className='text-blue-400'>
-            Paiements récurrents : {formatMontant(recurrentsRevenuMoisPrec)}€
+            Paiements récurrents : {formatMontant(recurrentsMoisPrec)}€
           </li>
           <li className='text-purple-400'>
-            Paiements échelonnés : {formatMontant(echelonnesRevenuMoisPrec)}€
+            Paiements échelonnés : {formatMontant(echelonnesMoisPrec)}€
           </li>
         </ul>
       </div>

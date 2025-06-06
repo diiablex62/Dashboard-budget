@@ -31,7 +31,7 @@ const TooltipDepense = ({
     paiementsEchelonnes = [],
   } = getData() || {};
 
-  // Calculs du 1er au jour actuel accessibles partout
+  // Calculs du 1er au jour actuel
   const depensesClassiquesJusquaAujourdhui =
     calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date()) || 0;
   const recurrentsJusquaAujourdhui =
@@ -49,32 +49,19 @@ const TooltipDepense = ({
     recurrentsJusquaAujourdhui +
     echelonnesJusquaAujourdhui;
 
-  // Calcul du total prévisionnel pour le mois en cours
-  const totalPrevisionnel = useMemo(() => {
-    const date = new Date();
+  // Calculs prévisionnels (fin de mois)
+  const depensesClassiquesPrevisionnel =
+    calculDepensesClassiquesTotal(depenseRevenu, new Date()) || 0;
+  const recurrentsPrevisionnel =
+    calculDepensesRecurrentesTotal(paiementsRecurrents, new Date()) || 0;
+  const echelonnesPrevisionnel =
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
+  const totalPrevisionnel =
+    depensesClassiquesPrevisionnel +
+    recurrentsPrevisionnel +
+    echelonnesPrevisionnel;
 
-    // Calcul des dépenses classiques du mois
-    const depensesClassiques =
-      calculDepensesClassiquesTotal(depenseRevenu, date) || 0;
-
-    // Calcul des dépenses récurrentes du mois
-    const recurrents =
-      calculDepensesRecurrentesTotal(paiementsRecurrents, date) || 0;
-
-    // Calcul des dépenses échelonnées du mois
-    const echelonnes =
-      calculDepensesEchelonneesTotal(paiementsEchelonnes, date) || 0;
-
-    return depensesClassiques + recurrents + echelonnes;
-  }, [
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    totalDepenseJusquaAujourdhui,
-    totalDepenseMoisPrecedent,
-  ]);
-
-  // Calcul du mois précédent
+  // Calculs du mois précédent
   const now = new Date();
   const dateMoisPrecedent = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const depensesClassiquesMoisPrec =
@@ -83,6 +70,10 @@ const TooltipDepense = ({
     calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
   const echelonnesDepenseMoisPrec =
     calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+  const totalMoisPrecedent =
+    depensesClassiquesMoisPrec +
+    recurrentsDepenseMoisPrec +
+    echelonnesDepenseMoisPrec;
 
   // Différences avec le mois précédent
   const differenceAvecMoisDernierJusquaAujourdhui =
@@ -97,7 +88,7 @@ const TooltipDepense = ({
     totalPrevisionnel;
 
   return (
-    <div className='absolute top-0 left-full ml-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
+    <div className='absolute top-0 right-full mr-2 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg whitespace-pre-line'>
       <div>
         <div className='mb-2'>
           <span className='font-semibold'>
@@ -132,53 +123,35 @@ const TooltipDepense = ({
             <span className='font-bold' style={{ color: "#ef4444" }}>
               Dépenses :
             </span>{" "}
-            {formatMontant(
-              calculDepensesClassiquesTotal(depenseRevenu, new Date()) || 0
-            )}
-            €
+            {formatMontant(depensesClassiquesPrevisionnel || 0)}€
           </li>
           <li className='text-blue-400'>
-            Paiements récurrents :{" "}
-            {formatMontant(
-              calculDepensesRecurrentesTotal(paiementsRecurrents, new Date()) ||
-                0
-            )}
-            €
+            Paiements récurrents : {formatMontant(recurrentsPrevisionnel || 0)}€
           </li>
           <li className='text-purple-400'>
-            Paiements échelonnés :{" "}
-            {formatMontant(
-              calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) ||
-                0
-            )}
-            €
+            Paiements échelonnés : {formatMontant(echelonnesPrevisionnel || 0)}€
           </li>
         </ul>
         <div className='mb-2'>
           <span className='font-semibold'>
             Total des dépenses du mois précédent :
           </span>{" "}
-          {formatMontant(
-            depensesClassiquesMoisPrec +
-              recurrentsDepenseMoisPrec +
-              echelonnesDepenseMoisPrec
-          )}
-          €
+          {formatMontant(totalMoisPrecedent || 0)}€
         </div>
         <ul>
           <li className='text-red-400'>
             <span className='font-bold' style={{ color: "#ef4444" }}>
               Dépenses :
             </span>{" "}
-            {formatMontant(depensesClassiquesMoisPrec)}€
+            {formatMontant(depensesClassiquesMoisPrec || 0)}€
           </li>
           <li className='text-blue-400'>
             Paiements récurrents (dépense) :{" "}
-            {formatMontant(recurrentsDepenseMoisPrec)}€
+            {formatMontant(recurrentsDepenseMoisPrec || 0)}€
           </li>
           <li className='text-purple-400'>
             Paiements échelonnés (dépense) :{" "}
-            {formatMontant(echelonnesDepenseMoisPrec)}€
+            {formatMontant(echelonnesDepenseMoisPrec || 0)}€
           </li>
         </ul>
       </div>

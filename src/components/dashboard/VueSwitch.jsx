@@ -27,7 +27,7 @@ const VueSwitch = ({ isPrevisionnel, setIsPrevisionnel }) => {
   return (
     <div className='flex items-center gap-3'>
       <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-        Vue Actuelle
+        Vue actuelle
       </span>
 
       <label className='relative inline-flex items-center cursor-pointer'>
@@ -42,7 +42,7 @@ const VueSwitch = ({ isPrevisionnel, setIsPrevisionnel }) => {
       </label>
 
       <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-        Vue Prévisionnelle
+        Vue prévisionnelle
       </span>
     </div>
   );

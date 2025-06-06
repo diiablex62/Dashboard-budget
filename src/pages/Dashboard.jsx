@@ -242,14 +242,6 @@ export default function Dashboard() {
     recurrentsRevenuMoisPrec +
     echelonnesRevenuMoisPrec;
 
-  // Logs pour vérification
-  console.log("totalRevenusJusquaAujourdhui", totalRevenusJusquaAujourdhui);
-  console.log("totalDepenseJusquaAujourdhui", totalDepenseJusquaAujourdhui);
-  console.log("totalRevenus", totalRevenus);
-  console.log("totalDepense", totalDepense);
-  console.log("totalRevenusMoisPrecedent", totalRevenusMoisPrecedent);
-  console.log("totalDepenseMoisPrecedent", totalDepenseMoisPrecedent);
-
   // Fonction pour calculer le total des paiements échelonnés du mois
   const calculTotalEchelonnesMois = useCallback(() => {
     return paiementsEchelonnes
@@ -313,6 +305,31 @@ export default function Dashboard() {
 
       {/* Cartes du haut */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
+
+
+       {/* Carte Revenus */}
+       <RevenuCard
+          totalRevenus={
+            isPrevisionnel ? totalRevenus : totalRevenusJusquaAujourdhui
+          }
+          totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
+          totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
+          differenceRevenusMoisPrecedent={
+            isPrevisionnel
+              ? differenceRevenusMoisPrecedentPrevisionnel
+              : differenceRevenusMoisPrecedentJusquaAujourdhui
+          }
+          revenusClassiquesCourant={revenusClassiquesCourant}
+          recurrentsRevenuCourant={recurrentsRevenuCourant}
+          echelonnesRevenuCourant={echelonnesRevenuCourant}
+          revenusClassiquesPrevisionnel={revenusClassiquesPrevisionnel}
+          recurrentsRevenuPrevisionnel={recurrentsRevenuPrevisionnel}
+          echelonnesRevenuPrevisionnel={echelonnesRevenuPrevisionnel}
+          revenusClassiquesMoisPrec={revenusClassiquesMoisPrec}
+          recurrentsRevenuMoisPrec={recurrentsRevenuMoisPrec}
+          echelonnesRevenuMoisPrec={echelonnesRevenuMoisPrec}
+          isPrevisionnel={isPrevisionnel}
+        />
         {/* Carte Dépenses */}
         <DepenseCard
           totalDepense={
@@ -341,29 +358,7 @@ export default function Dashboard() {
           isCurrentMonth={isCurrentMonth}
         />
 
-        {/* Carte Revenus */}
-        <RevenuCard
-          totalRevenus={
-            isPrevisionnel ? totalRevenus : totalRevenusJusquaAujourdhui
-          }
-          totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
-          totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
-          differenceRevenusMoisPrecedent={
-            isPrevisionnel
-              ? differenceRevenusMoisPrecedentPrevisionnel
-              : differenceRevenusMoisPrecedentJusquaAujourdhui
-          }
-          revenusClassiquesCourant={revenusClassiquesCourant}
-          recurrentsRevenuCourant={recurrentsRevenuCourant}
-          echelonnesRevenuCourant={echelonnesRevenuCourant}
-          revenusClassiquesPrevisionnel={revenusClassiquesPrevisionnel}
-          recurrentsRevenuPrevisionnel={recurrentsRevenuPrevisionnel}
-          echelonnesRevenuPrevisionnel={echelonnesRevenuPrevisionnel}
-          revenusClassiquesMoisPrec={revenusClassiquesMoisPrec}
-          recurrentsRevenuMoisPrec={recurrentsRevenuMoisPrec}
-          echelonnesRevenuMoisPrec={echelonnesRevenuMoisPrec}
-          isPrevisionnel={isPrevisionnel}
-        />
+       
 
         {/* Carte Paiements échelonnés */}
         {/* <EchelonneCard

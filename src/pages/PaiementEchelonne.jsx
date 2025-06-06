@@ -267,6 +267,19 @@ export const PaiementEchelonne = () => {
                     selectedDate
                   );
 
+                  const isDepense = paiement.type === "credit";
+                  const montantAffiche = `${
+                    isDepense ? "-" : "+"
+                  }${progression.montantMensuel.toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                  })}€`;
+                  const montantClass = isDepense
+                    ? "text-red-600"
+                    : "text-green-600";
+                  const barreClass = isDepense
+                    ? "bg-red-600 dark:bg-red-400"
+                    : "bg-green-600 dark:bg-green-400";
+
                   return (
                     <CardDesign
                       key={paiement.id}
@@ -276,14 +289,19 @@ export const PaiementEchelonne = () => {
                         montantTotal: progression.montantTotal,
                         nombreMensualites: progression.nombreMensualites,
                       }}
-                      currentTab={isRevenus ? "debit" : "credit"}
+                      currentTab={isDepense ? "depense" : "revenu"}
                       onEdit={() => handleEdit(paiement)}
                       onDelete={() => handleDelete(paiement.id, paiement.nom)}>
+                      {/* Montant affiché */}
+                      <div
+                        className={`font-bold text-base truncate ${montantClass}`}>
+                        {montantAffiche}
+                      </div>
                       {/* Barre de progression */}
                       <div className='flex flex-col gap-2'>
                         <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
                           <div
-                            className='bg-green-600 dark:bg-green-400 h-2.5 rounded-full'
+                            className={`${barreClass} h-2.5 rounded-full`}
                             style={{
                               width: `${progression.pourcentage}%`,
                             }}></div>
