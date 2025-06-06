@@ -141,7 +141,7 @@ export const PaiementEchelonne = () => {
         <div className='mb-6 flex items-center justify-between'>
           <div>
             <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>
-              Paiements Échelonnés
+              Paiements échelonnés
             </h1>
             <p className='text-sm text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap'>
               {isRevenus
@@ -162,7 +162,7 @@ export const PaiementEchelonne = () => {
             <div className='flex items-center text-blue-600 dark:text-blue-400 mb-2'>
               <AiOutlineDollarCircle className='text-2xl mr-2' />
               <span className='text-sm font-semibold'>
-                Total Mensuel {isRevenus ? "Débit" : "Crédit"}
+                Total mensuel {isRevenus ? "débit" : "crédit"}
               </span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
@@ -174,7 +174,7 @@ export const PaiementEchelonne = () => {
           <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
             <div className='flex items-center text-green-600 dark:text-green-400 mb-2'>
               <AiOutlineCalendar className='text-2xl mr-2' />
-              <span className='text-sm font-semibold'>Paiements Actifs</span>
+              <span className='text-sm font-semibold'>Paiements actifs</span>
             </div>
             <div className='text-2xl text-[#222] dark:text-white'>
               {paiementsActifsCount} paiement
@@ -212,7 +212,7 @@ export const PaiementEchelonne = () => {
           <div className='flex items-center justify-between mb-6'>
             <div>
               <div className='text-2xl font-bold text-[#222] dark:text-white'>
-                Paiements Échelonnés
+                Paiements échelonnés
               </div>
               <div className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                 Paiements du mois de {getMonthYear(selectedDate)}

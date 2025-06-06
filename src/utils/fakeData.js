@@ -127,7 +127,7 @@ export const fakePaiementsEchelonnes = [
   },
   {
     id: 2,
-    nom: "Prime Échelonnée Mai",
+    nom: "Prime échelonnée Mai",
     montant: 600,
     mensualites: 2,
     mensualitesPayees: 1,
@@ -137,7 +137,7 @@ export const fakePaiementsEchelonnes = [
   },
   {
     id: 3,
-    nom: "MacBook Pro Mai Fin",
+    nom: "MacBook Pro mai fin",
     montant: 2400,
     mensualites: 2,
     mensualitesPayees: 1,
@@ -147,7 +147,7 @@ export const fakePaiementsEchelonnes = [
   },
   {
     id: 4,
-    nom: "Prime Échelonnée Mai Fin",
+    nom: "Prime échelonnée Mai fin",
     montant: 700,
     mensualites: 2,
     mensualitesPayees: 1,
@@ -168,7 +168,7 @@ export const fakePaiementsEchelonnes = [
   },
   {
     id: 6,
-    nom: "Prime Échelonnée Juin",
+    nom: "Prime échelonnée Juin",
     montant: 600,
     mensualites: 2,
     mensualitesPayees: 1,
@@ -178,7 +178,7 @@ export const fakePaiementsEchelonnes = [
   },
   {
     id: 7,
-    nom: "MacBook Pro Juin Fin",
+    nom: "MacBook Pro juin fin",
     montant: 2400,
     mensualites: 2,
     mensualitesPayees: 1,

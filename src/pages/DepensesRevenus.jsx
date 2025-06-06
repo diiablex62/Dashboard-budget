@@ -129,7 +129,7 @@ export default function DepensesRevenus() {
             <div className='mb-6 flex items-center justify-between'>
               <div>
                 <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>
-                  Dépenses et Revenus
+                  Dépenses et revenus
                 </h1>
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                   {currentTab === "depense"
@@ -146,7 +146,7 @@ export default function DepensesRevenus() {
             {/* Cartes de statistiques */}
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
               {currentTab === "depense" ? (
-                /* Carte Total Dépenses */
+                /* Carte total dépenses */
                 <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
                   <div className='flex items-center text-red-600 mb-2'>
                     <AiOutlineDollarCircle className='text-2xl mr-2' />
@@ -159,11 +159,11 @@ export default function DepensesRevenus() {
                   </div>
                 </div>
               ) : (
-                /* Carte Total Revenus */
+                /* Carte total revenus */
                 <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-2xl shadow p-6 flex flex-col items-start justify-center text-gray-800 dark:text-white'>
                   <div className='flex items-center text-green-600 mb-2'>
                     <AiOutlineCalendar className='text-2xl mr-2' />
-                    <span className='text-sm font-semibold'>Total Revenus</span>
+                    <span className='text-sm font-semibold'>Total revenus</span>
                   </div>
                   <div className='text-2xl font-bold dark:text-white'>
                     {formatMontant(totalRevenus)}€

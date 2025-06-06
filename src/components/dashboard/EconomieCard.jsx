@@ -16,8 +16,19 @@ const EconomieCard = ({
   differenceEconomiesMoisPrecedent,
   onUpdateBalance,
   isPrevisionnel,
+  totalRevenusJusquaAujourdhui,
+  totalDepenseJusquaAujourdhui,
+  totalRevenus,
+  totalDepense,
+  totalRevenusMoisPrecedent,
+  totalDepenseMoisPrecedent,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const differenceRevenusMoisPrecedentJusquaAujourdhui =
+    totalRevenusJusquaAujourdhui - totalRevenusMoisPrecedent;
+  const differenceRevenusMoisPrecedentPrevisionnel =
+    totalRevenus - totalRevenusMoisPrecedent;
+
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
       {/* Icône info dans le coin supérieur droit de la carte */}
@@ -28,8 +39,15 @@ const EconomieCard = ({
         <AiOutlineInfoCircle className='text-gray-400 hover:text-gray-600 cursor-help text-lg' />
         {showTooltip && (
           <TooltipEconomie
+            totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
+            totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
             totalEconomiesJusquaAujourdhui={totalEconomiesJusquaAujourdhui}
-            differenceEconomiesMoisPrecedent={differenceEconomiesMoisPrecedent}
+            totalRevenus={totalRevenus}
+            totalDepense={totalDepense}
+            totalEconomies={totalEconomies}
+            totalRevenusMoisPrecedent={totalRevenusMoisPrecedent}
+            totalDepenseMoisPrecedent={totalDepenseMoisPrecedent}
+            totalEconomiesMoisPrecedent={totalEconomiesMoisPrecedent}
           />
         )}
       </div>
