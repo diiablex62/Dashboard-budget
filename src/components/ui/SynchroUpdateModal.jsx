@@ -68,8 +68,7 @@ export default function SynchroUpdateModal({
 
   if (!isOpen) return null;
 
-  const difference = currentCalculatedBalance - parseFloat(newBalance || 0);
-
+  const difference = parseFloat(newBalance || 0) - currentCalculatedBalance;
   return (
     <div
       className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
@@ -116,11 +115,15 @@ export default function SynchroUpdateModal({
           {newBalance && (
             <div className='mb-4'>
               <label className='block mb-2 font-medium dark:text-white'>
-                Différence
+                Différence qui sera ajoutée au solde
               </label>
               <div
                 className={`text-2xl font-bold ${
-                  difference > 0 ? "text-red-600" : "text-green-600"
+                  difference > 0
+                    ? "text-green-600"
+                    : difference < 0
+                    ? "text-red-600"
+                    : "text-gray-600"
                 }`}>
                 {difference > 0 ? "+" : ""}
                 {formatMontant(difference)}€
