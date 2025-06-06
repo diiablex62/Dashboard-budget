@@ -11,11 +11,12 @@ import {
 } from "recharts";
 import { formatMontant } from "../../../utils/calcul";
 
-export default function DepensesRevenus6MoisCourbe({ data }) {
+export default function DepensesRevenus6MoisCourbe({ data, isPrevisionnel }) {
   return (
     <div className='flex-1 flex flex-col items-center justify-center min-h-[200px] bg-white dark:bg-black rounded-lg text-gray-400'>
       <ResponsiveContainer width='100%' height={220}>
         <LineChart
+          key={isPrevisionnel ? "previsionnel" : "actuel"}
           data={data}
           margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray='3 3' />

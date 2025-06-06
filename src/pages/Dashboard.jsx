@@ -570,7 +570,10 @@ export default function Dashboard() {
           />
         </GraphiqueCard>
         <GraphiqueCard title='Dépenses et revenus des 6 derniers mois'>
-          <DepensesRevenus6MoisCourbe data={courbeData} />
+          <DepensesRevenus6MoisCourbe
+            data={courbeData}
+            isPrevisionnel={isPrevisionnel}
+          />
         </GraphiqueCard>
       </div>
 
