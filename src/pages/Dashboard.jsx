@@ -435,114 +435,19 @@ export default function Dashboard() {
     }));
   }
 
-  // Fonction utilitaire pour regrouper les revenus et dépenses (toutes sources) sur les 6 derniers mois
-  function getCourbeRevenusDepenses6Mois(
+  // Je m'assure que l'import suivant est bien présent en haut du fichier :
+  // import { getCourbeRevenusDepenses6Mois } from "../components/dashboard/graphiques/calculGraph6";
+
+  // J'utilise la fonction importée pour générer courbeData :
+  const courbeData = getCourbeRevenusDepenses6Mois(
     depenseRevenu,
     paiementsRecurrents,
     paiementsEchelonnes
-  ) {
-    const now = new Date();
-    const result = [];
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const mois =
-        (date.getMonth() + 1).toString().padStart(2, "0") +
-        "/" +
-        date.getFullYear();
-      const isCurrentMonth =
-        date.getMonth() === now.getMonth() &&
-        date.getFullYear() === now.getFullYear();
-
-      let depenses = 0;
-      let revenus = 0;
-
-      if (isCurrentMonth) {
-        // PRÉVISIONNEL pour le mois courant
-        // Dépenses prévisionnelles
-        const depensesClassiques = depenseRevenu.filter(
-          (d) => d.type === "depense"
-        );
-        const recurrents = paiementsRecurrents.filter(
-          (d) => d.type === "depense"
-        );
-        const echelonnes = paiementsEchelonnes.filter(
-          (d) => d.type === "depense" || d.type === "credit"
-        );
-        depenses =
-          depensesClassiques.reduce((acc, d) => acc + Number(d.montant), 0) +
-          recurrents.reduce((acc, d) => acc + Number(d.montant), 0) +
-          echelonnes.reduce((acc, d) => acc + Number(d.montant), 0);
-        // Revenus prévisionnels
-        const revenusClassiques = depenseRevenu.filter(
-          (d) => d.type === "revenu"
-        );
-        const recurrentsRev = paiementsRecurrents.filter(
-          (d) => d.type === "revenu"
-        );
-        const echelonnesRev = paiementsEchelonnes.filter(
-          (d) => d.type === "revenu"
-        );
-        revenus =
-          revenusClassiques.reduce((acc, d) => acc + Number(d.montant), 0) +
-          recurrentsRev.reduce((acc, d) => acc + Number(d.montant), 0) +
-          echelonnesRev.reduce((acc, d) => acc + Number(d.montant), 0);
-      } else {
-        // RÉEL pour les autres mois
-        // Dépenses classiques
-        const depensesMois = depenseRevenu.filter(
-          (d) =>
-            d.type === "depense" &&
-            new Date(d.date).getMonth() === date.getMonth() &&
-            new Date(d.date).getFullYear() === date.getFullYear()
-        );
-        // Dépenses récurrentes
-        const recurrentsMois = paiementsRecurrents.filter(
-          (d) =>
-            d.type === "depense" &&
-            (!d.debut || new Date(d.debut) <= date) &&
-            (!d.fin || new Date(d.fin) >= date)
-        );
-        // Dépenses échelonnées (inclut aussi les crédits)
-        const echelonnesMois = paiementsEchelonnes.filter(
-          (d) =>
-            (d.type === "depense" || d.type === "credit") &&
-            (!d.debut || new Date(d.debut) <= date) &&
-            (!d.fin || new Date(d.fin) >= date)
-        );
-        // Revenus classiques
-        const revenusMois = depenseRevenu.filter(
-          (d) =>
-            d.type === "revenu" &&
-            new Date(d.date).getMonth() === date.getMonth() &&
-            new Date(d.date).getFullYear() === date.getFullYear()
-        );
-        // Revenus récurrents
-        const recurrentsRevenusMois = paiementsRecurrents.filter(
-          (d) =>
-            d.type === "revenu" &&
-            (!d.debut || new Date(d.debut) <= date) &&
-            (!d.fin || new Date(d.fin) >= date)
-        );
-        // Revenus échelonnés
-        const echelonnesRevenusMois = paiementsEchelonnes.filter(
-          (d) =>
-            d.type === "revenu" &&
-            (!d.debut || new Date(d.debut) <= date) &&
-            (!d.fin || new Date(d.fin) >= date)
-        );
-        depenses =
-          depensesMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-          recurrentsMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-          echelonnesMois.reduce((acc, d) => acc + Number(d.montant), 0);
-        revenus =
-          revenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-          recurrentsRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-          echelonnesRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0);
-      }
-      result.push({ mois, depenses, revenus });
-    }
-    return result;
-  }
+  );
+  console.log(
+    "Détail du calcul graphique 6 mois :",
+    JSON.stringify(courbeData, null, 2)
+  );
 
   return (
     <div
@@ -667,13 +572,7 @@ export default function Dashboard() {
           />
         </GraphiqueCard>
         <GraphiqueCard title='Dépenses et revenus des 6 derniers mois'>
-          <DepensesRevenus6MoisCourbe
-            data={getCourbeRevenusDepenses6Mois(
-              depenseRevenu,
-              paiementsRecurrents,
-              paiementsEchelonnes
-            )}
-          />
+          <DepensesRevenus6MoisCourbe data={courbeData} />
         </GraphiqueCard>
       </div>
 
