@@ -54,6 +54,7 @@ import {
   getTotalDepenseJusquaAujourdhui,
 } from "../components/dashboard/calculSynchro";
 import { ThemeContext } from "../context/ThemeContext";
+import { getCourbeRevenusDepenses6Mois } from "../components/dashboard/graphiques/calculGraph6";
 
 // -------------------
 // Composant principal
@@ -448,57 +449,96 @@ export default function Dashboard() {
         (date.getMonth() + 1).toString().padStart(2, "0") +
         "/" +
         date.getFullYear();
-      // Dépenses classiques
-      const depensesMois = depenseRevenu.filter(
-        (d) =>
-          d.type === "depense" &&
-          new Date(d.date).getMonth() === date.getMonth() &&
-          new Date(d.date).getFullYear() === date.getFullYear()
-      );
-      // Dépenses récurrentes
-      const recurrentsMois = paiementsRecurrents.filter(
-        (d) =>
-          d.type === "depense" &&
-          (!d.debut || new Date(d.debut) <= date) &&
-          (!d.fin || new Date(d.fin) >= date)
-      );
-      // Dépenses échelonnées (inclut aussi les crédits)
-      const echelonnesMois = paiementsEchelonnes.filter(
-        (d) =>
-          (d.type === "depense" || d.type === "credit") &&
-          (!d.debut || new Date(d.debut) <= date) &&
-          (!d.fin || new Date(d.fin) >= date)
-      );
-      // Revenus classiques
-      const revenusMois = depenseRevenu.filter(
-        (d) =>
-          d.type === "revenu" &&
-          new Date(d.date).getMonth() === date.getMonth() &&
-          new Date(d.date).getFullYear() === date.getFullYear()
-      );
-      // Revenus récurrents
-      const recurrentsRevenusMois = paiementsRecurrents.filter(
-        (d) =>
-          d.type === "revenu" &&
-          (!d.debut || new Date(d.debut) <= date) &&
-          (!d.fin || new Date(d.fin) >= date)
-      );
-      // Revenus échelonnés
-      const echelonnesRevenusMois = paiementsEchelonnes.filter(
-        (d) =>
-          d.type === "revenu" &&
-          (!d.debut || new Date(d.debut) <= date) &&
-          (!d.fin || new Date(d.fin) >= date)
-      );
-      // Sommes
-      const depenses =
-        depensesMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-        recurrentsMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-        echelonnesMois.reduce((acc, d) => acc + Number(d.montant), 0);
-      const revenus =
-        revenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-        recurrentsRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
-        echelonnesRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0);
+      const isCurrentMonth =
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear();
+
+      let depenses = 0;
+      let revenus = 0;
+
+      if (isCurrentMonth) {
+        // PRÉVISIONNEL pour le mois courant
+        // Dépenses prévisionnelles
+        const depensesClassiques = depenseRevenu.filter(
+          (d) => d.type === "depense"
+        );
+        const recurrents = paiementsRecurrents.filter(
+          (d) => d.type === "depense"
+        );
+        const echelonnes = paiementsEchelonnes.filter(
+          (d) => d.type === "depense" || d.type === "credit"
+        );
+        depenses =
+          depensesClassiques.reduce((acc, d) => acc + Number(d.montant), 0) +
+          recurrents.reduce((acc, d) => acc + Number(d.montant), 0) +
+          echelonnes.reduce((acc, d) => acc + Number(d.montant), 0);
+        // Revenus prévisionnels
+        const revenusClassiques = depenseRevenu.filter(
+          (d) => d.type === "revenu"
+        );
+        const recurrentsRev = paiementsRecurrents.filter(
+          (d) => d.type === "revenu"
+        );
+        const echelonnesRev = paiementsEchelonnes.filter(
+          (d) => d.type === "revenu"
+        );
+        revenus =
+          revenusClassiques.reduce((acc, d) => acc + Number(d.montant), 0) +
+          recurrentsRev.reduce((acc, d) => acc + Number(d.montant), 0) +
+          echelonnesRev.reduce((acc, d) => acc + Number(d.montant), 0);
+      } else {
+        // RÉEL pour les autres mois
+        // Dépenses classiques
+        const depensesMois = depenseRevenu.filter(
+          (d) =>
+            d.type === "depense" &&
+            new Date(d.date).getMonth() === date.getMonth() &&
+            new Date(d.date).getFullYear() === date.getFullYear()
+        );
+        // Dépenses récurrentes
+        const recurrentsMois = paiementsRecurrents.filter(
+          (d) =>
+            d.type === "depense" &&
+            (!d.debut || new Date(d.debut) <= date) &&
+            (!d.fin || new Date(d.fin) >= date)
+        );
+        // Dépenses échelonnées (inclut aussi les crédits)
+        const echelonnesMois = paiementsEchelonnes.filter(
+          (d) =>
+            (d.type === "depense" || d.type === "credit") &&
+            (!d.debut || new Date(d.debut) <= date) &&
+            (!d.fin || new Date(d.fin) >= date)
+        );
+        // Revenus classiques
+        const revenusMois = depenseRevenu.filter(
+          (d) =>
+            d.type === "revenu" &&
+            new Date(d.date).getMonth() === date.getMonth() &&
+            new Date(d.date).getFullYear() === date.getFullYear()
+        );
+        // Revenus récurrents
+        const recurrentsRevenusMois = paiementsRecurrents.filter(
+          (d) =>
+            d.type === "revenu" &&
+            (!d.debut || new Date(d.debut) <= date) &&
+            (!d.fin || new Date(d.fin) >= date)
+        );
+        // Revenus échelonnés
+        const echelonnesRevenusMois = paiementsEchelonnes.filter(
+          (d) =>
+            d.type === "revenu" &&
+            (!d.debut || new Date(d.debut) <= date) &&
+            (!d.fin || new Date(d.fin) >= date)
+        );
+        depenses =
+          depensesMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+          recurrentsMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+          echelonnesMois.reduce((acc, d) => acc + Number(d.montant), 0);
+        revenus =
+          revenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+          recurrentsRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+          echelonnesRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0);
+      }
       result.push({ mois, depenses, revenus });
     }
     return result;
