@@ -22,10 +22,6 @@ const BudgetCard = ({
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const today = new Date();
-
-  // Log pour debug : voir le contenu des listes passées au tooltip
-  console.log({ depenses, revenus, recurrents, echelonnes });
-
   const tooltipData = {
     depensesPrevisionnelles: depensesAVenir + depensesRecEchAVenir,
     revenusPrevisionnels: revenusAVenir + revenusRecEchAVenir,

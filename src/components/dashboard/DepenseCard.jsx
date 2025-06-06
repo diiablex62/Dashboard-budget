@@ -68,7 +68,7 @@ const DepenseCard = ({
               </>
             ) : (
               <>
-                Total dépensé actuellement
+                Total dépensé (actuel)
                 <br />
                 {MONTH_NAMES[now.getMonth()]} {now.getFullYear()}
               </>

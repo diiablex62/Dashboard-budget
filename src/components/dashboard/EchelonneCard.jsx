@@ -8,20 +8,22 @@ import { AiOutlineCreditCard } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { formatMontant } from "../../utils/calcul";
 
-const EchelonneCard = () => {
+const EchelonneCard = ({ totalEchelonnes = 0, isPrevisionnel = false }) => {
   const navigate = useNavigate();
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
       <div className='flex items-center justify-between'>
         <span className='text-gray-500 font-medium'>
-          Paiements échelonnés
+          {isPrevisionnel
+            ? "Paiements échelonnés (prévisionnel)"
+            : "Paiements échelonnés (actuel)"}
         </span>
         <AiOutlineCreditCard className='text-2xl text-green-600' />
       </div>
       <div className='flex items-baseline gap-1'>
         <span className='text-2xl font-bold dark:text-white'>
-          {formatMontant(0)}€
+          {formatMontant(totalEchelonnes)}€
         </span>
         <span className='text-xs text-gray-400 font-normal'>/mois</span>
       </div>

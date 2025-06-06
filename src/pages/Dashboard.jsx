@@ -285,6 +285,14 @@ export default function Dashboard() {
   const differenceAvecMoisDernierPrevisionnel =
     totalDepenseMoisPrecedent - totalDepense;
 
+  // Totaux paiements échelonnés (dépenses uniquement)
+  const totalEchelonnesJusquaAujourdhui =
+    calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date());
+  const totalEchelonnesPrevisionnel = calculDepensesEchelonneesTotal(
+    paiementsEchelonnes,
+    new Date()
+  );
+
   const dashboardRef = useRef(null);
 
   return (
@@ -360,7 +368,14 @@ export default function Dashboard() {
         />
 
         {/* Carte Paiements échelonnés */}
-        <EchelonneCard />
+        <EchelonneCard
+          totalEchelonnes={
+            isPrevisionnel
+              ? totalEchelonnesPrevisionnel
+              : totalEchelonnesJusquaAujourdhui
+          }
+          isPrevisionnel={isPrevisionnel}
+        />
 
         {/* Carte Budget prévisionnel */}
         <BudgetCard budgetPrevisionnel={budgetPrevisionnel} />

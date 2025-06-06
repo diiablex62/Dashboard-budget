@@ -69,7 +69,7 @@ const RevenuCard = ({
               </>
             ) : (
               <>
-                Total revenus actuellement
+                Total revenus (actuel)
                 <br />
                 {MONTH_NAMES[now.getMonth()]} {now.getFullYear()}
               </>
