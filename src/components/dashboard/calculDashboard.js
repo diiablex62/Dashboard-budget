@@ -322,13 +322,18 @@ export const calculRevenusEchelonnesJusquaAujourdhui = (
   date
 ) => {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  console.log(
+    "[calculRevenusEchelonnesJusquaAujourdhui] Paiements reçus:",
+    paiementsEchelonnes
+  );
   const dateObj = date instanceof Date ? date : new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
+  let mensualitesComptabilisees = [];
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "revenu") return;
+    if (p.type !== "credit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
@@ -340,20 +345,35 @@ export const calculRevenusEchelonnesJusquaAujourdhui = (
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
+        mensualitesComptabilisees.push({
+          nom: p.nom,
+          date: dateMensualite.toISOString().slice(0, 10),
+          montant: mensualite,
+        });
       }
     }
   });
+  console.log(
+    "[calculRevenusEchelonnesJusquaAujourdhui] Mensualités comptabilisées:",
+    mensualitesComptabilisees
+  );
+  console.log(`[calculRevenusEchelonnesJusquaAujourdhui] Total: ${total}€`);
   return total;
 };
 export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  console.log(
+    "[calculRevenusEchelonnesTotal] Paiements reçus:",
+    paiementsEchelonnes
+  );
   const dateObj = date instanceof Date ? date : new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
+  let mensualitesComptabilisees = [];
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "revenu") return;
+    if (p.type !== "credit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
@@ -364,8 +384,18 @@ export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
+        mensualitesComptabilisees.push({
+          nom: p.nom,
+          date: dateMensualite.toISOString().slice(0, 10),
+          montant: mensualite,
+        });
       }
     }
   });
+  console.log(
+    "[calculRevenusEchelonnesTotal] Mensualités comptabilisées:",
+    mensualitesComptabilisees
+  );
+  console.log(`[calculRevenusEchelonnesTotal] Total: ${total}€`);
   return total;
 };

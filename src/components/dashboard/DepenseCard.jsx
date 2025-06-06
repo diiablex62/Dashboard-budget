@@ -60,13 +60,19 @@ const DepenseCard = ({
       <div className='flex items-center justify-between'>
         <div className='relative flex-1'>
           <span className='text-gray-500 font-medium'>
-            {isPrevisionnel
-              ? `Total prévisionnel des dépenses en ${
-                  MONTH_NAMES[now.getMonth()]
-                } ${now.getFullYear()}`
-              : `Total dépensé actuellement en ${
-                  MONTH_NAMES[now.getMonth()]
-                } ${now.getFullYear()}`}
+            {isPrevisionnel ? (
+              <>
+                Total prévisionnel des dépenses
+                <br />
+                {MONTH_NAMES[now.getMonth()]} {now.getFullYear()}
+              </>
+            ) : (
+              <>
+                Total dépensé actuellement
+                <br />
+                {MONTH_NAMES[now.getMonth()]} {now.getFullYear()}
+              </>
+            )}
           </span>
         </div>
       </div>

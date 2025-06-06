@@ -224,6 +224,20 @@ export default function Dashboard() {
     return calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent);
   }, [paiementsEchelonnes]);
 
+  // Calculs des revenus prévisionnels (fin du mois)
+  const revenusClassiquesPrevisionnel = calculRevenusClassiquesTotal(
+    depenseRevenu,
+    new Date()
+  );
+  const recurrentsRevenuPrevisionnel = calculRevenusRecurrentsTotal(
+    paiementsRecurrents,
+    new Date()
+  );
+  const echelonnesRevenuPrevisionnel = calculRevenusEchelonnesTotal(
+    paiementsEchelonnes,
+    new Date()
+  );
+
   // Totaux globaux revenus
   const totalRevenusJusquaAujourdhui =
     revenusClassiquesCourant +
@@ -336,6 +350,9 @@ export default function Dashboard() {
           revenusClassiquesCourant={revenusClassiquesCourant}
           recurrentsRevenuCourant={recurrentsRevenuCourant}
           echelonnesRevenuCourant={echelonnesRevenuCourant}
+          revenusClassiquesPrevisionnel={revenusClassiquesPrevisionnel}
+          recurrentsRevenuPrevisionnel={recurrentsRevenuPrevisionnel}
+          echelonnesRevenuPrevisionnel={echelonnesRevenuPrevisionnel}
           revenusClassiquesMoisPrec={revenusClassiquesMoisPrec}
           recurrentsRevenuMoisPrec={recurrentsRevenuMoisPrec}
           echelonnesRevenuMoisPrec={echelonnesRevenuMoisPrec}
