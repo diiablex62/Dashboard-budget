@@ -376,6 +376,64 @@ export default function Dashboard() {
 
   const dashboardRef = useRef(null);
 
+  // Fonction utilitaire pour regrouper toutes les dépenses du mois courant par catégorie
+  function getDepensesParCategoriePourMois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    date = new Date()
+  ) {
+    const mois = date.getMonth();
+    const annee = date.getFullYear();
+    // Dépenses classiques
+    const depensesMois = depenseRevenu.filter(
+      (d) =>
+        d.type === "depense" &&
+        new Date(d.date).getMonth() === mois &&
+        new Date(d.date).getFullYear() === annee
+    );
+    // Dépenses récurrentes (on suppose qu'elles ont une propriété categorie et montant)
+    const recurrentsMois = paiementsRecurrents.filter(
+      (d) =>
+        d.type === "depense" &&
+        (!d.debut ||
+          (new Date(d.debut).getMonth() <= mois &&
+            new Date(d.debut).getFullYear() <= annee)) &&
+        (!d.fin ||
+          (new Date(d.fin).getMonth() >= mois &&
+            new Date(d.fin).getFullYear() >= annee))
+    );
+    // Dépenses échelonnées (on inclut aussi les crédits)
+    const echelonnesMois = paiementsEchelonnes.filter(
+      (d) =>
+        (d.type === "depense" || d.type === "credit") &&
+        (!d.debut ||
+          (new Date(d.debut).getMonth() <= mois &&
+            new Date(d.debut).getFullYear() <= annee)) &&
+        (!d.fin ||
+          (new Date(d.fin).getMonth() >= mois &&
+            new Date(d.fin).getFullYear() >= annee))
+    );
+    // Regroupement par catégorie
+    const parCategorie = {};
+    depensesMois.forEach((d) => {
+      if (!parCategorie[d.categorie]) parCategorie[d.categorie] = 0;
+      parCategorie[d.categorie] += Number(d.montant);
+    });
+    recurrentsMois.forEach((d) => {
+      if (!parCategorie[d.categorie]) parCategorie[d.categorie] = 0;
+      parCategorie[d.categorie] += Number(d.montant);
+    });
+    echelonnesMois.forEach((d) => {
+      if (!parCategorie[d.categorie]) parCategorie[d.categorie] = 0;
+      parCategorie[d.categorie] += Number(d.montant);
+    });
+    return Object.entries(parCategorie).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  }
+
   return (
     <div
       className='p-6 bg-gray-50 dark:bg-black min-h-screen'
@@ -490,7 +548,13 @@ export default function Dashboard() {
       {/* Graphiques */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
         <GraphiqueCard title='Dépenses du mois par catégorie'>
-          <DepensesParCategorieChart data={[]} />
+          <DepensesParCategorieChart
+            data={getDepensesParCategoriePourMois(
+              depenseRevenu,
+              paiementsRecurrents,
+              paiementsEchelonnes
+            )}
+          />
         </GraphiqueCard>
         <GraphiqueCard title='Dépenses et revenus des 6 derniers mois'>
           <DepensesRevenus6MoisCourbe data={[]} />

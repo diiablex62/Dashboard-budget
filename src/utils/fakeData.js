@@ -11,9 +11,9 @@ export const fakeDepenseRevenu = [
   // Mai 2025
   {
     id: 1,
-    nom: "Salaire Mai",
+    nom: "Revenus Mai",
     montant: 2500,
-    categorie: "Salaire",
+    categorie: "Revenus",
     date: "2025-05-01",
     type: "revenu",
   },
@@ -29,7 +29,7 @@ export const fakeDepenseRevenu = [
     id: 3,
     nom: "Prime Mai",
     montant: 300,
-    categorie: "Travail",
+    categorie: "Revenus",
     date: "2025-05-30",
     type: "revenu",
   },
@@ -44,9 +44,9 @@ export const fakeDepenseRevenu = [
   // Juin 2025
   {
     id: 5,
-    nom: "Salaire Juin",
+    nom: "Revenus Juin",
     montant: 2500,
-    categorie: "Salaire",
+    categorie: "Revenus",
     date: "2025-06-01",
     type: "revenu",
   },
@@ -62,7 +62,7 @@ export const fakeDepenseRevenu = [
     id: 7,
     nom: "Prime Juin",
     montant: 350,
-    categorie: "Travail",
+    categorie: "Revenus",
     date: "2025-06-30",
     type: "revenu",
   },
@@ -96,17 +96,17 @@ export const fakePaiementsRecurrents = [
   },
   {
     id: 3,
-    nom: "Salaire 1",
+    nom: "Revenus 1",
     montant: 1800,
-    categorie: "Salaire",
+    categorie: "Revenus",
     jourPrelevement: 1,
     type: "revenu",
   },
   {
     id: 4,
-    nom: "Salaire 2",
+    nom: "Revenus 2",
     montant: 2200,
-    categorie: "Salaire",
+    categorie: "Revenus",
     jourPrelevement: 30,
     type: "revenu",
   },
@@ -122,7 +122,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-05-01",
-    categorie: "Électronique",
+    categorie: "Loisirs",
     type: "credit",
   },
   {
@@ -132,7 +132,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-05-01",
-    categorie: "Travail",
+    categorie: "Revenus",
     type: "debit",
   },
   {
@@ -142,7 +142,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-05-30",
-    categorie: "Électronique",
+    categorie: "Loisirs",
     type: "credit",
   },
   {
@@ -152,7 +152,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-05-30",
-    categorie: "Travail",
+    categorie: "Revenus",
     type: "debit",
   },
   // Juin 2025
@@ -163,7 +163,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-06-01",
-    categorie: "Électronique",
+    categorie: "Loisirs",
     type: "credit",
   },
   {
@@ -173,7 +173,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-06-01",
-    categorie: "Travail",
+    categorie: "Revenus",
     type: "debit",
   },
   {
@@ -183,7 +183,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-06-30",
-    categorie: "Électronique",
+    categorie: "Loisirs",
     type: "credit",
   },
   {
@@ -193,7 +193,7 @@ export const fakePaiementsEchelonnes = [
     mensualites: 2,
     mensualitesPayees: 1,
     debutDate: "2025-06-30",
-    categorie: "Travail",
+    categorie: "Revenus",
     type: "debit",
   },
 ];
