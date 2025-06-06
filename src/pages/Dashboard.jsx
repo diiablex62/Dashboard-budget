@@ -124,7 +124,34 @@ export default function Dashboard() {
     return new Date(now.getFullYear(), now.getMonth() - 1, 1);
   };
 
-  // Calculs des revenus prévisionnels (fin du mois)
+  // Calculs explicites pour les totaux à afficher dans la carte économies et le tooltip
+  const revenusClassiquesJusquaAujourdhui =
+    calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+  const recurrentsRevenuJusquaAujourdhui =
+    calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date());
+  const echelonnesRevenuJusquaAujourdhui =
+    calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date());
+  const totalRevenusJusquaAujourdhui =
+    revenusClassiquesJusquaAujourdhui +
+    recurrentsRevenuJusquaAujourdhui +
+    echelonnesRevenuJusquaAujourdhui;
+
+  const depensesClassiquesJusquaAujourdhui =
+    calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+  const recurrentsDepenseJusquaAujourdhui =
+    calculDepensesRecurrentesJusquaAujourdhui(paiementsRecurrents, new Date());
+  const echelonnesDepenseJusquaAujourdhui =
+    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date());
+  const totalDepenseJusquaAujourdhui =
+    depensesClassiquesJusquaAujourdhui +
+    recurrentsDepenseJusquaAujourdhui +
+    echelonnesDepenseJusquaAujourdhui;
+
+  const totalEconomiesActuel = useMemo(() => {
+    return totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui;
+  }, [totalRevenusJusquaAujourdhui, totalDepenseJusquaAujourdhui]);
+
+  // Prévisionnel
   const revenusClassiquesPrevisionnel = calculRevenusClassiquesTotal(
     depenseRevenu,
     new Date()
@@ -133,11 +160,22 @@ export default function Dashboard() {
     paiementsRecurrents,
     new Date()
   );
-  const echelonnesRevenuPrevisionnel = useMemo(() => {
-    return calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date());
-  }, [paiementsEchelonnes]);
+  const echelonnesRevenuPrevisionnel = calculDepensesEchelonneesTotal(
+    paiementsEchelonnes,
+    new Date()
+  );
+  const totalRevenus = useMemo(() => {
+    return (
+      revenusClassiquesPrevisionnel +
+      recurrentsRevenuPrevisionnel +
+      echelonnesRevenuPrevisionnel
+    );
+  }, [
+    revenusClassiquesPrevisionnel,
+    recurrentsRevenuPrevisionnel,
+    echelonnesRevenuPrevisionnel,
+  ]);
 
-  // Calculs des dépenses prévisionnelles (fin du mois)
   const depensesClassiquesPrevisionnel = calculDepensesClassiquesTotal(
     depenseRevenu,
     new Date()
@@ -146,38 +184,10 @@ export default function Dashboard() {
     paiementsRecurrents,
     new Date()
   );
-  const echelonnesDepensePrevisionnel = useMemo(() => {
-    return calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date());
-  }, [paiementsEchelonnes]);
-
-  // Calcul des dépenses classiques du mois courant
-  const depensesClassiquesCourant = useMemo(() => {
-    return isPrevisionnel
-      ? depensesClassiquesPrevisionnel
-      : calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date());
-  }, [depenseRevenu, isPrevisionnel, depensesClassiquesPrevisionnel]);
-
-  // Calcul des paiements récurrents du mois courant
-  const recurrentsDepenseCourant = useMemo(() => {
-    return isPrevisionnel
-      ? recurrentsDepensePrevisionnel
-      : calculDepensesRecurrentesJusquaAujourdhui(
-          paiementsRecurrents,
-          new Date()
-        );
-  }, [paiementsRecurrents, isPrevisionnel, recurrentsDepensePrevisionnel]);
-
-  // Calcul des paiements échelonnés du mois courant
-  const echelonnesDepenseCourant = useMemo(() => {
-    return isPrevisionnel
-      ? calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date())
-      : calculRevenusEchelonnesJusquaAujourdhui(
-          paiementsEchelonnes,
-          new Date()
-        );
-  }, [paiementsEchelonnes, isPrevisionnel]);
-
-  // Calcul du total des dépenses (prévisionnel)
+  const echelonnesDepensePrevisionnel = calculRevenusEchelonnesTotal(
+    paiementsEchelonnes,
+    new Date()
+  );
   const totalDepense = useMemo(() => {
     return (
       depensesClassiquesPrevisionnel +
@@ -190,141 +200,49 @@ export default function Dashboard() {
     echelonnesDepensePrevisionnel,
   ]);
 
-  // Calculs des revenus du mois courant
-  const revenusClassiquesCourant = useMemo(() => {
-    return isPrevisionnel
-      ? calculRevenusClassiquesTotal(depenseRevenu, new Date())
-      : calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
-  }, [depenseRevenu, isPrevisionnel]);
+  const totalEconomiesPrevisionnel = useMemo(() => {
+    return totalRevenus - totalDepense;
+  }, [totalRevenus, totalDepense]);
 
-  const recurrentsRevenuCourant = useMemo(() => {
-    return isPrevisionnel
-      ? calculRevenusRecurrentsTotal(paiementsRecurrents, new Date())
-      : calculRevenusRecurrentsJusquaAujourdhui(
-          paiementsRecurrents,
-          new Date()
-        );
-  }, [paiementsRecurrents, isPrevisionnel]);
-
-  const echelonnesRevenuCourant = useMemo(() => {
-    return isPrevisionnel
-      ? calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date())
-      : calculDepensesEchelonneesJusquaAujourdhui(
-          paiementsEchelonnes,
-          new Date()
-        );
-  }, [paiementsEchelonnes, isPrevisionnel]);
-
-  // Calculs des revenus du mois précédent
-  const revenusClassiquesMoisPrec = useMemo(() => {
-    const dateMoisPrecedent = getPreviousMonth();
-    return calculRevenusClassiquesTotal(depenseRevenu, dateMoisPrecedent);
-  }, [depenseRevenu]);
-
-  const recurrentsRevenuMoisPrec = useMemo(() => {
-    const dateMoisPrecedent = getPreviousMonth();
-    return calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent);
-  }, [paiementsRecurrents]);
-
-  const echelonnesRevenuMoisPrec = useMemo(() => {
-    const dateMoisPrecedent = getPreviousMonth();
-    return calculDepensesEchelonneesTotal(
-      paiementsEchelonnes,
-      dateMoisPrecedent
-    );
-  }, [paiementsEchelonnes]);
-
-  // Calculs des dépenses du mois précédent
-  const depensesClassiquesMoisPrec = useMemo(() => {
-    const dateMoisPrecedent = getPreviousMonth();
-    return calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent);
-  }, [depenseRevenu]);
-
-  const recurrentsDepenseMoisPrec = useMemo(() => {
-    const dateMoisPrecedent = getPreviousMonth();
-    return calculDepensesRecurrentesTotal(
-      paiementsRecurrents,
-      dateMoisPrecedent
-    );
-  }, [paiementsRecurrents]);
-
-  const echelonnesDepenseMoisPrec = useMemo(() => {
-    const dateMoisPrecedent = getPreviousMonth();
-    return calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent);
-  }, [paiementsEchelonnes]);
-
-  // Calcul du total des dépenses jusqu'à aujourd'hui (toujours réel, jamais prévisionnel)
-  const totalDepenseJusquaAujourdhui = getTotalDepenseJusquaAujourdhui(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes
-  );
-
-  // Calcul du total des dépenses du mois précédent (entier, pas jusqu'au même jour)
+  // Mois précédent
   const dateMoisPrecedent = getPreviousMonth();
-  const totalDepenseMoisPrecedent = useMemo(() => {
-    return (
-      calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent) +
-      calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) +
-      calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent)
-    );
-  }, [
+  const revenusClassiquesMoisPrec = calculRevenusClassiquesTotal(
     depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-    dateMoisPrecedent,
-  ]);
-
-  // Correction du calcul de la différence pour la carte Dépenses
-  const differenceAvecMoisDernierJusquaAujourdhui =
-    totalDepenseJusquaAujourdhui - totalDepenseMoisPrecedent;
-  const differenceAvecMoisDernierPrevisionnel =
-    totalDepense - totalDepenseMoisPrecedent;
-
-  // Calculs explicites pour les totaux à afficher dans la carte économies et le tooltip
-  const revenusClassiquesJusquaAujourdhui =
-    calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
-  const recurrentsRevenuJusquaAujourdhui =
-    calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date());
-  const echelonnesRevenuJusquaAujourdhui = (() => {
-    console.log(
-      "[DASHBOARD] paiementsEchelonnes transmis à calculDepensesEchelonneesJusquaAujourdhui:",
-      paiementsEchelonnes
-    );
-    return calculDepensesEchelonneesJusquaAujourdhui(
-      paiementsEchelonnes,
-      new Date()
-    );
-  })();
-
-  const totalRevenusJusquaAujourdhui = getTotalRevenusJusquaAujourdhui(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes
+    dateMoisPrecedent
   );
-
-  const depensesClassiquesJusquaAujourdhui =
-    calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date());
-  const recurrentsDepenseJusquaAujourdhui =
-    calculDepensesRecurrentesJusquaAujourdhui(paiementsRecurrents, new Date());
-  const echelonnesDepenseJusquaAujourdhui =
-    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date());
-
-  const totalRevenus = useMemo(() => {
-    return (
-      revenusClassiquesPrevisionnel +
-      recurrentsRevenuPrevisionnel +
-      echelonnesRevenuPrevisionnel
-    );
-  }, [
-    revenusClassiquesPrevisionnel,
-    recurrentsRevenuPrevisionnel,
-    echelonnesRevenuPrevisionnel,
-  ]);
+  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsTotal(
+    paiementsRecurrents,
+    dateMoisPrecedent
+  );
+  const echelonnesRevenuMoisPrec = calculDepensesEchelonneesTotal(
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
   const totalRevenusMoisPrecedent =
     revenusClassiquesMoisPrec +
     recurrentsRevenuMoisPrec +
     echelonnesRevenuMoisPrec;
+
+  const depensesClassiquesMoisPrec = calculDepensesClassiquesTotal(
+    depenseRevenu,
+    dateMoisPrecedent
+  );
+  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesTotal(
+    paiementsRecurrents,
+    dateMoisPrecedent
+  );
+  const echelonnesDepenseMoisPrec = calculRevenusEchelonnesTotal(
+    paiementsEchelonnes,
+    dateMoisPrecedent
+  );
+  const totalDepenseMoisPrecedent =
+    depensesClassiquesMoisPrec +
+    recurrentsDepenseMoisPrec +
+    echelonnesDepenseMoisPrec;
+
+  const totalEconomiesMoisPrecedent = useMemo(() => {
+    return totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
+  }, [totalRevenusMoisPrecedent, totalDepenseMoisPrecedent]);
 
   // Calcul de la différence de revenus avec le mois précédent
   const differenceRevenusMoisPrecedentJusquaAujourdhui =
@@ -360,21 +278,6 @@ export default function Dashboard() {
   //   paiementsEchelonnes,
   //   new Date()
   // );
-
-  // Calcul des économies actuelles
-  const totalEconomiesActuel = useMemo(() => {
-    return totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui;
-  }, [totalRevenusJusquaAujourdhui, totalDepenseJusquaAujourdhui]);
-
-  // Calcul des économies prévisionnelles
-  const totalEconomiesPrevisionnel = useMemo(() => {
-    return totalRevenus - totalDepense;
-  }, [totalRevenus, totalDepense]);
-
-  // Calcul des économies du mois précédent
-  const totalEconomiesMoisPrecedent = useMemo(() => {
-    return totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
-  }, [totalRevenusMoisPrecedent, totalDepenseMoisPrecedent]);
 
   // Calcul de la différence des économies (inversé pour avoir la bonne direction)
   const differenceEconomies = useMemo(() => {
@@ -456,6 +359,12 @@ export default function Dashboard() {
     isPrevisionnel
   );
 
+  // Correction du calcul de la différence pour la carte Dépenses (après harmonisation)
+  const differenceAvecMoisDernierJusquaAujourdhui =
+    totalDepenseJusquaAujourdhui - totalDepenseMoisPrecedent;
+  const differenceAvecMoisDernierPrevisionnel =
+    totalDepense - totalDepenseMoisPrecedent;
+
   console.log("[DEBUG DEPENSE]", {
     totalDepense,
     totalDepenseMoisPrecedent,
@@ -495,9 +404,9 @@ export default function Dashboard() {
               ? differenceRevenusMoisPrecedentPrevisionnel
               : differenceRevenusMoisPrecedentJusquaAujourdhui
           }
-          revenusClassiquesCourant={revenusClassiquesCourant}
-          recurrentsRevenuCourant={recurrentsRevenuCourant}
-          echelonnesRevenuCourant={echelonnesRevenuCourant}
+          revenusClassiquesCourant={revenusClassiquesJusquaAujourdhui}
+          recurrentsRevenuCourant={recurrentsRevenuJusquaAujourdhui}
+          echelonnesRevenuCourant={echelonnesRevenuJusquaAujourdhui}
           revenusClassiquesPrevisionnel={revenusClassiquesPrevisionnel}
           recurrentsRevenuPrevisionnel={recurrentsRevenuPrevisionnel}
           echelonnesRevenuPrevisionnel={echelonnesRevenuPrevisionnel}
@@ -520,9 +429,9 @@ export default function Dashboard() {
           }
           isHoveringCalculator={isHoveringCalculator}
           setIsHoveringCalculator={setIsHoveringCalculator}
-          depensesClassiquesCourant={depensesClassiquesCourant}
-          recurrentsDepenseCourant={recurrentsDepenseCourant}
-          echelonnesDepenseCourant={echelonnesDepenseCourant}
+          depensesClassiquesCourant={depensesClassiquesJusquaAujourdhui}
+          recurrentsDepenseCourant={recurrentsDepenseJusquaAujourdhui}
+          echelonnesDepenseCourant={echelonnesDepenseJusquaAujourdhui}
           depensesClassiquesMoisPrec={depensesClassiquesMoisPrec}
           recurrentsDepenseMoisPrec={recurrentsDepenseMoisPrec}
           echelonnesDepenseMoisPrec={echelonnesDepenseMoisPrec}
