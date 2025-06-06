@@ -193,7 +193,7 @@ export const PaiementEchelonne = () => {
             } cursor-pointer`}
             onClick={() => setIsRevenus(false)}
             type='button'>
-            Crédit
+            Crédit (Dépense)
           </button>
           <button
             className={`flex-1 py-2 rounded-lg font-medium text-sm transition text-center ${
@@ -203,7 +203,7 @@ export const PaiementEchelonne = () => {
             } cursor-pointer`}
             onClick={() => setIsRevenus(true)}
             type='button'>
-            Débit
+            Débit (Revenu)
           </button>
         </div>
 

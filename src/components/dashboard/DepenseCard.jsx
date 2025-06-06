@@ -29,8 +29,8 @@ const DepenseCard = ({
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const now = new Date();
-  const isMoins = differenceMoisPrecedent > 0;
-  const isPlus = differenceMoisPrecedent < 0;
+  const isMoins = differenceMoisPrecedent < 0;
+  const isPlus = differenceMoisPrecedent > 0;
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative'>
