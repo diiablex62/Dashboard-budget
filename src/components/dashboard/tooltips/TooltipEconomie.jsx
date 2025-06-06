@@ -75,35 +75,6 @@ const TooltipEconomie = () => {
       0);
   const economiesMoisPrec = revenusMoisPrec - depensesMoisPrec;
 
-  // LOGS DEBUG
-  console.log(
-    "[TOOLTIP ECONOMIE] Revenus jusqu'à aujourd'hui:",
-    revenusJusquaAujourdhui
-  );
-  console.log(
-    "[TOOLTIP ECONOMIE] Dépenses jusqu'à aujourd'hui:",
-    depensesJusquaAujourdhui
-  );
-  console.log(
-    "[TOOLTIP ECONOMIE] Économies jusqu'à aujourd'hui:",
-    economiesJusquaAujourdhui
-  );
-  console.log("[TOOLTIP ECONOMIE] Revenus prévisionnel:", revenusPrevisionnel);
-  console.log(
-    "[TOOLTIP ECONOMIE] Dépenses prévisionnel:",
-    depensesPrevisionnel
-  );
-  console.log(
-    "[TOOLTIP ECONOMIE] Économies prévisionnel:",
-    economiesPrevisionnel
-  );
-  console.log("[TOOLTIP ECONOMIE] Revenus mois précédent:", revenusMoisPrec);
-  console.log("[TOOLTIP ECONOMIE] Dépenses mois précédent:", depensesMoisPrec);
-  console.log(
-    "[TOOLTIP ECONOMIE] Économies mois précédent:",
-    economiesMoisPrec
-  );
-
   return (
     <div className='absolute top-0 right-full mr-2 w-96 max-h-[600px] overflow-y-auto p-3 bg-gray-800 text-white text-xs rounded-lg z-50 shadow-lg'>
       <p className='font-semibold mb-2'>Comprendre le calcul : </p>

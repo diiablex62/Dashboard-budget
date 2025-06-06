@@ -311,11 +311,11 @@ export default function Dashboard() {
     return totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
   }, [totalRevenusMoisPrecedent, totalDepenseMoisPrecedent]);
 
-  // Calcul de la différence des économies
+  // Calcul de la différence des économies (inversé pour avoir la bonne direction)
   const differenceEconomies = useMemo(() => {
     return isPrevisionnel
-      ? totalEconomiesMoisPrecedent - totalEconomiesPrevisionnel
-      : totalEconomiesMoisPrecedent - totalEconomiesActuel;
+      ? totalEconomiesPrevisionnel - totalEconomiesMoisPrecedent
+      : totalEconomiesActuel - totalEconomiesMoisPrecedent;
   }, [
     isPrevisionnel,
     totalEconomiesMoisPrecedent,
