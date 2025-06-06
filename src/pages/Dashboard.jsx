@@ -365,13 +365,6 @@ export default function Dashboard() {
   const differenceAvecMoisDernierPrevisionnel =
     totalDepense - totalDepenseMoisPrecedent;
 
-  console.log("[DEBUG DEPENSE]", {
-    totalDepense,
-    totalDepenseMoisPrecedent,
-    differenceAvecMoisDernierPrevisionnel,
-    isPrevisionnel,
-  });
-
   return (
     <div
       className='p-6 bg-gray-50 dark:bg-black min-h-screen'
