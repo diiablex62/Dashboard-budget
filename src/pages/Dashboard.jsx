@@ -79,6 +79,18 @@ export default function Dashboard() {
     return () => window.removeEventListener("data-updated", handleDataUpdated);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key.toLowerCase() === "a") {
+        setIsPrevisionnel(false);
+      } else if (e.key.toLowerCase() === "p") {
+        setIsPrevisionnel(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Utilisation de refreshKey dans le useMemo pour getData
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
     () => getData(),
