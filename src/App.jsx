@@ -9,10 +9,11 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AppProvider } from "./context/AppContext";
 import { AuthProvider } from "./context/AuthContext";
-import { ThemeProvider } from "./context/ThemeContext";
+import { ThemeProvider, ThemeContext } from "./context/ThemeContext";
 
 function AppContent() {
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
+  const { isDarkMode, setIsDarkMode } = useContext(ThemeContext);
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -40,6 +41,18 @@ function AppContent() {
       window.scrollTo(0, 0);
     }, 10);
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key.toLowerCase() === "l") {
+        setIsDarkMode(false);
+      } else if (e.key.toLowerCase() === "d") {
+        setIsDarkMode(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [setIsDarkMode]);
 
   return (
     <div className='min-h-screen bg-gray-100'>

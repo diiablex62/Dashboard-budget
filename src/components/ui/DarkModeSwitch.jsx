@@ -3,16 +3,25 @@
  * @description Composant de switch pour basculer entre le mode clair et le mode sombre
  */
 
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { ThemeContext } from "../../context/ThemeContext";
 
 const DarkModeSwitch = () => {
   const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
+  const [hovered, setHovered] = useState(null);
 
   return (
     <div className='flex items-center gap-3'>
-      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+      <span
+        className='text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer relative'
+        onMouseEnter={() => setHovered("L")}
+        onMouseLeave={() => setHovered(null)}>
         Light
+        {hovered === "L" && (
+          <span className='absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-xs bg-gray-200 dark:bg-gray-700 rounded px-1 py-0.5 shadow'>
+            L
+          </span>
+        )}
       </span>
 
       <label className='inline-flex items-center relative cursor-pointer'>
@@ -48,8 +57,16 @@ const DarkModeSwitch = () => {
         </svg>
       </label>
 
-      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+      <span
+        className='text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer relative'
+        onMouseEnter={() => setHovered("D")}
+        onMouseLeave={() => setHovered(null)}>
         Dark
+        {hovered === "D" && (
+          <span className='absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-xs bg-gray-200 dark:bg-gray-700 rounded px-1 py-0.5 shadow'>
+            D
+          </span>
+        )}
       </span>
     </div>
   );
