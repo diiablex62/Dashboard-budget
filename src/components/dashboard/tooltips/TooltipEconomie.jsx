@@ -109,7 +109,7 @@ const TooltipEconomie = () => {
       <p className='font-semibold mb-2'>Comprendre le calcul : </p>
       <ul className='list-disc list-inside space-y-0.5'>
         <li className='text-green-400'>
-          Total revenus :{" "}
+          Total revenus actuel :{" "}
           {revenusJusquaAujourdhui.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -117,7 +117,7 @@ const TooltipEconomie = () => {
           €
         </li>
         <li className='text-red-400'>
-          Total dépenses :{" "}
+          Total dépenses actuel :{" "}
           {depensesJusquaAujourdhui.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -125,7 +125,7 @@ const TooltipEconomie = () => {
           €
         </li>
         <li className='text-white'>
-          Total économies :{" "}
+          Total économies actuel :{" "}
           {economiesJusquaAujourdhui.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -139,7 +139,7 @@ const TooltipEconomie = () => {
       </div>
       <ul className='list-disc list-inside space-y-0.5'>
         <li className='text-green-400'>
-          Total revenus :{" "}
+          Total revenus prévisionnel :{" "}
           {revenusPrevisionnel.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -147,7 +147,7 @@ const TooltipEconomie = () => {
           €
         </li>
         <li className='text-red-400'>
-          Total dépenses :{" "}
+          Total dépenses prévisionnel :{" "}
           {depensesPrevisionnel.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -155,7 +155,7 @@ const TooltipEconomie = () => {
           €
         </li>
         <li className='text-white'>
-          Total économies :{" "}
+          Total économies prévisionnel :{" "}
           {economiesPrevisionnel.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -167,7 +167,7 @@ const TooltipEconomie = () => {
       <div className='font-semibold mt-1 mb-0'>Mois précédent :</div>
       <ul className='list-disc list-inside space-y-0.5'>
         <li className='text-green-400'>
-          Revenu :{" "}
+          Revenu mois précédent :{" "}
           {revenusMoisPrec.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -175,7 +175,7 @@ const TooltipEconomie = () => {
           €
         </li>
         <li className='text-red-400'>
-          Dépenses :{" "}
+          Dépenses mois précédent :{" "}
           {depensesMoisPrec.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -183,7 +183,7 @@ const TooltipEconomie = () => {
           €
         </li>
         <li className='text-white mb-2'>
-          Total économies :{" "}
+          Total économies mois précédent :{" "}
           {economiesMoisPrec.toLocaleString("fr-FR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,

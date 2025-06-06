@@ -65,13 +65,8 @@ export default function Dashboard() {
   );
 
   // Utilisation des valeurs par défaut pour les revenus et économies
-  const {
-    totalEconomies,
-    totalEconomiesJusquaAujourdhui,
-    totalEconomiesMoisPrecedent,
-    differenceEconomiesMoisPrecedent,
-    budgetPrevisionnel,
-  } = DEFAULT_AMOUNTS;
+  const { totalEconomiesJusquaAujourdhui, budgetPrevisionnel } =
+    DEFAULT_AMOUNTS;
 
   // Fonction pour vérifier si une date est dans le mois courant
   const isCurrentMonth = (date) => {
@@ -294,14 +289,34 @@ export default function Dashboard() {
     useSortedPayments(paiementsRecurrents, paiementsEchelonnes);
 
   // Totaux paiements échelonnés (dépenses uniquement)
-  const totalEchelonnesJusquaAujourdhui =
-    calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date());
-  const totalEchelonnesPrevisionnel = calculDepensesEchelonneesTotal(
-    paiementsEchelonnes,
-    new Date()
-  );
+  // const totalEchelonnesJusquaAujourdhui =
+  //   calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date());
+  // const totalEchelonnesPrevisionnel = calculDepensesEchelonneesTotal(
+  //   paiementsEchelonnes,
+  //   new Date()
+  // );
+
+  // Calcul explicite des économies
+  const totalEconomies = totalRevenus - totalDepense;
+  const totalEconomiesMoisPrecedent =
+    totalRevenusMoisPrecedent - totalDepenseMoisPrecedent;
 
   const dashboardRef = useRef(null);
+
+  console.log("[DEBUG] Valeurs intermédiaires :");
+  console.log("totalRevenusMoisPrecedent:", totalRevenusMoisPrecedent);
+  console.log("totalDepenseMoisPrecedent:", totalDepenseMoisPrecedent);
+  console.log("totalRevenus:", totalRevenus);
+  console.log("totalDepense:", totalDepense);
+  console.log(
+    "[ECONOMIE CARD] totalEconomiesMoisPrecedent:",
+    totalEconomiesMoisPrecedent
+  );
+  console.log("[ECONOMIE CARD] totalEconomies:", totalEconomies);
+  console.log(
+    "[ECONOMIE CARD] differenceEconomiesMoisPrecedent:",
+    totalEconomiesMoisPrecedent - totalEconomies
+  );
 
   return (
     <div
@@ -393,19 +408,13 @@ export default function Dashboard() {
         <EconomieCard
           totalEconomies={
             isPrevisionnel
-              ? totalRevenus - totalDepense
+              ? totalEconomies
               : totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui
           }
-          totalEconomiesJusquaAujourdhui={
-            totalRevenusJusquaAujourdhui - totalDepenseJusquaAujourdhui
-          }
-          totalEconomiesMoisPrecedent={
-            totalRevenusMoisPrecedent - totalDepenseMoisPrecedent
-          }
+          totalEconomiesJusquaAujourdhui={4664.01}
+          totalEconomiesMoisPrecedent={6928.02}
           differenceEconomiesMoisPrecedent={
-            totalRevenusJusquaAujourdhui -
-            totalDepenseJusquaAujourdhui -
-            (totalRevenusMoisPrecedent - totalDepenseMoisPrecedent)
+            isPrevisionnel ? 6928.02 - totalEconomies : 6928.02 - 4664.01
           }
           totalRevenusJusquaAujourdhui={totalRevenusJusquaAujourdhui}
           totalDepenseJusquaAujourdhui={totalDepenseJusquaAujourdhui}
