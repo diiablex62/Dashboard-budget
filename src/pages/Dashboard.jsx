@@ -219,30 +219,31 @@ export default function Dashboard() {
     );
   }, [paiementsEchelonnes]);
 
-  // Calcul du total des dépenses jusqu'à aujourd'hui
+  // Calcul du total des dépenses jusqu'à aujourd'hui (toujours réel, jamais prévisionnel)
   const totalDepenseJusquaAujourdhui = useMemo(() => {
     return (
-      depensesClassiquesCourant +
-      recurrentsDepenseCourant +
-      echelonnesDepenseCourant
+      calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date()) +
+      calculDepensesRecurrentesJusquaAujourdhui(
+        paiementsRecurrents,
+        new Date()
+      ) +
+      calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date())
     );
-  }, [
-    depensesClassiquesCourant,
-    recurrentsDepenseCourant,
-    echelonnesDepenseCourant,
-  ]);
+  }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes]);
 
-  // Calcul du total des dépenses du mois précédent
+  // Calcul du total des dépenses du mois précédent (entier, pas jusqu'au même jour)
+  const dateMoisPrecedent = getPreviousMonth();
   const totalDepenseMoisPrecedent = useMemo(() => {
     return (
-      depensesClassiquesCourant +
-      recurrentsDepenseCourant +
-      echelonnesDepenseCourant
+      calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent) +
+      calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) +
+      calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent)
     );
   }, [
-    depensesClassiquesCourant,
-    recurrentsDepenseCourant,
-    echelonnesDepenseCourant,
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+    dateMoisPrecedent,
   ]);
 
   // LOGS DEBUG pour le mois précédent (dépenses)
@@ -263,6 +264,10 @@ export default function Dashboard() {
     totalDepenseMoisPrecedent
   );
 
+  console.log(
+    "[DEPENSE CARD] totalDepenseJusquaAujourdhui:",
+    totalDepenseJusquaAujourdhui
+  );
   // Correction du calcul de la différence pour la carte Dépenses
   const differenceAvecMoisDernierJusquaAujourdhui =
     totalDepenseMoisPrecedent - totalDepenseJusquaAujourdhui;
