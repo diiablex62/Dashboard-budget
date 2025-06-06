@@ -22,10 +22,13 @@ export default function DepensesRevenus6MoisCourbe({ data }) {
           <XAxis dataKey='mois' tick={{ fill: "#aaa" }} />
           <YAxis tick={{ fill: "#aaa" }} />
           <Tooltip
-            formatter={(value, name) => [
-              `${formatMontant(value)}€`,
-              name === "depenses" ? "Dépenses" : "Revenus",
-            ]}
+            formatter={(value, name) => {
+              if (name === "revenus")
+                return [`${formatMontant(value)}€`, "Revenus"];
+              if (name === "depenses")
+                return [`${formatMontant(value)}€`, "Dépenses"];
+              return [`${formatMontant(value)}€`, name];
+            }}
           />
           <Legend />
           <Line

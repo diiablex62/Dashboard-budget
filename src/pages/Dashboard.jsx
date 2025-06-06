@@ -434,6 +434,76 @@ export default function Dashboard() {
     }));
   }
 
+  // Fonction utilitaire pour regrouper les revenus et dépenses (toutes sources) sur les 6 derniers mois
+  function getCourbeRevenusDepenses6Mois(
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes
+  ) {
+    const now = new Date();
+    const result = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mois =
+        (date.getMonth() + 1).toString().padStart(2, "0") +
+        "/" +
+        date.getFullYear();
+      // Dépenses classiques
+      const depensesMois = depenseRevenu.filter(
+        (d) =>
+          d.type === "depense" &&
+          new Date(d.date).getMonth() === date.getMonth() &&
+          new Date(d.date).getFullYear() === date.getFullYear()
+      );
+      // Dépenses récurrentes
+      const recurrentsMois = paiementsRecurrents.filter(
+        (d) =>
+          d.type === "depense" &&
+          (!d.debut || new Date(d.debut) <= date) &&
+          (!d.fin || new Date(d.fin) >= date)
+      );
+      // Dépenses échelonnées (inclut aussi les crédits)
+      const echelonnesMois = paiementsEchelonnes.filter(
+        (d) =>
+          (d.type === "depense" || d.type === "credit") &&
+          (!d.debut || new Date(d.debut) <= date) &&
+          (!d.fin || new Date(d.fin) >= date)
+      );
+      // Revenus classiques
+      const revenusMois = depenseRevenu.filter(
+        (d) =>
+          d.type === "revenu" &&
+          new Date(d.date).getMonth() === date.getMonth() &&
+          new Date(d.date).getFullYear() === date.getFullYear()
+      );
+      // Revenus récurrents
+      const recurrentsRevenusMois = paiementsRecurrents.filter(
+        (d) =>
+          d.type === "revenu" &&
+          (!d.debut || new Date(d.debut) <= date) &&
+          (!d.fin || new Date(d.fin) >= date)
+      );
+      // Revenus échelonnés
+      const echelonnesRevenusMois = paiementsEchelonnes.filter(
+        (d) =>
+          d.type === "revenu" &&
+          (!d.debut || new Date(d.debut) <= date) &&
+          (!d.fin || new Date(d.fin) >= date)
+      );
+      // Sommes
+      const depenses =
+        depensesMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+        recurrentsMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+        echelonnesMois.reduce((acc, d) => acc + Number(d.montant), 0);
+      const revenus =
+        revenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+        recurrentsRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0) +
+        echelonnesRevenusMois.reduce((acc, d) => acc + Number(d.montant), 0);
+      result.push({ mois, depenses, revenus });
+    }
+    return result;
+  }
+
   return (
     <div
       className='p-6 bg-gray-50 dark:bg-black min-h-screen'
@@ -557,7 +627,13 @@ export default function Dashboard() {
           />
         </GraphiqueCard>
         <GraphiqueCard title='Dépenses et revenus des 6 derniers mois'>
-          <DepensesRevenus6MoisCourbe data={[]} />
+          <DepensesRevenus6MoisCourbe
+            data={getCourbeRevenusDepenses6Mois(
+              depenseRevenu,
+              paiementsRecurrents,
+              paiementsEchelonnes
+            )}
+          />
         </GraphiqueCard>
       </div>
 
