@@ -14,11 +14,9 @@ function safeDate(d) {
   // Si la date est au format YYYY-MM-DD, on ajoute T00:00:00 pour forcer l'ISO
   if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
     const date = new Date(d + "T00:00:00");
-    console.log("DEBUG safeDate (ISO)", d, date);
     return date;
   }
   const date = new Date(d);
-  console.log("DEBUG safeDate (autre)", d, date);
   return isNaN(date.getTime()) ? new Date() : date;
 }
 
@@ -26,8 +24,6 @@ function safeDate(d) {
 function buildNotifications() {
   const notifs = [];
   fakeDepenseRevenu.forEach((e, i) => {
-    // Ajout log debug
-    console.log("DEBUG NOTIF DEPENSE/REVENU", e.nom, e.date);
     notifs.push({
       id: `depense-revenu-${i}`,
       message:
@@ -40,7 +36,6 @@ function buildNotifications() {
     });
   });
   fakePaiementsRecurrents.forEach((e, i) => {
-    console.log("DEBUG NOTIF RECURRENT", e.nom, e.date);
     notifs.push({
       id: `recurrent-${i}`,
       message: `Paiement récurrent : ${e.nom}`,
@@ -50,7 +45,6 @@ function buildNotifications() {
     });
   });
   fakePaiementsEchelonnes.forEach((e, i) => {
-    console.log("DEBUG NOTIF ECHELONNE", e.nom, e.debutDate);
     notifs.push({
       id: `echelonne-${i}`,
       message: `Paiement échelonné : ${e.nom}`,

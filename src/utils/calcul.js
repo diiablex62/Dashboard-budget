@@ -14,11 +14,6 @@ export const calculateDepenseRevenuTotal = (
     (acc, t) => acc + (isDepense ? Math.abs(t.montant || 0) : t.montant || 0),
     0
   );
-  console.log(
-    `[calculateDepenseRevenuTotal] Total ${
-      isDepense ? "dépenses" : "revenus"
-    }: ${formatMontant(total)}€`
-  );
   return total;
 };
 
@@ -42,12 +37,6 @@ export function calculTotalDepensesMois(depenseRevenu, date = new Date()) {
       );
     })
     .reduce((acc, d) => acc + Math.abs(parseFloat(d.montant)), 0);
-  console.log(
-    `[calculTotalDepensesMois] Dépenses du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 }
 
@@ -71,12 +60,6 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
       );
     })
     .reduce((acc, d) => acc + parseFloat(d.montant), 0);
-  console.log(
-    `[totalRevenusGlobalMois] Revenus du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 }
 
@@ -118,12 +101,6 @@ export function calculTotalRecurrentsMois(
       return acc + montant;
     }, 0);
 
-  console.log(
-    `[calculTotalRecurrentsMois] Total paiements récurrents du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 }
 
@@ -133,9 +110,6 @@ export const calculTotalDepensesRecurrentesMois = (
   date
 ) => {
   if (!paiementsRecurrents || !date) {
-    console.log(
-      "[calculTotalDepensesRecurrentesMois] Total dépenses récurrentes du mois: 0€ (données invalides)"
-    );
     return 0;
   }
 
@@ -158,21 +132,12 @@ export const calculTotalDepensesRecurrentesMois = (
     })
     .reduce((total, p) => total + Math.abs(parseFloat(p.montant)), 0);
 
-  console.log(
-    `[calculTotalDepensesRecurrentesMois] Total dépenses récurrentes du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 };
 
 // Calcule le total des revenus récurrents du mois
 export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
   if (!paiementsRecurrents || !date) {
-    console.log(
-      "[calculTotalRevenusRecurrentsMois] Total revenus récurrents du mois: 0€ (données invalides)"
-    );
     return 0;
   }
 
@@ -195,12 +160,6 @@ export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
     })
     .reduce((total, p) => total + parseFloat(p.montant), 0);
 
-  console.log(
-    `[calculTotalRevenusRecurrentsMois] Total revenus récurrents du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 };
 
@@ -211,9 +170,6 @@ export const calculTotalRevenusRecurrentsMois = (paiementsRecurrents, date) => {
 // Calcule le total des paiements échelonnés du mois
 export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
   if (!paiementsEchelonnes || !date) {
-    console.log(
-      "[calculTotalEchelonnesMois] Total paiements échelonnés du mois: 0€ (données invalides)"
-    );
     return 0;
   }
 
@@ -241,12 +197,6 @@ export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
       );
     }, 0);
 
-  console.log(
-    `[calculTotalEchelonnesMois] Total paiements échelonnés du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 };
 
@@ -254,9 +204,6 @@ export const calculTotalEchelonnesMois = (paiementsEchelonnes, date) => {
 export const calculTotalCreditEchelonneesMois = (paiementsEchelonnes, date) => {
   // Vérification des paramètres
   if (!paiementsEchelonnes?.length || !date) {
-    console.log(
-      "[calculTotalCreditEchelonneesMois] Total crédits échelonnés du mois: 0€ (données invalides)"
-    );
     return 0;
   }
 
@@ -295,12 +242,6 @@ export const calculTotalCreditEchelonneesMois = (paiementsEchelonnes, date) => {
       return total + mensualite;
     }, 0);
 
-  console.log(
-    `[calculTotalCreditEchelonneesMois] Total crédits échelonnés du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 };
 
@@ -308,9 +249,6 @@ export const calculTotalCreditEchelonneesMois = (paiementsEchelonnes, date) => {
 export const calculTotalDebitEchelonneesMois = (paiementsEchelonnes, date) => {
   // Vérification des paramètres
   if (!paiementsEchelonnes?.length || !date) {
-    console.log(
-      "[calculTotalDebitEchelonneesMois] Total débits échelonnés du mois: 0€ (données invalides)"
-    );
     return 0;
   }
 
@@ -349,12 +287,6 @@ export const calculTotalDebitEchelonneesMois = (paiementsEchelonnes, date) => {
       return total + Math.abs(mensualite);
     }, 0);
 
-  console.log(
-    `[calculTotalDebitEchelonneesMois] Total débits échelonnés du mois ${dateObj.toLocaleDateString(
-      "fr-FR",
-      { month: "long" }
-    )}: ${formatMontant(total)}€`
-  );
   return total;
 };
 
@@ -365,9 +297,6 @@ export const calculPaiementsEchelonnesActifs = (
   isRevenus
 ) => {
   if (!paiementsEchelonnes || !date) {
-    console.log(
-      `[calculPaiementsEchelonnesActifs] Nombre de paiements échelonnés actifs: 0 (données invalides)`
-    );
     return 0;
   }
 
@@ -533,7 +462,6 @@ export const calculDepensesClassiquesMois = (depenses, date) => {
 // Calcul du total des dépenses récurrentes du mois
 export const calculDepensesRecurrentesMois = (paiementsRecurrents, date) => {
   if (!paiementsRecurrents || !Array.isArray(paiementsRecurrents)) {
-   
     return 0;
   }
 
@@ -547,7 +475,6 @@ export const calculDepensesRecurrentesMois = (paiementsRecurrents, date) => {
 // Calcul du total des dépenses échelonnées du mois
 export const calculDepensesEchelonneesMois = (paiementsEchelonnes, date) => {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
-  
     return 0;
   }
 
@@ -628,7 +555,6 @@ export const calculRevenusClassiquesMois = (revenus, date) => {
 // Calcul du total des revenus échelonnés du mois
 export const calculRevenusEchelonnesMois = (paiementsEchelonnes, date) => {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
-   
     return 0;
   }
 
@@ -676,16 +602,6 @@ export const calculTotalRevenuGeneralMois = (data, date) => {
   );
 
   const total = revenusClassiques + revenusRecurrents + revenusEchelonnes;
-
-  console.log(
-    `[calculTotalRevenuGeneralMois] Total général des revenus: ${formatMontant(
-      total
-    )}€`
-  );
-  console.log(`[calculTotalRevenuGeneralMois] Détail:
-    - Revenus classiques: ${formatMontant(revenusClassiques)}€
-    - Revenus récurrents: ${formatMontant(revenusRecurrents)}€
-    - Revenus échelonnés: ${formatMontant(revenusEchelonnes)}€`);
 
   return {
     total,

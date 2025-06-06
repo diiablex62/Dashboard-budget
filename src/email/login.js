@@ -22,9 +22,6 @@ export async function sendMagicLink(email) {
       })
     );
 
-    // Simuler l'envoi d'un email (dans un vrai projet, on appellerait une API)
-    console.log(`Lien magique envoyé à ${email} avec le token: ${token}`);
-
     // Retourner le token pour le développement
     return { success: true, token };
   } catch (error) {

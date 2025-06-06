@@ -103,7 +103,6 @@ export function ModalDepenseRevenu({
   // Effets
   useEffect(() => {
     if (visible) {
-      console.log("Modal ouverte - Valeurs initiales:", initialValues);
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
@@ -121,8 +120,6 @@ export function ModalDepenseRevenu({
 
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
-      console.log("Validation automatique de la catégorie:", form.categorie);
-      //   handleNext();
       shouldValidateCategory.current = false;
     }
   }, [form.categorie, step]);
@@ -145,69 +142,48 @@ export function ModalDepenseRevenu({
   );
 
   const validateStep = useCallback(() => {
-    console.log(`\n=== Validation de l'étape ${step} (${current.name}) ===`);
-    console.log("Valeur à valider:", form[current.name]);
-
     if (!form[current.name]) {
-      console.log(`❌ Le champ "${current.label}" est vide`);
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
 
     if (current.name === "montant") {
       const montant = parseFloat(form.montant);
-      console.log("Validation du montant:", montant);
       if (isNaN(montant) || montant <= 0) {
-        console.log("❌ Montant invalide");
         setError("Le montant doit être un nombre positif");
         return false;
       }
-      console.log("✅ Montant valide");
     }
 
     if (current.name === "dateDebut") {
-      console.log("Validation de la date de début:", form.dateDebut);
       if (!form.dateDebut) {
-        console.log("❌ Date de début manquante");
         setError("La date de début est obligatoire");
         return false;
       }
-      console.log("✅ Date de début valide");
     }
 
-    console.log("✅ Étape validée avec succès");
     setError(null);
     return true;
   }, [current, form, step]);
 
   const handleNext = useCallback(() => {
-    console.log("\n=== Passage à l'étape suivante ===");
-    console.log("Étape actuelle:", step);
-    console.log("Données du formulaire:", form);
-
     if (!validateStep()) {
-      console.log("❌ Validation échouée, on reste sur l'étape actuelle");
       return;
     }
 
     if (step < steps.length) {
-      console.log("Passage à l'étape suivante:", step + 1);
       setStep(step + 1);
     } else {
-      console.log("\n=== Finalisation du formulaire ===");
-      // Ajout automatique de la date de début au jour de prélèvement du mois en cours
       const currentDate = new Date();
       const currentMonth = currentDate.getMonth() + 1;
       const currentYear = currentDate.getFullYear();
       const jourPrelevement = form.date.split("-")[2];
 
-      // On vérifie si le jour de prélèvement est déjà passé ce mois-ci
       const today = currentDate.getDate();
       let targetMonth = currentMonth;
       let targetYear = currentYear;
 
       if (today > jourPrelevement) {
-        // Si le jour est déjà passé, on commence au mois prochain
         targetMonth = currentMonth + 1;
         if (targetMonth > 12) {
           targetMonth = 1;
@@ -223,9 +199,6 @@ export function ModalDepenseRevenu({
         ...form,
         dateDebut,
       };
-      console.log("Données finales avec date de début:", finalForm);
-      console.log("Jour de prélèvement:", jourPrelevement);
-      console.log("Date de début calculée:", dateDebut);
       onSave(finalForm);
       onClose();
     }
@@ -236,27 +209,10 @@ export function ModalDepenseRevenu({
   }, [step]);
 
   const handleChange = useCallback((e) => {
-    console.log("handleChange - Événement reçu:", {
-      name: e.target.name,
-      value: e.target.value,
-      type: e.target.type,
-    });
-
     if (e.target.name === "dateDebut") {
-      console.log("Date de début sélectionnée:", e.target.value);
-      setForm((prev) => {
-        const newForm = { ...prev, dateDebut: e.target.value };
-        console.log(
-          "Nouveau formulaire après mise à jour de la date:",
-          newForm
-        );
-        return newForm;
-      });
-      // On ne déclenche pas la validation automatiquement
     } else {
       setForm((prev) => {
         const newForm = { ...prev, [e.target.name]: e.target.value };
-        console.log("Nouveau formulaire après mise à jour:", newForm);
         return newForm;
       });
     }
@@ -279,13 +235,6 @@ export function ModalDepenseRevenu({
 
   const handleKeyDown = useCallback(
     (e) => {
-      console.log("KeyDown event:", {
-        key: e.key,
-        type: current.type,
-        target: e.target.name,
-        inputType: e.nativeEvent.inputType,
-      });
-
       if (e.key === "Enter") {
         e.preventDefault();
         handleNext();
@@ -296,7 +245,6 @@ export function ModalDepenseRevenu({
         if (
           ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
         ) {
-          console.log("Navigation avec flèches autorisée");
           // On ne fait rien, on laisse le comportement par défaut
         }
       }
@@ -437,16 +385,12 @@ export function ModalDepenseRevenu({
                     )
                   ) {
                     // Navigation, on ignore la validation
-                    console.log("Navigation mois/année - validation ignorée");
                   } else {
                     setForm((prev) => ({
                       ...prev,
                       date: date ? date.toISOString().split("T")[0] : "",
                     }));
                     shouldValidateDate.current = true;
-                    console.log("Date sélectionnée - validation autorisée");
-                    // Si tu veux la validation auto, décommente la ligne suivante :
-                    // handleNext();
                   }
                 }}
                 dateFormat='dd/MM/yyyy'
@@ -928,7 +872,6 @@ export function ModalEchelonne({
   // Effets
   useEffect(() => {
     if (visible) {
-      console.log("Modal ouverte - Valeurs initiales:", initialValues);
       setForm(initialValues || defaultForm);
       setError(null);
       setStep(1);
@@ -946,7 +889,6 @@ export function ModalEchelonne({
 
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
-      console.log("Validation automatique de la catégorie:", form.categorie);
       handleNext();
       shouldValidateCategory.current = false;
     }
@@ -970,71 +912,50 @@ export function ModalEchelonne({
   );
 
   const validateStep = useCallback(() => {
-    console.log(`\n=== Validation de l'étape ${step} (${current.name}) ===`);
-    console.log("Valeur à valider:", form[current.name]);
-
     if (!form[current.name]) {
-      console.log(`❌ Le champ "${current.label}" est vide`);
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
     }
 
     if (current.name === "montant") {
       const montant = parseFloat(form.montant);
-      console.log("Validation du montant:", montant);
       if (isNaN(montant) || montant <= 0) {
-        console.log("❌ Montant invalide");
         setError("Le montant doit être un nombre positif");
         return false;
       }
-      console.log("✅ Montant valide");
     }
 
     if (
       current.name === "mensualites" &&
       (isNaN(parseInt(form.mensualites)) || parseInt(form.mensualites) <= 0)
     ) {
-      console.log("❌ Nombre de mensualités invalide");
       setError("Le nombre de mensualités doit être un nombre positif");
       return false;
     }
 
     if (current.name === "dateDebut") {
-      console.log("Validation de la date de début:", form.dateDebut);
       if (!form.dateDebut) {
-        console.log("❌ Date de début manquante");
         setError("La date de début est obligatoire");
         return false;
       }
-      console.log("✅ Date de début valide");
     }
 
-    console.log("✅ Étape validée avec succès");
     setError(null);
     return true;
   }, [current, form, step]);
 
   const handleNext = useCallback(() => {
-    console.log("\n=== Passage à l'étape suivante ===");
-    console.log("Étape actuelle:", step);
-    console.log("Données du formulaire:", form);
-
     if (!validateStep()) {
-      console.log("❌ Validation échouée, on reste sur l'étape actuelle");
       return;
     }
 
     if (step < steps.length) {
-      console.log("Passage à l'étape suivante:", step + 1);
       setStep(step + 1);
     } else {
-      console.log("\n=== Finalisation du formulaire ===");
-      console.log("Données finales:", form);
       const finalForm = {
         ...form,
         dateDebut: form.debutDate,
       };
-      console.log("Formulaire final avant sauvegarde:", finalForm);
       onSave(finalForm);
       onClose();
     }
@@ -1045,27 +966,10 @@ export function ModalEchelonne({
   }, [step]);
 
   const handleChange = useCallback((e) => {
-    console.log("handleChange - Événement reçu:", {
-      name: e.target.name,
-      value: e.target.value,
-      type: e.target.type,
-    });
-
     if (e.target.name === "dateDebut") {
-      console.log("Date de début sélectionnée:", e.target.value);
-      setForm((prev) => {
-        const newForm = { ...prev, dateDebut: e.target.value };
-        console.log(
-          "Nouveau formulaire après mise à jour de la date:",
-          newForm
-        );
-        return newForm;
-      });
-      // On ne déclenche pas la validation automatiquement
     } else {
       setForm((prev) => {
         const newForm = { ...prev, [e.target.name]: e.target.value };
-        console.log("Nouveau formulaire après mise à jour:", newForm);
         return newForm;
       });
     }
@@ -1088,13 +992,6 @@ export function ModalEchelonne({
 
   const handleKeyDown = useCallback(
     (e) => {
-      console.log("KeyDown event:", {
-        key: e.key,
-        type: current.type,
-        target: e.target.name,
-        inputType: e.nativeEvent.inputType,
-      });
-
       if (e.key === "Enter") {
         e.preventDefault();
         handleNext();
@@ -1105,7 +1002,6 @@ export function ModalEchelonne({
         if (
           ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
         ) {
-          console.log("Navigation avec flèches autorisée");
           // On ne fait rien, on laisse le comportement par défaut
         }
       }
@@ -1116,7 +1012,6 @@ export function ModalEchelonne({
   // Effet pour la validation de la date
   useEffect(() => {
     if (shouldValidateDate.current && form.debutDate && step === 5) {
-      console.log("Validation de la date déclenchée:", form.debutDate);
       handleNext();
       shouldValidateDate.current = false;
     }
@@ -1249,16 +1144,12 @@ export function ModalEchelonne({
                     )
                   ) {
                     // Navigation, on ignore la validation
-                    console.log("Navigation mois/année - validation ignorée");
                   } else {
                     setForm((prev) => ({
                       ...prev,
                       debutDate: date ? date.toISOString().split("T")[0] : "",
                     }));
                     shouldValidateDate.current = true;
-                    console.log("Date sélectionnée - validation autorisée");
-                    // Si tu veux la validation auto, décommente la ligne suivante :
-                    // handleNext();
                   }
                 }}
                 dateFormat='dd/MM/yyyy'

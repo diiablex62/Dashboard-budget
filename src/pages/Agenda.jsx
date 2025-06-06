@@ -173,7 +173,6 @@ export default function Agenda() {
                       }`}
                       onClick={() => {
                         if (currentDay) {
-                          console.log("Clic sur jour", currentDay);
                           setSelectedDay(currentDay);
 
                           // Récupérer tous les événements du jour

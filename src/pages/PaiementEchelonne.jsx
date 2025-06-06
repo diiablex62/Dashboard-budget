@@ -113,16 +113,11 @@ export const PaiementEchelonne = () => {
         type: isRevenus ? "debit" : "credit",
         debutDate: formData.debutDate,
       };
-      console.log("[handleSave] Donnée à enregistrer :", paymentData);
 
       if (editIndex !== null) {
         setPaiementsEchelonnes((prev) => {
           const updated = prev.map((p) =>
             p.id === editIndex ? { ...paymentData, id: editIndex } : p
-          );
-          console.log(
-            "[handleSave] Paiements échelonnés après modification :",
-            updated
           );
           return updated;
         });
@@ -130,10 +125,6 @@ export const PaiementEchelonne = () => {
         const newId = Math.max(...paiementsEchelonnes.map((p) => p.id), 0) + 1;
         setPaiementsEchelonnes((prev) => {
           const updated = [...prev, { ...paymentData, id: newId }];
-          console.log(
-            "[handleSave] Paiements échelonnés après ajout :",
-            updated
-          );
           return updated;
         });
       }
@@ -329,7 +320,6 @@ export const PaiementEchelonne = () => {
       <ModalEchelonne
         visible={showModal}
         onClose={() => {
-          console.log("Modal fermé");
           setShowModal(false);
           setEditIndex(null);
         }}
@@ -340,10 +330,6 @@ export const PaiementEchelonne = () => {
             ? (() => {
                 const paiement = paiementsEchelonnes.find(
                   (p) => p.id === editIndex
-                );
-                console.log(
-                  "Modal - paiement trouvé pour modification:",
-                  paiement
                 );
                 return {
                   ...paiement,

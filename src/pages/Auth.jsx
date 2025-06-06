@@ -18,10 +18,9 @@ export default function Auth() {
 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [modalType, setModalType] = useState(null); // 'terms' | 'privacy' | 'deletion' | null
+  const [modalType, setModalType] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Utiliser l'erreur du contexte d'authentification si disponible
   useEffect(() => {
     if (authError) {
       setError(authError);
@@ -77,7 +76,6 @@ export default function Auth() {
     try {
       const result = await sendMagicLink(email);
       if (result.success) {
-        // En développement, on peut directement utiliser le token
         const url = `${window.location.origin}/auth?token=${result.token}`;
         console.log("URL de connexion (pour le développement):", url);
         navigate("/validation", { state: { email } });
@@ -122,7 +120,6 @@ export default function Auth() {
         const url = `${window.location.origin}/auth?token=${result.token}`;
         console.log("URL créée:", url);
 
-        // Préparer le state
         const state = {
           email: email,
           magicLink: url,
