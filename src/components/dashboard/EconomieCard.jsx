@@ -22,12 +22,10 @@ const EconomieCard = ({
   totalDepense,
   totalRevenusMoisPrecedent,
   totalDepenseMoisPrecedent,
+  messageSynchronisation,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
-  const differenceRevenusMoisPrecedentJusquaAujourdhui =
-    totalRevenusJusquaAujourdhui - totalRevenusMoisPrecedent;
-  const differenceRevenusMoisPrecedentPrevisionnel =
-    totalRevenus - totalRevenusMoisPrecedent;
+  const [isSyncing, setIsSyncing] = useState(false);
 
   return (
     <div className='bg-white dark:bg-transparent dark:border dark:border-gray-700 rounded-xl shadow p-6 flex flex-col gap-2 relative col-span-2'>
@@ -95,11 +93,25 @@ const EconomieCard = ({
           </div>
         </div>
         {/* Partie droite : bouton synchronisation */}
-        <div className='w-1/2 flex justify-end items-center'>
+        <div className='w-1/2 flex flex-col justify-center items-center h-full'>
+          {messageSynchronisation && (
+            <div className='mb-3 text-sm text-gray-800 dark:text-gray-100 text-left font-medium max-w-xs w-full'>
+              {messageSynchronisation}
+            </div>
+          )}
           <button
-            onClick={onUpdateBalance}
-            className='flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer'>
-            <AiOutlineSync className='text-lg' />
+            onClick={async () => {
+              setIsSyncing(true);
+              await new Promise((resolve) => setTimeout(resolve, 800));
+              setIsSyncing(false);
+              onUpdateBalance();
+            }}
+            className='flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer text-base font-semibold shadow-md mt-0'>
+            <AiOutlineSync
+              className={`text-lg transition-transform duration-800 ${
+                isSyncing ? "animate-spin-sync" : ""
+              }`}
+            />
             <span>Synchroniser</span>
           </button>
         </div>
@@ -109,3 +121,17 @@ const EconomieCard = ({
 };
 
 export default EconomieCard;
+
+<style jsx>{`
+  .animate-spin-sync {
+    animation: spin-sync 0.8s linear 1;
+  }
+  @keyframes spin-sync {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(720deg);
+    }
+  }
+`}</style>;

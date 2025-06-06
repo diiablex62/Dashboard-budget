@@ -429,6 +429,10 @@ export default function Dashboard() {
           setIsHoveringCalculatorEconomies={setIsHoveringCalculatorEconomies}
           onUpdateBalance={() => setIsBalanceModalOpen(true)}
           isPrevisionnel={isPrevisionnel}
+          messageSynchronisation={`Vous n'avez pas actuellement ${totalEconomiesActuel.toLocaleString(
+            "fr-FR",
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          )} € ? Veuillez cliquer sur le bouton ci-dessous pour mettre à jour :`}
         />
       </div>
 
