@@ -8,6 +8,7 @@ export default function SynchroUpdateModal({
   isOpen,
   onClose,
   currentCalculatedBalance,
+  totalEconomiesActuel,
 }) {
   const [newBalance, setNewBalance] = useState("");
   const [reason, setReason] = useState(REASONS[0]);
@@ -73,11 +74,12 @@ export default function SynchroUpdateModal({
           </p>
         </div>
         <form onSubmit={handleSubmit}>
+        
           <div className='mb-4'>
-            <label className='block mb-2 font-medium dark:text-white'>
+            <label className='block mb-2 font-medium  dark:text-white'>
               Je corrige mon solde de
             </label>
-            <div className='text-2xl font-bold'>
+            <div className='text-2xl font-bold text-green-600'>
               {formatMontant(currentCalculatedBalance)}€
             </div>
           </div>

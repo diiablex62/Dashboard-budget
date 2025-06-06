@@ -462,7 +462,8 @@ export default function Dashboard() {
       <SynchroUpdateModal
         isOpen={isBalanceModalOpen}
         onClose={() => setIsBalanceModalOpen(false)}
-        currentCalculatedBalance={totalEconomiesJusquaAujourdhui}
+        currentCalculatedBalance={totalEconomiesActuel}
+        totalEconomiesActuel={totalEconomiesActuel}
       />
     </div>
   );
