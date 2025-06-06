@@ -435,14 +435,12 @@ export default function Dashboard() {
     }));
   }
 
-  // Je m'assure que l'import suivant est bien présent en haut du fichier :
-  // import { getCourbeRevenusDepenses6Mois } from "../components/dashboard/graphiques/calculGraph6";
-
   // J'utilise la fonction importée pour générer courbeData :
   const courbeData = getCourbeRevenusDepenses6Mois(
     depenseRevenu,
     paiementsRecurrents,
-    paiementsEchelonnes
+    paiementsEchelonnes,
+    isPrevisionnel
   );
   console.log(
     "Détail du calcul graphique 6 mois :",

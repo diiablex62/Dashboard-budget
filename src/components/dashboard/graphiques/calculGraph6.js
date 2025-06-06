@@ -21,6 +21,12 @@ import {
   calculRevenusClassiquesTotal,
   calculRevenusRecurrentsTotal,
   calculRevenusEchelonnesTotal,
+  calculDepensesClassiquesJusquaAujourdhui,
+  calculDepensesRecurrentesJusquaAujourdhui,
+  calculDepensesEchelonneesJusquaAujourdhui,
+  calculRevenusClassiquesJusquaAujourdhui,
+  calculRevenusRecurrentsJusquaAujourdhui,
+  calculRevenusEchelonnesJusquaAujourdhui,
 } from "../calculDashboard";
 
 // Retourne true si le paiement (récurrent ou échelonné) est actif pour le mois/année donnés
@@ -50,7 +56,8 @@ function getMensualiteEchelonnee(paiement, mois, annee) {
 export function getCourbeRevenusDepenses6Mois(
   depenseRevenu,
   paiementsRecurrents,
-  paiementsEchelonnes
+  paiementsEchelonnes,
+  isPrevisionnel = true
 ) {
   const now = new Date();
   const result = [];
@@ -70,49 +77,95 @@ export function getCourbeRevenusDepenses6Mois(
     };
 
     if (isCurrentMonth) {
-      // PRÉVISIONNEL pour le mois courant (utilise les mêmes fonctions que les encadrés prévisionnels)
-      const dernierJour = new Date(annee, mois + 1, 0); // dernier jour du mois courant
-      const totalDepensesClassiques = calculDepensesClassiquesTotal(
-        depenseRevenu,
-        dernierJour
-      );
-      const totalDepensesRecurrents = calculDepensesRecurrentesTotal(
-        paiementsRecurrents,
-        dernierJour
-      );
-      const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
-        paiementsEchelonnes,
-        dernierJour
-      );
-      depenses =
-        totalDepensesClassiques +
-        totalDepensesRecurrents +
-        totalDepensesEchelonnees;
-      const totalRevenusClassiques = calculRevenusClassiquesTotal(
-        depenseRevenu,
-        dernierJour
-      );
-      const totalRevenusRecurrents = calculRevenusRecurrentsTotal(
-        paiementsRecurrents,
-        dernierJour
-      );
-      const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
-        paiementsEchelonnes,
-        dernierJour
-      );
-      revenus =
-        totalRevenusClassiques +
-        totalRevenusRecurrents +
-        totalRevenusEchelonnes;
-      console.log(`[GRAPH] Mois courant (${moisLabel}) - Prévisionnel :`);
-      console.log("  Dépenses classiques:", totalDepensesClassiques);
-      console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
-      console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
-      console.log("  Total Dépenses:", depenses);
-      console.log("  Revenus classiques:", totalRevenusClassiques);
-      console.log("  Revenus récurrents:", totalRevenusRecurrents);
-      console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
-      console.log("  Total Revenus:", revenus);
+      if (isPrevisionnel) {
+        // PRÉVISIONNEL pour le mois courant
+        const dernierJour = new Date(annee, mois + 1, 0);
+        const totalDepensesClassiques = calculDepensesClassiquesTotal(
+          depenseRevenu,
+          dernierJour
+        );
+        const totalDepensesRecurrents = calculDepensesRecurrentesTotal(
+          paiementsRecurrents,
+          dernierJour
+        );
+        const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
+          paiementsEchelonnes,
+          dernierJour
+        );
+        depenses =
+          totalDepensesClassiques +
+          totalDepensesRecurrents +
+          totalDepensesEchelonnees;
+        const totalRevenusClassiques = calculRevenusClassiquesTotal(
+          depenseRevenu,
+          dernierJour
+        );
+        const totalRevenusRecurrents = calculRevenusRecurrentsTotal(
+          paiementsRecurrents,
+          dernierJour
+        );
+        const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
+          paiementsEchelonnes,
+          dernierJour
+        );
+        revenus =
+          totalRevenusClassiques +
+          totalRevenusRecurrents +
+          totalRevenusEchelonnes;
+        console.log(`[GRAPH] Mois courant (${moisLabel}) - Prévisionnel :`);
+        console.log("  Dépenses classiques:", totalDepensesClassiques);
+        console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
+        console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
+        console.log("  Total Dépenses:", depenses);
+        console.log("  Revenus classiques:", totalRevenusClassiques);
+        console.log("  Revenus récurrents:", totalRevenusRecurrents);
+        console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
+        console.log("  Total Revenus:", revenus);
+      } else {
+        // RÉALISÉ pour le mois courant (jusqu'à aujourd'hui)
+        const aujourdHui = now;
+        const totalDepensesClassiques =
+          calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, aujourdHui);
+        const totalDepensesRecurrents =
+          calculDepensesRecurrentesJusquaAujourdhui(
+            paiementsRecurrents,
+            aujourdHui
+          );
+        const totalDepensesEchelonnees =
+          calculDepensesEchelonneesJusquaAujourdhui(
+            paiementsEchelonnes,
+            aujourdHui
+          );
+        depenses =
+          totalDepensesClassiques +
+          totalDepensesRecurrents +
+          totalDepensesEchelonnees;
+        const totalRevenusClassiques = calculRevenusClassiquesJusquaAujourdhui(
+          depenseRevenu,
+          aujourdHui
+        );
+        const totalRevenusRecurrents = calculRevenusRecurrentsJusquaAujourdhui(
+          paiementsRecurrents,
+          aujourdHui
+        );
+        const totalRevenusEchelonnes = calculRevenusEchelonnesJusquaAujourdhui(
+          paiementsEchelonnes,
+          aujourdHui
+        );
+        revenus =
+          totalRevenusClassiques +
+          totalRevenusRecurrents +
+          totalRevenusEchelonnes;
+        console.log(`[GRAPH] Mois courant (${moisLabel}) - Réalisé :`);
+        console.log("  Dépenses classiques:", totalDepensesClassiques);
+        console.log("  Dépenses récurrentes:", totalDepensesRecurrents);
+        console.log("  Dépenses échelonnées:", totalDepensesEchelonnees);
+        console.log("  Total Dépenses:", depenses);
+        console.log("  Revenus classiques:", totalRevenusClassiques);
+        console.log("  Revenus récurrents:", totalRevenusRecurrents);
+        console.log("  Revenus échelonnés:", totalRevenusEchelonnes);
+        console.log("  Total Revenus:", revenus);
+      }
     } else {
       // RÉEL pour les autres mois (utilise les mêmes fonctions que les encadrés)
       const dateMois = new Date(annee, mois, 1);
