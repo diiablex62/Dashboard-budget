@@ -53,6 +53,7 @@ import {
   getTotalRevenusJusquaAujourdhui,
   getTotalDepenseJusquaAujourdhui,
 } from "../components/dashboard/calculSynchro";
+import { ThemeContext } from "../context/ThemeContext";
 
 // -------------------
 // Composant principal
@@ -71,6 +72,8 @@ export default function Dashboard() {
   // Ajout d'une clé de rafraîchissement pour forcer le rechargement des données
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const themeCtx = React.useContext(ThemeContext);
+
   useEffect(() => {
     const handleDataUpdated = () => {
       setRefreshKey((k) => k + 1);
@@ -85,11 +88,15 @@ export default function Dashboard() {
         setIsPrevisionnel(false);
       } else if (e.key.toLowerCase() === "p") {
         setIsPrevisionnel(true);
+      } else if (e.key.toLowerCase() === "l") {
+        themeCtx?.setIsDarkMode && themeCtx.setIsDarkMode(false);
+      } else if (e.key.toLowerCase() === "d") {
+        themeCtx?.setIsDarkMode && themeCtx.setIsDarkMode(true);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [themeCtx]);
 
   // Utilisation de refreshKey dans le useMemo pour getData
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
