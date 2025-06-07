@@ -223,7 +223,6 @@ export function ModalDepenseRevenu({
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
     setError(null);
-    shouldValidateCategory.current = true;
   }, []);
 
   const handleCategoryClick = useCallback(() => {
@@ -237,16 +236,9 @@ export function ModalDepenseRevenu({
     }
   }, [form.categorie, step, handleNext]);
 
-  useEffect(() => {
-    if (shouldValidateCategory.current && form.categorie && step === 2) {
-      handleNext();
-      shouldValidateCategory.current = false;
-    }
-  }, [form.categorie, step, handleNext]);
-
   const handleKeyDown = useCallback(
     (e) => {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && current.type === "select") {
         e.preventDefault();
         handleNext();
       } else if (current.type === "select") {
@@ -605,7 +597,6 @@ export function ModalRecurrent({
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
     setError(null);
-    shouldValidateCategory.current = true;
   }, []);
 
   const handleCategoryClick = useCallback(() => {
@@ -619,22 +610,20 @@ export function ModalRecurrent({
     }
   }, [form.categorie, step, handleNext]);
 
-  // Effet pour la validation de la catégorie
-  useEffect(() => {
-    if (shouldValidateCategory.current && form.categorie && step === 2) {
+  const handleDayClick = useCallback(
+    (day) => {
+      setForm((prev) => ({ ...prev, jour: day.toString() }));
       handleNext();
-      shouldValidateCategory.current = false;
-    }
-  }, [form.categorie, step, handleNext]);
-
-  const handleDayClick = useCallback((day) => {
-    setForm((prev) => ({ ...prev, jour: day.toString() }));
-    shouldValidateDay.current = true;
-  }, []);
+    },
+    [handleNext]
+  );
 
   const handleKeyDown = useCallback(
     (e) => {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && current.type === "select") {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === "Enter" && current.type === "grid") {
         e.preventDefault();
         handleNext();
       } else if (current.type === "select") {
@@ -1005,7 +994,6 @@ export function ModalEchelonne({
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
     setError(null);
-    shouldValidateCategory.current = true;
   }, []);
 
   const handleCategoryClick = useCallback(() => {
@@ -1016,14 +1004,6 @@ export function ModalEchelonne({
     ) {
       lastCategory.current = form.categorie;
       handleNext();
-    }
-  }, [form.categorie, step, handleNext]);
-
-  // Effet pour la validation de la catégorie
-  useEffect(() => {
-    if (shouldValidateCategory.current && form.categorie && step === 2) {
-      handleNext();
-      shouldValidateCategory.current = false;
     }
   }, [form.categorie, step, handleNext]);
 
