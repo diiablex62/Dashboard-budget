@@ -96,6 +96,7 @@ export function ModalDepenseRevenu({
   const isKeyboardNavigation = useRef(false);
   const shouldValidateCategory = useRef(false);
   const shouldValidateDate = useRef(false);
+  const lastCategory = useRef("");
 
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
@@ -221,13 +222,23 @@ export function ModalDepenseRevenu({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
+    setError(null);
     shouldValidateCategory.current = true;
   }, []);
 
-  // Effet pour la validation de la catégorie
+  const handleCategoryClick = useCallback(() => {
+    if (
+      form.categorie &&
+      form.categorie !== lastCategory.current &&
+      step === 2
+    ) {
+      lastCategory.current = form.categorie;
+      handleNext();
+    }
+  }, [form.categorie, step, handleNext]);
+
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
-      setError(null);
       handleNext();
       shouldValidateCategory.current = false;
     }
@@ -335,6 +346,7 @@ export function ModalDepenseRevenu({
                 name={current.name}
                 value={form[current.name] || ""}
                 onChange={handleCategoryChange}
+                onClick={handleCategoryClick}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
                 onKeyDown={handleKeyDown}
@@ -469,6 +481,7 @@ export function ModalRecurrent({
   const shouldValidateCategory = useRef(false);
   const shouldValidateDay = useRef(false);
   const gridRef = useRef(null);
+  const lastCategory = useRef("");
 
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
@@ -591,13 +604,24 @@ export function ModalRecurrent({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
+    setError(null);
     shouldValidateCategory.current = true;
   }, []);
+
+  const handleCategoryClick = useCallback(() => {
+    if (
+      form.categorie &&
+      form.categorie !== lastCategory.current &&
+      step === 2
+    ) {
+      lastCategory.current = form.categorie;
+      handleNext();
+    }
+  }, [form.categorie, step, handleNext]);
 
   // Effet pour la validation de la catégorie
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
-      setError(null);
       handleNext();
       shouldValidateCategory.current = false;
     }
@@ -737,6 +761,7 @@ export function ModalRecurrent({
                 name={current.name}
                 value={form[current.name] || ""}
                 onChange={handleCategoryChange}
+                onClick={handleCategoryClick}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
                 onKeyDown={handleKeyDown}
@@ -865,6 +890,7 @@ export function ModalEchelonne({
   const isKeyboardNavigation = useRef(false);
   const shouldValidateCategory = useRef(false);
   const shouldValidateDate = useRef(false);
+  const lastCategory = useRef("");
 
   // Références dérivées
   const current = useMemo(() => steps[step - 1], [steps, step]);
@@ -978,13 +1004,24 @@ export function ModalEchelonne({
   const handleCategoryChange = useCallback((e) => {
     const newCategory = e.target.value;
     setForm((prev) => ({ ...prev, categorie: newCategory }));
+    setError(null);
     shouldValidateCategory.current = true;
   }, []);
+
+  const handleCategoryClick = useCallback(() => {
+    if (
+      form.categorie &&
+      form.categorie !== lastCategory.current &&
+      step === 2
+    ) {
+      lastCategory.current = form.categorie;
+      handleNext();
+    }
+  }, [form.categorie, step, handleNext]);
 
   // Effet pour la validation de la catégorie
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
-      setError(null);
       handleNext();
       shouldValidateCategory.current = false;
     }
@@ -1094,6 +1131,7 @@ export function ModalEchelonne({
                 name={current.name}
                 value={form[current.name] || ""}
                 onChange={handleCategoryChange}
+                onClick={handleCategoryClick}
                 className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
                 onKeyDown={handleKeyDown}
