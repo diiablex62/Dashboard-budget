@@ -24,6 +24,7 @@ import {
   AiOutlineReload,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
+import { FiSearch } from "react-icons/fi";
 import { ThemeContext } from "../context/ThemeContext";
 
 // Composant pour l'icône de notification
@@ -191,7 +192,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                   : "w-full bg-gray-100 px-3 py-2 dark:bg-[#18181b]"
               }`}
               onClick={handleSearchClick}>
-              <AiOutlineSearch
+              <FiSearch
                 className={`text-gray-400 ${
                   isCollapsed ? "text-2xl" : "text-lg"
                 }`}
