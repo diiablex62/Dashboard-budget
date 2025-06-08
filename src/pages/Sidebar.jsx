@@ -18,6 +18,10 @@ import {
   AiOutlineUser,
   AiOutlineSearch,
   AiOutlineDollarCircle,
+  AiOutlineLineChart,
+  AiOutlineWallet,
+  AiOutlineCreditCard,
+  AiOutlineReload,
 } from "react-icons/ai";
 import { MdAutorenew } from "react-icons/md";
 import { ThemeContext } from "../context/ThemeContext";
@@ -123,18 +127,23 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       },
       {
         to: "/depenses-revenus",
-        icon: <AiOutlinePieChart className='text-2xl' />,
+        icon: <AiOutlineWallet className='text-2xl' />,
         label: "Dépenses & Revenus",
       },
       {
         to: "/recurrents",
-        icon: <MdAutorenew className='text-2xl' />,
+        icon: <AiOutlineReload className='text-2xl' />,
         label: "Paiements récurrents",
       },
       {
         to: "/echelonne",
-        icon: <AiOutlineDollarCircle className='text-2xl' />,
+        icon: <AiOutlineCreditCard className='text-2xl' />,
         label: "Paiements échelonnés",
+      },
+      {
+        to: "/previsionnel",
+        icon: <AiOutlineLineChart className='text-2xl' />,
+        label: "Prévisionnel",
       },
       {
         to: "/agenda",

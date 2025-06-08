@@ -15,6 +15,7 @@ import Terms from "../pages/Terms";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import UserDataDeletion from "../pages/UserDataDeletion";
 import NotFound from "../pages/404NotFound";
+import Previsionnel from "../pages/Previsionnel";
 
 // Composant pour les routes publiques qui ne doivent pas être accessibles si connecté
 function PublicRoute({ children }) {
@@ -96,6 +97,7 @@ const AppRoutes = () => {
 
         {/* Routes accessibles à tous sauf profil */}
         <Route path='/depenses-revenus' element={<DepensesRevenus />} />
+        <Route path='/previsionnel' element={<Previsionnel />} />
         <Route path='/agenda' element={<Agenda />} />
         <Route path='/recurrents' element={<PaiementRecurrent />} />
         <Route path='/echelonne' element={<PaiementEchelonne />} />
