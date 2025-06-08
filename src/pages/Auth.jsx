@@ -140,12 +140,12 @@ export default function Auth() {
   };
 
   return (
-    <div className='h-screen flex items-stretch bg-white p-8 overflow-hidden'>
+    <div className='h-screen flex items-stretch bg-white dark:bg-black p-8 overflow-hidden'>
       {/* Flèche retour au dashboard */}
       <div className='absolute left-8 top-8 flex items-center gap-2'>
         <Link
           to='/dashboard'
-          className='flex items-center font-medium text-base transition-colors text-gray-500 hover:text-yellow-500 focus:text-yellow-500'>
+          className='flex items-center font-medium text-base transition-colors text-gray-500 hover:text-yellow-500 focus:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-500 dark:focus:text-yellow-500'>
           <svg
             width='24'
             height='24'
@@ -165,8 +165,10 @@ export default function Auth() {
       <div className='flex-1 flex flex-col justify-center px-6 py-0 sm:px-12 md:px-24 lg:px-32 overflow-y-auto'>
         <div className='w-full max-w-md mx-auto'>
           <div className='mb-6'>
-            <h2 className='text-3xl font-bold text-gray-900 mb-2'>Connexion</h2>
-            <p className='text-gray-500 mb-6'>
+            <h2 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>
+              Connexion
+            </h2>
+            <p className='text-gray-500 dark:text-gray-400 mb-6'>
               Connectez-vous pour accéder à votre espace
             </p>
           </div>
@@ -176,13 +178,17 @@ export default function Auth() {
               <input
                 type='email'
                 placeholder='Email'
-                className='w-full px-5 py-3 rounded-full bg-gray-100 focus:bg-white border border-gray-200 focus:border-blue-400 outline-none text-gray-900 text-base placeholder-gray-400 transition'
+                className='w-full px-5 py-3 rounded-full bg-gray-100 dark:bg-black focus:bg-white dark:focus:bg-black border border-gray-200 dark:border-gray-800 focus:border-blue-400 dark:focus:border-blue-500 outline-none text-gray-900 dark:text-white text-base placeholder-gray-400 dark:placeholder-gray-500 transition'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
               />
-              {error && <p className='mt-2 text-sm text-red-600'>{error}</p>}
+              {error && (
+                <p className='mt-2 text-sm text-red-600 dark:text-red-400'>
+                  {error}
+                </p>
+              )}
             </div>
             <button
               type='submit'
@@ -193,24 +199,26 @@ export default function Auth() {
           </form>
           {/* Boutons sociaux */}
           <div className='flex items-center my-4'>
-            <div className='flex-1 h-px bg-gray-200' />
-            <span className='mx-4 text-gray-400 text-sm'>ou</span>
-            <div className='flex-1 h-px bg-gray-200' />
+            <div className='flex-1 h-px bg-gray-200 dark:bg-gray-800' />
+            <span className='mx-4 text-gray-400 dark:text-gray-500 text-sm'>
+              ou
+            </span>
+            <div className='flex-1 h-px bg-gray-200 dark:bg-gray-800' />
           </div>
           <div className='flex gap-4 mb-6'>
             <button
               onClick={handleGoogleSignIn}
-              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
+              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900 shadow transition text-gray-900 dark:text-white font-semibold text-base'>
               <FaGoogle className='w-5 h-5' /> Google
             </button>
             <button
               onClick={loginWithGithub}
-              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow transition text-gray-900 font-semibold text-base'>
+              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900 shadow transition text-gray-900 dark:text-white font-semibold text-base'>
               <FaGithub className='w-5 h-5' /> GitHub
             </button>
           </div>
           {/* Mentions légales centrées */}
-          <div className='flex justify-center items-center text-xs text-gray-400 mt-6 gap-4'>
+          <div className='flex justify-center items-center text-xs text-gray-400 dark:text-gray-500 mt-6 gap-4'>
             <div className='flex items-center gap-4'>
               <button
                 type='button'
@@ -220,7 +228,7 @@ export default function Auth() {
               </button>
               <Link
                 to='/conditions-generales-dutilisation'
-                className='text-gray-400 hover:text-yellow-500 transition-colors'>
+                className='text-gray-400 dark:text-gray-500 hover:text-yellow-500 transition-colors'>
                 |
               </Link>
             </div>
@@ -237,7 +245,7 @@ export default function Auth() {
       </div>
       {/* Image à droite arrondie */}
       <div className='hidden md:flex md:w-1/2 items-stretch pl-8'>
-        <div className='w-full h-full bg-white rounded-[40px] overflow-hidden shadow-xl flex items-center justify-center'>
+        <div className='w-full h-full bg-white dark:bg-black rounded-[40px] overflow-hidden shadow-xl flex items-center justify-center'>
           <img
             src={orangeImage}
             alt='Connexion'

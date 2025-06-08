@@ -7,7 +7,7 @@ export default function Validation() {
   const magicLink = location.state?.magicLink;
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-white p-8'>
+    <div className='min-h-screen flex items-center justify-center bg-white dark:bg-black p-8'>
       <div className='max-w-md w-full text-center'>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-4'>
@@ -20,11 +20,11 @@ export default function Validation() {
         </div>
 
         {/* Section Développement */}
-        <div className='bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8'>
+        <div className='bg-gray-50 dark:bg-black rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-800'>
           <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4'>
             Mode Développement
           </h2>
-          <div className='bg-white dark:bg-gray-700 p-4 rounded-lg'>
+          <div className='bg-white dark:bg-black p-4 rounded-lg border border-gray-200 dark:border-gray-800'>
             <a
               href={magicLink}
               className='text-yellow-500 hover:text-yellow-600 font-medium'
@@ -35,7 +35,7 @@ export default function Validation() {
         </div>
 
         {/* Section Production */}
-        <div className='bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-8'>
+        <div className='bg-gray-50 dark:bg-black rounded-2xl p-6 mb-8 border border-gray-200 dark:border-gray-800'>
           <h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-4'>
             Mode Production
           </h2>

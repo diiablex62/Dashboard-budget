@@ -46,9 +46,19 @@ function MainLayout() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key.toLowerCase() === "l") {
+      // Vérifier si l'élément actif est un champ de saisie
+      const activeElement = document.activeElement;
+      const isInputField =
+        activeElement.tagName === "INPUT" ||
+        activeElement.tagName === "TEXTAREA" ||
+        activeElement.isContentEditable;
+
+      // Si on est dans un champ de saisie, ne pas activer les raccourcis
+      if (isInputField) return;
+
+      if (e?.key?.toLowerCase() === "l") {
         setIsDarkMode(false);
-      } else if (e.key.toLowerCase() === "d") {
+      } else if (e?.key?.toLowerCase() === "d") {
         setIsDarkMode(true);
       }
     };
