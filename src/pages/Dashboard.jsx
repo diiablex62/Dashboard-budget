@@ -351,7 +351,30 @@ export default function Dashboard() {
     }));
   }
 
-  // J'utilise la fonction importée pour générer courbeData :
+  // Protection pour éviter le rendu avec des données incomplètes
+  if (
+    !depenseRevenu ||
+    !Array.isArray(depenseRevenu) ||
+    depenseRevenu.length === 0 ||
+    !paiementsRecurrents ||
+    !Array.isArray(paiementsRecurrents) ||
+    !paiementsEchelonnes ||
+    !Array.isArray(paiementsEchelonnes)
+  ) {
+    console.log("[DASHBOARD] Données non prêtes", {
+      depenseRevenu,
+      paiementsRecurrents,
+      paiementsEchelonnes,
+    });
+    return <div>Chargement des données…</div>;
+  }
+
+  console.log("[DASHBOARD] Données pour graphique", {
+    depenseRevenu,
+    paiementsRecurrents,
+    paiementsEchelonnes,
+  });
+
   const courbeData = getCourbeRevenusDepenses6Mois(
     depenseRevenu,
     paiementsRecurrents,

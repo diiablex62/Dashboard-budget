@@ -76,6 +76,52 @@ export function getCourbeRevenusDepenses6Mois(
       revenus: { classiques: [], recurrents: [], echelonnes: [] },
     };
 
+    // Ajout du log pour le mois précédent
+    if (i === 1) {
+      // Mois précédent
+      const dateMoisPrecedent = new Date(annee, mois + 1, 0);
+      const totalDepensesClassiques = calculDepensesClassiquesTotal(
+        depenseRevenu,
+        dateMoisPrecedent
+      );
+      const totalDepensesRecurrents = calculDepensesRecurrentesTotal(
+        paiementsRecurrents,
+        dateMoisPrecedent
+      );
+      const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
+        paiementsEchelonnes,
+        dateMoisPrecedent
+      );
+      const totalRevenusClassiques = calculRevenusClassiquesTotal(
+        depenseRevenu,
+        dateMoisPrecedent
+      );
+      const totalRevenusRecurrents = calculRevenusRecurrentsTotal(
+        paiementsRecurrents,
+        dateMoisPrecedent
+      );
+      const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
+        paiementsEchelonnes,
+        dateMoisPrecedent
+      );
+      console.log("[GRAPHIQUE][MOIS PRECEDENT]", moisLabel, {
+        totalDepensesClassiques,
+        totalDepensesRecurrents,
+        totalDepensesEchelonnees,
+        totalRevenusClassiques,
+        totalRevenusRecurrents,
+        totalRevenusEchelonnes,
+        totalDepenses:
+          totalDepensesClassiques +
+          totalDepensesRecurrents +
+          totalDepensesEchelonnees,
+        totalRevenus:
+          totalRevenusClassiques +
+          totalRevenusRecurrents +
+          totalRevenusEchelonnes,
+      });
+    }
+
     if (isCurrentMonth) {
       if (isPrevisionnel) {
         // PRÉVISIONNEL pour le mois courant
@@ -112,7 +158,6 @@ export function getCourbeRevenusDepenses6Mois(
           totalRevenusClassiques +
           totalRevenusRecurrents +
           totalRevenusEchelonnes;
-   
       } else {
         // RÉALISÉ pour le mois courant (jusqu'à aujourd'hui)
         const aujourdHui = now;
@@ -148,11 +193,10 @@ export function getCourbeRevenusDepenses6Mois(
           totalRevenusClassiques +
           totalRevenusRecurrents +
           totalRevenusEchelonnes;
-     
       }
     } else {
       // RÉEL pour les autres mois (utilise les mêmes fonctions que les encadrés)
-      const dateMois = new Date(annee, mois, 1);
+      const dateMois = new Date(annee, mois + 1, 0);
       const totalDepensesClassiques = calculDepensesClassiquesTotal(
         depenseRevenu,
         dateMois
@@ -177,7 +221,7 @@ export function getCourbeRevenusDepenses6Mois(
         paiementsRecurrents,
         dateMois
       );
-      const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
+      const totalRevenusEchelonnes = calculDepensesEchelonneesTotal(
         paiementsEchelonnes,
         dateMois
       );
@@ -185,7 +229,6 @@ export function getCourbeRevenusDepenses6Mois(
         totalRevenusClassiques +
         totalRevenusRecurrents +
         totalRevenusEchelonnes;
-  
     }
     result.push({ mois: moisLabel, depenses, revenus, details });
   }

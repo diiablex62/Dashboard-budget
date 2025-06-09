@@ -33,7 +33,7 @@ const TooltipEconomie = () => {
     (calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date()) || 0) +
     (calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date()) ||
       0) +
-    (calculDepensesEchelonneesJusquaAujourdhui(
+    (calculRevenusEchelonnesJusquaAujourdhui(
       paiementsEchelonnes,
       new Date()
     ) || 0);
@@ -43,7 +43,7 @@ const TooltipEconomie = () => {
       paiementsRecurrents,
       new Date()
     ) || 0) +
-    (calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
+    (calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
       0);
   const economiesJusquaAujourdhui =
     revenusJusquaAujourdhui - depensesJusquaAujourdhui;
@@ -52,11 +52,11 @@ const TooltipEconomie = () => {
   const revenusPrevisionnel =
     (calculRevenusClassiquesTotal(depenseRevenu, new Date()) || 0) +
     (calculRevenusRecurrentsTotal(paiementsRecurrents, new Date()) || 0) +
-    (calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0);
+    (calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0);
   const depensesPrevisionnel =
     (calculDepensesClassiquesTotal(depenseRevenu, new Date()) || 0) +
     (calculDepensesRecurrentesTotal(paiementsRecurrents, new Date()) || 0) +
-    (calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0);
+    (calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0);
   const economiesPrevisionnel = revenusPrevisionnel - depensesPrevisionnel;
 
   // Calculs du mois précédent
@@ -66,13 +66,13 @@ const TooltipEconomie = () => {
     (calculRevenusClassiquesTotal(depenseRevenu, dateMoisPrecedent) || 0) +
     (calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent) ||
       0) +
-    (calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) ||
+    (calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) ||
       0);
   const depensesMoisPrec =
     (calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent) || 0) +
     (calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) ||
       0) +
-    (calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0);
+    (calculDepensesEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0);
   const economiesMoisPrec = revenusMoisPrec - depensesMoisPrec;
 
   return (

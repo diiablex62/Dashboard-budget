@@ -8,10 +8,10 @@ import { useAuth } from "../../../context/AuthContext";
 import {
   calculRevenusClassiquesJusquaAujourdhui,
   calculRevenusRecurrentsJusquaAujourdhui,
-  calculDepensesEchelonneesJusquaAujourdhui,
+  calculRevenusEchelonnesJusquaAujourdhui,
   calculRevenusClassiquesTotal,
   calculRevenusRecurrentsTotal,
-  calculDepensesEchelonneesTotal,
+  calculRevenusEchelonnesTotal,
 } from "../calculDashboard";
 
 const TooltipRevenu = () => {
@@ -29,7 +29,7 @@ const TooltipRevenu = () => {
     calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date()) ||
     0;
   const echelonnesJusquaAujourdhui =
-    calculDepensesEchelonneesJusquaAujourdhui(
+    calculRevenusEchelonnesJusquaAujourdhui(
       paiementsEchelonnes,
       new Date()
     ) || 0;
@@ -44,7 +44,7 @@ const TooltipRevenu = () => {
   const recurrentsPrevisionnel =
     calculRevenusRecurrentsTotal(paiementsRecurrents, new Date()) || 0;
   const echelonnesPrevisionnel =
-    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0;
   const totalPrevisionnel =
     revenusClassiquesPrevisionnel +
     recurrentsPrevisionnel +
@@ -58,7 +58,7 @@ const TooltipRevenu = () => {
   const recurrentsMoisPrec =
     calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
   const echelonnesMoisPrec =
-    calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
   const totalMoisPrecedent =
     revenusClassiquesMoisPrec + recurrentsMoisPrec + echelonnesMoisPrec;
 
