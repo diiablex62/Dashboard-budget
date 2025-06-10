@@ -200,6 +200,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               {!isCollapsed && (
                 <input
                   ref={searchInputRef}
+                  id='search-bar'
                   placeholder='Rechercher un montant...'
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
