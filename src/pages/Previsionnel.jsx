@@ -16,6 +16,7 @@ import {
   calculRevenusRecurrentsTotal,
 } from "../components/dashboard/calculDashboard";
 import GraphiquePrevisionnel from "../components/dashboard/GraphiquePrevisionnel";
+import { addMonths } from "date-fns";
 
 export default function Previsionnel() {
   const { getData } = useAuth();
@@ -99,6 +100,47 @@ export default function Previsionnel() {
   const budgetJournalierRestant =
     joursRestants > 0 ? budgetRestant / joursRestants : 0;
 
+  // Génération des données prévisionnelles pour les 6 prochains mois
+  const moisLabels = [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ];
+  const nbMois = 6;
+  const now = new Date();
+  let soldeCumul = 0;
+  const dataPrevisionnelle = Array.from({ length: nbMois }).map((_, i) => {
+    const dateMois = addMonths(now, i);
+    const mois = moisLabels[dateMois.getMonth()];
+    // Calcul revenus
+    const revenus =
+      calculRevenusClassiquesTotal(depenseRevenu, dateMois) +
+      calculRevenusRecurrentsTotal(paiementsRecurrents, dateMois) +
+      calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMois);
+    // Calcul dépenses
+    const depenses =
+      calculDepensesClassiquesTotal(depenseRevenu, dateMois) +
+      calculDepensesRecurrentesTotal(paiementsRecurrents, dateMois) +
+      calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMois);
+    // Solde cumulé
+    soldeCumul += revenus - depenses;
+    return {
+      mois,
+      revenus,
+      depenses,
+      solde: soldeCumul,
+    };
+  });
+
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
@@ -165,16 +207,7 @@ export default function Previsionnel() {
           <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4'>
             Prévision des dépenses et revenus des prochains mois
           </h2>
-          <GraphiquePrevisionnel
-            data={[
-              { mois: "Juin", revenus: 2500, depenses: 1400, solde: 1100 },
-              { mois: "Juillet", revenus: 2500, depenses: 1500, solde: 1100 },
-              { mois: "Août", revenus: 2500, depenses: 1600, solde: 1000 },
-              { mois: "Septembre", revenus: 2500, depenses: 1700, solde: 900 },
-              { mois: "Octobre", revenus: 2500, depenses: 1800, solde: 800 },
-              { mois: "Novembre", revenus: 2500, depenses: 1900, solde: 600 },
-            ]}
-          />
+          <GraphiquePrevisionnel data={dataPrevisionnelle} />
         </div>
 
         {/* Conseils budgétaires */}
