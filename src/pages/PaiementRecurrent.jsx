@@ -34,6 +34,7 @@ import {
 } from "../utils/paiementActions.jsx";
 import CardDesign from "../components/ui/CardDesign";
 import { ModalRecurrent } from "../components/ui/Modal";
+import Button from "../components/ui/Button";
 
 const PaiementRecurrent = () => {
   const [paiementsRecurrents, setPaiementsRecurrents] = useState(
@@ -222,12 +223,9 @@ const PaiementRecurrent = () => {
             </div>
             {/* Bouton Ajouter */}
             <div className='flex space-x-3'>
-              <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
-                onClick={handleAddPaiement}>
-                <AiOutlinePlus className='text-lg' />
-                <span>Ajouter</span>
-              </button>
+              <Button onClick={handleAddPaiement} icon={AiOutlinePlus}>
+                Ajouter
+              </Button>
             </div>
           </div>
           {paiementsTries.length === 0 ? (

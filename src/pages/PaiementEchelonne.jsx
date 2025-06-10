@@ -24,6 +24,7 @@ import {
   calculPaiementsEchelonnesActifs,
   calculProgressionPaiementEchelonne,
 } from "../utils/calcul";
+import Button from "../components/ui/Button";
 
 export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -220,15 +221,15 @@ export const PaiementEchelonne = () => {
             </div>
             {/* Bouton Ajouter */}
             <div className='flex justify-end mt-8'>
-              <button
-                className='flex items-center gap-2 bg-gray-900 text-white font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer'
+              <Button
                 onClick={() => {
                   setEditIndex(null);
                   setShowModal(true);
-                }}>
-                <span className='text-lg font-bold'>+</span>
-                <span>Ajouter</span>
-              </button>
+                }}
+                icon={AiOutlinePlus}
+              >
+                Ajouter
+              </Button>
             </div>
           </div>
 
