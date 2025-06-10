@@ -39,14 +39,17 @@ export const SHORTCUTS = {
     ACTUEL: { key: "A", description: "Aller à la vue Actuelle" },
     PREVISIONNEL: { key: "P", description: "Aller à la vue Prévisionnelle" },
     HELP: { key: "?", description: "Afficher l'aide" },
+    SEARCH: { key: "R", description: "Focus sur la barre de recherche" },
   },
 };
 
 // Vérifications d'état
 const isInSidebar = () => {
-  const result = document.activeElement.closest(".sidebar") !== null;
-  if (result) console.log("Raccourcis désactivés : élément dans la sidebar");
-  return result;
+  const activeElement = document.activeElement;
+  const isSearchBar = activeElement.id === "search-bar";
+  if (isSearchBar)
+    console.log("Raccourcis désactivés : barre de recherche active");
+  return isSearchBar;
 };
 
 const isInputField = () => {
@@ -111,6 +114,7 @@ const handleQuickActionShortcuts = (key, callbacks) => {
     [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].PREVISIONNEL.key]:
       callbacks.onPrevisionnel,
     [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].HELP.key]: callbacks.onHelp,
+    [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].SEARCH.key]: callbacks.onSearch,
   };
 
   const callback = quickActionCallbacks[key];
@@ -127,7 +131,18 @@ const handleKeyboardShortcut = (e, callbacks) => {
   if (isInSidebar() || isInputField() || isModalOpen()) return;
 
   const key = e.key.toUpperCase();
-  e.preventDefault();
+
+  // Liste des touches qui doivent être gérées comme raccourcis
+  const shortcutKeys = [
+    ...Object.values(SHORTCUTS[SHORTCUT_TYPES.NAVIGATION]).map((s) => s.key),
+    ...Object.values(SHORTCUTS[SHORTCUT_TYPES.THEME]).map((s) => s.key),
+    ...Object.values(SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS]).map((s) => s.key),
+  ];
+
+  // Ne prévenir le comportement par défaut que pour les touches de raccourci
+  if (shortcutKeys.includes(key)) {
+    e.preventDefault();
+  }
 
   // Essayer chaque type de raccourci
   if (handleNavigationShortcuts(key, callbacks)) return;
