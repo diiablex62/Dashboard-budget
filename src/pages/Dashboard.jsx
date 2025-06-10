@@ -106,8 +106,7 @@ export default function Dashboard() {
   );
 
   // Utilisation des valeurs par défaut pour les revenus et économies
-  const { totalEconomiesJusquaAujourdhui, budgetPrevisionnel } =
-    DEFAULT_AMOUNTS;
+  const { totalEconomiesJusquaAujourdhui } = DEFAULT_AMOUNTS;
 
   // Fonction pour vérifier si une date est dans le mois courant
   const isCurrentMonth = (date) => {
@@ -361,11 +360,8 @@ export default function Dashboard() {
     !paiementsEchelonnes ||
     !Array.isArray(paiementsEchelonnes)
   ) {
-  
     return <div>Chargement des données…</div>;
   }
-
-
 
   const courbeData = getCourbeRevenusDepenses6Mois(
     depenseRevenu,
@@ -462,7 +458,7 @@ export default function Dashboard() {
         /> */}
 
         {/* Carte Budget prévisionnel */}
-        <BudgetCard budgetPrevisionnel={budgetPrevisionnel} />
+        <BudgetCard budgetPrevisionnel={totalRevenus - totalDepense} />
       </div>
 
       {/* Carte Économies actuelles */}
