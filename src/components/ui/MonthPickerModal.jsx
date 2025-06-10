@@ -91,13 +91,13 @@ export default function MonthPickerModal({
     <div className='relative w-[480px]'>
       <div className='flex justify-end'>
         <div
-          className={`bg-white border border-gray-200 rounded-2xl shadow-md flex items-center justify-center gap-3 w-auto
+          className={`bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-2xl shadow-md flex items-center justify-center gap-3 w-auto
           ${
             size === "small"
               ? "py-1.5 px-3 text-base min-w-[160px]"
               : "py-2 px-4 text-lg min-w-[180px]"
           } 
-          font-bold text-[#1a2332]`}>
+          font-bold text-[#1a2332] dark:text-white`}>
           <AiOutlineArrowLeft
             className={`${
               size === "small" ? "text-lg" : "text-xl"
@@ -106,7 +106,7 @@ export default function MonthPickerModal({
           />
           <button
             onClick={() => setIsOpen(true)}
-            className={`mx-2 select-none text-center ${
+            className={`mx-2 select-none text-center dark:bg-black dark:text-white ${
               size === "small" ? "w-[120px]" : "w-[140px]"
             }`}>
             {months[selectedMonth]} {selectedYear}
@@ -123,22 +123,22 @@ export default function MonthPickerModal({
         <div className='absolute right-0 top-0 w-[480px] z-[100] animate-fadeIn'>
           <div
             ref={ref}
-            className='bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] p-6 flex flex-col items-center w-full'>
+            className='bg-white dark:bg-black rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] p-6 flex flex-col items-center w-full border border-gray-200 dark:border-gray-700'>
             {showYearSelect ? (
               <>
                 {/* Header année + flèches */}
                 <div className='flex items-center justify-center w-full mb-6 gap-6'>
                   <button
                     onClick={() => setYearPageStart((y) => y - 12)}
-                    className='p-2 rounded-full hover:bg-gray-50 text-2xl text-[#1a2332] transition-colors'>
+                    className='p-2 rounded-full hover:bg-gray-50 dark:hover:bg-[#232329] text-2xl text-[#1a2332] dark:text-white transition-colors'>
                     <AiOutlineArrowLeft />
                   </button>
-                  <span className='font-bold text-2xl text-[#1a2332] select-none'>
+                  <span className='font-bold text-2xl text-[#1a2332] dark:text-white select-none'>
                     Sélectionner une année
                   </span>
                   <button
                     onClick={() => setYearPageStart((y) => y + 12)}
-                    className='p-2 rounded-full hover:bg-gray-50 text-2xl text-[#1a2332] transition-colors'>
+                    className='p-2 rounded-full hover:bg-gray-50 dark:hover:bg-[#232329] text-2xl text-[#1a2332] dark:text-white transition-colors'>
                     <AiOutlineArrowRight />
                   </button>
                 </div>
@@ -155,8 +155,8 @@ export default function MonthPickerModal({
                       className={`min-w-[80px] py-2 px-2 rounded-lg text-xl transition-all
                         ${
                           year === tempYear
-                            ? "bg-[#1a2332] text-white shadow-sm"
-                            : "bg-white text-[#1a2332] hover:bg-gray-50"
+                            ? "bg-[#1a2332] text-white shadow-sm dark:bg-white/10"
+                            : "bg-white text-[#1a2332] hover:bg-gray-50 dark:bg-black dark:text-white dark:hover:bg-[#232329]"
                         }
                       `}>
                       {year}
@@ -167,7 +167,7 @@ export default function MonthPickerModal({
                 <div className='flex w-full justify-end gap-4'>
                   <button
                     onClick={handleCancelYear}
-                    className='border border-gray-300 rounded-lg px-6 py-2 font-semibold text-[#17695b] bg-white hover:bg-gray-50'>
+                    className='border border-gray-300 dark:border-gray-700 rounded-lg px-6 py-2 font-semibold text-[#17695b] dark:text-[#6ee7b7] bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-[#232329]'>
                     Annuler
                   </button>
                 </div>
@@ -178,11 +178,11 @@ export default function MonthPickerModal({
                 <div className='flex items-center justify-center w-full mb-6 gap-6'>
                   <button
                     onClick={handlePrevYear}
-                    className='p-2 rounded-full hover:bg-gray-50 text-2xl text-[#1a2332] transition-colors'>
+                    className='p-2 rounded-full hover:bg-gray-50 dark:hover:bg-[#232329] text-2xl text-[#1a2332] dark:text-white transition-colors'>
                     <AiOutlineArrowLeft />
                   </button>
                   <span
-                    className='text-xl text-[#1a2332] select-none cursor-pointer hover:underline'
+                    className='text-xl text-[#1a2332] dark:text-white select-none cursor-pointer hover:underline'
                     onClick={() => {
                       setShowYearSelect(true);
                       setYearPageStart(viewYear - 5);
@@ -192,7 +192,7 @@ export default function MonthPickerModal({
                   </span>
                   <button
                     onClick={handleNextYear}
-                    className='p-2 rounded-full hover:bg-gray-50 text-2xl text-[#1a2332] transition-colors'>
+                    className='p-2 rounded-full hover:bg-gray-50 dark:hover:bg-[#232329] text-2xl text-[#1a2332] dark:text-white transition-colors'>
                     <AiOutlineArrowRight />
                   </button>
                 </div>

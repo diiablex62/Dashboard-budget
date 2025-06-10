@@ -27,6 +27,7 @@ import { MdAutorenew } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { ThemeContext } from "../context/ThemeContext";
 import SearchBar from "../components/ui/SearchBar";
+import { SHORTCUTS } from "../utils/keyboardShortcuts";
 
 // Composant pour l'icône de notification
 const NotificationIcon = React.memo(({ hasUnread }) => (
@@ -39,42 +40,44 @@ const NotificationIcon = React.memo(({ hasUnread }) => (
 ));
 
 // Composant pour les liens de navigation
-const NavItem = React.memo(({ to, icon, label, isCollapsed, onClick }) => {
-  if (onClick) {
+const NavItem = React.memo(
+  ({ to, icon, label, isCollapsed, onClick, title }) => {
+    if (onClick) {
+      return (
+        <button
+          type='button'
+          onClick={onClick}
+          className={`flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300 ${
+            isCollapsed ? "justify-center px-4" : "justify-start px-4"
+          }`}
+          title={title}>
+          <div className='flex items-center'>{icon}</div>
+          {!isCollapsed && (
+            <span className='text-base whitespace-nowrap'>{label}</span>
+          )}
+        </button>
+      );
+    }
+
     return (
-      <button
-        type='button'
-        onClick={onClick}
-        className={`flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300 ${
-          isCollapsed ? "justify-center px-4" : "justify-start px-4"
-        }`}
-        title={label}>
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
+            isActive
+              ? "bg-gray-100 dark:bg-[#18181b] text-gray-900 dark:text-white font-semibold"
+              : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
+          } ${isCollapsed ? "justify-center px-4" : "justify-start px-4"}`
+        }
+        title={title}>
         <div className='flex items-center'>{icon}</div>
         {!isCollapsed && (
           <span className='text-base whitespace-nowrap'>{label}</span>
         )}
-      </button>
+      </NavLink>
     );
   }
-
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex items-center gap-3 py-3 rounded-xl transition-all cursor-pointer group ${
-          isActive
-            ? "bg-gray-100 dark:bg-[#18181b] text-gray-900 dark:text-white font-semibold"
-            : "hover:bg-gray-50 dark:hover:bg-[#232329] text-gray-700 dark:text-gray-300"
-        } ${isCollapsed ? "justify-center px-4" : "justify-start px-4"}`
-      }
-      title={label}>
-      <div className='flex items-center'>{icon}</div>
-      {!isCollapsed && (
-        <span className='text-base whitespace-nowrap'>{label}</span>
-      )}
-    </NavLink>
-  );
-});
+);
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const { isAuthenticated, user, avatar } = useAuth();
@@ -133,36 +136,43 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         to: "/dashboard",
         icon: <AiOutlineHome className='text-2xl' />,
         label: "Dashboard",
+        title: `Dashboard (${SHORTCUTS.NAVIGATION.DASHBOARD.key})`,
       },
       {
         to: "/depenses-revenus",
         icon: <AiOutlineWallet className='text-2xl' />,
         label: "Dépenses & Revenus",
+        title: `Dépenses & Revenus (${SHORTCUTS.NAVIGATION.DEPENSES_REVENUS.key})`,
       },
       {
         to: "/recurrents",
         icon: <AiOutlineReload className='text-2xl' />,
         label: "Paiements récurrents",
+        title: `Paiements récurrents (${SHORTCUTS.NAVIGATION.PAIEMENTS_RECURRENTS.key})`,
       },
       {
         to: "/echelonne",
         icon: <AiOutlineCreditCard className='text-2xl' />,
         label: "Paiements échelonnés",
+        title: `Paiements échelonnés (${SHORTCUTS.NAVIGATION.PAIEMENTS_ECHELONNES.key})`,
       },
       {
         to: "/previsionnel",
         icon: <AiOutlineLineChart className='text-2xl' />,
         label: "Prévisionnel",
+        title: `Prévisionnel (${SHORTCUTS.NAVIGATION.PREVISIONNEL.key})`,
       },
       {
         to: "/agenda",
         icon: <AiOutlineCalendar className='text-2xl' />,
         label: "Agenda",
+        title: `Agenda (${SHORTCUTS.NAVIGATION.AGENDA.key})`,
       },
       {
         to: "/notifications",
         icon: <NotificationIcon hasUnread={hasUnreadNotifications} />,
         label: "Notifications",
+        title: `Notifications (${SHORTCUTS.NAVIGATION.NOTIFICATIONS.key})`,
       },
     ],
     [hasUnreadNotifications]
@@ -227,6 +237,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                       icon={link.icon}
                       label={link.label}
                       isCollapsed={isCollapsed}
+                      title={link.title}
                     />
                   </li>
                 ))}
