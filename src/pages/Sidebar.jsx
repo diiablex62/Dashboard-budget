@@ -26,6 +26,7 @@ import {
 import { MdAutorenew } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { ThemeContext } from "../context/ThemeContext";
+import SearchBar from "../components/ui/SearchBar";
 
 // Composant pour l'icône de notification
 const NotificationIcon = React.memo(({ hasUnread }) => (
@@ -185,29 +186,21 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               className='text-3xl font-bold tracking-wide uppercase mb-8'>
               {!isCollapsed ? "Futurio" : "F"}
             </Link>
-            <div
-              className={`flex items-center rounded-lg mb-2 ${
-                isCollapsed
-                  ? "justify-center w-10 h-10 hover:bg-gray-50 cursor-pointer dark:bg-[#18181b]"
-                  : "w-full bg-gray-100 px-3 py-2 dark:bg-[#18181b]"
-              }`}
-              onClick={handleSearchClick}>
-              <FiSearch
-                className={`text-gray-400 ${
-                  isCollapsed ? "text-2xl" : "text-lg"
-                }`}
+            {!isCollapsed ? (
+              <SearchBar
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder='Rechercher un montant...'
+                className='w-full mb-2'
+                id='search-bar'
               />
-              {!isCollapsed && (
-                <input
-                  ref={searchInputRef}
-                  id='search-bar'
-                  placeholder='Rechercher un montant...'
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className='bg-transparent outline-none w-full text-sm text-gray-700 placeholder-gray-400 ml-2 dark:text-white dark:placeholder-gray-400'
-                />
-              )}
-            </div>
+            ) : (
+              <div
+                className='flex items-center justify-center w-10 h-10 hover:bg-gray-50 cursor-pointer dark:bg-[#18181b] rounded-lg mb-2'
+                onClick={handleSearchClick}>
+                <FiSearch className='text-2xl text-gray-400' />
+              </div>
+            )}
           </div>
 
           {/* Sidebar principal (overview + menu) */}
