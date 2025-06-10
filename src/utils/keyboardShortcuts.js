@@ -37,7 +37,6 @@ export const SHORTCUTS = {
   },
   [SHORTCUT_TYPES.QUICK_ACTIONS]: {
     ACTUEL: { key: "A", description: "Aller à la vue Actuelle" },
-    PREVISIONNEL: { key: "P", description: "Aller à la vue Prévisionnelle" },
     HELP: { key: "?", description: "Afficher l'aide" },
     SEARCH: { key: "R", description: "Focus sur la barre de recherche" },
   },
@@ -111,8 +110,6 @@ const handleThemeShortcuts = (key, callbacks) => {
 const handleQuickActionShortcuts = (key, callbacks) => {
   const quickActionCallbacks = {
     [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].ACTUEL.key]: callbacks.onActuel,
-    [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].PREVISIONNEL.key]:
-      callbacks.onPrevisionnel,
     [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].HELP.key]: callbacks.onHelp,
     [SHORTCUTS[SHORTCUT_TYPES.QUICK_ACTIONS].SEARCH.key]: callbacks.onSearch,
   };

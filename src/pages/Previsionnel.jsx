@@ -15,6 +15,7 @@ import {
   calculRevenusClassiquesTotal,
   calculRevenusRecurrentsTotal,
 } from "../components/dashboard/calculDashboard";
+import GraphiquePrevisionnel from "../components/dashboard/GraphiquePrevisionnel";
 
 export default function Previsionnel() {
   const { getData } = useAuth();
@@ -159,49 +160,21 @@ export default function Previsionnel() {
           </div>
         </div>
 
-        {/* Détail des dépenses restantes */}
+        {/* Graphique des mois à venir */}
         <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8'>
           <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4'>
-            Détail des dépenses restantes
+            Prévision des dépenses et revenus des prochains mois
           </h2>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-            <div className='bg-gray-50 dark:bg-gray-700 p-4 rounded-lg'>
-              <h3 className='text-md font-medium text-gray-700 dark:text-gray-200 mb-2'>
-                Dépenses classiques
-              </h3>
-              <p className='text-xl font-bold text-red-600'>
-                {formatMontant(
-                  depensesClassiquesPrevisionnel -
-                    depensesClassiquesJusquaAujourdhui
-                )}
-                €
-              </p>
-            </div>
-            <div className='bg-gray-50 dark:bg-gray-700 p-4 rounded-lg'>
-              <h3 className='text-md font-medium text-gray-700 dark:text-gray-200 mb-2'>
-                Paiements récurrents
-              </h3>
-              <p className='text-xl font-bold text-red-600'>
-                {formatMontant(
-                  recurrentsDepensePrevisionnel -
-                    recurrentsDepenseJusquaAujourdhui
-                )}
-                €
-              </p>
-            </div>
-            <div className='bg-gray-50 dark:bg-gray-700 p-4 rounded-lg'>
-              <h3 className='text-md font-medium text-gray-700 dark:text-gray-200 mb-2'>
-                Paiements échelonnés
-              </h3>
-              <p className='text-xl font-bold text-red-600'>
-                {formatMontant(
-                  echelonnesDepensePrevisionnel -
-                    echelonnesDepenseJusquaAujourdhui
-                )}
-                €
-              </p>
-            </div>
-          </div>
+          <GraphiquePrevisionnel
+            data={[
+              { mois: "Juin", revenus: 2500, depenses: 1400, solde: 1100 },
+              { mois: "Juillet", revenus: 2500, depenses: 1500, solde: 1100 },
+              { mois: "Août", revenus: 2500, depenses: 1600, solde: 1000 },
+              { mois: "Septembre", revenus: 2500, depenses: 1700, solde: 900 },
+              { mois: "Octobre", revenus: 2500, depenses: 1800, solde: 800 },
+              { mois: "Novembre", revenus: 2500, depenses: 1900, solde: 600 },
+            ]}
+          />
         </div>
 
         {/* Conseils budgétaires */}
