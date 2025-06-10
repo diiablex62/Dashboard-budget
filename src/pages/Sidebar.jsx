@@ -120,6 +120,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     }
   }, [isCollapsed]);
 
+  const handleSearchBlur = useCallback(() => {
+    // Attendre un peu pour éviter que le clic sur la sidebar ne la replie immédiatement
+    setTimeout(() => {
+      setIsCollapsed(true);
+    }, 200);
+  }, [setIsCollapsed]);
+
   const overviewLinks = useMemo(
     () => [
       {
@@ -174,7 +181,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       <div
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`h-screen fixed top-0 left-0 z-30 bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col shadow-lg border-r border-gray-200 transition-all duration-500 ease-in-out rounded-r-3xl ${
+        className={`sidebar h-screen fixed top-0 left-0 z-30 bg-white text-gray-800 dark:bg-black dark:text-white flex flex-col shadow-lg border-r border-gray-200 transition-all duration-500 ease-in-out rounded-r-3xl ${
           isCollapsed ? "w-20" : "w-72"
         }`}>
         {/* Bloc du haut : Logo, recherche, overview, menu */}
@@ -193,6 +200,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
                 placeholder='Rechercher un montant...'
                 className='w-full mb-2'
                 id='search-bar'
+                onBlur={handleSearchBlur}
               />
             ) : (
               <div

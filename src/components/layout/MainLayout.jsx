@@ -62,8 +62,20 @@ function MainLayout() {
     onDarkMode: () => setIsDarkMode(true),
     onHelp: () => setShowShortcuts(true),
     onSearch: () => {
-      const input = document.getElementById("search-bar");
-      if (input) input.focus();
+      if (isIsolatedRoute) return;
+
+      // Déplier la sidebar si elle est repliée
+      if (isCollapsed) {
+        setIsCollapsed(false);
+        // Attendre que la sidebar soit dépliée avant de focus
+        setTimeout(() => {
+          const input = document.getElementById("search-bar");
+          if (input) input.focus();
+        }, 300);
+      } else {
+        const input = document.getElementById("search-bar");
+        if (input) input.focus();
+      }
     },
   });
 

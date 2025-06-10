@@ -36,7 +36,7 @@ const BudgetCard = ({ budgetPrevisionnel }) => {
       <Button
         onClick={() => navigate("/previsionnel")}
         className='mt-4 self-end'>
-        Voir le détail prévisionnel
+        Voir le détail
       </Button>
     </div>
   );

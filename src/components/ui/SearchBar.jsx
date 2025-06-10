@@ -12,6 +12,7 @@ const SearchBar = ({
   placeholder = "Rechercher...",
   className = "",
   id = "search-bar",
+  onBlur,
 }) => {
   return (
     <div className={`relative ${className}`}>
@@ -20,6 +21,7 @@ const SearchBar = ({
         id={id}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         placeholder={placeholder}
         className='w-full bg-gray-100 dark:bg-[#18181b] px-3 py-2 rounded-lg text-sm text-gray-700 placeholder-gray-400 dark:text-white dark:placeholder-gray-400 outline-none'
       />
