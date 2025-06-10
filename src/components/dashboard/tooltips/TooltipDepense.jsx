@@ -14,6 +14,10 @@ import {
   calculDepensesEchelonneesJusquaAujourdhui,
 } from "../calculDashboard";
 import { formatMontant } from "../../../utils/calcul";
+import {
+  calculRevenusEchelonnesJusquaAujourdhui,
+  calculRevenusEchelonnesTotal,
+} from "../calculDashboard";
 
 const TooltipDepense = ({
   depensesClassiquesCourant = 0,
@@ -40,7 +44,7 @@ const TooltipDepense = ({
       new Date()
     ) || 0;
   const echelonnesJusquaAujourdhui =
-    calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
+    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
     0;
   const totalDepensesJusquaAujourdhui =
     depensesClassiquesJusquaAujourdhui +
@@ -53,7 +57,7 @@ const TooltipDepense = ({
   const recurrentsPrevisionnel =
     calculDepensesRecurrentesTotal(paiementsRecurrents, new Date()) || 0;
   const echelonnesPrevisionnel =
-    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0;
   const totalPrevisionnel =
     depensesClassiquesPrevisionnel +
     recurrentsPrevisionnel +
@@ -67,7 +71,7 @@ const TooltipDepense = ({
   const recurrentsDepenseMoisPrec =
     calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
   const echelonnesDepenseMoisPrec =
-    calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+    calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
   const totalMoisPrecedent =
     depensesClassiquesMoisPrec +
     recurrentsDepenseMoisPrec +

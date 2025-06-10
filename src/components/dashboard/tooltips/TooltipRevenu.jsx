@@ -12,6 +12,8 @@ import {
   calculRevenusClassiquesTotal,
   calculRevenusRecurrentsTotal,
   calculRevenusEchelonnesTotal,
+  calculDepensesEchelonneesJusquaAujourdhui,
+  calculDepensesEchelonneesTotal,
 } from "../calculDashboard";
 
 const TooltipRevenu = () => {
@@ -29,7 +31,7 @@ const TooltipRevenu = () => {
     calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date()) ||
     0;
   const echelonnesJusquaAujourdhui =
-    calculRevenusEchelonnesJusquaAujourdhui(
+    calculDepensesEchelonneesJusquaAujourdhui(
       paiementsEchelonnes,
       new Date()
     ) || 0;
@@ -44,7 +46,7 @@ const TooltipRevenu = () => {
   const recurrentsPrevisionnel =
     calculRevenusRecurrentsTotal(paiementsRecurrents, new Date()) || 0;
   const echelonnesPrevisionnel =
-    calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0;
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
   const totalPrevisionnel =
     revenusClassiquesPrevisionnel +
     recurrentsPrevisionnel +
@@ -58,7 +60,7 @@ const TooltipRevenu = () => {
   const recurrentsMoisPrec =
     calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
   const echelonnesMoisPrec =
-    calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
   const totalMoisPrecedent =
     revenusClassiquesMoisPrec + recurrentsMoisPrec + echelonnesMoisPrec;
 
