@@ -134,7 +134,7 @@ export function getCourbeRevenusDepenses6Mois(
           paiementsRecurrents,
           dernierJour
         );
-        const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
+        const totalDepensesEchelonnees = calculRevenusEchelonnesTotal(
           paiementsEchelonnes,
           dernierJour
         );
@@ -150,7 +150,7 @@ export function getCourbeRevenusDepenses6Mois(
           paiementsRecurrents,
           dernierJour
         );
-        const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
+        const totalRevenusEchelonnes = calculDepensesEchelonneesTotal(
           paiementsEchelonnes,
           dernierJour
         );
@@ -158,6 +158,17 @@ export function getCourbeRevenusDepenses6Mois(
           totalRevenusClassiques +
           totalRevenusRecurrents +
           totalRevenusEchelonnes;
+
+        console.log("[GRAPHIQUE][MOIS COURANT][PRÉVISIONNEL]", moisLabel, {
+          totalDepensesClassiques,
+          totalDepensesRecurrents,
+          totalDepensesEchelonnees,
+          totalRevenusClassiques,
+          totalRevenusRecurrents,
+          totalRevenusEchelonnes,
+          totalDepenses: depenses,
+          totalRevenus: revenus,
+        });
       } else {
         // RÉALISÉ pour le mois courant (jusqu'à aujourd'hui)
         const aujourdHui = now;
@@ -169,7 +180,7 @@ export function getCourbeRevenusDepenses6Mois(
             aujourdHui
           );
         const totalDepensesEchelonnees =
-          calculDepensesEchelonneesJusquaAujourdhui(
+          calculRevenusEchelonnesJusquaAujourdhui(
             paiementsEchelonnes,
             aujourdHui
           );
@@ -185,14 +196,26 @@ export function getCourbeRevenusDepenses6Mois(
           paiementsRecurrents,
           aujourdHui
         );
-        const totalRevenusEchelonnes = calculRevenusEchelonnesJusquaAujourdhui(
-          paiementsEchelonnes,
-          aujourdHui
-        );
+        const totalRevenusEchelonnes =
+          calculDepensesEchelonneesJusquaAujourdhui(
+            paiementsEchelonnes,
+            aujourdHui
+          );
         revenus =
           totalRevenusClassiques +
           totalRevenusRecurrents +
           totalRevenusEchelonnes;
+
+        console.log("[GRAPHIQUE][MOIS COURANT][RÉALISÉ]", moisLabel, {
+          totalDepensesClassiques,
+          totalDepensesRecurrents,
+          totalDepensesEchelonnees,
+          totalRevenusClassiques,
+          totalRevenusRecurrents,
+          totalRevenusEchelonnes,
+          totalDepenses: depenses,
+          totalRevenus: revenus,
+        });
       }
     } else {
       // RÉEL pour les autres mois (utilise les mêmes fonctions que les encadrés)
@@ -205,7 +228,7 @@ export function getCourbeRevenusDepenses6Mois(
         paiementsRecurrents,
         dateMois
       );
-      const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
+      const totalDepensesEchelonnees = calculRevenusEchelonnesTotal(
         paiementsEchelonnes,
         dateMois
       );
@@ -229,6 +252,17 @@ export function getCourbeRevenusDepenses6Mois(
         totalRevenusClassiques +
         totalRevenusRecurrents +
         totalRevenusEchelonnes;
+
+      console.log("[GRAPHIQUE][MOIS PASSÉ]", moisLabel, {
+        totalDepensesClassiques,
+        totalDepensesRecurrents,
+        totalDepensesEchelonnees,
+        totalRevenusClassiques,
+        totalRevenusRecurrents,
+        totalRevenusEchelonnes,
+        totalDepenses: depenses,
+        totalRevenus: revenus,
+      });
     }
     result.push({ mois: moisLabel, depenses, revenus, details });
   }

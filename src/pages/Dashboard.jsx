@@ -361,19 +361,11 @@ export default function Dashboard() {
     !paiementsEchelonnes ||
     !Array.isArray(paiementsEchelonnes)
   ) {
-    console.log("[DASHBOARD] Données non prêtes", {
-      depenseRevenu,
-      paiementsRecurrents,
-      paiementsEchelonnes,
-    });
+  
     return <div>Chargement des données…</div>;
   }
 
-  console.log("[DASHBOARD] Données pour graphique", {
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
-  });
+
 
   const courbeData = getCourbeRevenusDepenses6Mois(
     depenseRevenu,
