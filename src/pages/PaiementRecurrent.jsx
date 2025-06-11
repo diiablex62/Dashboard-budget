@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useMemo,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   AiOutlinePlus,
   AiOutlineCalendar,
@@ -14,11 +8,9 @@ import {
   AiOutlineEdit,
   AiOutlineDelete,
 } from "react-icons/ai";
-import { fakePaiementsRecurrents } from "../utils/fakeData";
 import {
   DEPENSES_CATEGORIES,
   REVENUS_CATEGORIES,
-  getMonthYear,
   MONTHS,
   CATEGORY_COLORS,
 } from "../utils/categoryUtils";
@@ -28,43 +20,47 @@ import {
   formatMontant,
 } from "../utils/calcul";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
-import {
-  editPaiement,
-  deletePaiementWithUndo,
-} from "../utils/paiementActions.jsx";
+import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 import CardDesign from "../components/ui/CardDesign";
 import { ModalRecurrent } from "../components/ui/Modal";
 import Button from "../components/ui/Button";
+import { useAuth } from "../context/AuthContext";
 
 const PaiementRecurrent = () => {
-  const [paiementsRecurrents, setPaiementsRecurrents] = useState(
-    fakePaiementsRecurrents
-  );
+  const { getData } = useAuth();
   const [currentTab, setCurrentTab] = useState("revenu");
   const [error] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedPaiement, setSelectedPaiement] = useState(null);
-  const [step, setStep] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+
+  // Sécurisation des données pour éviter les erreurs si non chargées
+  const { paiementsRecurrents: dataPaiementsRecurrents } = useMemo(
+    () => getData() || {},
+    [getData]
+  );
+  const safePaiementsRecurrents = Array.isArray(dataPaiementsRecurrents)
+    ? dataPaiementsRecurrents
+    : [];
 
   // Calcul des totaux
   const totalRevenus = useMemo(() => {
     return calculTotalRevenusRecurrentsMois(
-      paiementsRecurrents.filter((p) => p.type === "revenu"),
+      safePaiementsRecurrents.filter((p) => p.type === "revenu"),
       selectedMonth
     );
-  }, [paiementsRecurrents, selectedMonth]);
+  }, [safePaiementsRecurrents, selectedMonth]);
 
   const totalDepenses = useMemo(() => {
     return calculTotalDepensesRecurrentesMois(
-      paiementsRecurrents.filter((p) => p.type === "depense"),
+      safePaiementsRecurrents.filter((p) => p.type === "depense"),
       selectedMonth
     );
-  }, [paiementsRecurrents, selectedMonth]);
+  }, [safePaiementsRecurrents, selectedMonth]);
 
   // Filtrage des paiements selon le type et le mois
   const paiementsFiltres = useMemo(() => {
-    return paiementsRecurrents.filter((p) => {
+    return safePaiementsRecurrents.filter((p) => {
       if (p.type !== currentTab) return false;
 
       // Vérifie si le jour de prélèvement est valide pour ce mois
@@ -76,7 +72,7 @@ const PaiementRecurrent = () => {
 
       return jourValide;
     });
-  }, [paiementsRecurrents, currentTab, selectedMonth]);
+  }, [safePaiementsRecurrents, currentTab, selectedMonth]);
 
   // Trier les paiements par jour de prélèvement
   const paiementsTries = useMemo(() => {
@@ -89,7 +85,6 @@ const PaiementRecurrent = () => {
   const handleEditPaiement = useCallback((paiement) => {
     setSelectedPaiement(paiement);
     setShowModal(true);
-    setStep(1);
   }, []);
 
   const handleAddPaiement = useCallback(() => {
@@ -101,32 +96,6 @@ const PaiementRecurrent = () => {
     });
     setShowModal(true);
   }, []);
-
-  const handleSavePaiement = useCallback(
-    async (paiement) => {
-      setPaiementsRecurrents((prev) => {
-        const newPaiement = {
-          ...paiement,
-          type: currentTab,
-          jourPrelevement: Number(paiement.jour),
-          montant: Number(paiement.montant),
-        };
-
-        if (paiement.id) {
-          const updatedPaiements = prev.map((t) =>
-            t.id === paiement.id ? newPaiement : t
-          );
-          return updatedPaiements;
-        } else {
-          const newId = Math.max(...prev.map((p) => p.id), 0) + 1;
-          const updatedPaiements = [...prev, { ...newPaiement, id: newId }];
-          return updatedPaiements;
-        }
-      });
-      setShowModal(false);
-    },
-    [currentTab]
-  );
 
   if (error) {
     return (
@@ -207,7 +176,8 @@ const PaiementRecurrent = () => {
             Dépenses
           </button>
         </div>
-        {/* Affichage des paiements récurrents filtrés */}
+
+        {/* Liste des paiements filtrés */}
         <div className='bg-white rounded-2xl shadow border border-[#ececec] p-8 mt-2 dark:bg-black dark:text-white dark:border-gray-700'>
           <div className='flex items-center justify-between mb-6'>
             <div>
@@ -220,12 +190,6 @@ const PaiementRecurrent = () => {
                 {currentTab === "depense" ? "Dépenses" : "Revenus"} récurrents
                 mensuels
               </div>
-            </div>
-            {/* Bouton Ajouter */}
-            <div className='flex space-x-3'>
-              <Button onClick={handleAddPaiement} icon={AiOutlinePlus}>
-                Ajouter
-              </Button>
             </div>
           </div>
           {paiementsTries.length === 0 ? (
@@ -243,30 +207,13 @@ const PaiementRecurrent = () => {
                   item={p}
                   currentTab={currentTab}
                   onEdit={() => handleEditPaiement(p)}
-                  onDelete={() =>
-                    deletePaiementWithUndo(p.id, setPaiementsRecurrents, p.nom)
-                  }
+                  onDelete={() => {}}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
-
-      {/* Modal */}
-      <ModalRecurrent
-        visible={showModal}
-        onClose={() => setShowModal(false)}
-        onSave={handleSavePaiement}
-        initialValues={selectedPaiement}
-        categories={
-          currentTab === "depense" ? DEPENSES_CATEGORIES : REVENUS_CATEGORIES
-        }
-        title={`${selectedPaiement ? "Modifier" : "Ajouter"} une ${
-          currentTab === "depense" ? "dépense" : "revenu"
-        } récurrente`}
-        editMode={!!selectedPaiement}
-      />
     </div>
   );
 };

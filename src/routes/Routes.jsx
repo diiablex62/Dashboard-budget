@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Dashboard from "../pages/Dashboard";
 import DepensesRevenus from "../pages/DepensesRevenus";
@@ -60,13 +60,12 @@ function ProtectedRoute({ children }) {
 }
 
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <>
       <Routes>
-        {/* Route racine - dashboard accessible à tous */}
-        <Route path='/' element={<Dashboard />} />
+        {/* Redirection racine vers /dashboard */}
+        <Route path='/' element={<Navigate to='/dashboard' replace />} />
+        {/* Route dashboard */}
         <Route path='/dashboard' element={<Dashboard />} />
 
         {/* Routes publiques qui ne doivent pas être accessibles si connecté */}

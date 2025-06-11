@@ -25,6 +25,7 @@ import {
   calculProgressionPaiementEchelonne,
 } from "../utils/calcul";
 import Button from "../components/ui/Button";
+import { useAuth } from "../context/AuthContext";
 
 export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -34,6 +35,7 @@ export const PaiementEchelonne = () => {
   );
   const [editIndex, setEditIndex] = useState(null);
   const [isRevenus, setIsRevenus] = useState(false);
+  const { getData, isAuthenticated } = useAuth();
 
   const handleEdit = useCallback((payment) => {
     setEditIndex(payment.id);
@@ -135,6 +137,15 @@ export const PaiementEchelonne = () => {
     [editIndex, isRevenus, paiementsEchelonnes]
   );
 
+  const { paiementsEchelonnes: dataPaiementsEchelonnes } = useMemo(
+    () => getData() || {},
+    [getData]
+  );
+  const safePaiementsEchelonnes =
+    isAuthenticated && Array.isArray(dataPaiementsEchelonnes)
+      ? dataPaiementsEchelonnes
+      : [];
+
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
@@ -226,14 +237,13 @@ export const PaiementEchelonne = () => {
                   setEditIndex(null);
                   setShowModal(true);
                 }}
-                icon={AiOutlinePlus}
-              >
+                icon={AiOutlinePlus}>
                 Ajouter
               </Button>
             </div>
           </div>
 
-          {paiementsEchelonnes.filter(
+          {safePaiementsEchelonnes.filter(
             (p) => p.type === (isRevenus ? "debit" : "credit")
           ).length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
@@ -244,7 +254,7 @@ export const PaiementEchelonne = () => {
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
-              {paiementsEchelonnes
+              {safePaiementsEchelonnes
                 .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
                 .filter((paiement) => {
                   const debut = new Date(paiement.debutDate);

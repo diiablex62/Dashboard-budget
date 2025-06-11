@@ -101,9 +101,18 @@ export default function Dashboard() {
 
   // Utilisation de refreshKey dans le useMemo pour getData
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
-    () => getData(),
+    () => getData() || {},
     [getData, refreshKey]
   );
+
+  // Sécurisation des données pour éviter les erreurs si non chargées
+  const safeDepenseRevenu = Array.isArray(depenseRevenu) ? depenseRevenu : [];
+  const safePaiementsRecurrents = Array.isArray(paiementsRecurrents)
+    ? paiementsRecurrents
+    : [];
+  const safePaiementsEchelonnes = Array.isArray(paiementsEchelonnes)
+    ? paiementsEchelonnes
+    : [];
 
   // Utilisation des valeurs par défaut pour les revenus et économies
   const { totalEconomiesJusquaAujourdhui } = DEFAULT_AMOUNTS;
@@ -125,22 +134,34 @@ export default function Dashboard() {
 
   // Calculs explicites pour les totaux à afficher dans la carte économies et le tooltip
   const revenusClassiquesJusquaAujourdhui =
-    calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+    calculRevenusClassiquesJusquaAujourdhui(safeDepenseRevenu, new Date());
   const recurrentsRevenuJusquaAujourdhui =
-    calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date());
+    calculRevenusRecurrentsJusquaAujourdhui(
+      safePaiementsRecurrents,
+      new Date()
+    );
   const echelonnesRevenuJusquaAujourdhui =
-    calculDepensesEchelonneesJusquaAujourdhui(paiementsEchelonnes, new Date());
+    calculDepensesEchelonneesJusquaAujourdhui(
+      safePaiementsEchelonnes,
+      new Date()
+    );
   const totalRevenusJusquaAujourdhui =
     revenusClassiquesJusquaAujourdhui +
     recurrentsRevenuJusquaAujourdhui +
     echelonnesRevenuJusquaAujourdhui;
 
   const depensesClassiquesJusquaAujourdhui =
-    calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date());
+    calculDepensesClassiquesJusquaAujourdhui(safeDepenseRevenu, new Date());
   const recurrentsDepenseJusquaAujourdhui =
-    calculDepensesRecurrentesJusquaAujourdhui(paiementsRecurrents, new Date());
+    calculDepensesRecurrentesJusquaAujourdhui(
+      safePaiementsRecurrents,
+      new Date()
+    );
   const echelonnesDepenseJusquaAujourdhui =
-    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date());
+    calculRevenusEchelonnesJusquaAujourdhui(
+      safePaiementsEchelonnes,
+      new Date()
+    );
   const totalDepenseJusquaAujourdhui =
     depensesClassiquesJusquaAujourdhui +
     recurrentsDepenseJusquaAujourdhui +
@@ -152,15 +173,15 @@ export default function Dashboard() {
 
   // Prévisionnel
   const revenusClassiquesPrevisionnel = calculRevenusClassiquesTotal(
-    depenseRevenu,
+    safeDepenseRevenu,
     new Date()
   );
   const recurrentsRevenuPrevisionnel = calculRevenusRecurrentsTotal(
-    paiementsRecurrents,
+    safePaiementsRecurrents,
     new Date()
   );
   const echelonnesRevenuPrevisionnel = calculDepensesEchelonneesTotal(
-    paiementsEchelonnes,
+    safePaiementsEchelonnes,
     new Date()
   );
   const totalRevenus = useMemo(() => {
@@ -176,15 +197,15 @@ export default function Dashboard() {
   ]);
 
   const depensesClassiquesPrevisionnel = calculDepensesClassiquesTotal(
-    depenseRevenu,
+    safeDepenseRevenu,
     new Date()
   );
   const recurrentsDepensePrevisionnel = calculDepensesRecurrentesTotal(
-    paiementsRecurrents,
+    safePaiementsRecurrents,
     new Date()
   );
   const echelonnesDepensePrevisionnel = calculRevenusEchelonnesTotal(
-    paiementsEchelonnes,
+    safePaiementsEchelonnes,
     new Date()
   );
   const totalDepense = useMemo(() => {
@@ -206,15 +227,15 @@ export default function Dashboard() {
   // Mois précédent
   const dateMoisPrecedent = getPreviousMonth();
   const revenusClassiquesMoisPrec = calculRevenusClassiquesTotal(
-    depenseRevenu,
+    safeDepenseRevenu,
     dateMoisPrecedent
   );
   const recurrentsRevenuMoisPrec = calculRevenusRecurrentsTotal(
-    paiementsRecurrents,
+    safePaiementsRecurrents,
     dateMoisPrecedent
   );
   const echelonnesRevenuMoisPrec = calculDepensesEchelonneesTotal(
-    paiementsEchelonnes,
+    safePaiementsEchelonnes,
     dateMoisPrecedent
   );
   const totalRevenusMoisPrecedent =
@@ -223,15 +244,15 @@ export default function Dashboard() {
     echelonnesRevenuMoisPrec;
 
   const depensesClassiquesMoisPrec = calculDepensesClassiquesTotal(
-    depenseRevenu,
+    safeDepenseRevenu,
     dateMoisPrecedent
   );
   const recurrentsDepenseMoisPrec = calculDepensesRecurrentesTotal(
-    paiementsRecurrents,
+    safePaiementsRecurrents,
     dateMoisPrecedent
   );
   const echelonnesDepenseMoisPrec = calculRevenusEchelonnesTotal(
-    paiementsEchelonnes,
+    safePaiementsEchelonnes,
     dateMoisPrecedent
   );
   const totalDepenseMoisPrecedent =
@@ -251,7 +272,7 @@ export default function Dashboard() {
 
   // Fonction pour calculer le total des paiements échelonnés du mois
   const calculTotalEchelonnesMois = useCallback(() => {
-    return paiementsEchelonnes
+    return safePaiementsEchelonnes
       .filter(
         (e) =>
           e.type === "depense" &&
@@ -264,11 +285,11 @@ export default function Dashboard() {
           Math.abs(parseFloat(e.montant || 0)) / parseInt(e.mensualites || 1),
         0
       );
-  }, [paiementsEchelonnes]);
+  }, [safePaiementsEchelonnes]);
 
   // Utiliser le hook personnalisé pour le tri
   const { paiementsRecurrentsTries, paiementsEchelonnesTries } =
-    useSortedPayments(paiementsRecurrents, paiementsEchelonnes);
+    useSortedPayments(safePaiementsRecurrents, safePaiementsEchelonnes);
 
   // Totaux paiements échelonnés (dépenses uniquement)
   // const totalEchelonnesJusquaAujourdhui =
@@ -350,23 +371,10 @@ export default function Dashboard() {
     }));
   }
 
-  // Protection pour éviter le rendu avec des données incomplètes
-  if (
-    !depenseRevenu ||
-    !Array.isArray(depenseRevenu) ||
-    depenseRevenu.length === 0 ||
-    !paiementsRecurrents ||
-    !Array.isArray(paiementsRecurrents) ||
-    !paiementsEchelonnes ||
-    !Array.isArray(paiementsEchelonnes)
-  ) {
-    return <div>Chargement des données…</div>;
-  }
-
   const courbeData = getCourbeRevenusDepenses6Mois(
-    depenseRevenu,
-    paiementsRecurrents,
-    paiementsEchelonnes,
+    safeDepenseRevenu,
+    safePaiementsRecurrents,
+    safePaiementsEchelonnes,
     isPrevisionnel
   );
 
@@ -440,9 +448,9 @@ export default function Dashboard() {
           recurrentsDepenseMoisPrec={recurrentsDepenseMoisPrec}
           echelonnesDepenseMoisPrec={echelonnesDepenseMoisPrec}
           isPrevisionnel={isPrevisionnel}
-          depenseRevenu={depenseRevenu}
-          paiementsRecurrents={paiementsRecurrents}
-          paiementsEchelonnes={paiementsEchelonnes}
+          depenseRevenu={safeDepenseRevenu}
+          paiementsRecurrents={safePaiementsRecurrents}
+          paiementsEchelonnes={safePaiementsEchelonnes}
           calculTotalEchelonnesMois={calculTotalEchelonnesMois}
           isCurrentMonth={isCurrentMonth}
         />
@@ -492,9 +500,9 @@ export default function Dashboard() {
         <GraphiqueCard title='Dépenses du mois par catégorie'>
           <DepensesParCategorieChart
             data={getDepensesParCategoriePourMois(
-              depenseRevenu,
-              paiementsRecurrents,
-              paiementsEchelonnes
+              safeDepenseRevenu,
+              safePaiementsRecurrents,
+              safePaiementsEchelonnes
             )}
             isPrevisionnel={isPrevisionnel}
           />
