@@ -162,172 +162,180 @@ const isUserConnected = () => {
   return localStorage.getItem("isAuthenticated") === "true";
 };
 
+// Copie de la logique de calculDepensesEchelonneesTotal (pour dépenses échelonnées)
+function getDepensesEchelonneesMois(paiementsEchelonnes, date) {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  let total = 0;
+  paiementsEchelonnes.forEach((p) => {
+    if (!p || !p.debutDate || !p.mensualites) return;
+    if (p.type !== "debit") return;
+    const dateDebut = new Date(p.debutDate);
+    for (let i = 0; i < Number(p.mensualites); i++) {
+      const dateMensualite = new Date(dateDebut);
+      dateMensualite.setMonth(dateDebut.getMonth() + i);
+      if (
+        dateMensualite.getMonth() === mois &&
+        dateMensualite.getFullYear() === annee
+      ) {
+        const mensualite = Number(p.montant) / Number(p.mensualites);
+        total += Math.abs(mensualite);
+      }
+    }
+  });
+  return total;
+}
+
+// Copie de la logique de calculRevenusEchelonnesTotal (pour revenus échelonnés)
+function getRevenusEchelonnesMois(paiementsEchelonnes, date) {
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const mois = dateObj.getMonth();
+  const annee = dateObj.getFullYear();
+  let total = 0;
+  paiementsEchelonnes.forEach((p) => {
+    if (!p || !p.debutDate || !p.mensualites) return;
+    if (p.type !== "credit") return;
+    const dateDebut = new Date(p.debutDate);
+    for (let i = 0; i < Number(p.mensualites); i++) {
+      const dateMensualite = new Date(dateDebut);
+      dateMensualite.setMonth(dateDebut.getMonth() + i);
+      if (
+        dateMensualite.getMonth() === mois &&
+        dateMensualite.getFullYear() === annee
+      ) {
+        const mensualite = Number(p.montant) / Number(p.mensualites);
+        total += Math.abs(mensualite);
+      }
+    }
+  });
+  return total;
+}
+
 // Ajoute dynamiquement la transaction 'Solde mois précédent' selon le solde du mois précédent
-function injectSoldeMoisPrecedent(depenseRevenu) {
-  // Récupère le mois courant et le précédent
-  const now = new Date();
-  const anneeCourante = now.getFullYear();
-  const moisCourant = now.getMonth();
-  const premierJourMoisCourant = new Date(anneeCourante, moisCourant, 1);
-  const dernierJourMoisPrecedent = new Date(anneeCourante, moisCourant, 0);
-  const moisPrecedent = dernierJourMoisPrecedent.getMonth();
-  const anneePrecedente = dernierJourMoisPrecedent.getFullYear();
-
-  // --- Dépenses classiques ---
-  const depensesMoisPrecedent = depenseRevenu.filter((item) => {
-    const d = new Date(item.date);
-    return (
-      item.type === "depense" &&
-      d.getMonth() === moisPrecedent &&
-      d.getFullYear() === anneePrecedente
+function injectSoldeMoisPrecedentTousMois(depenseRevenu) {
+  // Trouver tous les mois présents dans les données
+  const moisSet = new Set(
+    depenseRevenu.map((item) => {
+      const d = new Date(item.date);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    })
+  );
+  // Générer une transaction pour chaque mois
+  let transactionsSolde = [];
+  moisSet.forEach((moisStr) => {
+    const [annee, mois] = moisStr.split("-").map(Number);
+    const premierJourMois = new Date(annee, mois - 1, 1);
+    const dernierJourMoisPrecedent = new Date(annee, mois - 1, 0);
+    // Calcul du solde du mois précédent
+    const depensesEchelonneesMoisPrecedent = getDepensesEchelonneesMois(
+      fakePaiementsEchelonnes,
+      dernierJourMoisPrecedent
     );
-  });
-  // --- Revenus classiques ---
-  const revenusMoisPrecedent = depenseRevenu.filter((item) => {
-    const d = new Date(item.date);
-    return (
-      item.type === "revenu" &&
-      d.getMonth() === moisPrecedent &&
-      d.getFullYear() === anneePrecedente
+    const revenusEchelonnesMoisPrecedent = getRevenusEchelonnesMois(
+      fakePaiementsEchelonnes,
+      dernierJourMoisPrecedent
     );
-  });
-
-  // --- Dépenses récurrentes ---
-  const depensesRecurrents = fakePaiementsRecurrents
-    .filter((item) => {
+    const depensesMoisPrecedent = depenseRevenu.filter((item) => {
+      const d = new Date(item.date);
       return (
         item.type === "depense" &&
-        item.jourPrelevement >= 1 &&
-        item.jourPrelevement <= 31
-      );
-    })
-    .map((item) => {
-      // Date de prélèvement pour le mois précédent
-      return {
-        ...item,
-        date: `${anneePrecedente}-${String(moisPrecedent + 1).padStart(
-          2,
-          "0"
-        )}-${String(item.jourPrelevement).padStart(2, "0")}`,
-      };
-    })
-    .filter((item) => {
-      const d = new Date(item.date);
-      return (
-        d.getMonth() === moisPrecedent && d.getFullYear() === anneePrecedente
+        d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
+        d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
       );
     });
-
-  // --- Revenus récurrents ---
-  const revenusRecurrents = fakePaiementsRecurrents
-    .filter((item) => {
+    const revenusMoisPrecedent = depenseRevenu.filter((item) => {
+      const d = new Date(item.date);
       return (
         item.type === "revenu" &&
-        item.jourPrelevement >= 1 &&
-        item.jourPrelevement <= 31
-      );
-    })
-    .map((item) => {
-      return {
-        ...item,
-        date: `${anneePrecedente}-${String(moisPrecedent + 1).padStart(
-          2,
-          "0"
-        )}-${String(item.jourPrelevement).padStart(2, "0")}`,
-      };
-    })
-    .filter((item) => {
-      const d = new Date(item.date);
-      return (
-        d.getMonth() === moisPrecedent && d.getFullYear() === anneePrecedente
+        d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
+        d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
       );
     });
-
-  // --- Dépenses échelonnées ---
-  const depensesEchelonnees = fakePaiementsEchelonnes.filter((item) => {
-    // On considère les types 'debit' ou 'depense' comme dépenses
-    if (item.type !== "debit" && item.type !== "depense") return false;
-    // Calcule la date de la mensualité à payer
-    const debut = new Date(item.debutDate);
-    for (let i = 0; i < item.mensualites; i++) {
-      const dateMensualite = new Date(
-        debut.getFullYear(),
-        debut.getMonth() + i,
-        debut.getDate()
+    const depensesRecurrents = fakePaiementsRecurrents
+      .filter((item) => {
+        return (
+          item.type === "depense" &&
+          item.jourPrelevement >= 1 &&
+          item.jourPrelevement <= 31
+        );
+      })
+      .map((item) => {
+        return {
+          ...item,
+          date: `${dernierJourMoisPrecedent.getFullYear()}-${String(
+            dernierJourMoisPrecedent.getMonth() + 1
+          ).padStart(2, "0")}-${String(item.jourPrelevement).padStart(2, "0")}`,
+        };
+      })
+      .filter((item) => {
+        const d = new Date(item.date);
+        return (
+          d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
+          d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
+        );
+      });
+    const revenusRecurrents = fakePaiementsRecurrents
+      .filter((item) => {
+        return (
+          item.type === "revenu" &&
+          item.jourPrelevement >= 1 &&
+          item.jourPrelevement <= 31
+        );
+      })
+      .map((item) => {
+        return {
+          ...item,
+          date: `${dernierJourMoisPrecedent.getFullYear()}-${String(
+            dernierJourMoisPrecedent.getMonth() + 1
+          ).padStart(2, "0")}-${String(item.jourPrelevement).padStart(2, "0")}`,
+        };
+      })
+      .filter((item) => {
+        const d = new Date(item.date);
+        return (
+          d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
+          d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
+        );
+      });
+    const totalDepenses =
+      [...depensesMoisPrecedent, ...depensesRecurrents].reduce(
+        (acc, t) => acc + Number(t.montant),
+        0
+      ) + depensesEchelonneesMoisPrecedent;
+    const totalRevenus =
+      [...revenusMoisPrecedent, ...revenusRecurrents].reduce(
+        (acc, t) => acc + Number(t.montant),
+        0
+      ) + revenusEchelonnesMoisPrecedent;
+    const solde = totalRevenus - totalDepenses;
+    // Vérifier si la transaction existe déjà
+    const existe = depenseRevenu.some((item) => {
+      const d = new Date(item.date);
+      return (
+        item.nom === "Solde mois précédent" &&
+        d.getMonth() === premierJourMois.getMonth() &&
+        d.getFullYear() === premierJourMois.getFullYear()
       );
-      if (
-        dateMensualite.getMonth() === moisPrecedent &&
-        dateMensualite.getFullYear() === anneePrecedente &&
-        i < item.mensualitesPayees
-      ) {
-        return true;
-      }
+    });
+    if (!existe) {
+      transactionsSolde.push({
+        id: Date.now() + Math.floor(Math.random() * 100000),
+        nom: "Solde mois précédent",
+        montant: Math.abs(solde),
+        categorie: solde >= 0 ? "Autre revenu" : "Autre dépense",
+        date: `${annee}-${String(mois).padStart(2, "0")}-01`,
+        type: solde >= 0 ? "revenu" : "depense",
+        description: `Solde reporté du mois de ${dernierJourMoisPrecedent.toLocaleString(
+          "fr-FR",
+          { month: "long", year: "numeric" }
+        )}`,
+      });
     }
-    return false;
   });
-
-  // --- Revenus échelonnés ---
-  const revenusEchelonnes = fakePaiementsEchelonnes.filter((item) => {
-    // On considère les types 'credit' ou 'revenu' comme revenus
-    if (item.type !== "credit" && item.type !== "revenu") return false;
-    const debut = new Date(item.debutDate);
-    for (let i = 0; i < item.mensualites; i++) {
-      const dateMensualite = new Date(
-        debut.getFullYear(),
-        debut.getMonth() + i,
-        debut.getDate()
-      );
-      if (
-        dateMensualite.getMonth() === moisPrecedent &&
-        dateMensualite.getFullYear() === anneePrecedente &&
-        i < item.mensualitesPayees
-      ) {
-        return true;
-      }
-    }
-    return false;
-  });
-
-  // --- Sommes ---
-  const totalDepenses = [
-    ...depensesMoisPrecedent,
-    ...depensesRecurrents,
-    ...depensesEchelonnees,
-  ].reduce((acc, t) => acc + Number(t.montant), 0);
-  const totalRevenus = [
-    ...revenusMoisPrecedent,
-    ...revenusRecurrents,
-    ...revenusEchelonnes,
-  ].reduce((acc, t) => acc + Number(t.montant), 0);
-  const solde = totalRevenus - totalDepenses;
-
-  // Vérifie si la transaction existe déjà pour le mois courant
-  const existe = depenseRevenu.some((item) => {
-    const d = new Date(item.date);
-    return (
-      item.nom === "Solde mois précédent" &&
-      d.getMonth() === moisCourant &&
-      d.getFullYear() === anneeCourante
-    );
-  });
-
-  if (existe) return depenseRevenu;
-
-  // Crée la transaction
-  const transaction = {
-    id: Date.now(),
-    nom: "Solde mois précédent",
-    montant: Math.abs(solde),
-    categorie: solde >= 0 ? "Autre revenu" : "Autre dépense",
-    date: `${anneeCourante}-${String(moisCourant + 1).padStart(2, "0")}-01`,
-    type: solde >= 0 ? "revenu" : "depense",
-    description: `Solde reporté du mois de ${dernierJourMoisPrecedent.toLocaleString(
-      "fr-FR",
-      { month: "long", year: "numeric" }
-    )}`,
-  };
-  console.log("Transaction injectée:", transaction);
-  return [transaction, ...depenseRevenu];
+  return [...transactionsSolde, ...depenseRevenu];
 }
 
 // Fonction pour obtenir les données en fonction de l'état de connexion
@@ -340,7 +348,7 @@ export const getFakeData = () => {
     };
   }
   const data = {
-    fakeDepenseRevenu: injectSoldeMoisPrecedent(fakeDepenseRevenu),
+    fakeDepenseRevenu: injectSoldeMoisPrecedentTousMois(fakeDepenseRevenu),
     fakePaiementsRecurrents,
     fakePaiementsEchelonnes,
   };
