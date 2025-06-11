@@ -120,6 +120,9 @@ export default function DepensesRevenus() {
     [revenus, selectedDate]
   );
 
+  // Ajout d'un log pour vérifier la présence de la vraie carte 'Solde mois précédent'
+  console.log("Transactions affichées:", filteredDepenseRevenu);
+
   const renderContent = () => {
     try {
       return (
