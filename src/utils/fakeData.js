@@ -1,10 +1,13 @@
 // Données factices centralisées et helpers
 
-// Récupère le mois courant au format AAAA-MM
-const now = new Date();
-const year = now.getFullYear();
-const month = String(now.getMonth() + 1).padStart(2, "0");
-const currentMonth = `${year}-${month}`;
+import {
+  calculRevenusClassiquesTotal,
+  calculRevenusRecurrentsTotal,
+  calculRevenusEchelonnesTotal,
+  calculDepensesClassiquesTotal,
+  calculDepensesRecurrentesTotal,
+  calculDepensesEchelonneesTotal,
+} from "./calculPrevisionnel";
 
 // Données fictives pour les dépenses et revenus
 export const fakeDepenseRevenu = [
@@ -162,58 +165,6 @@ const isUserConnected = () => {
   return localStorage.getItem("isAuthenticated") === "true";
 };
 
-// Copie de la logique de calculDepensesEchelonneesTotal (pour dépenses échelonnées)
-function getDepensesEchelonneesMois(paiementsEchelonnes, date) {
-  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
-  const dateObj = date instanceof Date ? date : new Date(date);
-  const mois = dateObj.getMonth();
-  const annee = dateObj.getFullYear();
-  let total = 0;
-  paiementsEchelonnes.forEach((p) => {
-    if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "debit") return;
-    const dateDebut = new Date(p.debutDate);
-    for (let i = 0; i < Number(p.mensualites); i++) {
-      const dateMensualite = new Date(dateDebut);
-      dateMensualite.setMonth(dateDebut.getMonth() + i);
-      if (
-        dateMensualite.getMonth() === mois &&
-        dateMensualite.getFullYear() === annee
-      ) {
-        const mensualite = Number(p.montant) / Number(p.mensualites);
-        total += Math.abs(mensualite);
-      }
-    }
-  });
-  return total;
-}
-
-// Copie de la logique de calculRevenusEchelonnesTotal (pour revenus échelonnés)
-function getRevenusEchelonnesMois(paiementsEchelonnes, date) {
-  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
-  const dateObj = date instanceof Date ? date : new Date(date);
-  const mois = dateObj.getMonth();
-  const annee = dateObj.getFullYear();
-  let total = 0;
-  paiementsEchelonnes.forEach((p) => {
-    if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "credit") return;
-    const dateDebut = new Date(p.debutDate);
-    for (let i = 0; i < Number(p.mensualites); i++) {
-      const dateMensualite = new Date(dateDebut);
-      dateMensualite.setMonth(dateDebut.getMonth() + i);
-      if (
-        dateMensualite.getMonth() === mois &&
-        dateMensualite.getFullYear() === annee
-      ) {
-        const mensualite = Number(p.montant) / Number(p.mensualites);
-        total += Math.abs(mensualite);
-      }
-    }
-  });
-  return total;
-}
-
 // Ajoute dynamiquement la transaction 'Solde mois précédent' selon le solde du mois précédent
 function injectSoldeMoisPrecedentTousMois(depenseRevenu) {
   // Trouver tous les mois présents dans les données
@@ -227,97 +178,62 @@ function injectSoldeMoisPrecedentTousMois(depenseRevenu) {
   let transactionsSolde = [];
   moisSet.forEach((moisStr) => {
     const [annee, mois] = moisStr.split("-").map(Number);
-    const premierJourMois = new Date(annee, mois - 1, 1);
-    const dernierJourMoisPrecedent = new Date(annee, mois - 1, 0);
-    // Calcul du solde du mois précédent
-    const depensesEchelonneesMoisPrecedent = getDepensesEchelonneesMois(
-      fakePaiementsEchelonnes,
-      dernierJourMoisPrecedent
-    );
-    const revenusEchelonnesMoisPrecedent = getRevenusEchelonnesMois(
-      fakePaiementsEchelonnes,
-      dernierJourMoisPrecedent
-    );
-    const depensesMoisPrecedent = depenseRevenu.filter((item) => {
-      const d = new Date(item.date);
-      return (
-        item.type === "depense" &&
-        d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
-        d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
-      );
+    const dateMois = new Date(annee, mois - 1, 1);
+    const dateMoisPrecedent = new Date(annee, mois - 2, 1);
+    // Calculs avec les fonctions utilitaires (INVERSION pour les échelonnés)
+    const moisNom = dateMoisPrecedent.toLocaleString("fr-FR", {
+      month: "long",
+      year: "numeric",
     });
-    const revenusMoisPrecedent = depenseRevenu.filter((item) => {
-      const d = new Date(item.date);
-      return (
-        item.type === "revenu" &&
-        d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
-        d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
-      );
-    });
-    const depensesRecurrents = fakePaiementsRecurrents
-      .filter((item) => {
-        return (
-          item.type === "depense" &&
-          item.jourPrelevement >= 1 &&
-          item.jourPrelevement <= 31
-        );
-      })
-      .map((item) => {
-        return {
-          ...item,
-          date: `${dernierJourMoisPrecedent.getFullYear()}-${String(
-            dernierJourMoisPrecedent.getMonth() + 1
-          ).padStart(2, "0")}-${String(item.jourPrelevement).padStart(2, "0")}`,
-        };
-      })
-      .filter((item) => {
-        const d = new Date(item.date);
-        return (
-          d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
-          d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
-        );
-      });
-    const revenusRecurrents = fakePaiementsRecurrents
-      .filter((item) => {
-        return (
-          item.type === "revenu" &&
-          item.jourPrelevement >= 1 &&
-          item.jourPrelevement <= 31
-        );
-      })
-      .map((item) => {
-        return {
-          ...item,
-          date: `${dernierJourMoisPrecedent.getFullYear()}-${String(
-            dernierJourMoisPrecedent.getMonth() + 1
-          ).padStart(2, "0")}-${String(item.jourPrelevement).padStart(2, "0")}`,
-        };
-      })
-      .filter((item) => {
-        const d = new Date(item.date);
-        return (
-          d.getMonth() === dernierJourMoisPrecedent.getMonth() &&
-          d.getFullYear() === dernierJourMoisPrecedent.getFullYear()
-        );
-      });
-    const totalDepenses =
-      [...depensesMoisPrecedent, ...depensesRecurrents].reduce(
-        (acc, t) => acc + Number(t.montant),
-        0
-      ) + depensesEchelonneesMoisPrecedent;
+    const revenusClassiques =
+      calculRevenusClassiquesTotal(fakeDepenseRevenu, dateMoisPrecedent) || 0;
+    const revenusRecurrents =
+      calculRevenusRecurrentsTotal(
+        fakePaiementsRecurrents,
+        dateMoisPrecedent
+      ) || 0;
+    const revenusEchelonnes =
+      calculDepensesEchelonneesTotal(
+        fakePaiementsEchelonnes,
+        dateMoisPrecedent
+      ) || 0; // INVERSE
+    const depensesClassiques =
+      calculDepensesClassiquesTotal(fakeDepenseRevenu, dateMoisPrecedent) || 0;
+    const depensesRecurrentes =
+      calculDepensesRecurrentesTotal(
+        fakePaiementsRecurrents,
+        dateMoisPrecedent
+      ) || 0;
+    const depensesEchelonnees =
+      calculRevenusEchelonnesTotal(
+        fakePaiementsEchelonnes,
+        dateMoisPrecedent
+      ) || 0; // INVERSE
     const totalRevenus =
-      [...revenusMoisPrecedent, ...revenusRecurrents].reduce(
-        (acc, t) => acc + Number(t.montant),
-        0
-      ) + revenusEchelonnesMoisPrecedent;
+      revenusClassiques + revenusRecurrents + revenusEchelonnes;
+    const totalDepenses =
+      depensesClassiques + depensesRecurrentes + depensesEchelonnees;
     const solde = totalRevenus - totalDepenses;
+    // Log détaillé
+    console.log(
+      `--- CALCUL DU MOIS PRÉCÉDENT POUR ${moisStr} (calcul sur ${moisNom}) ---`
+    );
+    console.log("Revenus classiques:", revenusClassiques);
+    console.log("Revenus récurrents:", revenusRecurrents);
+    console.log("Revenus échelonnés:", revenusEchelonnes);
+    console.log("Dépenses classiques:", depensesClassiques);
+    console.log("Dépenses récurrentes:", depensesRecurrentes);
+    console.log("Dépenses échelonnées:", depensesEchelonnees);
+    console.log("Total revenus:", totalRevenus);
+    console.log("Total dépenses:", totalDepenses);
+    console.log("Solde:", solde);
     // Vérifier si la transaction existe déjà
     const existe = depenseRevenu.some((item) => {
       const d = new Date(item.date);
       return (
         item.nom === "Solde mois précédent" &&
-        d.getMonth() === premierJourMois.getMonth() &&
-        d.getFullYear() === premierJourMois.getFullYear()
+        d.getMonth() === dateMois.getMonth() &&
+        d.getFullYear() === dateMois.getFullYear()
       );
     });
     if (!existe) {
@@ -328,7 +244,7 @@ function injectSoldeMoisPrecedentTousMois(depenseRevenu) {
         categorie: solde >= 0 ? "Autre revenu" : "Autre dépense",
         date: `${annee}-${String(mois).padStart(2, "0")}-01`,
         type: solde >= 0 ? "revenu" : "depense",
-        description: `Solde reporté du mois de ${dernierJourMoisPrecedent.toLocaleString(
+        description: `Solde reporté du mois de ${dateMoisPrecedent.toLocaleString(
           "fr-FR",
           { month: "long", year: "numeric" }
         )}`,
