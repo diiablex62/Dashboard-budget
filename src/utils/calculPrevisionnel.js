@@ -36,29 +36,69 @@ export function calculRevenusRecurrentsTotal(paiementsRecurrents, date) {
 
 // Revenus échelonnés du mois
 export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
-  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) return 0;
+  if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
+    logger.debug("Aucun paiement échelonné à calculer", {
+      paiementsEchelonnes,
+      date,
+    });
+    return 0;
+  }
   const dateObj = date instanceof Date ? date : new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
+
+  logger.info("Calcul des revenus échelonnés pour", {
+    mois: dateObj.toLocaleString("fr-FR", { month: "long" }),
+    annee: dateObj.getFullYear(),
+  });
+
   paiementsEchelonnes.forEach((p) => {
-    if (p.type !== "credit") return;
-    // Log pour debug
-    console.log("[calculRevenusEchelonnesTotal] Paiement pris en compte :", p);
-    if (!p.debutDate || !p.mensualites) return;
+    if (p.type !== "credit") {
+      logger.debug("Paiement ignoré (pas un revenu)", { paiement: p });
+      return;
+    }
+
+    logger.debug("Analyse du paiement échelonné", {
+      nom: p.nom,
+      montant: p.montant,
+      mensualites: p.mensualites,
+      dateDebut: p.debutDate,
+    });
+
+    if (!p.debutDate || !p.mensualites) {
+      logger.warn("Paiement échelonné incomplet", { paiement: p });
+      return;
+    }
+
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
       dateMensualite.setMonth(dateDebut.getMonth() + i);
+
       if (
         dateMensualite.getMonth() === mois &&
         dateMensualite.getFullYear() === annee
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
+
+        logger.debug("Mensualité comptabilisée", {
+          nom: p.nom,
+          echeance: `${i + 1}/${p.mensualites}`,
+          date: dateMensualite.toLocaleDateString("fr-FR"),
+          montant: mensualite,
+          totalApres: total,
+        });
       }
     }
   });
+
+  logger.info("Total des revenus échelonnés calculé", {
+    total: total,
+    nombrePaiements: paiementsEchelonnes.length,
+  });
+
   return total;
 }
 

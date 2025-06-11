@@ -79,7 +79,10 @@ const RevenuCard = ({
       </div>
       <div className='relative'>
         <div className='text-2xl font-bold dark:text-white'>
-          {formatMontant(totalRevenus)}€
+          {formatMontant(
+            isPrevisionnel ? totalRevenus : totalRevenusJusquaAujourdhui
+          )}
+          €
         </div>
       </div>
       <div

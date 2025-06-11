@@ -141,7 +141,7 @@ export default function Dashboard() {
       new Date()
     );
   const echelonnesRevenuJusquaAujourdhui =
-    calculDepensesEchelonneesJusquaAujourdhui(
+    calculRevenusEchelonnesJusquaAujourdhui(
       safePaiementsEchelonnes,
       new Date()
     );
@@ -158,7 +158,7 @@ export default function Dashboard() {
       new Date()
     );
   const echelonnesDepenseJusquaAujourdhui =
-    calculRevenusEchelonnesJusquaAujourdhui(
+    calculDepensesEchelonneesJusquaAujourdhui(
       safePaiementsEchelonnes,
       new Date()
     );
@@ -226,15 +226,15 @@ export default function Dashboard() {
 
   // Mois précédent
   const dateMoisPrecedent = getPreviousMonth();
-  const revenusClassiquesMoisPrec = calculRevenusClassiquesTotal(
+  const revenusClassiquesMoisPrec = calculRevenusClassiquesJusquaAujourdhui(
     safeDepenseRevenu,
     dateMoisPrecedent
   );
-  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsTotal(
+  const recurrentsRevenuMoisPrec = calculRevenusRecurrentsJusquaAujourdhui(
     safePaiementsRecurrents,
     dateMoisPrecedent
   );
-  const echelonnesRevenuMoisPrec = calculDepensesEchelonneesTotal(
+  const echelonnesRevenuMoisPrec = calculRevenusEchelonnesJusquaAujourdhui(
     safePaiementsEchelonnes,
     dateMoisPrecedent
   );
@@ -243,15 +243,15 @@ export default function Dashboard() {
     recurrentsRevenuMoisPrec +
     echelonnesRevenuMoisPrec;
 
-  const depensesClassiquesMoisPrec = calculDepensesClassiquesTotal(
+  const depensesClassiquesMoisPrec = calculDepensesClassiquesJusquaAujourdhui(
     safeDepenseRevenu,
     dateMoisPrecedent
   );
-  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesTotal(
+  const recurrentsDepenseMoisPrec = calculDepensesRecurrentesJusquaAujourdhui(
     safePaiementsRecurrents,
     dateMoisPrecedent
   );
-  const echelonnesDepenseMoisPrec = calculRevenusEchelonnesTotal(
+  const echelonnesDepenseMoisPrec = calculDepensesEchelonneesJusquaAujourdhui(
     safePaiementsEchelonnes,
     dateMoisPrecedent
   );

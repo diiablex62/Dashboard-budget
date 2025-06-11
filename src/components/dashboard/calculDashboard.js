@@ -11,7 +11,6 @@ export const calculDepensesRecurrentesJusquaAujourdhui = (
   date
 ) => {
   if (!paiementsRecurrents || !Array.isArray(paiementsRecurrents)) {
-  
     return 0;
   }
 
@@ -27,14 +26,13 @@ export const calculDepensesRecurrentesJusquaAujourdhui = (
     (total, p) => total + Math.abs(parseFloat(p.montant || 0)),
     0
   );
- 
+
   return total;
 };
 
 // Calcul du total des dépenses récurrentes du mois (total)
 export const calculDepensesRecurrentesTotal = (paiementsRecurrents, date) => {
   if (!paiementsRecurrents || !Array.isArray(paiementsRecurrents)) {
-  
     return 0;
   }
 
@@ -63,7 +61,6 @@ export const calculDepensesEchelonneesJusquaAujourdhui = (
   date
 ) => {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
- 
     return 0;
   }
 
@@ -101,10 +98,9 @@ export const calculDepensesEchelonneesJusquaAujourdhui = (
 // Calcul du total des dépenses échelonnées du mois (total)
 export const calculDepensesEchelonneesTotal = (paiementsEchelonnes, date) => {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
-    
     return 0;
   }
-  
+
   const dateObj = date instanceof Date ? date : new Date(date);
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
@@ -138,7 +134,6 @@ export const calculDepensesEchelonneesTotal = (paiementsEchelonnes, date) => {
 // Calcul du total des dépenses classiques du mois (jusqu'à aujourd'hui)
 export const calculDepensesClassiquesJusquaAujourdhui = (depenses, date) => {
   if (!depenses || !Array.isArray(depenses)) {
-    
     return 0;
   }
 
@@ -220,14 +215,27 @@ export const calculRevenusClassiquesJusquaAujourdhui = (revenus, date) => {
 export const calculRevenusClassiquesTotal = (revenus, date) => {
   if (!revenus || !Array.isArray(revenus)) return 0;
   const dateObj = date instanceof Date ? date : new Date(date);
-  return revenus
-    .filter(
-      (r) =>
-        r.type === "revenu" &&
-        new Date(r.date).getMonth() === dateObj.getMonth() &&
-        new Date(r.date).getFullYear() === dateObj.getFullYear()
-    )
-    .reduce((acc, r) => acc + Math.abs(parseFloat(r.montant || 0)), 0);
+  const revenusFiltres = revenus.filter(
+    (r) =>
+      r.type === "revenu" &&
+      new Date(r.date).getMonth() === dateObj.getMonth() &&
+      new Date(r.date).getFullYear() === dateObj.getFullYear()
+  );
+  console.log(
+    "[calculRevenusClassiquesTotal] Revenu(s) filtré(s)",
+    revenusFiltres
+  );
+  const total = revenusFiltres.reduce((acc, r) => {
+    console.log("[calculRevenusClassiquesTotal] Ajout revenu", {
+      nom: r.nom,
+      montant: r.montant,
+      date: r.date,
+      totalAvant: acc,
+    });
+    return acc + Math.abs(parseFloat(r.montant || 0));
+  }, 0);
+  console.log("[calculRevenusClassiquesTotal] Total", { total });
+  return total;
 };
 // REVENUS RECCURENTS
 export const calculRevenusRecurrentsJusquaAujourdhui = (
@@ -249,14 +257,27 @@ export const calculRevenusRecurrentsTotal = (paiementsRecurrents, date) => {
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   const dernierJourDuMois = new Date(annee, mois + 1, 0).getDate();
-  return paiementsRecurrents
-    .filter(
-      (p) =>
-        p.type === "revenu" &&
-        parseInt(p.jourPrelevement) >= 1 &&
-        parseInt(p.jourPrelevement) <= dernierJourDuMois
-    )
-    .reduce((acc, p) => acc + Math.abs(parseFloat(p.montant || 0)), 0);
+  const revenusFiltres = paiementsRecurrents.filter(
+    (p) =>
+      p.type === "revenu" &&
+      parseInt(p.jourPrelevement) >= 1 &&
+      parseInt(p.jourPrelevement) <= dernierJourDuMois
+  );
+  console.log(
+    "[calculRevenusRecurrentsTotal] Paiement(s) récurrent(s) filtré(s)",
+    revenusFiltres
+  );
+  const total = revenusFiltres.reduce((acc, p) => {
+    console.log("[calculRevenusRecurrentsTotal] Ajout récurrent", {
+      nom: p.nom,
+      montant: p.montant,
+      jourPrelevement: p.jourPrelevement,
+      totalAvant: acc,
+    });
+    return acc + Math.abs(parseFloat(p.montant || 0));
+  }, 0);
+  console.log("[calculRevenusRecurrentsTotal] Total", { total });
+  return total;
 };
 // REVENUS ECHELONNES
 export const calculRevenusEchelonnesJusquaAujourdhui = (
@@ -321,9 +342,18 @@ export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
           date: dateMensualite.toISOString().slice(0, 10),
           montant: mensualite,
         });
+        console.log("[calculRevenusEchelonnesTotal] Ajout mensualité", {
+          nom: p.nom,
+          date: dateMensualite.toISOString().slice(0, 10),
+          montant: mensualite,
+          totalApres: total,
+        });
       }
     }
   });
- 
+  console.log("[calculRevenusEchelonnesTotal] Total", {
+    total,
+    mensualitesComptabilisees,
+  });
   return total;
 };

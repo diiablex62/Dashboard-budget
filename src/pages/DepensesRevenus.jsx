@@ -48,28 +48,36 @@ export default function DepensesRevenus() {
 
   const fetchDepenseRevenu = useCallback(() => {
     const { depenseRevenu } = getData();
-    setDepenses(
-      depenseRevenu.filter(
-        (t) =>
-          t.type === "depense" ||
-          (t.nom === "Solde mois précédent" && t.montant < 0)
-      )
+
+    const depensesFiltrees = depenseRevenu.filter(
+      (t) =>
+        t.type === "depense" ||
+        (t.nom === "Solde mois précédent" && t.montant < 0)
     );
-    setRevenus(
-      depenseRevenu.filter(
-        (t) =>
-          t.type === "revenu" ||
-          (t.nom === "Solde mois précédent" && t.montant >= 0)
-      )
+    const revenusFiltres = depenseRevenu.filter(
+      (t) =>
+        t.type === "revenu" ||
+        (t.nom === "Solde mois précédent" && t.montant >= 0)
     );
-  }, [getData]);
+
+    console.log("Données filtrées", {
+      nombreDepenses: depensesFiltrees.length,
+      nombreRevenus: revenusFiltres.length,
+      dateSelectionnee: selectedDate.toLocaleDateString("fr-FR"),
+    });
+
+    setDepenses(depensesFiltrees);
+    setRevenus(revenusFiltres);
+  }, [getData, selectedDate]);
 
   useEffect(() => {
     fetchDepenseRevenu();
   }, [fetchDepenseRevenu]);
 
   useEffect(() => {
-    const handleDataUpdate = () => fetchDepenseRevenu();
+    const handleDataUpdate = () => {
+      fetchDepenseRevenu();
+    };
     window.addEventListener("data-updated", handleDataUpdate);
     return () => window.removeEventListener("data-updated", handleDataUpdate);
   }, [fetchDepenseRevenu]);
@@ -81,6 +89,10 @@ export default function DepensesRevenus() {
 
   const handleSaveTransaction = useCallback(
     async (transaction) => {
+      console.log("Sauvegarde d'une transaction", {
+        transaction,
+        type: currentTab,
+      });
       if (currentTab === "depense") {
         setDepenses((prev) => {
           if (transaction.id) {
@@ -113,24 +125,55 @@ export default function DepensesRevenus() {
   );
 
   const filteredDepenseRevenu = useMemo(() => {
-    const items = currentTab === "depense" ? depenses : revenus;
-    return items.filter((t) => {
-      const d = new Date(t.date);
-      return (
-        d.getMonth() === selectedDate.getMonth() &&
-        d.getFullYear() === selectedDate.getFullYear()
-      );
+    console.log("Filtrage des transactions pour le mois sélectionné", {
+      date: selectedDate.toLocaleDateString("fr-FR"),
+      type: currentTab,
     });
+
+    const items = currentTab === "depense" ? depenses : revenus;
+    const filtered = items.filter((t) => {
+      const d = new Date(t.date);
+      const isInSelectedMonth =
+        d.getMonth() === selectedDate.getMonth() &&
+        d.getFullYear() === selectedDate.getFullYear();
+
+      if (isInSelectedMonth) {
+        logger.debug("Transaction trouvée pour le mois", {
+          nom: t.nom,
+          montant: t.montant,
+          date: t.date,
+        });
+      }
+
+      return isInSelectedMonth;
+    });
+
+    console.log("Transactions filtrées", {
+      nombreTransactions: filtered.length,
+      type: currentTab,
+      mois: selectedDate.toLocaleString("fr-FR", { month: "long" }),
+    });
+
+    return filtered;
   }, [currentTab, depenses, revenus, selectedDate]);
 
-  const totalDepenses = useMemo(
-    () => calculTotalDepensesMois(depenses, selectedDate),
-    [depenses, selectedDate]
-  );
-  const totalRevenus = useMemo(
-    () => totalRevenusGlobalMois(revenus, selectedDate),
-    [revenus, selectedDate]
-  );
+  const totalDepenses = useMemo(() => {
+    const total = calculTotalDepensesMois(depenses, selectedDate);
+    console.log("Total des dépenses calculé", {
+      total,
+      date: selectedDate.toLocaleDateString("fr-FR"),
+    });
+    return total;
+  }, [depenses, selectedDate]);
+
+  const totalRevenus = useMemo(() => {
+    const total = totalRevenusGlobalMois(revenus, selectedDate);
+    console.log("Total des revenus calculé", {
+      total,
+      date: selectedDate.toLocaleDateString("fr-FR"),
+    });
+    return total;
+  }, [revenus, selectedDate]);
 
   const renderContent = () => {
     try {
@@ -310,6 +353,7 @@ export default function DepensesRevenus() {
   // Ajouter la gestion des fonctions manquantes
   const handleAddDepense = async (depenseData) => {
     try {
+      console.log("Ajout d'une dépense", depenseData);
       const currentDate = new Date().toISOString().split("T")[0];
       await addDoc(collection(db, "depense"), {
         ...depenseData,
@@ -327,12 +371,13 @@ export default function DepensesRevenus() {
       };
       fetchData();
     } catch (err) {
-      console.error("Erreur ajout dépense:", err);
+      logger.error("Erreur lors de l'ajout d'une dépense", err);
     }
   };
 
   const handleAddRevenu = async (revenuData) => {
     try {
+      console.log("Ajout d'un revenu", revenuData);
       const currentDate = new Date().toISOString().split("T")[0];
       await addDoc(collection(db, "revenu"), {
         ...revenuData,
@@ -350,7 +395,7 @@ export default function DepensesRevenus() {
       };
       fetchData();
     } catch (err) {
-      console.error("Erreur ajout revenu:", err);
+      logger.error("Erreur lors de l'ajout d'un revenu", err);
     }
   };
 

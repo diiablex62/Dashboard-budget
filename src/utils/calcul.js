@@ -47,19 +47,53 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     !Array.isArray(depenseRevenu) ||
     depenseRevenu.length === 0
   ) {
+    logger.debug("Aucun revenu à calculer", { depenseRevenu, date });
     return 0;
   }
   const dateObj = date instanceof Date ? date : new Date(date);
-  const total = depenseRevenu
-    .filter((d) => {
-      const dDate = new Date(d.date);
-      return (
-        d.type === "revenu" &&
-        dDate.getMonth() === dateObj.getMonth() &&
-        dDate.getFullYear() === dateObj.getFullYear()
-      );
-    })
-    .reduce((acc, d) => acc + parseFloat(d.montant), 0);
+  logger.info("Calcul des revenus pour", {
+    mois: dateObj.toLocaleString("fr-FR", { month: "long" }),
+    annee: dateObj.getFullYear(),
+  });
+
+  const revenusFiltres = depenseRevenu.filter((d) => {
+    const dDate = new Date(d.date);
+    const estRevenu = d.type === "revenu";
+    const estMemeMois = dDate.getMonth() === dateObj.getMonth();
+    const estMemeAnnee = dDate.getFullYear() === dateObj.getFullYear();
+
+    if (estRevenu && estMemeMois && estMemeAnnee) {
+      logger.debug("Revenu trouvé", {
+        nom: d.nom,
+        montant: d.montant,
+        date: d.date,
+      });
+    }
+
+    return estRevenu && estMemeMois && estMemeAnnee;
+  });
+
+  const total = revenusFiltres.reduce((acc, d) => {
+    const montant = parseFloat(d.montant);
+    logger.debug("Ajout au total", {
+      nom: d.nom,
+      montant: montant,
+      totalAvant: acc,
+      totalApres: acc + montant,
+    });
+    return acc + montant;
+  }, 0);
+
+  logger.info("Total des revenus calculé", {
+    total: total,
+    nombreRevenus: revenusFiltres.length,
+    details: revenusFiltres.map((r) => ({
+      nom: r.nom,
+      montant: r.montant,
+      date: r.date,
+    })),
+  });
+
   return total;
 }
 
