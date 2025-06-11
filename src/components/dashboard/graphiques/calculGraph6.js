@@ -118,7 +118,7 @@ export function getCourbeRevenusDepenses6Mois(
           paiementsRecurrents,
           dernierJour
         );
-        const totalDepensesEchelonnees = calculRevenusEchelonnesTotal(
+        const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
           paiementsEchelonnes,
           dernierJour
         );
@@ -134,7 +134,7 @@ export function getCourbeRevenusDepenses6Mois(
           paiementsRecurrents,
           dernierJour
         );
-        const totalRevenusEchelonnes = calculDepensesEchelonneesTotal(
+        const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
           paiementsEchelonnes,
           dernierJour
         );
@@ -169,11 +169,10 @@ export function getCourbeRevenusDepenses6Mois(
           paiementsRecurrents,
           aujourdHui
         );
-        const totalRevenusEchelonnes =
-          calculDepensesEchelonneesJusquaAujourdhui(
-            paiementsEchelonnes,
-            aujourdHui
-          );
+        const totalRevenusEchelonnes = calculRevenusEchelonnesJusquaAujourdhui(
+          paiementsEchelonnes,
+          aujourdHui
+        );
         revenus =
           totalRevenusClassiques +
           totalRevenusRecurrents +
@@ -190,7 +189,7 @@ export function getCourbeRevenusDepenses6Mois(
         paiementsRecurrents,
         dateMois
       );
-      const totalDepensesEchelonnees = calculRevenusEchelonnesTotal(
+      const totalDepensesEchelonnees = calculDepensesEchelonneesTotal(
         paiementsEchelonnes,
         dateMois
       );
@@ -206,7 +205,7 @@ export function getCourbeRevenusDepenses6Mois(
         paiementsRecurrents,
         dateMois
       );
-      const totalRevenusEchelonnes = calculDepensesEchelonneesTotal(
+      const totalRevenusEchelonnes = calculRevenusEchelonnesTotal(
         paiementsEchelonnes,
         dateMois
       );

@@ -52,11 +52,11 @@ const TooltipEconomie = () => {
   const revenusPrevisionnel =
     (calculRevenusClassiquesTotal(depenseRevenu, new Date()) || 0) +
     (calculRevenusRecurrentsTotal(paiementsRecurrents, new Date()) || 0) +
-    (calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0);
+    (calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0);
   const depensesPrevisionnel =
     (calculDepensesClassiquesTotal(depenseRevenu, new Date()) || 0) +
     (calculDepensesRecurrentesTotal(paiementsRecurrents, new Date()) || 0) +
-    (calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0);
+    (calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0);
   const economiesPrevisionnel = revenusPrevisionnel - depensesPrevisionnel;
 
   // Calculs du mois précédent

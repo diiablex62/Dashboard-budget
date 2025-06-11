@@ -48,8 +48,20 @@ export default function DepensesRevenus() {
 
   const fetchDepenseRevenu = useCallback(() => {
     const { depenseRevenu } = getData();
-    setDepenses(depenseRevenu.filter((t) => t.type === "depense"));
-    setRevenus(depenseRevenu.filter((t) => t.type === "revenu"));
+    setDepenses(
+      depenseRevenu.filter(
+        (t) =>
+          t.type === "depense" ||
+          (t.nom === "Solde mois précédent" && t.montant < 0)
+      )
+    );
+    setRevenus(
+      depenseRevenu.filter(
+        (t) =>
+          t.type === "revenu" ||
+          (t.nom === "Solde mois précédent" && t.montant >= 0)
+      )
+    );
   }, [getData]);
 
   useEffect(() => {
@@ -119,9 +131,6 @@ export default function DepensesRevenus() {
     () => totalRevenusGlobalMois(revenus, selectedDate),
     [revenus, selectedDate]
   );
-
-  // Ajout d'un log pour vérifier la présence de la vraie carte 'Solde mois précédent'
-  console.log("Transactions affichées:", filteredDepenseRevenu);
 
   const renderContent = () => {
     try {

@@ -180,7 +180,7 @@ export default function Dashboard() {
     safePaiementsRecurrents,
     new Date()
   );
-  const echelonnesRevenuPrevisionnel = calculDepensesEchelonneesTotal(
+  const echelonnesRevenuPrevisionnel = calculRevenusEchelonnesTotal(
     safePaiementsEchelonnes,
     new Date()
   );
@@ -204,7 +204,7 @@ export default function Dashboard() {
     safePaiementsRecurrents,
     new Date()
   );
-  const echelonnesDepensePrevisionnel = calculRevenusEchelonnesTotal(
+  const echelonnesDepensePrevisionnel = calculDepensesEchelonneesTotal(
     safePaiementsEchelonnes,
     new Date()
   );

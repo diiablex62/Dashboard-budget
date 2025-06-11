@@ -44,8 +44,7 @@ const TooltipDepense = ({
       new Date()
     ) || 0;
   const echelonnesJusquaAujourdhui =
-    calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
-    0;
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
   const totalDepensesJusquaAujourdhui =
     depensesClassiquesJusquaAujourdhui +
     recurrentsJusquaAujourdhui +
@@ -57,7 +56,7 @@ const TooltipDepense = ({
   const recurrentsPrevisionnel =
     calculDepensesRecurrentesTotal(paiementsRecurrents, new Date()) || 0;
   const echelonnesPrevisionnel =
-    calculRevenusEchelonnesTotal(paiementsEchelonnes, new Date()) || 0;
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
   const totalPrevisionnel =
     depensesClassiquesPrevisionnel +
     recurrentsPrevisionnel +

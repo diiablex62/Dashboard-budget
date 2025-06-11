@@ -42,8 +42,10 @@ export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
   const annee = dateObj.getFullYear();
   let total = 0;
   paiementsEchelonnes.forEach((p) => {
-    if (!p || !p.debutDate || !p.mensualites) return;
     if (p.type !== "credit") return;
+    // Log pour debug
+    console.log("[calculRevenusEchelonnesTotal] Paiement pris en compte :", p);
+    if (!p.debutDate || !p.mensualites) return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);

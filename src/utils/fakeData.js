@@ -165,111 +165,20 @@ const isUserConnected = () => {
   return localStorage.getItem("isAuthenticated") === "true";
 };
 
-// Ajoute dynamiquement la transaction 'Solde mois précédent' selon le solde du mois précédent
-function injectSoldeMoisPrecedentTousMois(depenseRevenu) {
-  // Trouver tous les mois présents dans les données
-  const moisSet = new Set(
-    depenseRevenu.map((item) => {
-      const d = new Date(item.date);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    })
-  );
-  // Générer une transaction pour chaque mois
-  let transactionsSolde = [];
-  moisSet.forEach((moisStr) => {
-    const [annee, mois] = moisStr.split("-").map(Number);
-    const dateMois = new Date(annee, mois - 1, 1);
-    const dateMoisPrecedent = new Date(annee, mois - 2, 1);
-    // Calculs avec les fonctions utilitaires (INVERSION pour les échelonnés)
-    const moisNom = dateMoisPrecedent.toLocaleString("fr-FR", {
-      month: "long",
-      year: "numeric",
-    });
-    const revenusClassiques =
-      calculRevenusClassiquesTotal(fakeDepenseRevenu, dateMoisPrecedent) || 0;
-    const revenusRecurrents =
-      calculRevenusRecurrentsTotal(
-        fakePaiementsRecurrents,
-        dateMoisPrecedent
-      ) || 0;
-    const revenusEchelonnes =
-      calculDepensesEchelonneesTotal(
-        fakePaiementsEchelonnes,
-        dateMoisPrecedent
-      ) || 0; // INVERSE
-    const depensesClassiques =
-      calculDepensesClassiquesTotal(fakeDepenseRevenu, dateMoisPrecedent) || 0;
-    const depensesRecurrentes =
-      calculDepensesRecurrentesTotal(
-        fakePaiementsRecurrents,
-        dateMoisPrecedent
-      ) || 0;
-    const depensesEchelonnees =
-      calculRevenusEchelonnesTotal(
-        fakePaiementsEchelonnes,
-        dateMoisPrecedent
-      ) || 0; // INVERSE
-    const totalRevenus =
-      revenusClassiques + revenusRecurrents + revenusEchelonnes;
-    const totalDepenses =
-      depensesClassiques + depensesRecurrentes + depensesEchelonnees;
-    const solde = totalRevenus - totalDepenses;
-    // Log détaillé
-    console.log(
-      `--- CALCUL DU MOIS PRÉCÉDENT POUR ${moisStr} (calcul sur ${moisNom}) ---`
-    );
-    console.log("Revenus classiques:", revenusClassiques);
-    console.log("Revenus récurrents:", revenusRecurrents);
-    console.log("Revenus échelonnés:", revenusEchelonnes);
-    console.log("Dépenses classiques:", depensesClassiques);
-    console.log("Dépenses récurrentes:", depensesRecurrentes);
-    console.log("Dépenses échelonnées:", depensesEchelonnees);
-    console.log("Total revenus:", totalRevenus);
-    console.log("Total dépenses:", totalDepenses);
-    console.log("Solde:", solde);
-    // Vérifier si la transaction existe déjà
-    const existe = depenseRevenu.some((item) => {
-      const d = new Date(item.date);
-      return (
-        item.nom === "Solde mois précédent" &&
-        d.getMonth() === dateMois.getMonth() &&
-        d.getFullYear() === dateMois.getFullYear()
-      );
-    });
-    if (!existe) {
-      transactionsSolde.push({
-        id: Date.now() + Math.floor(Math.random() * 100000),
-        nom: "Solde mois précédent",
-        montant: Math.abs(solde),
-        categorie: solde >= 0 ? "Autre revenu" : "Autre dépense",
-        date: `${annee}-${String(mois).padStart(2, "0")}-01`,
-        type: solde >= 0 ? "revenu" : "depense",
-        description: `Solde reporté du mois de ${dateMoisPrecedent.toLocaleString(
-          "fr-FR",
-          { month: "long", year: "numeric" }
-        )}`,
-      });
-    }
-  });
-  return [...transactionsSolde, ...depenseRevenu];
-}
-
 // Fonction pour obtenir les données en fonction de l'état de connexion
 export const getFakeData = () => {
-  if (!isUserConnected()) {
+  if (isUserConnected()) {
     return {
-      fakeDepenseRevenu: [],
-      fakePaiementsRecurrents: [],
-      fakePaiementsEchelonnes: [],
+      fakeDepenseRevenu: [...fakeDepenseRevenu],
+      fakePaiementsRecurrents,
+      fakePaiementsEchelonnes,
     };
   }
-  const data = {
-    fakeDepenseRevenu: injectSoldeMoisPrecedentTousMois(fakeDepenseRevenu),
-    fakePaiementsRecurrents,
-    fakePaiementsEchelonnes,
+  return {
+    fakeDepenseRevenu: [],
+    fakePaiementsRecurrents: [],
+    fakePaiementsEchelonnes: [],
   };
-  console.log("fakeDepenseRevenu retourné:", data.fakeDepenseRevenu);
-  return data;
 };
 
 // Fonctions utilitaires pour filtrer les données
@@ -301,3 +210,55 @@ export function getEchelonnesDepenses() {
 export function getEchelonnesRevenus() {
   return fakePaiementsEchelonnes.filter((e) => e.type === "revenu");
 }
+
+// Fonction pour ajouter le solde du mois précédent
+export const ajouterSoldeMoisPrecedent = (transactions, annee, mois) => {
+  // Calcule le mois précédent
+  const moisPrecedent = mois - 1;
+  let soldeMoisPrecedent = 0;
+  if (moisPrecedent >= 1) {
+    const dateMoisPrecedent = new Date(annee, moisPrecedent - 1, 1);
+    // Calculs pour le mois précédent
+    const revenusClassiques =
+      calculRevenusClassiquesTotal(fakeDepenseRevenu, dateMoisPrecedent) || 0;
+    const revenusRecurrents =
+      calculRevenusRecurrentsTotal(
+        fakePaiementsRecurrents,
+        dateMoisPrecedent
+      ) || 0;
+    const revenusEchelonnes =
+      calculDepensesEchelonneesTotal(
+        fakePaiementsEchelonnes,
+        dateMoisPrecedent
+      ) || 0;
+    const depensesClassiques =
+      calculDepensesClassiquesTotal(fakeDepenseRevenu, dateMoisPrecedent) || 0;
+    const depensesRecurrentes =
+      calculDepensesRecurrentesTotal(
+        fakePaiementsRecurrents,
+        dateMoisPrecedent
+      ) || 0;
+    const depensesEchelonnees =
+      calculRevenusEchelonnesTotal(
+        fakePaiementsEchelonnes,
+        dateMoisPrecedent
+      ) || 0;
+    const totalRevenus =
+      revenusClassiques + revenusRecurrents + revenusEchelonnes;
+    const totalDepenses =
+      depensesClassiques + depensesRecurrentes + depensesEchelonnees;
+    soldeMoisPrecedent = totalRevenus - totalDepenses;
+  }
+  // Crée la transaction pour le solde du mois précédent
+  const soldeTransaction = {
+    id: `solde-${annee}-${String(mois).padStart(2, "0")}`,
+    date: `${annee}-${String(mois).padStart(2, "0")}-01`,
+    montant: Math.abs(soldeMoisPrecedent),
+    type: "revenu",
+    categorie: "Autre revenu",
+    nom: "Solde mois précédent",
+    description: `Solde du mois précédent`,
+  };
+  // Insère la transaction au début du tableau
+  return [soldeTransaction, ...transactions];
+};

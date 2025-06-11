@@ -17,6 +17,14 @@ import {
 } from "../components/dashboard/calculDashboard";
 import GraphiquePrevisionnel from "../components/dashboard/GraphiquePrevisionnel";
 import { addMonths } from "date-fns";
+import {
+  calculRevenusClassiquesTotal as calculRevenusClassiquesTotalPrevisionnel,
+  calculRevenusRecurrentsTotal as calculRevenusRecurrentsTotalPrevisionnel,
+  calculRevenusEchelonnesTotal as calculRevenusEchelonnesTotalPrevisionnel,
+  calculDepensesClassiquesTotal as calculDepensesClassiquesTotalPrevisionnel,
+  calculDepensesRecurrentesTotal as calculDepensesRecurrentesTotalPrevisionnel,
+  calculDepensesEchelonneesTotal as calculDepensesEchelonneesTotalPrevisionnel,
+} from "../utils/calculPrevisionnel";
 
 export default function Previsionnel() {
   const { getData } = useAuth();
@@ -30,38 +38,39 @@ export default function Previsionnel() {
     return <div className='p-8'>Chargement des données...</div>;
   }
 
-  // --- NOUVEAU CALCUL PREVISIONNEL ---
-  // Revenus prévisionnels
-  const revenusClassiquesPrevisionnel = calculRevenusClassiquesTotal(
-    depenseRevenu,
-    new Date()
-  );
-  const recurrentsRevenuPrevisionnel = calculRevenusRecurrentsTotal(
+  // Utiliser le dernier jour du mois courant pour tous les calculs prévisionnels
+  const now = new Date();
+  const dernierJourMois = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  // REVENUS prévisionnels (logique graphique 6 mois)
+  const revenusClassiquesPrevisionnel =
+    calculRevenusClassiquesTotalPrevisionnel(depenseRevenu, dernierJourMois);
+  const recurrentsRevenuPrevisionnel = calculRevenusRecurrentsTotalPrevisionnel(
     paiementsRecurrents,
-    new Date()
+    dernierJourMois
   );
-  const echelonnesRevenuPrevisionnel = calculRevenusEchelonnesTotal(
+  const echelonnesRevenuPrevisionnel = calculRevenusEchelonnesTotalPrevisionnel(
     paiementsEchelonnes,
-    new Date()
+    dernierJourMois
   );
   const totalRevenusPrevisionnel =
     revenusClassiquesPrevisionnel +
     recurrentsRevenuPrevisionnel +
     echelonnesRevenuPrevisionnel;
 
-  // Dépenses prévisionnelles
-  const depensesClassiquesPrevisionnel = calculDepensesClassiquesTotal(
-    depenseRevenu,
-    new Date()
-  );
-  const recurrentsDepensePrevisionnel = calculDepensesRecurrentesTotal(
-    paiementsRecurrents,
-    new Date()
-  );
-  const echelonnesDepensePrevisionnel = calculRevenusEchelonnesTotal(
-    paiementsEchelonnes,
-    new Date()
-  );
+  // DEPENSES prévisionnelles (logique graphique 6 mois)
+  const depensesClassiquesPrevisionnel =
+    calculDepensesClassiquesTotalPrevisionnel(depenseRevenu, dernierJourMois);
+  const recurrentsDepensePrevisionnel =
+    calculDepensesRecurrentesTotalPrevisionnel(
+      paiementsRecurrents,
+      dernierJourMois
+    );
+  const echelonnesDepensePrevisionnel =
+    calculDepensesEchelonneesTotalPrevisionnel(
+      paiementsEchelonnes,
+      dernierJourMois
+    );
   const totalDepensePrevisionnel =
     depensesClassiquesPrevisionnel +
     recurrentsDepensePrevisionnel +
@@ -91,12 +100,7 @@ export default function Previsionnel() {
 
   // Calcul du budget journalier restant (en supposant qu'il reste autant de jours dans le mois)
   const today = new Date();
-  const dernierJourMois = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    0
-  ).getDate();
-  const joursRestants = dernierJourMois - today.getDate();
+  const joursRestants = dernierJourMois.getDate() - today.getDate();
   const budgetJournalierRestant =
     joursRestants > 0 ? budgetRestant / joursRestants : 0;
 
@@ -116,21 +120,23 @@ export default function Previsionnel() {
     "Décembre",
   ];
   const nbMois = 6;
-  const now = new Date();
   let soldeCumul = 0;
   const dataPrevisionnelle = Array.from({ length: nbMois }).map((_, i) => {
     const dateMois = addMonths(now, i);
     const mois = moisLabels[dateMois.getMonth()];
     // Calcul revenus
     const revenus =
-      calculRevenusClassiquesTotal(depenseRevenu, dateMois) +
-      calculRevenusRecurrentsTotal(paiementsRecurrents, dateMois) +
-      calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMois);
+      calculRevenusClassiquesTotalPrevisionnel(depenseRevenu, dateMois) +
+      calculRevenusRecurrentsTotalPrevisionnel(paiementsRecurrents, dateMois) +
+      calculRevenusEchelonnesTotalPrevisionnel(paiementsEchelonnes, dateMois);
     // Calcul dépenses
     const depenses =
-      calculDepensesClassiquesTotal(depenseRevenu, dateMois) +
-      calculDepensesRecurrentesTotal(paiementsRecurrents, dateMois) +
-      calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMois);
+      calculDepensesClassiquesTotalPrevisionnel(depenseRevenu, dateMois) +
+      calculDepensesRecurrentesTotalPrevisionnel(
+        paiementsRecurrents,
+        dateMois
+      ) +
+      calculRevenusEchelonnesTotalPrevisionnel(paiementsEchelonnes, dateMois);
     // Solde cumulé
     soldeCumul += revenus - depenses;
     return {
