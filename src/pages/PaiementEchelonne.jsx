@@ -26,8 +26,11 @@ import {
 } from "../utils/calcul";
 import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
+import { useSearchParams } from "react-router-dom";
 
 export const PaiementEchelonne = () => {
+  const [searchParams] = useSearchParams();
+  const selectedId = searchParams.get("selected");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
   const [paiementsEchelonnes, setPaiementsEchelonnes] = useState([]);
@@ -122,6 +125,19 @@ export const PaiementEchelonne = () => {
       );
     }
   }, [totalDepenses]);
+
+  useEffect(() => {
+    if (selectedId) {
+      const paiement = paiementsEchelonnes.find(
+        (p) => p.id === parseInt(selectedId)
+      );
+      if (paiement) {
+        setEditIndex(paiement.id);
+        setShowModal(true);
+        setIsRevenus(paiement.type === "debit");
+      }
+    }
+  }, [selectedId, paiementsEchelonnes]);
 
   const handleSave = useCallback(
     (formData) => {

@@ -8,6 +8,7 @@ import MonthPickerModal from "../components/ui/MonthPickerModal";
 import TransactionCard from "../components/ui/TransactionCard";
 import { ModalDepenseRevenu } from "../components/ui/Modal";
 import { useAuth } from "../context/AuthContext";
+import { useSearchParams } from "react-router-dom";
 
 // Import des catégories et données centralisées
 import {
@@ -31,6 +32,8 @@ export default function DepensesRevenus() {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [searchParams] = useSearchParams();
+  const selectedId = searchParams.get("selected");
 
   const fetchDepenseRevenu = useCallback(() => {
     const { depenseRevenu } = getData();
@@ -61,6 +64,19 @@ export default function DepensesRevenus() {
     window.addEventListener("data-updated", handleDataUpdate);
     return () => window.removeEventListener("data-updated", handleDataUpdate);
   }, [fetchDepenseRevenu]);
+
+  useEffect(() => {
+    if (selectedId) {
+      const item = [...depenses, ...revenus].find(
+        (item) => item.id === parseInt(selectedId)
+      );
+      if (item) {
+        setSelectedItem(item);
+        setShowModal(true);
+        setCurrentTab(item.type === "depense" ? "depense" : "revenu");
+      }
+    }
+  }, [selectedId, depenses, revenus]);
 
   const handleAddTransaction = useCallback(() => {
     setSelectedItem(null);

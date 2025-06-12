@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   AiOutlinePlus,
   AiOutlineCalendar,
@@ -25,6 +25,7 @@ import CardDesign from "../components/ui/CardDesign";
 import { ModalRecurrent } from "../components/ui/Modal";
 import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
+import { useSearchParams } from "react-router-dom";
 
 const PaiementRecurrent = () => {
   const { getData } = useAuth();
@@ -33,6 +34,8 @@ const PaiementRecurrent = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedPaiement, setSelectedPaiement] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [searchParams] = useSearchParams();
+  const selectedId = searchParams.get("selected");
 
   // Sécurisation des données pour éviter les erreurs si non chargées
   const { paiementsRecurrents: dataPaiementsRecurrents } = useMemo(
@@ -42,6 +45,19 @@ const PaiementRecurrent = () => {
   const safePaiementsRecurrents = Array.isArray(dataPaiementsRecurrents)
     ? dataPaiementsRecurrents
     : [];
+
+  useEffect(() => {
+    if (selectedId) {
+      const paiement = safePaiementsRecurrents.find(
+        (p) => p.id === parseInt(selectedId)
+      );
+      if (paiement) {
+        setSelectedPaiement(paiement);
+        setShowModal(true);
+        setCurrentTab(paiement.type === "depense" ? "depense" : "revenu");
+      }
+    }
+  }, [selectedId, safePaiementsRecurrents]);
 
   // Calcul des totaux
   const totalRevenus = useMemo(() => {
