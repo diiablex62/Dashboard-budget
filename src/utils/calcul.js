@@ -84,7 +84,7 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     return acc + montant;
   }, 0);
 
-  logger.info("Total des revenus calculé", {
+  console.log("Total des revenus calculé", {
     total: total,
     nombreRevenus: revenusFiltres.length,
     details: revenusFiltres.map((r) => ({

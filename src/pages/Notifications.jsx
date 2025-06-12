@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import {
   fakeDepenseRevenu,
   fakePaiementsRecurrents,
@@ -93,6 +94,7 @@ function getDayLabelFromKey(key) {
 }
 
 export default function Notifications() {
+  const { isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState(() => {
     const initial = buildNotifications();
     localStorage.setItem("notifications", JSON.stringify(initial));
@@ -100,6 +102,10 @@ export default function Notifications() {
   });
   const [filter, setFilter] = useState("all");
   const [hoveredId, setHoveredId] = useState(null);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const filtered =
     filter === "all"

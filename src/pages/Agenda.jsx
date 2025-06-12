@@ -37,7 +37,7 @@ function getMonthMatrix(year, month) {
 }
 
 export default function Agenda() {
-  const { getData } = useAuth();
+  const { getData, isAuthenticated } = useAuth();
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(
     new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -50,79 +50,85 @@ export default function Agenda() {
   const daysMatrix = useMemo(() => getMonthMatrix(year, month), [year, month]);
 
   // Utiliser getData pour les données
-  const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = getData();
+  const data = useMemo(() => {
+    if (!isAuthenticated)
+      return {
+        depenseRevenu: [],
+        paiementsRecurrents: [],
+        paiementsEchelonnes: [],
+      };
+    return (
+      getData() || {
+        depenseRevenu: [],
+        paiementsRecurrents: [],
+        paiementsEchelonnes: [],
+      }
+    );
+  }, [getData, isAuthenticated]);
 
-  // Événements du mois (pour les pastilles)
+  const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = data;
+
+  // Regrouper les événements par jour
   const eventsByDay = useMemo(() => {
-    const map = {};
-    // Dépenses & Revenus
-    depenseRevenu.forEach((e) => {
-      const d = new Date(e.date);
-      if (d.getMonth() === month && d.getFullYear() === year) {
-        const day = d.getDate();
-        if (!map[day])
-          map[day] = {
-            depense: false,
-            revenu: false,
-            echelonne: false,
-            recurrent: false,
-          };
-        if (e.type === "depense") map[day].depense = true;
-        if (e.type === "revenu") map[day].revenu = true;
-      }
-    });
-    // Récurrents
-    paiementsRecurrents.forEach((e) => {
-      // Vérifie si le paiement est actif pour le mois/année affiché
-      let actif = true;
-      if (e.debut) {
-        const debut = new Date(e.debut);
-        actif =
-          year > debut.getFullYear() ||
-          (year === debut.getFullYear() && month >= debut.getMonth());
-      }
-      if (actif && e.jourPrelevement >= 1 && e.jourPrelevement <= 31) {
-        const day = e.jourPrelevement;
-        if (!map[day])
-          map[day] = {
-            depense: false,
-            revenu: false,
-            echelonne: false,
-            recurrent: false,
-          };
-        map[day].recurrent = true;
-      }
-    });
-    // Échelonnés
-    paiementsEchelonnes.forEach((e) => {
-      const debut = new Date(e.debutDate);
-      const nbMensualites = parseInt(e.mensualites, 10);
-      for (let m = 0; m < nbMensualites; m++) {
-        const dateMensualite = new Date(
-          debut.getFullYear(),
-          debut.getMonth() + m,
-          debut.getDate()
-        );
-        if (
-          dateMensualite.getFullYear() === year &&
-          dateMensualite.getMonth() === month
-        ) {
-          const day = dateMensualite.getDate();
-          if (day >= 1 && day <= 31) {
-            if (!map[day])
-              map[day] = {
-                depense: false,
-                revenu: false,
-                echelonne: false,
-                recurrent: false,
-              };
-            map[day].echelonne = true;
-          }
+    const events = {};
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Ajouter les dépenses et revenus
+    depenseRevenu.forEach((item) => {
+      const date = new Date(item.date);
+      if (
+        date.getMonth() === currentMonth &&
+        date.getFullYear() === currentYear
+      ) {
+        const day = date.getDate();
+        if (!events[day]) {
+          events[day] = { depense: false, revenu: false };
+        }
+        if (item.type === "depense") {
+          events[day].depense = true;
+        } else {
+          events[day].revenu = true;
         }
       }
     });
-    return map;
-  }, [month, year]);
+
+    // Ajouter les paiements récurrents
+    paiementsRecurrents.forEach((item) => {
+      const day = item.jourPrelevement;
+      if (!events[day]) {
+        events[day] = { depense: false, revenu: false, recurrent: false };
+      }
+      events[day].recurrent = true;
+    });
+
+    // Ajouter les paiements échelonnés
+    paiementsEchelonnes.forEach((item) => {
+      const debut = new Date(item.debutDate);
+      const fin = new Date(debut);
+      fin.setMonth(fin.getMonth() + parseInt(item.mensualites) - 1);
+
+      if (
+        debut.getMonth() <= currentMonth &&
+        fin.getMonth() >= currentMonth &&
+        debut.getFullYear() <= currentYear &&
+        fin.getFullYear() >= currentYear
+      ) {
+        const day = debut.getDate();
+        if (!events[day]) {
+          events[day] = {
+            depense: false,
+            revenu: false,
+            recurrent: false,
+            echelonne: false,
+          };
+        }
+        events[day].echelonne = true;
+      }
+    });
+
+    return events;
+  }, [depenseRevenu, paiementsRecurrents, paiementsEchelonnes, currentDate]);
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
@@ -142,7 +148,9 @@ export default function Agenda() {
                 Mon agenda
               </h2>
               <div className='text-gray-500 text-base dark:text-gray-300'>
-                Visualisez vos paiements
+                {isAuthenticated
+                  ? "Visualisez vos paiements"
+                  : "Connectez-vous pour visualiser vos paiements"}
               </div>
             </div>
             <div className='flex items-center justify-end mb-4'>
@@ -174,38 +182,6 @@ export default function Agenda() {
                       onClick={() => {
                         if (currentDay) {
                           setSelectedDay(currentDay);
-
-                          // Récupérer tous les événements du jour
-                          const eventsOfDay = [];
-                          if (eventsByDay[currentDay]) {
-                            if (eventsByDay[currentDay].echelonne) {
-                              eventsOfDay.push({
-                                day: currentDay,
-                                categorie: "echelonnes",
-                              });
-                            }
-                            if (eventsByDay[currentDay].recurrent) {
-                              eventsOfDay.push({
-                                day: currentDay,
-                                categorie: "recurrents",
-                              });
-                            }
-                            if (eventsByDay[currentDay].depense) {
-                              eventsOfDay.push({
-                                day: currentDay,
-                                categorie: "depenses",
-                              });
-                            }
-                            if (eventsByDay[currentDay].revenu) {
-                              eventsOfDay.push({
-                                day: currentDay,
-                                categorie: "revenus",
-                              });
-                            }
-                          }
-
-                          // Mettre à jour la sélection
-                          setSelectionEvenement(eventsOfDay);
                         }
                       }}>
                       <span
@@ -248,6 +224,7 @@ export default function Agenda() {
               month={month}
               selectionEvenement={selectionEvenement}
               onClearSelection={() => setSelectionEvenement([])}
+              isAuthenticated={isAuthenticated}
             />
           </div>
         </div>
