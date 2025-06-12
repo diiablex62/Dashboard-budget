@@ -136,7 +136,7 @@ export default function Previsionnel() {
         paiementsRecurrents,
         dateMois
       ) +
-      calculRevenusEchelonnesTotalPrevisionnel(paiementsEchelonnes, dateMois);
+      calculDepensesEchelonneesTotalPrevisionnel(paiementsEchelonnes, dateMois);
     // Solde cumulé
     soldeCumul += revenus - depenses;
     return {

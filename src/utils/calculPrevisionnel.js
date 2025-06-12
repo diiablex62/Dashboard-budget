@@ -83,7 +83,7 @@ export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
 
-      console.log("Mensualité comptabilisée", {
+        console.log("Mensualité comptabilisée", {
           nom: p.nom,
           echeance: `${i + 1}/${p.mensualites}`,
           date: dateMensualite.toLocaleDateString("fr-FR"),
@@ -141,7 +141,7 @@ export function calculDepensesEchelonneesTotal(paiementsEchelonnes, date) {
   let total = 0;
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "debit") return;
+    if (p.type !== "credit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
