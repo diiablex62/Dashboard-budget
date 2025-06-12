@@ -37,10 +37,6 @@ export function calculRevenusRecurrentsTotal(paiementsRecurrents, date) {
 // Revenus échelonnés du mois
 export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
-    console.log("Aucun paiement échelonné à calculer", {
-      paiementsEchelonnes,
-      date,
-    });
     return 0;
   }
   const dateObj = date instanceof Date ? date : new Date(date);
@@ -48,26 +44,12 @@ export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
   const annee = dateObj.getFullYear();
   let total = 0;
 
-  console.log("Calcul des revenus échelonnés pour", {
-    mois: dateObj.toLocaleString("fr-FR", { month: "long" }),
-    annee: dateObj.getFullYear(),
-  });
-
   paiementsEchelonnes.forEach((p) => {
     if (p.type !== "credit") {
-      console.log("Paiement ignoré (pas un revenu)", { paiement: p });
       return;
     }
 
-    console.log("Analyse du paiement échelonné", {
-      nom: p.nom,
-      montant: p.montant,
-      mensualites: p.mensualites,
-      dateDebut: p.debutDate,
-    });
-
     if (!p.debutDate || !p.mensualites) {
-      console.log("Paiement échelonné incomplet", { paiement: p });
       return;
     }
 
@@ -82,21 +64,8 @@ export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
-
-        console.log("Mensualité comptabilisée", {
-          nom: p.nom,
-          echeance: `${i + 1}/${p.mensualites}`,
-          date: dateMensualite.toLocaleDateString("fr-FR"),
-          montant: mensualite,
-          totalApres: total,
-        });
       }
     }
-  });
-
-  console.log("Total des revenus échelonnés calculé", {
-    total: total,
-    nombrePaiements: paiementsEchelonnes.length,
   });
 
   return total;

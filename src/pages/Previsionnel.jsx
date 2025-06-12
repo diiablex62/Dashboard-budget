@@ -9,11 +9,6 @@ import {
   calculDepensesClassiquesJusquaAujourdhui,
   calculDepensesRecurrentesJusquaAujourdhui,
   calculRevenusEchelonnesJusquaAujourdhui,
-  calculDepensesClassiquesTotal,
-  calculDepensesRecurrentesTotal,
-  calculRevenusEchelonnesTotal,
-  calculRevenusClassiquesTotal,
-  calculRevenusRecurrentsTotal,
 } from "../components/dashboard/calculDashboard";
 import GraphiquePrevisionnel from "../components/dashboard/GraphiquePrevisionnel";
 import { addMonths } from "date-fns";
@@ -34,7 +29,11 @@ export default function Previsionnel() {
   );
 
   // Protection pour le chargement des données
-  if (!depenseRevenu || !paiementsRecurrents || !paiementsEchelonnes) {
+  if (
+    !depenseRevenu?.length ||
+    !paiementsRecurrents?.length ||
+    !paiementsEchelonnes?.length
+  ) {
     return <div className='p-8'>Chargement des données...</div>;
   }
 
@@ -95,9 +94,6 @@ export default function Previsionnel() {
   const depensesRestantes =
     totalDepensePrevisionnel - totalDepenseJusquaAujourdhui;
 
-  // Récupération du solde actuel (dans un vrai cas, il faudrait obtenir cette valeur depuis l'état global)
-  const soldeActuel = 2500; // Exemple, à remplacer par la vraie valeur
-
   // Calcul du budget journalier restant (en supposant qu'il reste autant de jours dans le mois)
   const today = new Date();
   const joursRestants = dernierJourMois.getDate() - today.getDate();
@@ -124,6 +120,20 @@ export default function Previsionnel() {
   const dataPrevisionnelle = Array.from({ length: nbMois }).map((_, i) => {
     const dateMois = addMonths(now, i);
     const mois = moisLabels[dateMois.getMonth()];
+    // Filtrage des entrées utilisées pour chaque type
+    const revenusClassiquesList = depenseRevenu.filter(
+      (e) =>
+        e.type === "revenu" &&
+        new Date(e.date).getMonth() === dateMois.getMonth() &&
+        new Date(e.date).getFullYear() === dateMois.getFullYear()
+    );
+    const revenusRecurrentsList = paiementsRecurrents.filter(
+      (e) => e.type === "revenu"
+    );
+    const revenusEchelonnesList = paiementsEchelonnes.filter(
+      (e) => e.type === "revenu"
+    );
+
     // Calcul revenus
     const revenusClassiques = calculRevenusClassiquesTotalPrevisionnel(
       depenseRevenu,
@@ -138,6 +148,32 @@ export default function Previsionnel() {
       dateMois
     );
     const revenus = revenusClassiques + revenusRecurrents + revenusEchelonnes;
+
+    // LOGS DÉTAILLÉS UNIQUEMENT POUR JUIN ET JUILLET
+    if (mois === "Juin" || mois === "Juillet") {
+      console.log(`Prévisionnel - Mois: ${mois}`);
+      console.log("  Revenus classiques utilisés:");
+      revenusClassiquesList.forEach((e) =>
+        console.log(`    - ${e.nom} | ${e.montant}€ | ${e.date}`)
+      );
+      console.log("  Revenus récurrents utilisés:");
+      revenusRecurrentsList.forEach((e) =>
+        console.log(
+          `    - ${e.nom} | ${e.montant}€ | jour ${e.jourPrelevement}`
+        )
+      );
+      console.log("  Revenus échelonnés utilisés:");
+      revenusEchelonnesList.forEach((e) =>
+        console.log(
+          `    - ${e.nom} | ${e.montant}€ sur ${e.mensualites} mois | début ${e.debutDate}`
+        )
+      );
+      console.log(`  Total revenus classiques: ${revenusClassiques}`);
+      console.log(`  Total revenus récurrents: ${revenusRecurrents}`);
+      console.log(`  Total revenus échelonnés: ${revenusEchelonnes}`);
+      console.log(`  Total revenus: ${revenus}`);
+    }
+
     // Calcul dépenses
     const depensesClassiques = calculDepensesClassiquesTotalPrevisionnel(
       depenseRevenu,
@@ -155,14 +191,6 @@ export default function Previsionnel() {
       depensesClassiques + depensesRecurrents + depensesEchelonnees;
     // Solde cumulé
     soldeCumul += revenus - depenses;
-    // LOGS DEBUG
-    console.log(`Prévisionnel - Mois: ${mois}`);
-    console.log(
-      `  Revenus: classiques=${revenusClassiques} (${typeof revenusClassiques}), recurrents=${revenusRecurrents} (${typeof revenusRecurrents}), echelonnes=${revenusEchelonnes} (${typeof revenusEchelonnes}), total=${revenus} (${typeof revenus})`
-    );
-    console.log(
-      `  Dépenses: classiques=${depensesClassiques} (${typeof depensesClassiques}), recurrents=${depensesRecurrents} (${typeof depensesRecurrents}), echelonnees=${depensesEchelonnees} (${typeof depensesEchelonnees}), total=${depenses} (${typeof depenses})`
-    );
     return {
       mois,
       revenus,
