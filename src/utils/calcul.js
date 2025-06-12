@@ -47,14 +47,9 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     !Array.isArray(depenseRevenu) ||
     depenseRevenu.length === 0
   ) {
-    console.log("Aucun revenu à calculer", { depenseRevenu, date });
     return 0;
   }
   const dateObj = date instanceof Date ? date : new Date(date);
-  console.log("Calcul des revenus pour", {
-    mois: dateObj.toLocaleString("fr-FR", { month: "long" }),
-    annee: dateObj.getFullYear(),
-  });
 
   const revenusFiltres = depenseRevenu.filter((d) => {
     const dDate = new Date(d.date);
@@ -75,24 +70,9 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
 
   const total = revenusFiltres.reduce((acc, d) => {
     const montant = parseFloat(d.montant);
-    console.log("Ajout au total", {
-      nom: d.nom,
-      montant: montant,
-      totalAvant: acc,
-      totalApres: acc + montant,
-    });
+
     return acc + montant;
   }, 0);
-
-  console.log("Total des revenus calculé", {
-    total: total,
-    nombreRevenus: revenusFiltres.length,
-    details: revenusFiltres.map((r) => ({
-      nom: r.nom,
-      montant: r.montant,
-      date: r.date,
-    })),
-  });
 
   return total;
 }
@@ -422,9 +402,7 @@ export function calculRevenusEchelonnesJusquaAujourdhui(
   }
 
   let total = 0;
-  console.log(
-    "[Echelonne] --- Détail des revenus échelonnés jusqu'à aujourd'hui ---"
-  );
+
   paiementsEchelonnes.forEach((e) => {
     if (e.type !== "debit") return; // On ne prend que les revenus
     const debut = new Date(e.debutDate);
@@ -439,17 +417,11 @@ export function calculRevenusEchelonnesJusquaAujourdhui(
         moisEcheance <= date
       ) {
         total += parseFloat(e.montant);
-        console.log(
-          `[Echelonne] +${e.montant}€ pour "${e.nom}" (échéance ${
-            i + 1
-          }/$${nbMois}) - Date: ${moisEcheance.toLocaleDateString("fr-FR")}`
-        );
+
       }
     }
   });
-  console.log(
-    `[Echelonne] Total revenus échelonnés jusqu'à aujourd'hui : ${total}€`
-  );
+
   return total;
 }
 
@@ -658,26 +630,21 @@ export const calculTotalRevenuGeneralMois = (data, date) => {
 
   const {
     revenus = [],
-    paiementsRecurrents = [],
     paiementsEchelonnes = [],
   } = data;
 
   const revenusClassiques = calculRevenusClassiquesMois(revenus, date);
-  const revenusRecurrents = calculRevenusRecurrentsMois(
-    paiementsRecurrents,
-    date
-  );
+
   const revenusEchelonnes = calculRevenusEchelonnesMois(
     paiementsEchelonnes,
     date
   );
 
-  const total = revenusClassiques + revenusRecurrents + revenusEchelonnes;
+  const total = revenusClassiques + revenusEchelonnes;
 
   return {
     total,
     revenusClassiques,
-    revenusRecurrents,
     revenusEchelonnes,
   };
 };

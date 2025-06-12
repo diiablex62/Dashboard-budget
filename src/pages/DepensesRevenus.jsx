@@ -1,20 +1,9 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  AiOutlineArrowLeft,
-  AiOutlineArrowRight,
   AiOutlinePlus,
   AiOutlineDollarCircle,
   AiOutlineCalendar,
-  AiOutlineInfoCircle,
 } from "react-icons/ai";
-import { FaArrowDown, FaArrowUp, FaFilter, FaTimes } from "react-icons/fa";
-import { FiEdit, FiTrash } from "react-icons/fi";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import TransactionCard from "../components/ui/TransactionCard";
 import { ModalDepenseRevenu } from "../components/ui/Modal";
@@ -25,8 +14,6 @@ import {
   DEPENSES_CATEGORIES,
   REVENUS_CATEGORIES,
   getMonthYear,
-  CATEGORY_COLORS,
-  CATEGORIES,
 } from "../utils/categoryUtils";
 
 import {
@@ -34,7 +21,6 @@ import {
   totalRevenusGlobalMois,
   formatMontant,
 } from "../utils/calcul";
-import { calculEconomies } from "../components/dashboard/calculDashboard";
 import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 export default function DepensesRevenus() {
@@ -60,15 +46,9 @@ export default function DepensesRevenus() {
         (t.nom === "Solde mois précédent" && t.montant >= 0)
     );
 
-    console.log("Données filtrées", {
-      nombreDepenses: depensesFiltrees.length,
-      nombreRevenus: revenusFiltres.length,
-      dateSelectionnee: selectedDate.toLocaleDateString("fr-FR"),
-    });
-
     setDepenses(depensesFiltrees);
     setRevenus(revenusFiltres);
-  }, [getData, selectedDate]);
+  }, [getData]);
 
   useEffect(() => {
     fetchDepenseRevenu();
@@ -89,10 +69,6 @@ export default function DepensesRevenus() {
 
   const handleSaveTransaction = useCallback(
     async (transaction) => {
-      console.log("Sauvegarde d'une transaction", {
-        transaction,
-        type: currentTab,
-      });
       if (currentTab === "depense") {
         setDepenses((prev) => {
           if (transaction.id) {
@@ -137,21 +113,7 @@ export default function DepensesRevenus() {
         d.getMonth() === selectedDate.getMonth() &&
         d.getFullYear() === selectedDate.getFullYear();
 
-      if (isInSelectedMonth) {
-        console.log("Transaction trouvée pour le mois", {
-          nom: t.nom,
-          montant: t.montant,
-          date: t.date,
-        });
-      }
-
       return isInSelectedMonth;
-    });
-
-    console.log("Transactions filtrées", {
-      nombreTransactions: filtered.length,
-      type: currentTab,
-      mois: selectedDate.toLocaleString("fr-FR", { month: "long" }),
     });
 
     return filtered;
@@ -159,19 +121,11 @@ export default function DepensesRevenus() {
 
   const totalDepenses = useMemo(() => {
     const total = calculTotalDepensesMois(depenses, selectedDate);
-    console.log("Total des dépenses calculé", {
-      total,
-      date: selectedDate.toLocaleDateString("fr-FR"),
-    });
     return total;
   }, [depenses, selectedDate]);
 
   const totalRevenus = useMemo(() => {
     const total = totalRevenusGlobalMois(revenus, selectedDate);
-    console.log("Total des revenus calculé", {
-      total,
-      date: selectedDate.toLocaleDateString("fr-FR"),
-    });
     return total;
   }, [revenus, selectedDate]);
 
@@ -347,55 +301,6 @@ export default function DepensesRevenus() {
           </div>
         </div>
       );
-    }
-  };
-
-  // Ajouter la gestion des fonctions manquantes
-  const handleAddDepense = async (depenseData) => {
-    try {
-      console.log("Ajout d'une dépense", depenseData);
-      const currentDate = new Date().toISOString().split("T")[0];
-      await addDoc(collection(db, "depense"), {
-        ...depenseData,
-        date: depenseData.date || currentDate,
-        createdAt: serverTimestamp(),
-      });
-      // Recharger les données
-      const fetchData = async () => {
-        const depenseSnap = await getDocs(
-          query(collection(db, "depense"), orderBy("date", "desc"))
-        );
-        setDepenses(
-          depenseSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        );
-      };
-      fetchData();
-    } catch (err) {
-      console.log("Erreur lors de l'ajout d'une dépense", err);
-    }
-  };
-
-  const handleAddRevenu = async (revenuData) => {
-    try {
-      console.log("Ajout d'un revenu", revenuData);
-      const currentDate = new Date().toISOString().split("T")[0];
-      await addDoc(collection(db, "revenu"), {
-        ...revenuData,
-        date: revenuData.date || currentDate,
-        createdAt: serverTimestamp(),
-      });
-      // Recharger les données
-      const fetchData = async () => {
-        const revenuSnap = await getDocs(
-          query(collection(db, "revenu"), orderBy("date", "desc"))
-        );
-        setRevenus(
-          revenuSnap.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        );
-      };
-      fetchData();
-    } catch (err) {
-      console.log("Erreur lors de l'ajout d'un revenu", err);
     }
   };
 

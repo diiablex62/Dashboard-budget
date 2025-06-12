@@ -9,14 +9,17 @@ import "./styles/tailwind.css";
 import "react-toastify/dist/ReactToastify.css";
 import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./context/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
 
 function App() {
   return (
     <ThemeProvider>
-      <AppProvider>
-        <MainLayout />
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <MainLayout />
+        </AppProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

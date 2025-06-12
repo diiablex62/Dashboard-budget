@@ -3,8 +3,6 @@
  * @description Fonctions de calcul spécifiques au dashboard
  */
 
-import { formatMontant } from "../../utils/calcul";
-
 // Calcul du total des dépenses récurrentes du mois (jusqu'à aujourd'hui)
 export const calculDepensesRecurrentesJusquaAujourdhui = (
   paiementsRecurrents,
@@ -68,7 +66,7 @@ export const calculDepensesEchelonneesJusquaAujourdhui = (
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
-  let mensualitesComptabilisees = [];
+
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
     if (p.type !== "credit") return;
@@ -83,11 +81,6 @@ export const calculDepensesEchelonneesJusquaAujourdhui = (
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
-        mensualitesComptabilisees.push({
-          nom: p.nom,
-          date: dateMensualite.toISOString().slice(0, 10),
-          montant: mensualite,
-        });
       }
     }
   });
@@ -105,7 +98,7 @@ export const calculDepensesEchelonneesTotal = (paiementsEchelonnes, date) => {
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
-  let mensualitesComptabilisees = [];
+
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
     if (p.type !== "credit") return;
@@ -119,11 +112,6 @@ export const calculDepensesEchelonneesTotal = (paiementsEchelonnes, date) => {
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
-        mensualitesComptabilisees.push({
-          nom: p.nom,
-          date: dateMensualite.toISOString().slice(0, 10),
-          montant: mensualite,
-        });
       }
     }
   });
@@ -221,21 +209,10 @@ export const calculRevenusClassiquesTotal = (revenus, date) => {
       new Date(r.date).getMonth() === dateObj.getMonth() &&
       new Date(r.date).getFullYear() === dateObj.getFullYear()
   );
-  console.log(
-    "[calculRevenusClassiquesTotal] Revenu(s) filtré(s)",
-    revenusFiltres
+  return revenusFiltres.reduce(
+    (acc, r) => acc + Math.abs(parseFloat(r.montant || 0)),
+    0
   );
-  const total = revenusFiltres.reduce((acc, r) => {
-    console.log("[calculRevenusClassiquesTotal] Ajout revenu", {
-      nom: r.nom,
-      montant: r.montant,
-      date: r.date,
-      totalAvant: acc,
-    });
-    return acc + Math.abs(parseFloat(r.montant || 0));
-  }, 0);
-  console.log("[calculRevenusClassiquesTotal] Total", { total });
-  return total;
 };
 // REVENUS RECCURENTS
 export const calculRevenusRecurrentsJusquaAujourdhui = (
@@ -263,21 +240,10 @@ export const calculRevenusRecurrentsTotal = (paiementsRecurrents, date) => {
       parseInt(p.jourPrelevement) >= 1 &&
       parseInt(p.jourPrelevement) <= dernierJourDuMois
   );
-  console.log(
-    "[calculRevenusRecurrentsTotal] Paiement(s) récurrent(s) filtré(s)",
-    revenusFiltres
+  return revenusFiltres.reduce(
+    (acc, p) => acc + Math.abs(parseFloat(p.montant || 0)),
+    0
   );
-  const total = revenusFiltres.reduce((acc, p) => {
-    console.log("[calculRevenusRecurrentsTotal] Ajout récurrent", {
-      nom: p.nom,
-      montant: p.montant,
-      jourPrelevement: p.jourPrelevement,
-      totalAvant: acc,
-    });
-    return acc + Math.abs(parseFloat(p.montant || 0));
-  }, 0);
-  console.log("[calculRevenusRecurrentsTotal] Total", { total });
-  return total;
 };
 // REVENUS ECHELONNES
 export const calculRevenusEchelonnesJusquaAujourdhui = (
@@ -290,7 +256,7 @@ export const calculRevenusEchelonnesJusquaAujourdhui = (
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
-  let mensualitesComptabilisees = [];
+
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
     if (p.type !== "debit") return;
@@ -305,11 +271,6 @@ export const calculRevenusEchelonnesJusquaAujourdhui = (
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
-        mensualitesComptabilisees.push({
-          nom: p.nom,
-          date: dateMensualite.toISOString().slice(0, 10),
-          montant: mensualite,
-        });
       }
     }
   });
@@ -323,7 +284,7 @@ export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
   const mois = dateObj.getMonth();
   const annee = dateObj.getFullYear();
   let total = 0;
-  let mensualitesComptabilisees = [];
+
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
     if (p.type !== "debit") return;
@@ -337,11 +298,6 @@ export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
       ) {
         const mensualite = Number(p.montant) / Number(p.mensualites);
         total += Math.abs(mensualite);
-        mensualitesComptabilisees.push({
-          nom: p.nom,
-          date: dateMensualite.toISOString().slice(0, 10),
-          montant: mensualite,
-        });
       }
     }
   });
