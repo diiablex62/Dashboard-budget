@@ -138,7 +138,7 @@ export default function DepensesRevenus() {
         d.getFullYear() === selectedDate.getFullYear();
 
       if (isInSelectedMonth) {
-        logger.debug("Transaction trouvée pour le mois", {
+        console.log("Transaction trouvée pour le mois", {
           nom: t.nom,
           montant: t.montant,
           date: t.date,
@@ -371,7 +371,7 @@ export default function DepensesRevenus() {
       };
       fetchData();
     } catch (err) {
-      logger.error("Erreur lors de l'ajout d'une dépense", err);
+      console.log("Erreur lors de l'ajout d'une dépense", err);
     }
   };
 
@@ -395,7 +395,7 @@ export default function DepensesRevenus() {
       };
       fetchData();
     } catch (err) {
-      logger.error("Erreur lors de l'ajout d'un revenu", err);
+      console.log("Erreur lors de l'ajout d'un revenu", err);
     }
   };
 

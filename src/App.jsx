@@ -8,19 +8,16 @@ import React from "react";
 import "./styles/tailwind.css";
 import "react-toastify/dist/ReactToastify.css";
 import { AppProvider } from "./context/AppContext";
-import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import MainLayout from "./components/layout/MainLayout";
 
 function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <AppProvider>
-          <MainLayout />
-        </AppProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <MainLayout />
+      </AppProvider>
+    </ThemeProvider>
   );
 }
 

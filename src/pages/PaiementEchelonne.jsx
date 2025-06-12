@@ -30,9 +30,7 @@ import { useAuth } from "../context/AuthContext";
 export const PaiementEchelonne = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
-  const [paiementsEchelonnes, setPaiementsEchelonnes] = useState(
-    fakePaiementsEchelonnes
-  );
+  const [paiementsEchelonnes, setPaiementsEchelonnes] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [isRevenus, setIsRevenus] = useState(false);
   const { getData, isAuthenticated } = useAuth();
@@ -77,20 +75,38 @@ export const PaiementEchelonne = () => {
     );
   }, []);
 
+  const { paiementsEchelonnes: dataPaiementsEchelonnes } = useMemo(
+    () => getData() || {},
+    [getData]
+  );
+
+  const safePaiementsEchelonnes = useMemo(() => {
+    if (!isAuthenticated) return [];
+    return Array.isArray(dataPaiementsEchelonnes)
+      ? dataPaiementsEchelonnes
+      : [];
+  }, [isAuthenticated, dataPaiementsEchelonnes]);
+
   const totalDepenses = useMemo(() => {
     if (isRevenus) {
-      return calculTotalDebitEchelonneesMois(paiementsEchelonnes, selectedDate);
+      return calculTotalDebitEchelonneesMois(
+        safePaiementsEchelonnes,
+        selectedDate
+      );
     }
-    return calculTotalCreditEchelonneesMois(paiementsEchelonnes, selectedDate);
-  }, [paiementsEchelonnes, selectedDate, isRevenus]);
+    return calculTotalCreditEchelonneesMois(
+      safePaiementsEchelonnes,
+      selectedDate
+    );
+  }, [safePaiementsEchelonnes, selectedDate, isRevenus]);
 
   const paiementsActifsCount = useMemo(() => {
     return calculPaiementsEchelonnesActifs(
-      paiementsEchelonnes,
+      safePaiementsEchelonnes,
       selectedDate,
       isRevenus
     );
-  }, [paiementsEchelonnes, selectedDate, isRevenus]);
+  }, [safePaiementsEchelonnes, selectedDate, isRevenus]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -136,15 +152,6 @@ export const PaiementEchelonne = () => {
     },
     [editIndex, isRevenus, paiementsEchelonnes]
   );
-
-  const { paiementsEchelonnes: dataPaiementsEchelonnes } = useMemo(
-    () => getData() || {},
-    [getData]
-  );
-  const safePaiementsEchelonnes =
-    isAuthenticated && Array.isArray(dataPaiementsEchelonnes)
-      ? dataPaiementsEchelonnes
-      : [];
 
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
@@ -230,17 +237,18 @@ export const PaiementEchelonne = () => {
                 Paiements du mois de {getMonthYear(selectedDate)}
               </div>
             </div>
-            {/* Bouton Ajouter */}
-            <div className='flex justify-end mt-8'>
-              <Button
-                onClick={() => {
-                  setEditIndex(null);
-                  setShowModal(true);
-                }}
-                icon={AiOutlinePlus}>
-                Ajouter
-              </Button>
-            </div>
+            {isAuthenticated && (
+              <div className='flex justify-end mt-8'>
+                <Button
+                  onClick={() => {
+                    setEditIndex(null);
+                    setShowModal(true);
+                  }}
+                  icon={AiOutlinePlus}>
+                  Ajouter
+                </Button>
+              </div>
+            )}
           </div>
 
           {safePaiementsEchelonnes.filter(
@@ -248,8 +256,11 @@ export const PaiementEchelonne = () => {
           ).length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
               <p>
-                Aucun paiement échelonné {isRevenus ? "debit" : "credit"} pour{" "}
-                {getMonthYear(selectedDate)}.
+                {isAuthenticated
+                  ? `Aucun paiement échelonné ${
+                      isRevenus ? "de revenu" : "de dépense"
+                    } pour ${getMonthYear(selectedDate)}.`
+                  : "Connectez-vous pour gérer vos paiements échelonnés."}
               </p>
             </div>
           ) : (

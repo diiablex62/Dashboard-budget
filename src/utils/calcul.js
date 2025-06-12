@@ -47,11 +47,11 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     !Array.isArray(depenseRevenu) ||
     depenseRevenu.length === 0
   ) {
-    logger.debug("Aucun revenu à calculer", { depenseRevenu, date });
+    console.log("Aucun revenu à calculer", { depenseRevenu, date });
     return 0;
   }
   const dateObj = date instanceof Date ? date : new Date(date);
-  logger.info("Calcul des revenus pour", {
+  console.log("Calcul des revenus pour", {
     mois: dateObj.toLocaleString("fr-FR", { month: "long" }),
     annee: dateObj.getFullYear(),
   });
@@ -63,7 +63,7 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     const estMemeAnnee = dDate.getFullYear() === dateObj.getFullYear();
 
     if (estRevenu && estMemeMois && estMemeAnnee) {
-      logger.debug("Revenu trouvé", {
+      console.log("Revenu trouvé", {
         nom: d.nom,
         montant: d.montant,
         date: d.date,
@@ -75,7 +75,7 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
 
   const total = revenusFiltres.reduce((acc, d) => {
     const montant = parseFloat(d.montant);
-    logger.debug("Ajout au total", {
+    console.log("Ajout au total", {
       nom: d.nom,
       montant: montant,
       totalAvant: acc,
