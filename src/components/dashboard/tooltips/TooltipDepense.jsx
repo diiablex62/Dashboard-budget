@@ -73,7 +73,7 @@ const TooltipDepense = ({
   const recurrentsDepenseMoisPrec =
     calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) || 0;
   const echelonnesDepenseMoisPrec =
-    calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
+    calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0;
   const totalMoisPrecedent =
     depensesClassiquesMoisPrec +
     recurrentsDepenseMoisPrec +
