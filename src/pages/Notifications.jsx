@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import {
   fakeDepenseRevenu,
   fakePaiementsRecurrents,
@@ -103,14 +104,11 @@ export default function Notifications() {
   const [filter, setFilter] = useState("all");
   const [hoveredId, setHoveredId] = useState(null);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  const filtered =
-    filter === "all"
+  const filtered = isAuthenticated
+    ? filter === "all"
       ? notifications
-      : notifications.filter((n) => n.type === filter);
+      : notifications.filter((n) => n.type === filter)
+    : [];
   const grouped = groupByDay(filtered);
 
   const handleMarkAllRead = () => {
@@ -148,11 +146,13 @@ export default function Notifications() {
                 Consultez vos dernières notifications
               </div>
             </div>
-            <button
-              onClick={handleMarkAllRead}
-              className='bg-gray-100 text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 font-semibold transition'>
-              Tout marquer comme lu
-            </button>
+            {isAuthenticated && (
+              <button
+                onClick={handleMarkAllRead}
+                className='bg-gray-100 text-gray-700 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 font-semibold transition'>
+                Tout marquer comme lu
+              </button>
+            )}
           </div>
 
           <div className='flex gap-2 mb-6'>
@@ -175,7 +175,8 @@ export default function Notifications() {
 
         {grouped.length === 0 ? (
           <div className='text-center text-gray-500 dark:text-gray-400 py-8 bg-white dark:bg-[#18181b] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800'>
-            Aucune notification
+          
+            <p>Aucune notification</p>
           </div>
         ) : (
           grouped.map(([date, notifs]) => (
