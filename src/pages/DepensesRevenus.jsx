@@ -101,11 +101,6 @@ export default function DepensesRevenus() {
   );
 
   const filteredDepenseRevenu = useMemo(() => {
-    console.log("Filtrage des transactions pour le mois sélectionné", {
-      date: selectedDate.toLocaleDateString("fr-FR"),
-      type: currentTab,
-    });
-
     const items = currentTab === "depense" ? depenses : revenus;
     const filtered = items.filter((t) => {
       const d = new Date(t.date);
@@ -286,8 +281,7 @@ export default function DepensesRevenus() {
           />
         </div>
       );
-    } catch (error) {
-      console.error("Erreur dans le rendu de DepensesRevenus:", error);
+    } catch {
       return (
         <div className='container mx-auto px-4 py-8'>
           <div

@@ -56,15 +56,6 @@ export function totalRevenusGlobalMois(depenseRevenu, date = new Date()) {
     const estRevenu = d.type === "revenu";
     const estMemeMois = dDate.getMonth() === dateObj.getMonth();
     const estMemeAnnee = dDate.getFullYear() === dateObj.getFullYear();
-
-    if (estRevenu && estMemeMois && estMemeAnnee) {
-      console.log("Revenu trouvé", {
-        nom: d.nom,
-        montant: d.montant,
-        date: d.date,
-      });
-    }
-
     return estRevenu && estMemeMois && estMemeAnnee;
   });
 
@@ -397,7 +388,6 @@ export function calculRevenusEchelonnesJusquaAujourdhui(
   date = new Date()
 ) {
   if (!paiementsEchelonnes || !Array.isArray(paiementsEchelonnes)) {
-    console.log("[Echelonne] Aucun paiement échelonné fourni.");
     return 0;
   }
 
