@@ -175,7 +175,7 @@ export const PaiementEchelonne = () => {
         </div>
 
         {/* Cartes de statistiques */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 '>
           {/* Carte 1: Total Mensuel */}
           <div className='bg-white dark:bg-black rounded-2xl shadow border border-[#ececec] dark:border-gray-800 p-6 flex flex-col items-start justify-center'>
             <div className='flex items-center text-blue-600 dark:text-blue-400 mb-2'>
