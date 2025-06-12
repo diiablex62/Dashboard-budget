@@ -175,7 +175,6 @@ export default function Notifications() {
 
         {grouped.length === 0 ? (
           <div className='text-center text-gray-500 dark:text-gray-400 py-8 bg-white dark:bg-[#18181b] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800'>
-          
             <p>Aucune notification</p>
           </div>
         ) : (

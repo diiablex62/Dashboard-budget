@@ -77,6 +77,24 @@ export const fakeDepenseRevenu = [
     date: "2025-06-30",
     type: "depense",
   },
+  // Ajout : Revenu en août
+  {
+    id: 100,
+    nom: "Revenu Août",
+    montant: 1200,
+    categorie: "Revenus",
+    date: "2025-08-10",
+    type: "revenu",
+  },
+  // Ajout : Dépense en septembre
+  {
+    id: 101,
+    nom: "Dépense Septembre",
+    montant: 300,
+    categorie: "Alimentation",
+    date: "2025-09-15",
+    type: "depense",
+  },
 ];
 
 // Données fictives pour les paiements récurrents
@@ -157,6 +175,17 @@ export const fakePaiementsEchelonnes = [
     debutDate: "2025-06-01",
     categorie: "Maison",
     type: "debit",
+  },
+  // Ajout : Paiement échelonné revenu sur 2 mois (octobre-novembre)
+  {
+    id: 200,
+    nom: "Prime Projet",
+    montant: 2000,
+    mensualites: 2,
+    mensualitesPayees: 0,
+    debutDate: "2025-10-01",
+    categorie: "Revenus",
+    type: "revenu",
   },
 ];
 

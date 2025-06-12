@@ -125,20 +125,44 @@ export default function Previsionnel() {
     const dateMois = addMonths(now, i);
     const mois = moisLabels[dateMois.getMonth()];
     // Calcul revenus
-    const revenus =
-      calculRevenusClassiquesTotalPrevisionnel(depenseRevenu, dateMois) +
-      calculRevenusRecurrentsTotalPrevisionnel(paiementsRecurrents, dateMois) +
-      calculRevenusEchelonnesTotalPrevisionnel(paiementsEchelonnes, dateMois);
+    const revenusClassiques = calculRevenusClassiquesTotalPrevisionnel(
+      depenseRevenu,
+      dateMois
+    );
+    const revenusRecurrents = calculRevenusRecurrentsTotalPrevisionnel(
+      paiementsRecurrents,
+      dateMois
+    );
+    const revenusEchelonnes = calculRevenusEchelonnesTotalPrevisionnel(
+      paiementsEchelonnes,
+      dateMois
+    );
+    const revenus = revenusClassiques + revenusRecurrents + revenusEchelonnes;
     // Calcul dépenses
+    const depensesClassiques = calculDepensesClassiquesTotalPrevisionnel(
+      depenseRevenu,
+      dateMois
+    );
+    const depensesRecurrents = calculDepensesRecurrentesTotalPrevisionnel(
+      paiementsRecurrents,
+      dateMois
+    );
+    const depensesEchelonnees = calculDepensesEchelonneesTotalPrevisionnel(
+      paiementsEchelonnes,
+      dateMois
+    );
     const depenses =
-      calculDepensesClassiquesTotalPrevisionnel(depenseRevenu, dateMois) +
-      calculDepensesRecurrentesTotalPrevisionnel(
-        paiementsRecurrents,
-        dateMois
-      ) +
-      calculDepensesEchelonneesTotalPrevisionnel(paiementsEchelonnes, dateMois);
+      depensesClassiques + depensesRecurrents + depensesEchelonnees;
     // Solde cumulé
     soldeCumul += revenus - depenses;
+    // LOGS DEBUG
+    console.log(`Prévisionnel - Mois: ${mois}`);
+    console.log(
+      `  Revenus: classiques=${revenusClassiques} (${typeof revenusClassiques}), recurrents=${revenusRecurrents} (${typeof revenusRecurrents}), echelonnes=${revenusEchelonnes} (${typeof revenusEchelonnes}), total=${revenus} (${typeof revenus})`
+    );
+    console.log(
+      `  Dépenses: classiques=${depensesClassiques} (${typeof depensesClassiques}), recurrents=${depensesRecurrents} (${typeof depensesRecurrents}), echelonnees=${depensesEchelonnees} (${typeof depensesEchelonnees}), total=${depenses} (${typeof depenses})`
+    );
     return {
       mois,
       revenus,
