@@ -92,7 +92,7 @@ export const fakeDepenseRevenu = [
     nom: "Dépense Septembre",
     montant: 300,
     categorie: "Alimentation",
-    date: "2025-09-15",
+    date: "2025-09-30",
     type: "depense",
   },
 ];
