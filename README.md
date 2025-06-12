@@ -1,6 +1,6 @@
 # DASHBOARD BUDGET
 
-🚀 [Application en ligne](https://cdabudget.netlify.app/dashboard)
+🚀 [Netlify : ](https://cdabudget.netlify.app/dashboard)
 
 ## 🚀 Fonctionnalités
 
