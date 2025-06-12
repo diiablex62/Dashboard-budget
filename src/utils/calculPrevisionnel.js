@@ -29,7 +29,10 @@ export function calculRevenusRecurrentsTotal(paiementsRecurrents, date) {
   const dernierJourDuMois = new Date(annee, mois, 0).getDate();
   return paiementsRecurrents
     .filter(
-      (p) => p.type === "revenu" && p.jourPrelevement <= dernierJourDuMois
+      (p) =>
+        p.type === "revenu" &&
+        p.jourPrelevement >= 1 &&
+        p.jourPrelevement <= dernierJourDuMois
     )
     .reduce((acc, p) => acc + Number(p.montant), 0);
 }
@@ -45,19 +48,12 @@ export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
   let total = 0;
 
   paiementsEchelonnes.forEach((p) => {
-    if (p.type !== "credit") {
-      return;
-    }
-
-    if (!p.debutDate || !p.mensualites) {
-      return;
-    }
-
+    if (p.type !== "debit") return;
+    if (!p.debutDate || !p.mensualites) return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
       dateMensualite.setMonth(dateDebut.getMonth() + i);
-
       if (
         dateMensualite.getMonth() === mois &&
         dateMensualite.getFullYear() === annee
@@ -67,7 +63,6 @@ export function calculRevenusEchelonnesTotal(paiementsEchelonnes, date) {
       }
     }
   });
-
   return total;
 }
 
