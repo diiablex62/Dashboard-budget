@@ -44,7 +44,10 @@ const TooltipDepense = ({
       new Date()
     ) || 0;
   const echelonnesJusquaAujourdhui =
-    calculDepensesEchelonneesTotal(paiementsEchelonnes, new Date()) || 0;
+    calculDepensesEchelonneesJusquaAujourdhui(
+      paiementsEchelonnes,
+      new Date()
+    ) || 0;
   const totalDepensesJusquaAujourdhui =
     depensesClassiquesJusquaAujourdhui +
     recurrentsJusquaAujourdhui +

@@ -33,18 +33,18 @@ const TooltipEconomie = () => {
     (calculRevenusClassiquesJusquaAujourdhui(depenseRevenu, new Date()) || 0) +
     (calculRevenusRecurrentsJusquaAujourdhui(paiementsRecurrents, new Date()) ||
       0) +
-    (calculDepensesEchelonneesJusquaAujourdhui(
-      paiementsEchelonnes,
-      new Date()
-    ) || 0);
+    (calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
+      0);
   const depensesJusquaAujourdhui =
     (calculDepensesClassiquesJusquaAujourdhui(depenseRevenu, new Date()) || 0) +
     (calculDepensesRecurrentesJusquaAujourdhui(
       paiementsRecurrents,
       new Date()
     ) || 0) +
-    (calculRevenusEchelonnesJusquaAujourdhui(paiementsEchelonnes, new Date()) ||
-      0);
+    (calculDepensesEchelonneesJusquaAujourdhui(
+      paiementsEchelonnes,
+      new Date()
+    ) || 0);
   const economiesJusquaAujourdhui =
     revenusJusquaAujourdhui - depensesJusquaAujourdhui;
 
@@ -66,13 +66,13 @@ const TooltipEconomie = () => {
     (calculRevenusClassiquesTotal(depenseRevenu, dateMoisPrecedent) || 0) +
     (calculRevenusRecurrentsTotal(paiementsRecurrents, dateMoisPrecedent) ||
       0) +
-    (calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) ||
-      0);
+    (calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0);
   const depensesMoisPrec =
     (calculDepensesClassiquesTotal(depenseRevenu, dateMoisPrecedent) || 0) +
     (calculDepensesRecurrentesTotal(paiementsRecurrents, dateMoisPrecedent) ||
       0) +
-    (calculRevenusEchelonnesTotal(paiementsEchelonnes, dateMoisPrecedent) || 0);
+    (calculDepensesEchelonneesTotal(paiementsEchelonnes, dateMoisPrecedent) ||
+      0);
   const economiesMoisPrec = revenusMoisPrec - depensesMoisPrec;
 
   return (

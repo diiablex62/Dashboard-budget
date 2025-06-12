@@ -71,7 +71,7 @@ export const calculDepensesEchelonneesJusquaAujourdhui = (
   let mensualitesComptabilisees = [];
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "debit") return;
+    if (p.type !== "credit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
@@ -108,7 +108,7 @@ export const calculDepensesEchelonneesTotal = (paiementsEchelonnes, date) => {
   let mensualitesComptabilisees = [];
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "debit") return;
+    if (p.type !== "credit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
@@ -293,7 +293,7 @@ export const calculRevenusEchelonnesJusquaAujourdhui = (
   let mensualitesComptabilisees = [];
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "credit") return;
+    if (p.type !== "debit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
@@ -326,7 +326,7 @@ export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
   let mensualitesComptabilisees = [];
   paiementsEchelonnes.forEach((p) => {
     if (!p || !p.debutDate || !p.mensualites) return;
-    if (p.type !== "credit") return;
+    if (p.type !== "debit") return;
     const dateDebut = new Date(p.debutDate);
     for (let i = 0; i < Number(p.mensualites); i++) {
       const dateMensualite = new Date(dateDebut);
@@ -342,18 +342,9 @@ export const calculRevenusEchelonnesTotal = (paiementsEchelonnes, date) => {
           date: dateMensualite.toISOString().slice(0, 10),
           montant: mensualite,
         });
-        console.log("[calculRevenusEchelonnesTotal] Ajout mensualité", {
-          nom: p.nom,
-          date: dateMensualite.toISOString().slice(0, 10),
-          montant: mensualite,
-          totalApres: total,
-        });
       }
     }
   });
-  console.log("[calculRevenusEchelonnesTotal] Total", {
-    total,
-    mensualitesComptabilisees,
-  });
+
   return total;
 };
