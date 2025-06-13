@@ -48,18 +48,6 @@ export function genererDonneesPrevisionnelles({
     return premier;
   }, null);
 
-  // Logs détaillés
-  console.log("=== Analyse des données ===");
-  console.log(
-    "Premier mois avec des données:",
-    premierMois
-      ? premierMois.toLocaleDateString("fr-FR", {
-          month: "long",
-          year: "numeric",
-        })
-      : "Aucune donnée"
-  );
-
   // Calculer le solde cumulé jusqu'au mois actuel (now)
   let soldeCumule = 0;
   if (premierMois) {
@@ -67,34 +55,12 @@ export function genererDonneesPrevisionnelles({
     for (let i = 0; i < monthsToCalculate; i++) {
       const dateMois = addMonths(premierMois, i);
 
-      const revenusClassiques = calculRevenusClassiquesTotalPrevisionnel(
+      const { revenus, depenses } = calculateMonthlyTotals(
+        dateMois,
         depenseRevenu,
-        dateMois
-      );
-      const revenusRecurrents = calculRevenusRecurrentsTotalPrevisionnel(
         paiementsRecurrents,
-        dateMois
+        paiementsEchelonnes
       );
-      const revenusEchelonnes = calculRevenusEchelonnesTotalPrevisionnel(
-        paiementsEchelonnes,
-        dateMois
-      );
-      const revenus = revenusClassiques + revenusRecurrents + revenusEchelonnes;
-
-      const depensesClassiques = calculDepensesClassiquesTotalPrevisionnel(
-        depenseRevenu,
-        dateMois
-      );
-      const depensesRecurrents = calculDepensesRecurrentesTotalPrevisionnel(
-        paiementsRecurrents,
-        dateMois
-      );
-      const depensesEchelonnees = calculDepensesEchelonneesTotalPrevisionnel(
-        paiementsEchelonnes,
-        dateMois
-      );
-      const depenses =
-        depensesClassiques + depensesRecurrents + depensesEchelonnees;
 
       soldeCumule += revenus - depenses;
     }
@@ -105,52 +71,17 @@ export function genererDonneesPrevisionnelles({
     const dateMois = addMonths(now, i);
     const mois = moisLabels[dateMois.getMonth()];
 
-    // --- Calcul des revenus pour le mois courant ---
-    const revenusClassiques = calculRevenusClassiquesTotalPrevisionnel(
+    const { revenus, depenses } = calculateMonthlyTotals(
+      dateMois,
       depenseRevenu,
-      dateMois
-    );
-    const revenusRecurrents = calculRevenusRecurrentsTotalPrevisionnel(
       paiementsRecurrents,
-      dateMois
+      paiementsEchelonnes
     );
-    const revenusEchelonnes = calculRevenusEchelonnesTotalPrevisionnel(
-      paiementsEchelonnes,
-      dateMois
-    );
-    const revenus = revenusClassiques + revenusRecurrents + revenusEchelonnes;
-
-    // --- Calcul des dépenses pour le mois courant ---
-    const depensesClassiques = calculDepensesClassiquesTotalPrevisionnel(
-      depenseRevenu,
-      dateMois
-    );
-    const depensesRecurrents = calculDepensesRecurrentesTotalPrevisionnel(
-      paiementsRecurrents,
-      dateMois
-    );
-    const depensesEchelonnees = calculDepensesEchelonneesTotalPrevisionnel(
-      paiementsEchelonnes,
-      dateMois
-    );
-    const depenses =
-      depensesClassiques + depensesRecurrents + depensesEchelonnees;
 
     // Calculer le solde du mois
     const soldeMois = revenus - depenses;
     // Ajouter au solde cumulé
     soldeCumule += soldeMois;
-
-    // Log simplifié pour chaque mois
-    console.log(
-      `${mois} ${dateMois.getFullYear()} - Revenus: ${revenus.toFixed(
-        2
-      )}€, Dépenses: ${depenses.toFixed(
-        2
-      )}€, Solde prévisionnel: ${soldeMois.toFixed(
-        2
-      )}€, Solde prévi avec mois précédent: ${soldeCumule.toFixed(2)}€`
-    );
 
     return {
       mois,
@@ -162,3 +93,49 @@ export function genererDonneesPrevisionnelles({
 
   return donneesMensuelles;
 }
+
+/**
+ * Calcule les totaux de revenus et de dépenses pour un mois donné.
+ * @param {Date} dateMois - La date du mois pour lequel calculer les totaux.
+ * @param {Array} depenseRevenu - Liste des dépenses et revenus classiques.
+ * @param {Array} paiementsRecurrents - Liste des paiements récurrents.
+ * @param {Array} paiementsEchelonnes - Liste des paiements échelonnés.
+ * @returns {{revenus: number, depenses: number}} Les totaux des revenus et dépenses.
+ */
+const calculateMonthlyTotals = (
+  dateMois,
+  depenseRevenu,
+  paiementsRecurrents,
+  paiementsEchelonnes
+) => {
+  const revenusClassiques = calculRevenusClassiquesTotalPrevisionnel(
+    depenseRevenu,
+    dateMois
+  );
+  const revenusRecurrents = calculRevenusRecurrentsTotalPrevisionnel(
+    paiementsRecurrents,
+    dateMois
+  );
+  const revenusEchelonnes = calculRevenusEchelonnesTotalPrevisionnel(
+    paiementsEchelonnes,
+    dateMois
+  );
+  const revenus = revenusClassiques + revenusRecurrents + revenusEchelonnes;
+
+  const depensesClassiques = calculDepensesClassiquesTotalPrevisionnel(
+    depenseRevenu,
+    dateMois
+  );
+  const depensesRecurrentes = calculDepensesRecurrentesTotalPrevisionnel(
+    paiementsRecurrents,
+    dateMois
+  );
+  const depensesEchelonnees = calculDepensesEchelonneesTotalPrevisionnel(
+    paiementsEchelonnes,
+    dateMois
+  );
+  const depenses =
+    depensesClassiques + depensesRecurrentes + depensesEchelonnees;
+
+  return { revenus, depenses };
+};
