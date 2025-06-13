@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const SearchBar = ({
   placeholder = "Rechercher...",
@@ -13,6 +14,7 @@ const SearchBar = ({
   onBlur,
   isSidebarCollapsed,
 }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState({
     depenseRevenu: [],
@@ -150,7 +152,10 @@ const SearchBar = ({
   };
 
   const handleResultClick = (result) => {
+    console.log("=== DÉBUT DE LA REDIRECTION ===");
     console.log("Résultat cliqué:", result);
+    console.log("Type de résultat:", result.type);
+    console.log("ID du résultat:", result.id);
 
     setShowResults(false);
     setSearchTerm("");
@@ -163,6 +168,7 @@ const SearchBar = ({
 
     // Empêcher la fermeture de la sidebar
     if (onBlur) {
+      console.log("Appel de onBlur");
       onBlur();
     }
 
@@ -179,19 +185,25 @@ const SearchBar = ({
         path = `/echelonne?selected=${result.id}`;
         break;
       default:
-        console.log("Type de résultat non reconnu:", result.type);
+        console.error("Type de résultat non reconnu:", result.type);
         return;
     }
 
-    console.log("Redirection vers:", path);
+    console.log("Chemin de redirection calculé:", path);
 
-    // Forcer la navigation
+    // Utiliser navigate au lieu de window.location.href
     try {
-      window.location.href = path;
-      console.log("Redirection effectuée");
+      console.log("Tentative de redirection avec navigate...");
+      navigate(path);
+      console.log("Redirection effectuée avec succès");
     } catch (error) {
       console.error("Erreur lors de la redirection:", error);
+      console.error("Détails de l'erreur:", {
+        message: error.message,
+        stack: error.stack,
+      });
     }
+    console.log("=== FIN DE LA REDIRECTION ===");
   };
 
   const getPageTitle = (type) => {

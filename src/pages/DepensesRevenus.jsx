@@ -8,7 +8,7 @@ import MonthPickerModal from "../components/ui/MonthPickerModal";
 import TransactionCard from "../components/ui/TransactionCard";
 import { ModalDepenseRevenu } from "../components/ui/Modal";
 import { useAuth } from "../context/AuthContext";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 // Import des catégories et données centralisées
 import {
@@ -32,7 +32,8 @@ export default function DepensesRevenus() {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const selectedId = searchParams.get("selected");
 
   const fetchDepenseRevenu = useCallback(() => {
@@ -248,67 +249,61 @@ export default function DepensesRevenus() {
                 </div>
               ) : (
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4 h-full'>
-                  {filteredDepenseRevenu.map((depenseRevenuItem, idx) => (
-                    <TransactionCard
-                      key={depenseRevenuItem.id || idx}
-                      item={depenseRevenuItem}
-                      currentTab={currentTab}
-                      onEdit={() => {
-                        setSelectedItem(depenseRevenuItem);
-                        setShowModal(true);
-                      }}
-                      onDelete={() => {
-                        if (currentTab === "depense") {
-                          deletePaiementWithUndo(
-                            depenseRevenuItem.id,
-                            setDepenses,
-                            depenseRevenuItem.nom
+                  {filteredDepenseRevenu.map((transaction) => {
+                    console.log(
+                      "Passing transaction to TransactionCard:",
+                      transaction
+                    );
+                    return (
+                      <TransactionCard
+                        key={transaction.id}
+                        transaction={transaction}
+                        onEdit={() => {
+                          setSelectedItem(transaction);
+                          setShowModal(true);
+                        }}
+                        onDelete={async () => {
+                          await deletePaiementWithUndo(transaction.id, () =>
+                            fetchDepenseRevenu()
                           );
-                        } else {
-                          deletePaiementWithUndo(
-                            depenseRevenuItem.id,
-                            setRevenus,
-                            depenseRevenuItem.nom
-                          );
+                        }}
+                        categories={
+                          transaction.type === "depense"
+                            ? DEPENSES_CATEGORIES
+                            : REVENUS_CATEGORIES
                         }
-                      }}
-                    />
-                  ))}
+                        type={transaction.type}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
           </div>
           <ModalDepenseRevenu
-            visible={showModal}
-            onClose={() => setShowModal(false)}
+            show={showModal}
+            onClose={() => {
+              setShowModal(false);
+              setSelectedItem(null);
+              navigate(".", { replace: true });
+            }}
             onSave={handleSaveTransaction}
-            initialValues={selectedItem}
+            initialData={selectedItem}
+            isDepense={currentTab === "depense"}
             categories={
               currentTab === "depense"
                 ? DEPENSES_CATEGORIES
                 : REVENUS_CATEGORIES
             }
-            title={
-              currentTab === "depense"
-                ? "Ajouter une dépense"
-                : "Ajouter un revenu"
-            }
-            editMode={!!selectedItem}
+            isViewMode={!!selectedId}
           />
         </div>
       );
-    } catch {
+    } catch (error) {
+      console.error("Erreur dans renderContent:", error);
       return (
-        <div className='container mx-auto px-4 py-8'>
-          <div
-            className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative'
-            role='alert'>
-            <strong className='font-bold'>Erreur !</strong>
-            <span className='block sm:inline'>
-              {" "}
-              Une erreur est survenue lors du chargement de la page.
-            </span>
-          </div>
+        <div className='p-8 text-red-500 dark:text-red-400'>
+          Erreur lors du chargement des données. Veuillez réessayer.
         </div>
       );
     }

@@ -2,7 +2,22 @@ import React from "react";
 import { FiEdit, FiTrash } from "react-icons/fi";
 import { formatMontant } from "../../utils/calcul";
 
-const TransactionCard = ({ item, currentTab, onEdit, onDelete }) => {
+const TransactionCard = ({
+  transaction,
+  type,
+  categories,
+  onEdit,
+  onDelete,
+}) => {
+  if (!transaction) {
+    console.error("TransactionCard: transaction prop is undefined or null", {
+      transaction,
+      type,
+      categories,
+    });
+    return null; // ou un fallback UI
+  }
+
   return (
     <div className='group bg-white dark:bg-gray-900 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 px-6 py-3 flex-1 min-h-[70px] flex flex-col justify-center transition-all duration-200 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-600'>
       <div className='grid grid-cols-2 items-center h-full w-full'>
@@ -10,24 +25,25 @@ const TransactionCard = ({ item, currentTab, onEdit, onDelete }) => {
         <div className='flex flex-col justify-center min-w-0'>
           <div className='min-w-0'>
             <div className='font-bold dark:text-white truncate max-w-[220px] text-lg'>
-              {item.nom.charAt(0).toUpperCase() + item.nom.slice(1)}
+              {transaction.nom?.charAt(0).toUpperCase() +
+                transaction.nom?.slice(1)}
             </div>
           </div>
           <div className='text-xs text-gray-500 dark:text-gray-300 truncate max-w-[180px] mt-0.5 ml-0 font-normal'>
-            {item.categorie}
+            {transaction.categorie}
           </div>
         </div>
         {/* Colonne droite : montant et date */}
         <div className='flex flex-col items-end justify-center min-w-0'>
           <div
             className={`font-bold ${
-              currentTab === "depense" ? "text-red-600" : "text-green-600"
+              transaction.type === "depense" ? "text-red-600" : "text-green-600"
             } text-base truncate`}>
-            {currentTab === "depense" ? "-" : "+"}
-            {formatMontant(parseFloat(item.montant))}€
+            {transaction.type === "depense" ? "-" : "+"}
+            {formatMontant(parseFloat(transaction.montant))}€
           </div>
           <div className='text-xs text-gray-400 dark:text-gray-300 truncate mt-0.5'>
-            {new Date(item.date).toLocaleDateString("fr-FR")}
+            {new Date(transaction.date).toLocaleDateString("fr-FR")}
           </div>
         </div>
       </div>
