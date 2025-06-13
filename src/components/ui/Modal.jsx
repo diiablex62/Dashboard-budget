@@ -66,7 +66,6 @@ export function ModalDepenseRevenu({
   categories = [],
   title = "Ajouter une transaction",
   editMode = false,
-  isViewMode = false,
 }) {
   // Configuration statique
   const steps = useMemo(
@@ -107,20 +106,18 @@ export function ModalDepenseRevenu({
     if (visible) {
       setForm(initialValues || defaultForm);
       setError(null);
-      if (!isViewMode) {
-        setStep(1);
-      }
+      setStep(1);
       isKeyboardNavigation.current = false;
       shouldValidateCategory.current = false;
       shouldValidateDate.current = false;
     }
-  }, [visible, initialValues, defaultForm, isViewMode]);
+  }, [visible, initialValues, defaultForm]);
 
   useEffect(() => {
-    if (visible && inputRef.current && !isViewMode) {
+    if (visible && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [step, visible, isViewMode]);
+  }, [step, visible]);
 
   useEffect(() => {
     if (shouldValidateCategory.current && form.categorie && step === 2) {
@@ -146,8 +143,6 @@ export function ModalDepenseRevenu({
   );
 
   const validateStep = useCallback(() => {
-    if (isViewMode) return true;
-
     if (!form[current.name]) {
       setError(`Le champ "${current.label}" est obligatoire`);
       return false;
@@ -170,7 +165,7 @@ export function ModalDepenseRevenu({
 
     setError(null);
     return true;
-  }, [current, form, isViewMode]);
+  }, [current, form, step]);
 
   const handleNext = useCallback(() => {
     if (!validateStep()) {
@@ -214,32 +209,23 @@ export function ModalDepenseRevenu({
     if (step > 1) setStep(step - 1);
   }, [step]);
 
-  const handleChange = useCallback(
-    (e) => {
-      if (isViewMode) return;
-      if (e.target.name === "dateDebut") {
-      } else {
-        setForm((prev) => {
-          const newForm = { ...prev, [e.target.name]: e.target.value };
-          return newForm;
-        });
-      }
-    },
-    [isViewMode]
-  );
+  const handleChange = useCallback((e) => {
+    if (e.target.name === "dateDebut") {
+    } else {
+      setForm((prev) => {
+        const newForm = { ...prev, [e.target.name]: e.target.value };
+        return newForm;
+      });
+    }
+  }, []);
 
-  const handleCategoryChange = useCallback(
-    (e) => {
-      if (isViewMode) return;
-      const newCategory = e.target.value;
-      setForm((prev) => ({ ...prev, categorie: newCategory }));
-      setError(null);
-    },
-    [isViewMode]
-  );
+  const handleCategoryChange = useCallback((e) => {
+    const newCategory = e.target.value;
+    setForm((prev) => ({ ...prev, categorie: newCategory }));
+    setError(null);
+  }, []);
 
   const handleCategoryClick = useCallback(() => {
-    if (isViewMode) return;
     if (
       form.categorie &&
       form.categorie !== lastCategory.current &&
@@ -248,25 +234,34 @@ export function ModalDepenseRevenu({
       lastCategory.current = form.categorie;
       handleNext();
     }
-  }, [form.categorie, step, handleNext, isViewMode]);
+  }, [form.categorie, step, handleNext]);
 
   const handleKeyDown = useCallback(
     (e) => {
-      if (isViewMode) return;
       if (e.key === "Enter" && current.type === "select") {
         e.preventDefault();
         handleNext();
       } else if (current.type === "select") {
         isKeyboardNavigation.current = true;
       } else if (current.type === "date") {
+        // On ne bloque plus la navigation avec les flèches
         if (
           ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
         ) {
+          // On ne fait rien, on laisse le comportement par défaut
         }
       }
     },
-    [current.type, handleNext, isViewMode]
+    [current.type, handleNext]
   );
+
+  // Effet pour la validation de la date
+  useEffect(() => {
+    if (shouldValidateDate.current && form.date && step === 4) {
+      handleNext();
+      shouldValidateDate.current = false;
+    }
+  }, [form.date, step]);
 
   const renderPreviousAnswers = useCallback(
     () => (
@@ -317,57 +312,38 @@ export function ModalDepenseRevenu({
             e.preventDefault();
             handleNext();
           }}>
-          <div className='mb-6'>
-            <label
-              htmlFor={current.name}
-              className='block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2'>
-              {current.label}
-            </label>
-            {current.type === "text" && (
+          {current.type === "text" && (
+            <div className='mb-4'>
+              <label className='block mb-2 font-medium dark:text-white'>
+                {current.label}
+              </label>
               <input
                 type='text'
-                id={current.name}
                 name={current.name}
-                value={form[current.name]}
+                value={form[current.name] || ""}
                 onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
-                readOnly={isViewMode}
-                className={`mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                  isViewMode
-                    ? "bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
-                    : ""
-                }`}
+                onKeyDown={handleKeyDown}
+                autoFocus
               />
-            )}
-            {current.type === "number" && (
-              <input
-                type='number'
-                id={current.name}
-                name={current.name}
-                value={form[current.name]}
-                onChange={handleChange}
-                ref={inputRef}
-                readOnly={isViewMode}
-                className={`mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                  isViewMode
-                    ? "bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
-                    : ""
-                }`}
-              />
-            )}
-            {current.type === "select" && (
+            </div>
+          )}
+          {current.type === "select" && (
+            <div className='mb-4'>
+              <label className='block mb-2 font-medium dark:text-white'>
+                {current.label}
+              </label>
               <select
-                id={current.name}
                 name={current.name}
-                value={form[current.name]}
+                value={form[current.name] || ""}
                 onChange={handleCategoryChange}
+                onClick={handleCategoryClick}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
                 ref={inputRef}
-                disabled={isViewMode}
-                className={`mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                  isViewMode
-                    ? "bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
-                    : ""
-                }`}>
+                onKeyDown={handleKeyDown}
+                autoFocus
+                size={categories.length + 1}>
                 <option value=''>Sélectionner une catégorie</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -375,62 +351,83 @@ export function ModalDepenseRevenu({
                   </option>
                 ))}
               </select>
-            )}
-            {current.type === "date" && (
+            </div>
+          )}
+          {current.type === "number" && (
+            <div className='mb-4'>
+              <label className='block mb-2 font-medium dark:text-white'>
+                {current.label}
+              </label>
+              <input
+                type='number'
+                name={current.name}
+                value={form[current.name] || ""}
+                onChange={handleChange}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
+                min='0.01'
+                step='0.01'
+                ref={inputRef}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+            </div>
+          )}
+          {current.type === "date" && (
+            <div className='mb-6'>
+              <label className='block mb-2 font-medium dark:text-white'>
+                {current.label}
+              </label>
               <DatePicker
                 selected={form.date ? new Date(form.date) : null}
-                onChange={(date) =>
-                  handleChange({
-                    target: {
-                      name: current.name,
-                      value: date.toISOString().split("T")[0],
-                    },
-                  })
-                }
-                locale={fr}
+                onChange={(date, event) => {
+                  if (
+                    event &&
+                    event.target &&
+                    event.target.className &&
+                    event.target.className.includes(
+                      "react-datepicker__navigation"
+                    )
+                  ) {
+                    // Navigation, on ignore la validation
+                  } else {
+                    setForm((prev) => ({
+                      ...prev,
+                      date: date ? date.toISOString().split("T")[0] : "",
+                    }));
+                    shouldValidateDate.current = true;
+                  }
+                }}
                 dateFormat='dd/MM/yyyy'
-                className={`mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                  isViewMode
-                    ? "bg-gray-100 dark:bg-gray-600 cursor-not-allowed"
-                    : ""
-                }`}
-                readOnly={isViewMode}
-                disabled={isViewMode}
+                className='w-full border dark:border-gray-700 dark:bg-gray-900 dark:text-white rounded px-3 py-2'
+                calendarClassName='dark:bg-gray-900 dark:text-white'
+                wrapperClassName='w-full'
+                locale={fr}
+                placeholderText='Choisir une date'
+                showPopperArrow={false}
               />
+            </div>
+          )}
+          <div className='flex justify-between mt-4'>
+            {step > 1 && (
+              <button
+                type='button'
+                className='text-gray-600 dark:text-gray-400 cursor-pointer'
+                onClick={handlePrev}>
+                Précédent
+              </button>
             )}
-            {error && <p className='text-red-500 text-xs mt-1'>{error}</p>}
+            <button
+              className={`bg-gray-900 text-white px-4 py-2 rounded cursor-pointer ${
+                step === 1 ? "ml-auto" : ""
+              }`}
+              type='submit'>
+              {step === steps.length
+                ? editMode
+                  ? "Valider la modification"
+                  : "Valider l'ajout"
+                : "Suivant"}
+            </button>
           </div>
-          {!isViewMode && (
-            <div className='flex justify-between mt-6'>
-              {step > 1 && (
-                <button
-                  onClick={handlePrev}
-                  className='px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition'>
-                  Précédent
-                </button>
-              )}
-              <button
-                onClick={handleNext}
-                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition ${
-                  step === 1 && "ml-auto"
-                }`}>
-                {step < steps.length
-                  ? "Suivant"
-                  : editMode
-                  ? "Modifier"
-                  : "Ajouter"}
-              </button>
-            </div>
-          )}
-          {isViewMode && (
-            <div className='flex justify-end mt-6'>
-              <button
-                onClick={onClose}
-                className='px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition'>
-                Fermer
-              </button>
-            </div>
-          )}
         </form>
       </div>
     </div>
@@ -1018,14 +1015,24 @@ export function ModalEchelonne({
       } else if (current.type === "select") {
         isKeyboardNavigation.current = true;
       } else if (current.type === "date") {
+        // On ne bloque plus la navigation avec les flèches
         if (
           ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
         ) {
+          // On ne fait rien, on laisse le comportement par défaut
         }
       }
     },
     [current.type, handleNext]
   );
+
+  // Effet pour la validation de la date
+  useEffect(() => {
+    if (shouldValidateDate.current && form.debutDate && step === 5) {
+      handleNext();
+      shouldValidateDate.current = false;
+    }
+  }, [form.debutDate, step]);
 
   const renderPreviousAnswers = useCallback(
     () => (
@@ -1154,6 +1161,7 @@ export function ModalEchelonne({
                       "react-datepicker__navigation"
                     )
                   ) {
+                    // Navigation, on ignore la validation
                   } else {
                     setForm((prev) => ({
                       ...prev,

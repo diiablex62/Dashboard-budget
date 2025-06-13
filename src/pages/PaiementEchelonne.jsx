@@ -3,15 +3,12 @@ import {
   AiOutlinePlus,
   AiOutlineDollarCircle,
   AiOutlineCalendar,
-  AiOutlineArrowLeft,
-  AiOutlineArrowRight,
 } from "react-icons/ai";
 import {
   DEPENSES_CATEGORIES,
   REVENUS_CATEGORIES,
   getMonthYear,
 } from "../utils/categoryUtils";
-import { fakePaiementsEchelonnes } from "../utils/fakeData";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
 import CardDesign from "../components/ui/CardDesign";
 import { ModalEchelonne } from "../components/ui/Modal";
@@ -306,17 +303,6 @@ export const PaiementEchelonne = () => {
                   );
 
                   const isDepense = paiement.type === "credit";
-                  const montantAffiche = `${
-                    isDepense ? "-" : "+"
-                  }${progression.montantMensuel.toLocaleString("fr-FR", {
-                    minimumFractionDigits: 2,
-                  })}€`;
-                  const montantClass = isDepense
-                    ? "text-red-600"
-                    : "text-green-600";
-                  const barreClass = isDepense
-                    ? "bg-red-600 dark:bg-red-400"
-                    : "bg-green-600 dark:bg-green-400";
 
                   return (
                     <CardDesign
@@ -334,7 +320,11 @@ export const PaiementEchelonne = () => {
                       <div className='flex flex-col gap-2'>
                         <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5'>
                           <div
-                            className={`${barreClass} h-2.5 rounded-full`}
+                            className={`${
+                              isDepense
+                                ? "bg-red-600 dark:bg-red-400"
+                                : "bg-green-600 dark:bg-green-400"
+                            } h-2.5 rounded-full`}
                             style={{
                               width: `${progression.pourcentage}%`,
                             }}></div>
@@ -398,6 +388,7 @@ export const PaiementEchelonne = () => {
         }
         title={editIndex !== null ? "Modifier" : "Ajouter"}
         editMode={editIndex !== null}
+        isViewMode={!!selectedId}
       />
     </div>
   );

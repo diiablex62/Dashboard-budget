@@ -82,7 +82,8 @@ export default function DepensesRevenus() {
   const handleAddTransaction = useCallback(() => {
     setSelectedItem(null);
     setShowModal(true);
-  }, []);
+    setSearchParams({});
+  }, [setSearchParams]);
 
   const handleSaveTransaction = useCallback(
     async (transaction) => {
@@ -281,14 +282,14 @@ export default function DepensesRevenus() {
             </div>
           </div>
           <ModalDepenseRevenu
-            show={showModal}
+            visible={showModal}
             onClose={() => {
               setShowModal(false);
               setSelectedItem(null);
               navigate(".", { replace: true });
             }}
             onSave={handleSaveTransaction}
-            initialData={selectedItem}
+            initialValues={selectedItem}
             isDepense={currentTab === "depense"}
             categories={
               currentTab === "depense"
