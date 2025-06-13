@@ -111,6 +111,12 @@ export default function Previsionnel() {
     nbMois,
   });
 
+  // Analyse du solde cumulé futur pour les conseils budgétaires
+  const soldeFuturNegatif = dataPrevisionnelle.some((item) => item.solde < 0);
+  const premierMoisSoldeNegatif = soldeFuturNegatif
+    ? dataPrevisionnelle.find((item) => item.solde < 0)
+    : null;
+
   return (
     <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
       <div>
@@ -193,18 +199,26 @@ export default function Previsionnel() {
                   dépenses pour ce mois.
                 </p>
               </div>
-            ) : budgetRestant < 100 ? (
+            ) : budgetRestant < 50 ? (
+              <div className='p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg'>
+                <p className='text-yellow-700 dark:text-yellow-400'>
+                  Urgent : Votre budget est extrêmement serré pour ce mois.
+                  Revoyez vos dépenses les plus récentes.
+                </p>
+              </div>
+            ) : budgetRestant < 200 ? (
               <div className='p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg'>
                 <p className='text-yellow-700 dark:text-yellow-400'>
                   Vigilance : Votre budget est serré. Limitez les dépenses
-                  supplémentaires.
+                  supplémentaires et restez attentif.
                 </p>
               </div>
             ) : (
               <div className='p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg'>
                 <p className='text-green-700 dark:text-green-400'>
                   Félicitations : Votre budget est équilibré. Vous pouvez
-                  envisager d'épargner le surplus.
+                  envisager d'épargner le surplus ou de constituer un fonds
+                  d'urgence.
                 </p>
               </div>
             )}
@@ -214,6 +228,156 @@ export default function Previsionnel() {
                 Budget journalier recommandé :{" "}
                 {formatMontant(budgetJournalierRestant * 0.8)}€ pour conserver
                 une marge de sécurité.
+              </p>
+            </div>
+
+            {soldeFuturNegatif && (
+              <div className='p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg'>
+                <p className='text-red-700 dark:text-red-400'>
+                  Alerte future : Votre solde cumulé pourrait devenir négatif
+                  {premierMoisSoldeNegatif &&
+                    ` à partir de ${
+                      premierMoisSoldeNegatif.mois
+                    } ${premierMoisSoldeNegatif.dateMois.getFullYear()}`}
+                  . Planifiez dès maintenant pour éviter un découvert.
+                </p>
+              </div>
+            )}
+
+            {!soldeFuturNegatif && budgetRestant >= 0 && (
+              <div className='p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg'>
+                <p className='text-green-700 dark:text-green-400'>
+                  Perspectives : Votre budget reste positif à long terme.
+                  Envisagez d'investir ou d'épargner pour vos projets futurs
+                  (ex: fonds d'urgence, investissements à long terme).
+                </p>
+              </div>
+            )}
+
+            {/* Nouveaux conseils détaillés basés sur dataPrevisionnelle */}
+            {dataPrevisionnelle.length > 0 && (
+              <>
+                {/* Conseil si un mois futur a un solde très serré */}
+                {dataPrevisionnelle.some(
+                  (item) => item.solde > 0 && item.solde < 100
+                ) && (
+                  <div className='p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg'>
+                    <p className='text-yellow-700 dark:text-yellow-400'>
+                      Alerte Prévisionnelle : Certains mois futurs ont un solde
+                      très serré. Examinez attentivement vos dépenses prévues
+                      pour ces périodes et identifiez les domaines où vous
+                      pouvez optimiser.
+                    </p>
+                  </div>
+                )}
+
+                {/* Conseil si un mois futur a un solde très élevé */}
+                {dataPrevisionnelle.some((item) => item.solde > 1000) && (
+                  <div className='p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
+                    <p className='text-blue-700 dark:text-blue-400'>
+                      Excellentes Perspectives : Des mois futurs affichent un
+                      solde très confortable. Profitez-en pour envisager un
+                      investissement important, un projet personnel, ou
+                      renforcer votre épargne de précaution.
+                    </p>
+                  </div>
+                )}
+
+                {/* Conseil sur l'optimisation des paiements récurrents/échelonnés */}
+                {(paiementsRecurrents.length > 0 ||
+                  paiementsEchelonnes.length > 0) && (
+                  <div className='p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
+                    <p className='text-blue-700 dark:text-blue-400'>
+                      Optimisation des flux : N'oubliez pas de réévaluer
+                      régulièrement vos abonnements et paiements échelonnés. De
+                      petites économies ici peuvent avoir un impact cumulatif
+                      significatif sur le long terme.
+                    </p>
+                  </div>
+                )}
+
+                {/* Conseil sur la fixation d'objectifs financiers (si le budget est sain) */}
+                {!soldeFuturNegatif && budgetRestant >= 0 && (
+                  <div className='p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg'>
+                    <p className='text-green-700 dark:text-green-400'>
+                      Objectifs Financiers : Votre budget prévisionnel est
+                      stable et positif. C'est le moment idéal pour définir des
+                      objectifs financiers clairs (ex: achat immobilier,
+                      retraite anticipée, voyage) et adapter votre épargne en
+                      conséquence.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Synthèse générale de la situation financière */}
+            {(() => {
+              let conseilGeneral = "";
+              let bgColor = "bg-gray-50 dark:bg-gray-900/20";
+              let borderColor = "border-gray-200 dark:border-gray-800";
+              let textColor = "text-gray-700 dark:text-gray-400";
+
+              const premierSolde =
+                dataPrevisionnelle.length > 0 ? dataPrevisionnelle[0].solde : 0;
+              const dernierSolde =
+                dataPrevisionnelle.length > 0
+                  ? dataPrevisionnelle[dataPrevisionnelle.length - 1].solde
+                  : 0;
+
+              if (soldeFuturNegatif) {
+                conseilGeneral = `Votre budget est sous pression. Le solde cumulé pourrait devenir négatif à partir de ${
+                  premierMoisSoldeNegatif.mois
+                } ${premierMoisSoldeNegatif.dateMois.getFullYear()}. Une action rapide est recommandée.`;
+                bgColor = "bg-red-50 dark:bg-red-900/20";
+                borderColor = "border-red-200 dark:border-red-800";
+                textColor = "text-red-700 dark:text-red-400";
+              } else if (budgetRestant < 0) {
+                conseilGeneral =
+                  "Votre budget actuel est négatif. Concentrez-vous sur la réduction des dépenses immédiates.";
+                bgColor = "bg-red-50 dark:bg-red-900/20";
+                borderColor = "border-red-200 dark:border-red-800";
+                textColor = "text-red-700 dark:text-red-400";
+              } else if (dernierSolde < premierSolde - 100) {
+                conseilGeneral =
+                  "Attention à la tendance : Votre solde cumulé diminue. Il est temps de revoir vos habitudes budgétaires.";
+                bgColor = "bg-red-50 dark:bg-red-900/20";
+                borderColor = "border-red-200 dark:border-red-800";
+                textColor = "text-red-700 dark:text-red-400";
+              } else if (
+                dernierSolde > premierSolde + 100 &&
+                budgetRestant >= 0
+              ) {
+                conseilGeneral =
+                  "Votre situation financière s'améliore ! C'est excellent pour vos objectifs à long terme.";
+                bgColor = "bg-green-50 dark:bg-green-900/20";
+                borderColor = "border-green-200 dark:border-green-800";
+                textColor = "text-green-700 dark:text-green-400";
+              } else if (budgetRestant < 200 && budgetRestant >= 0) {
+                conseilGeneral =
+                  "Votre budget est gérable, mais reste serré. Une optimisation légère peut faire la différence.";
+                bgColor = "bg-yellow-50 dark:bg-yellow-900/20";
+                borderColor = "border-yellow-200 dark:border-yellow-800";
+                textColor = "text-yellow-700 dark:text-yellow-400";
+              } else {
+                conseilGeneral =
+                  "Votre budget est bien géré. Continuez à surveiller vos dépenses et explorez l'épargne.";
+              }
+
+              return (
+                <div
+                  className={`${bgColor} ${borderColor} p-3 border rounded-lg`}>
+                  <p className={`${textColor}`}>
+                    Analyse Globale : {conseilGeneral}
+                  </p>
+                </div>
+              );
+            })()}
+
+            <div className='p-3 bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg'>
+              <p className='text-gray-700 dark:text-gray-400'>
+                Conseil général : Revoyez régulièrement vos dépenses et revenus
+                pour une meilleure maîtrise de votre budget.
               </p>
             </div>
           </div>
