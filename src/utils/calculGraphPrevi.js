@@ -3,7 +3,7 @@
  * Il est utilisé dans src/pages/Previsionnel.jsx pour générer les données du graphique
  */
 
-import { addMonths } from "date-fns";
+import { addMonths, differenceInMonths } from "date-fns";
 import {
   calculRevenusClassiquesTotal as calculRevenusClassiquesTotalPrevisionnel,
   calculRevenusRecurrentsTotal as calculRevenusRecurrentsTotalPrevisionnel,
@@ -60,8 +60,45 @@ export function genererDonneesPrevisionnelles({
       : "Aucune donnée"
   );
 
-  // Variable pour stocker le solde cumulé
+  // Calculer le solde cumulé jusqu'au mois actuel (now)
   let soldeCumule = 0;
+  if (premierMois) {
+    const monthsToCalculate = differenceInMonths(now, premierMois);
+    for (let i = 0; i < monthsToCalculate; i++) {
+      const dateMois = addMonths(premierMois, i);
+
+      const revenusClassiques = calculRevenusClassiquesTotalPrevisionnel(
+        depenseRevenu,
+        dateMois
+      );
+      const revenusRecurrents = calculRevenusRecurrentsTotalPrevisionnel(
+        paiementsRecurrents,
+        dateMois
+      );
+      const revenusEchelonnes = calculRevenusEchelonnesTotalPrevisionnel(
+        paiementsEchelonnes,
+        dateMois
+      );
+      const revenus = revenusClassiques + revenusRecurrents + revenusEchelonnes;
+
+      const depensesClassiques = calculDepensesClassiquesTotalPrevisionnel(
+        depenseRevenu,
+        dateMois
+      );
+      const depensesRecurrents = calculDepensesRecurrentesTotalPrevisionnel(
+        paiementsRecurrents,
+        dateMois
+      );
+      const depensesEchelonnees = calculDepensesEchelonneesTotalPrevisionnel(
+        paiementsEchelonnes,
+        dateMois
+      );
+      const depenses =
+        depensesClassiques + depensesRecurrents + depensesEchelonnees;
+
+      soldeCumule += revenus - depenses;
+    }
+  }
 
   // Calculer les données pour chaque mois à partir du mois actuel
   const donneesMensuelles = Array.from({ length: nbMois }).map((_, i) => {
