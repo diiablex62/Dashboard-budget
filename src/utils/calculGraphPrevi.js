@@ -32,9 +32,39 @@ export function genererDonneesPrevisionnelles({
   moisLabels,
   nbMois,
 }) {
-  let soldeCumul = 0;
+  // Collecter toutes les dates de toutes les sources
+  const dates = [
+    // Dates des transactions classiques
+    ...depenseRevenu.map((t) => new Date(t.date)),
+    // Dates de début des paiements échelonnés
+    ...paiementsEchelonnes.map((t) => new Date(t.debutDate)),
+  ];
 
-  return Array.from({ length: nbMois }).map((_, i) => {
+  // Trouver la date la plus ancienne
+  const premierMois = dates.reduce((premier, date) => {
+    if (!premier || date < premier) {
+      return date;
+    }
+    return premier;
+  }, null);
+
+  // Logs détaillés
+  console.log("=== Analyse des données ===");
+  console.log(
+    "Premier mois avec des données:",
+    premierMois
+      ? premierMois.toLocaleDateString("fr-FR", {
+          month: "long",
+          year: "numeric",
+        })
+      : "Aucune donnée"
+  );
+
+  // Variable pour stocker le solde cumulé
+  let soldeCumule = 0;
+
+  // Calculer les données pour chaque mois à partir du mois actuel
+  const donneesMensuelles = Array.from({ length: nbMois }).map((_, i) => {
     const dateMois = addMonths(now, i);
     const mois = moisLabels[dateMois.getMonth()];
 
@@ -69,14 +99,29 @@ export function genererDonneesPrevisionnelles({
     const depenses =
       depensesClassiques + depensesRecurrents + depensesEchelonnees;
 
-    // --- Calcul du solde cumulé ---
-    soldeCumul += revenus - depenses;
+    // Calculer le solde du mois
+    const soldeMois = revenus - depenses;
+    // Ajouter au solde cumulé
+    soldeCumule += soldeMois;
+
+    // Log simplifié pour chaque mois
+    console.log(
+      `${mois} ${dateMois.getFullYear()} - Revenus: ${revenus.toFixed(
+        2
+      )}€, Dépenses: ${depenses.toFixed(
+        2
+      )}€, Solde prévisionnel: ${soldeMois.toFixed(
+        2
+      )}€, Solde prévi avec mois précédent: ${soldeCumule.toFixed(2)}€`
+    );
 
     return {
       mois,
       revenus,
       depenses,
-      solde: soldeCumul,
+      solde: soldeCumule, // Utiliser le solde cumulé pour le graphique
     };
   });
+
+  return donneesMensuelles;
 }
