@@ -1180,6 +1180,7 @@ export function ModalEchelonne({
               />
             </div>
           )}
+          
           <div className='flex justify-between mt-4'>
             {step > 1 && (
               <button

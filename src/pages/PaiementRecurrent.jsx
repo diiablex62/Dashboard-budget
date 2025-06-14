@@ -20,7 +20,6 @@ import {
   formatMontant,
 } from "../utils/calcul";
 import MonthPickerModal from "../components/ui/MonthPickerModal";
-import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 import CardDesign from "../components/ui/CardDesign";
 import { ModalRecurrent } from "../components/ui/Modal";
 import Button from "../components/ui/Button";
@@ -36,6 +35,7 @@ const PaiementRecurrent = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [searchParams] = useSearchParams();
   const selectedId = searchParams.get("selected");
+  const [paiementsRecurrents, setPaiementsRecurrents] = useState([]);
 
   // Sécurisation des données pour éviter les erreurs si non chargées
   const { paiementsRecurrents: dataPaiementsRecurrents } = useMemo(
@@ -45,6 +45,11 @@ const PaiementRecurrent = () => {
   const safePaiementsRecurrents = Array.isArray(dataPaiementsRecurrents)
     ? dataPaiementsRecurrents
     : [];
+
+  // Sélectionner les catégories en fonction du type
+  const categories = useMemo(() => {
+    return currentTab === "depense" ? DEPENSES_CATEGORIES : REVENUS_CATEGORIES;
+  }, [currentTab]);
 
   useEffect(() => {
     if (selectedId) {
@@ -59,24 +64,32 @@ const PaiementRecurrent = () => {
     }
   }, [selectedId, safePaiementsRecurrents]);
 
+  // Initialiser les paiements récurrents avec les données de getData
+  useEffect(() => {
+    const { paiementsRecurrents: initialData } = getData() || {};
+    if (Array.isArray(initialData)) {
+      setPaiementsRecurrents(initialData);
+    }
+  }, [getData]);
+
   // Calcul des totaux
   const totalRevenus = useMemo(() => {
     return calculTotalRevenusRecurrentsMois(
-      safePaiementsRecurrents.filter((p) => p.type === "revenu"),
+      paiementsRecurrents.filter((p) => p.type === "revenu"),
       selectedMonth
     );
-  }, [safePaiementsRecurrents, selectedMonth]);
+  }, [paiementsRecurrents, selectedMonth]);
 
   const totalDepenses = useMemo(() => {
     return calculTotalDepensesRecurrentesMois(
-      safePaiementsRecurrents.filter((p) => p.type === "depense"),
+      paiementsRecurrents.filter((p) => p.type === "depense"),
       selectedMonth
     );
-  }, [safePaiementsRecurrents, selectedMonth]);
+  }, [paiementsRecurrents, selectedMonth]);
 
   // Filtrage des paiements selon le type et le mois
   const paiementsFiltres = useMemo(() => {
-    return safePaiementsRecurrents.filter((p) => {
+    return paiementsRecurrents.filter((p) => {
       if (p.type !== currentTab) return false;
 
       // Vérifie si le jour de prélèvement est valide pour ce mois
@@ -88,7 +101,7 @@ const PaiementRecurrent = () => {
 
       return jourValide;
     });
-  }, [safePaiementsRecurrents, currentTab, selectedMonth]);
+  }, [paiementsRecurrents, currentTab, selectedMonth]);
 
   // Trier les paiements par jour de prélèvement
   const paiementsTries = useMemo(() => {
@@ -112,6 +125,27 @@ const PaiementRecurrent = () => {
     });
     setShowModal(true);
   }, []);
+
+  const handleSave = useCallback(
+    (paiement) => {
+      setPaiementsRecurrents((prev) => {
+        if (paiement.id) {
+          // Modification d'un paiement existant
+          return prev.map((p) => (p.id === paiement.id ? paiement : p));
+        } else {
+          // Ajout d'un nouveau paiement
+          const newPaiement = {
+            ...paiement,
+            id: Date.now(),
+            type: currentTab,
+          };
+          return [...prev, newPaiement];
+        }
+      });
+      setShowModal(false);
+    },
+    [currentTab]
+  );
 
   if (error) {
     return (
@@ -207,6 +241,12 @@ const PaiementRecurrent = () => {
                 mensuels
               </div>
             </div>
+            <Button
+              onClick={handleAddPaiement}
+              className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg'>
+              <AiOutlinePlus className='text-lg' />
+              Ajouter
+            </Button>
           </div>
           {paiementsTries.length === 0 ? (
             <div className='text-center py-10 text-gray-500'>
@@ -230,6 +270,16 @@ const PaiementRecurrent = () => {
           )}
         </div>
       </div>
+      {showModal && (
+        <ModalRecurrent
+          visible={showModal}
+          onClose={() => setShowModal(false)}
+          onSave={handleSave}
+          initialValues={selectedPaiement}
+          categories={categories}
+          type={currentTab}
+        />
+      )}
     </div>
   );
 };
