@@ -22,13 +22,99 @@ import {
 } from "../utils/calculPrevisionnel";
 
 export default function Previsionnel() {
-  const { getData } = useAuth();
+  const { getData, isAuthenticated } = useAuth();
   const { depenseRevenu, paiementsRecurrents, paiementsEchelonnes } = useMemo(
     () => getData(),
     [getData]
   );
 
-  // Protection pour le chargement des données
+  // Si l'utilisateur n'est pas connecté, on affiche la page avec des valeurs à 0
+  if (!isAuthenticated) {
+    return (
+      <div className='bg-[#f8fafc] min-h-screen p-8 dark:bg-black'>
+        <div>
+          {/* Titre */}
+          <div className='mb-6'>
+            <h1 className='text-2xl font-bold text-gray-900 dark:text-white whitespace-nowrap'>
+              Prévisionnel
+            </h1>
+            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+              Gérez vos prévisions financières
+            </p>
+          </div>
+
+          {/* Cartes de budget */}
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
+            {/* Carte de budget restant */}
+            <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-6'>
+              <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2'>
+                Budget restant {CURRENT_MONTH}
+              </h2>
+              <div className='text-3xl font-bold text-green-600 mb-3'>
+                {formatMontant(0)}€
+              </div>
+              <p className='text-sm text-gray-500 dark:text-gray-400'>
+                Solde disponible après toutes les dépenses du mois
+              </p>
+            </div>
+
+            {/* Carte de budget journalier */}
+            <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-6'>
+              <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2'>
+                Budget journalier restant
+              </h2>
+              <div className='text-3xl font-bold text-green-600 mb-3'>
+                {formatMontant(0)}€/jour
+              </div>
+              <p className='text-sm text-gray-500 dark:text-gray-400'>
+                Pour les{" "}
+                {new Date(
+                  new Date().getFullYear(),
+                  new Date().getMonth() + 1,
+                  0
+                ).getDate() - new Date().getDate()}{" "}
+                jours restants du mois
+              </p>
+            </div>
+
+            {/* Carte des dépenses restantes */}
+            <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-6'>
+              <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2'>
+                Dépenses restantes
+              </h2>
+              <div className='text-3xl font-bold text-red-600 mb-3'>
+                {formatMontant(0)}€
+              </div>
+              <p className='text-sm text-gray-500 dark:text-gray-400'>
+                Dépenses prévues jusqu'à la fin du mois
+              </p>
+            </div>
+          </div>
+
+          {/* Graphique des mois à venir */}
+          <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8'>
+            <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4'>
+              Prévision des dépenses et revenus des prochains mois
+            </h2>
+            <GraphiquePrevisionnel data={[]} />
+          </div>
+
+          {/* Conseils budgétaires */}
+          <div className='bg-white dark:bg-gray-800 rounded-xl shadow p-6'>
+            <h2 className='text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4'>
+              Conseils budgétaires
+            </h2>
+            <p className='text-gray-600 dark:text-gray-400'>
+              Pas de conseils pour le moment. Veuillez vous connecter pour
+              obtenir des conseils personnalisés.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Protection pour le chargement des données (uniquement pour les utilisateurs connectés)
   if (
     !depenseRevenu?.length ||
     !paiementsRecurrents?.length ||
@@ -279,41 +365,56 @@ export default function Previsionnel() {
               let borderColor = "border-gray-200 dark:border-gray-800";
               let textColor = "text-gray-700 dark:text-gray-400";
 
-              const premierSolde = dataPrevisionnelle.length > 0 ? dataPrevisionnelle[0].solde : 0;
-              const dernierSolde = dataPrevisionnelle.length > 0 ? dataPrevisionnelle[dataPrevisionnelle.length - 1].solde : 0;
+              const premierSolde =
+                dataPrevisionnelle.length > 0 ? dataPrevisionnelle[0].solde : 0;
+              const dernierSolde =
+                dataPrevisionnelle.length > 0
+                  ? dataPrevisionnelle[dataPrevisionnelle.length - 1].solde
+                  : 0;
 
               if (soldeFuturNegatif) {
-                conseilGeneral = "Votre budget est sous pression. Une action rapide est recommandée.";
+                conseilGeneral =
+                  "Votre budget est sous pression. Une action rapide est recommandée.";
                 bgColor = "bg-red-50 dark:bg-red-900/20";
                 borderColor = "border-red-200 dark:border-red-800";
                 textColor = "text-red-700 dark:text-red-400";
               } else if (budgetRestant < 0) {
-                conseilGeneral = "Concentrez-vous sur la réduction des dépenses immédiates.";
+                conseilGeneral =
+                  "Concentrez-vous sur la réduction des dépenses immédiates.";
                 bgColor = "bg-red-50 dark:bg-red-900/20";
                 borderColor = "border-red-200 dark:border-red-800";
                 textColor = "text-red-700 dark:text-red-400";
               } else if (dernierSolde < premierSolde - 100) {
-                conseilGeneral = "Attention : Votre solde cumulé diminue. Revoyez vos habitudes budgétaires.";
+                conseilGeneral =
+                  "Attention : Votre solde cumulé diminue. Revoyez vos habitudes budgétaires.";
                 bgColor = "bg-red-50 dark:bg-red-900/20";
                 borderColor = "border-red-200 dark:border-red-800";
                 textColor = "text-red-700 dark:text-red-400";
-              } else if (dernierSolde > premierSolde + 100 && budgetRestant >= 0) {
+              } else if (
+                dernierSolde > premierSolde + 100 &&
+                budgetRestant >= 0
+              ) {
                 conseilGeneral = "Votre situation financière s'améliore !";
                 bgColor = "bg-green-50 dark:bg-green-900/20";
                 borderColor = "border-green-200 dark:border-green-800";
                 textColor = "text-green-700 dark:text-green-400";
               } else if (budgetRestant < 200) {
-                conseilGeneral = "Votre budget est gérable mais serré. Optimisez vos dépenses.";
+                conseilGeneral =
+                  "Votre budget est gérable mais serré. Optimisez vos dépenses.";
                 bgColor = "bg-yellow-50 dark:bg-yellow-900/20";
                 borderColor = "border-yellow-200 dark:border-yellow-800";
                 textColor = "text-yellow-700 dark:text-yellow-400";
               } else {
-                conseilGeneral = "Votre budget est bien géré. Continuez à surveiller vos dépenses.";
+                conseilGeneral =
+                  "Votre budget est bien géré. Continuez à surveiller vos dépenses.";
               }
 
               return (
-                <div className={`${bgColor} ${borderColor} p-3 border rounded-lg`}>
-                  <p className={`${textColor}`}>Analyse Globale : {conseilGeneral}</p>
+                <div
+                  className={`${bgColor} ${borderColor} p-3 border rounded-lg`}>
+                  <p className={`${textColor}`}>
+                    Analyse Globale : {conseilGeneral}
+                  </p>
                 </div>
               );
             })()}
