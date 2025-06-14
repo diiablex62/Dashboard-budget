@@ -8,12 +8,15 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [avatar, setAvatar] = useState(null);
+  const [linkedProviders, setLinkedProviders] = useState([]);
 
-  // Vérifier l'état de connexion au chargement
+  // Vérifier l'état de connexion et les fournisseurs liés au chargement
   useEffect(() => {
     const auth = localStorage.getItem("isAuthenticated");
     const userData = localStorage.getItem("user");
     const savedAvatar = localStorage.getItem("avatar");
+    const savedLinkedProviders = JSON.parse(localStorage.getItem("linkedProviders") || "[]");
+
     if (auth === "true" && userData) {
       setIsAuthenticated(true);
       setUser(JSON.parse(userData));
@@ -21,11 +24,25 @@ export function AuthProvider({ children }) {
         setAvatar(savedAvatar);
       }
     }
+    setLinkedProviders(savedLinkedProviders);
   }, []);
+
+  const setOnlyLinkedProvider = (provider) => {
+    const newProviders = [provider];
+    localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
+    setLinkedProviders(newProviders);
+  };
+
+  const removeLinkedProvider = (provider) => {
+    setLinkedProviders((prev) => {
+      const newProviders = prev.filter(p => p !== provider);
+      localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
+      return newProviders;
+    });
+  };
 
   const login = async (userData) => {
     try {
-      // Simuler une connexion réussie
       setIsAuthenticated(true);
       setUser(userData);
       localStorage.setItem("isAuthenticated", "true");
@@ -41,14 +58,8 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
     setUser(null);
     setAvatar(null);
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("user");
-    localStorage.removeItem("avatar");
-    // Nettoyer toutes les données
-    localStorage.removeItem("depenseRevenu");
-    localStorage.removeItem("paiementsRecurrents");
-    localStorage.removeItem("paiementsEchelonnes");
-    localStorage.removeItem("notifications");
+    setLinkedProviders([]); // Réinitialiser les fournisseurs liés lors de la déconnexion
+    localStorage.clear(); // Effacer tout le localStorage pour une déconnexion propre
     setError(null);
   };
 
@@ -59,12 +70,14 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
-      // Simuler une connexion Google
       const userData = {
         email: "user@gmail.com",
         name: "Utilisateur Google",
+        lastLoginMethod: "google"
       };
       await login(userData);
+      localStorage.setItem("authUser", JSON.stringify(userData));
+      setOnlyLinkedProvider("google");
     } catch (err) {
       setError("Erreur lors de la connexion avec Google");
       throw err;
@@ -73,19 +86,20 @@ export function AuthProvider({ children }) {
 
   const loginWithGithub = async () => {
     try {
-      // Simuler une connexion GitHub
       const userData = {
         email: "user@github.com",
         name: "Utilisateur GitHub",
+        lastLoginMethod: "github"
       };
       await login(userData);
+      localStorage.setItem("authUser", JSON.stringify(userData));
+      setOnlyLinkedProvider("github");
     } catch (err) {
       setError("Erreur lors de la connexion avec GitHub");
       throw err;
     }
   };
 
-  // Fonction pour obtenir les données en fonction de l'état de connexion
   const getData = () => {
     if (!isAuthenticated) {
       return {
@@ -99,16 +113,12 @@ export function AuthProvider({ children }) {
       fakePaiementsRecurrents,
       fakePaiementsEchelonnes,
     } = getFakeData();
-    // Fusionne les opérations de synchrosolde
     const synchroSolde = JSON.parse(
       localStorage.getItem("synchrosolde") || "[]"
     );
-    // On fusionne et trie par date décroissante
     const depenseRevenu = [...fakeDepenseRevenu, ...synchroSolde].sort(
       (a, b) => new Date(b.date) - new Date(a.date)
     );
-
-    // Récupérer les paiements récurrents du localStorage
     const savedPaiementsRecurrents = JSON.parse(
       localStorage.getItem("paiementsRecurrents") || "[]"
     );
@@ -123,24 +133,19 @@ export function AuthProvider({ children }) {
     };
   };
 
-  // Fonction pour mettre à jour les données
   const updateData = async (type, id, data) => {
     if (!isAuthenticated) return;
 
     try {
       let currentData = JSON.parse(localStorage.getItem(type) || "[]");
-
       if (id) {
-        // Mise à jour
         currentData = currentData.map((item) =>
           item.id === id ? { ...item, ...data } : item
         );
       } else {
-        // Ajout
-        const newId = Date.now(); // Génère un ID unique
+        const newId = Date.now();
         currentData.push({ ...data, id: newId });
       }
-
       localStorage.setItem(type, JSON.stringify(currentData));
       return true;
     } catch (error) {
@@ -149,13 +154,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Nouvelle fonction pour mettre à jour l'utilisateur
   const updateUser = (newUserData) => {
     setUser((prev) => ({
       ...prev,
       ...newUserData,
     }));
-    // Met à jour aussi le localStorage
     localStorage.setItem("user", JSON.stringify({ ...user, ...newUserData }));
   };
 
@@ -174,13 +177,16 @@ export function AuthProvider({ children }) {
         getData,
         updateUser,
         updateData,
+        linkedProviders,
+        setOnlyLinkedProvider,
+        removeLinkedProvider,
       }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error(
@@ -188,6 +194,6 @@ export function useAuth() {
     );
   }
   return context;
-}
+};
 
 export default AuthContext;

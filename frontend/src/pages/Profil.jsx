@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext } from "react";
+import React, { useRef, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCheckCircle,
@@ -29,6 +29,9 @@ export default function Profil() {
     setAvatar,
     loginWithGoogle,
     loginWithGithub,
+    linkedProviders,
+    setOnlyLinkedProvider,
+    removeLinkedProvider,
   } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -37,12 +40,6 @@ export default function Profil() {
   });
   const [infoSaved, setInfoSaved] = useState(false);
   const fileInputRef = useRef();
-
-  const [linkedAccounts, setLinkedAccounts] = useState({
-    google: { linked: false, email: null },
-    github: { linked: false, username: null },
-    email: { linked: !!user?.email, email: user?.email || null },
-  });
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -78,44 +75,23 @@ export default function Profil() {
     setTimeout(() => setInfoSaved(false), 1500);
   };
 
-  const handleLinkGoogle = () => {
-    loginWithGoogle();
-    setLinkedAccounts((prev) => ({
-      ...prev,
-      google: { linked: true, email: "user@gmail.com" },
-    }));
+  const handleLinkGoogle = async () => {
+    await loginWithGoogle();
   };
   const handleUnlinkGoogle = () => {
-    setLinkedAccounts((prev) => ({
-      ...prev,
-      google: { linked: false, email: null },
-    }));
+    removeLinkedProvider("google");
   };
-  const handleLinkGithub = () => {
-    loginWithGithub();
-    setLinkedAccounts((prev) => ({
-      ...prev,
-      github: { linked: true, username: "octocat" },
-    }));
+  const handleLinkGithub = async () => {
+    await loginWithGithub();
   };
   const handleUnlinkGithub = () => {
-    setLinkedAccounts((prev) => ({
-      ...prev,
-      github: { linked: false, username: null },
-    }));
+    removeLinkedProvider("github");
   };
   const handleLinkEmail = () => {
-
-    setLinkedAccounts((prev) => ({
-      ...prev,
-      email: { linked: true, email: formData.email },
-    }));
+    setOnlyLinkedProvider("email");
   };
   const handleUnlinkEmail = () => {
-    setLinkedAccounts((prev) => ({
-      ...prev,
-      email: { linked: false, email: null },
-    }));
+    removeLinkedProvider("email");
   };
 
   const services = [
@@ -123,8 +99,8 @@ export default function Profil() {
       key: "email",
       name: "Email",
       icon: <FaEnvelope className='w-5 h-5 text-yellow-500' />,
-      linked: linkedAccounts.email.linked,
-      info: linkedAccounts.email.email,
+      linked: linkedProviders.includes("email"),
+      info: user?.email,
       onLink: handleLinkEmail,
       onUnlink: handleUnlinkEmail,
     },
@@ -138,8 +114,8 @@ export default function Profil() {
           className='w-5 h-5'
         />
       ),
-      linked: linkedAccounts.google.linked,
-      info: linkedAccounts.google.email,
+      linked: linkedProviders.includes("google"),
+      info: user?.email,
       onLink: handleLinkGoogle,
       onUnlink: handleUnlinkGoogle,
     },
@@ -153,8 +129,8 @@ export default function Profil() {
           className='w-5 h-5'
         />
       ),
-      linked: linkedAccounts.github.linked,
-      info: linkedAccounts.github.username,
+      linked: linkedProviders.includes("github"),
+      info: user?.name || user?.email,
       onLink: handleLinkGithub,
       onUnlink: handleUnlinkGithub,
     },

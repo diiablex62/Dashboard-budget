@@ -12,7 +12,13 @@ import UserDataDeletion from "./UserDataDeletion";
 import { toast } from "react-toastify";
 
 export default function Auth() {
-  const { login, loginWithGoogle, loginWithGithub, authError } = useAuth();
+  const {
+    login,
+    loginWithGoogle,
+    loginWithGithub,
+    authError,
+    setOnlyLinkedProvider,
+  } = useAuth();
   const navigate = useNavigate();
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
 
@@ -47,6 +53,7 @@ export default function Auth() {
               email: result.email,
               name: result.email.split("@")[0], // Utiliser la partie avant @ comme nom
             });
+            setOnlyLinkedProvider("email"); // Marquer l'email comme lié après une connexion réussie par lien magique
             navigate("/dashboard");
           } else {
             console.error("Échec de la validation du token:", result.error);
@@ -67,7 +74,7 @@ export default function Auth() {
     };
 
     checkUrlToken();
-  }, [login, navigate]);
+  }, [login, navigate, setOnlyLinkedProvider]);
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -116,7 +123,6 @@ export default function Auth() {
       console.log("Résultat sendMagicLink:", result);
 
       if (result.success) {
-        // Créer l'URL de connexion
         const url = `${window.location.origin}/auth?token=${result.token}`;
         console.log("URL créée:", url);
 
@@ -126,8 +132,6 @@ export default function Auth() {
         };
         console.log("State préparé:", state);
 
-        // Rediriger vers la page de validation avec l'URL dans le state
-        console.log("Navigation vers /validation avec state:", state);
         navigate("/validation", { state });
       }
       console.log("=== FIN LOGS AUTH ===");
