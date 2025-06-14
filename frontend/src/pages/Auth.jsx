@@ -17,7 +17,7 @@ export default function Auth() {
     loginWithGoogle,
     loginWithGithub,
     authError,
-    setOnlyLinkedProvider,
+    addLinkedProvider,
   } = useAuth();
   const navigate = useNavigate();
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
@@ -53,7 +53,7 @@ export default function Auth() {
               email: result.email,
               name: result.email.split("@")[0], // Utiliser la partie avant @ comme nom
             });
-            setOnlyLinkedProvider("email"); // Marquer l'email comme lié après une connexion réussie par lien magique
+            addLinkedProvider("email");
             navigate("/dashboard");
           } else {
             console.error("Échec de la validation du token:", result.error);
@@ -74,7 +74,7 @@ export default function Auth() {
     };
 
     checkUrlToken();
-  }, [login, navigate, setOnlyLinkedProvider]);
+  }, [login, navigate, addLinkedProvider]);
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();

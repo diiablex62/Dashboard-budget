@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AiOutlineCheckCircle,
@@ -7,18 +7,7 @@ import {
 } from "react-icons/ai";
 import { FiUpload } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
-import { AppContext } from "../context/AppContext";
 import { FaUser, FaEnvelope, FaSignOutAlt } from "react-icons/fa";
-
-const initialUser = {
-  avatar: null,
-  name: "Alexandre",
-  email: "alexandre.janacek@gmail.com",
-  phone: "07 69 69 69 69",
-  password: "password123",
-  confirmPassword: "password123",
-  twoFA: true,
-};
 
 export default function Profil() {
   const {
@@ -30,7 +19,7 @@ export default function Profil() {
     loginWithGoogle,
     loginWithGithub,
     linkedProviders,
-    setOnlyLinkedProvider,
+    addLinkedProvider,
     removeLinkedProvider,
   } = useAuth();
   const navigate = useNavigate();
@@ -88,7 +77,7 @@ export default function Profil() {
     removeLinkedProvider("github");
   };
   const handleLinkEmail = () => {
-    setOnlyLinkedProvider("email");
+    addLinkedProvider("email");
   };
   const handleUnlinkEmail = () => {
     removeLinkedProvider("email");
@@ -100,7 +89,7 @@ export default function Profil() {
       name: "Email",
       icon: <FaEnvelope className='w-5 h-5 text-yellow-500' />,
       linked: linkedProviders.includes("email"),
-      info: user?.email,
+      info: linkedProviders.includes("email") ? user?.email : null,
       onLink: handleLinkEmail,
       onUnlink: handleUnlinkEmail,
     },
@@ -115,7 +104,7 @@ export default function Profil() {
         />
       ),
       linked: linkedProviders.includes("google"),
-      info: user?.email,
+      info: linkedProviders.includes("google") ? user?.email : null,
       onLink: handleLinkGoogle,
       onUnlink: handleUnlinkGoogle,
     },
@@ -130,7 +119,9 @@ export default function Profil() {
         />
       ),
       linked: linkedProviders.includes("github"),
-      info: user?.name || user?.email,
+      info: linkedProviders.includes("github")
+        ? user?.name || user?.email
+        : null,
       onLink: handleLinkGithub,
       onUnlink: handleUnlinkGithub,
     },

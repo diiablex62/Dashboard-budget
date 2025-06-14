@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
   const [error, setError] = useState(null);
   const [avatar, setAvatar] = useState(null);
   const [linkedProviders, setLinkedProviders] = useState([]);
@@ -13,13 +13,13 @@ export function AuthProvider({ children }) {
   // Vérifier l'état de connexion et les fournisseurs liés au chargement
   useEffect(() => {
     const auth = localStorage.getItem("isAuthenticated");
-    const userData = localStorage.getItem("user");
+    // const userData = localStorage.getItem("user"); // user est déjà initialisé via useState
     const savedAvatar = localStorage.getItem("avatar");
     const savedLinkedProviders = JSON.parse(localStorage.getItem("linkedProviders") || "[]");
 
-    if (auth === "true" && userData) {
+    if (auth === "true" && user) { // Utiliser l'état user directement
       setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
+      // setUser(JSON.parse(userData)); // user est déjà initialisé
       if (savedAvatar) {
         setAvatar(savedAvatar);
       }
@@ -27,10 +27,15 @@ export function AuthProvider({ children }) {
     setLinkedProviders(savedLinkedProviders);
   }, []);
 
-  const setOnlyLinkedProvider = (provider) => {
-    const newProviders = [provider];
-    localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
-    setLinkedProviders(newProviders);
+  const addLinkedProvider = (provider) => {
+    setLinkedProviders((prev) => {
+      if (!prev.includes(provider)) {
+        const newProviders = [...prev, provider];
+        localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
+        return newProviders;
+      }
+      return prev;
+    });
   };
 
   const removeLinkedProvider = (provider) => {
@@ -44,9 +49,13 @@ export function AuthProvider({ children }) {
   const login = async (userData) => {
     try {
       setIsAuthenticated(true);
-      setUser(userData);
+      const finalUserData = { ...userData };
+      if (!finalUserData.id) {
+        finalUserData.id = Date.now();
+      }
+      setUser(finalUserData);
       localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(finalUserData));
       setError(null);
     } catch (err) {
       setError("Erreur lors de la connexion");
@@ -58,8 +67,8 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
     setUser(null);
     setAvatar(null);
-    setLinkedProviders([]); // Réinitialiser les fournisseurs liés lors de la déconnexion
-    localStorage.clear(); // Effacer tout le localStorage pour une déconnexion propre
+    setLinkedProviders([]);
+    localStorage.clear();
     setError(null);
   };
 
@@ -70,14 +79,18 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     try {
-      const userData = {
+      const googleUserData = {
         email: "user@gmail.com",
         name: "Utilisateur Google",
         lastLoginMethod: "google"
       };
-      await login(userData);
-      localStorage.setItem("authUser", JSON.stringify(userData));
-      setOnlyLinkedProvider("google");
+
+      if (isAuthenticated && user?.email === googleUserData.email) {
+        addLinkedProvider("google");
+      } else {
+        await login(googleUserData);
+        addLinkedProvider("google");
+      }
     } catch (err) {
       setError("Erreur lors de la connexion avec Google");
       throw err;
@@ -86,14 +99,18 @@ export function AuthProvider({ children }) {
 
   const loginWithGithub = async () => {
     try {
-      const userData = {
+      const githubUserData = {
         email: "user@github.com",
         name: "Utilisateur GitHub",
         lastLoginMethod: "github"
       };
-      await login(userData);
-      localStorage.setItem("authUser", JSON.stringify(userData));
-      setOnlyLinkedProvider("github");
+
+      if (isAuthenticated && user?.email === githubUserData.email) {
+        addLinkedProvider("github");
+      } else {
+        await login(githubUserData);
+        addLinkedProvider("github");
+      }
     } catch (err) {
       setError("Erreur lors de la connexion avec GitHub");
       throw err;
@@ -178,7 +195,7 @@ export function AuthProvider({ children }) {
         updateUser,
         updateData,
         linkedProviders,
-        setOnlyLinkedProvider,
+        addLinkedProvider,
         removeLinkedProvider,
       }}>
       {children}
