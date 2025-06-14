@@ -107,11 +107,46 @@ export function AuthProvider({ children }) {
     const depenseRevenu = [...fakeDepenseRevenu, ...synchroSolde].sort(
       (a, b) => new Date(b.date) - new Date(a.date)
     );
+
+    // Récupérer les paiements récurrents du localStorage
+    const savedPaiementsRecurrents = JSON.parse(
+      localStorage.getItem("paiementsRecurrents") || "[]"
+    );
+
     return {
       depenseRevenu,
-      paiementsRecurrents: fakePaiementsRecurrents,
+      paiementsRecurrents: [
+        ...fakePaiementsRecurrents,
+        ...savedPaiementsRecurrents,
+      ],
       paiementsEchelonnes: fakePaiementsEchelonnes,
     };
+  };
+
+  // Fonction pour mettre à jour les données
+  const updateData = async (type, id, data) => {
+    if (!isAuthenticated) return;
+
+    try {
+      let currentData = JSON.parse(localStorage.getItem(type) || "[]");
+
+      if (id) {
+        // Mise à jour
+        currentData = currentData.map((item) =>
+          item.id === id ? { ...item, ...data } : item
+        );
+      } else {
+        // Ajout
+        const newId = Date.now(); // Génère un ID unique
+        currentData.push({ ...data, id: newId });
+      }
+
+      localStorage.setItem(type, JSON.stringify(currentData));
+      return true;
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour des ${type}:`, error);
+      throw error;
+    }
   };
 
   // Nouvelle fonction pour mettre à jour l'utilisateur
@@ -138,6 +173,7 @@ export function AuthProvider({ children }) {
         loginWithGithub,
         getData,
         updateUser,
+        updateData,
       }}>
       {children}
     </AuthContext.Provider>

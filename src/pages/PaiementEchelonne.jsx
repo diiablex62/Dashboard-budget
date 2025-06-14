@@ -35,6 +35,14 @@ export const PaiementEchelonne = () => {
   const [isRevenus, setIsRevenus] = useState(false);
   const { getData, isAuthenticated } = useAuth();
 
+  // Initialiser les paiements échelonnés avec les données de getData
+  useEffect(() => {
+    const { paiementsEchelonnes: initialData } = getData() || {};
+    if (Array.isArray(initialData)) {
+      setPaiementsEchelonnes(initialData);
+    }
+  }, [getData]);
+
   const handleEdit = useCallback((payment) => {
     setEditIndex(payment.id);
     setShowModal(true);
@@ -75,38 +83,20 @@ export const PaiementEchelonne = () => {
     );
   }, []);
 
-  const { paiementsEchelonnes: dataPaiementsEchelonnes } = useMemo(
-    () => getData() || {},
-    [getData]
-  );
-
-  const safePaiementsEchelonnes = useMemo(() => {
-    if (!isAuthenticated) return [];
-    return Array.isArray(dataPaiementsEchelonnes)
-      ? dataPaiementsEchelonnes
-      : [];
-  }, [isAuthenticated, dataPaiementsEchelonnes]);
-
   const totalDepenses = useMemo(() => {
     if (isRevenus) {
-      return calculTotalDebitEchelonneesMois(
-        safePaiementsEchelonnes,
-        selectedDate
-      );
+      return calculTotalDebitEchelonneesMois(paiementsEchelonnes, selectedDate);
     }
-    return calculTotalCreditEchelonneesMois(
-      safePaiementsEchelonnes,
-      selectedDate
-    );
-  }, [safePaiementsEchelonnes, selectedDate, isRevenus]);
+    return calculTotalCreditEchelonneesMois(paiementsEchelonnes, selectedDate);
+  }, [paiementsEchelonnes, selectedDate, isRevenus]);
 
   const paiementsActifsCount = useMemo(() => {
     return calculPaiementsEchelonnesActifs(
-      safePaiementsEchelonnes,
+      paiementsEchelonnes,
       selectedDate,
       isRevenus
     );
-  }, [safePaiementsEchelonnes, selectedDate, isRevenus]);
+  }, [paiementsEchelonnes, selectedDate, isRevenus]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -264,7 +254,7 @@ export const PaiementEchelonne = () => {
             )}
           </div>
 
-          {safePaiementsEchelonnes.filter(
+          {paiementsEchelonnes.filter(
             (p) => p.type === (isRevenus ? "debit" : "credit")
           ).length === 0 ? (
             <div className='text-center py-10 text-gray-500 dark:text-gray-400'>
@@ -278,7 +268,7 @@ export const PaiementEchelonne = () => {
             </div>
           ) : (
             <div className='grid grid-cols-1 gap-4'>
-              {safePaiementsEchelonnes
+              {paiementsEchelonnes
                 .filter((p) => p.type === (isRevenus ? "debit" : "credit"))
                 .filter((paiement) => {
                   const debut = new Date(paiement.debutDate);
