@@ -10,19 +10,25 @@ export function AuthProvider({ children }) {
   const [avatar, setAvatar] = useState(null);
   const [linkedProviders, setLinkedProviders] = useState([]);
 
-  // Vérifier l'état de connexion et les fournisseurs liés au chargement
+  // Initialisation de l'état au chargement de l'application
   useEffect(() => {
-    const auth = localStorage.getItem("isAuthenticated");
-    // const userData = localStorage.getItem("user"); // user est déjà initialisé via useState
+    const savedUser = JSON.parse(localStorage.getItem('user'));
+    const authStatus = localStorage.getItem("isAuthenticated") === "true";
     const savedAvatar = localStorage.getItem("avatar");
     const savedLinkedProviders = JSON.parse(localStorage.getItem("linkedProviders") || "[]");
 
-    if (auth === "true" && user) { // Utiliser l'état user directement
+    if (authStatus && savedUser) {
+      setUser(savedUser);
       setIsAuthenticated(true);
-      // setUser(JSON.parse(userData)); // user est déjà initialisé
       if (savedAvatar) {
         setAvatar(savedAvatar);
       }
+    } else {
+      // S'assurer que l'état est propre si pas authentifié
+      setUser(null);
+      setIsAuthenticated(false);
+      setAvatar(null);
+      // localStorage.clear(); // Ne pas effacer tout le localStorage ici, peut contenir d'autres données utiles
     }
     setLinkedProviders(savedLinkedProviders);
   }, []);
@@ -54,16 +60,21 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Fonction utilitaire pour mettre à jour l'état de l'utilisateur et localStorage
+  const updateAndSaveUser = (newUserData) => {
+    setUser(newUserData);
+    localStorage.setItem("user", JSON.stringify(newUserData));
+    setIsAuthenticated(true); // S'assurer que l'authentification est marquée comme vraie
+  };
+
   const login = async (userData) => {
     try {
-      setIsAuthenticated(true);
       const finalUserData = { ...userData };
       if (!finalUserData.id) {
         finalUserData.id = Date.now();
       }
-      setUser(finalUserData);
+      updateAndSaveUser(finalUserData);
       localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify(finalUserData));
       setError(null);
     } catch (err) {
       setError("Erreur lors de la connexion");
@@ -90,12 +101,9 @@ export function AuthProvider({ children }) {
     return {
       ...existingData,
       ...newData,
-      // Conserver les données non nulles
       name: newData.name || existingData.name,
       email: newData.email || existingData.email,
-      // Fusionner les providers
       providers: [...new Set([...(existingData.providers || []), ...(newData.providers || [])])],
-      // Fusionner les données personnalisées
       preferences: {
         ...existingData.preferences,
         ...newData.preferences
@@ -106,28 +114,21 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     try {
       const googleUserData = {
-        email: "user@gmail.com", // À remplacer par l'email réel de Google
+        email: "user@gmail.com", // TODO: Remplacer par l'email réel de Google via API
         name: "Utilisateur Google",
         lastLoginMethod: "google",
-        providers: ["google"]
       };
 
-      // Vérifier si un utilisateur avec cet email existe déjà
-      const existingUser = user?.email === googleUserData.email;
-      
-      if (existingUser) {
-        // Si l'utilisateur existe, on fusionne les données et on ajoute le provider
-        const mergedData = mergeUserData(user, googleUserData);
-        setUser(mergedData);
-        localStorage.setItem("user", JSON.stringify(mergedData));
-        addLinkedProvider("google");
+      if (isAuthenticated) {
+        // Si déjà authentifié, tenter de lier le provider au compte actuel
+        await linkProvider("google", googleUserData);
       } else {
-        // Si c'est un nouvel utilisateur, on crée un nouveau compte
+        // Si non authentifié, tenter de se connecter ou de s'inscrire
         await login(googleUserData);
-        addLinkedProvider("google");
+        addLinkedProvider("google"); // Ajouter le provider après une connexion/inscription réussie
       }
     } catch (err) {
-      setError("Erreur lors de la connexion avec Google");
+      setError("Erreur lors de la connexion avec Google: " + err.message);
       throw err;
     }
   };
@@ -135,37 +136,23 @@ export function AuthProvider({ children }) {
   const loginWithGithub = async () => {
     try {
       const githubUserData = {
-        email: "user@github.com", // À remplacer par l'email réel de GitHub
+        email: "user@github.com", // TODO: Remplacer par l'email réel de GitHub via API
         name: "Utilisateur GitHub",
         lastLoginMethod: "github",
-        providers: ["github"]
       };
 
-      // Vérifier si un utilisateur avec cet email existe déjà
-      const existingUser = user?.email === githubUserData.email;
-      
-      if (existingUser) {
-        // Si l'utilisateur existe, on fusionne les données et on ajoute le provider
-        const mergedData = mergeUserData(user, githubUserData);
-        setUser(mergedData);
-        localStorage.setItem("user", JSON.stringify(mergedData));
-        addLinkedProvider("github");
+      if (isAuthenticated) {
+        // Si déjà authentifié, tenter de lier le provider au compte actuel
+        await linkProvider("github", githubUserData);
       } else {
-        // Si c'est un nouvel utilisateur, on crée un nouveau compte
+        // Si non authentifié, tenter de se connecter ou de s'inscrire
         await login(githubUserData);
-        addLinkedProvider("github");
+        addLinkedProvider("github"); // Ajouter le provider après une connexion/inscription réussie
       }
     } catch (err) {
-      setError("Erreur lors de la connexion avec GitHub");
+      setError("Erreur lors de la connexion avec GitHub: " + err.message);
       throw err;
     }
-  };
-
-  // Fonction pour vérifier si un compte existe déjà avec cet email
-  const checkExistingAccount = (email) => {
-    // Dans un cas réel, cette vérification se ferait côté serveur
-    // Ici, on simule la vérification avec les données locales
-    return user?.email === email;
   };
 
   // Fonction pour lier un provider à un compte existant
@@ -175,35 +162,42 @@ export function AuthProvider({ children }) {
         throw new Error("Aucun utilisateur connecté");
       }
 
-      // Vérifier si le provider est déjà lié
       if (isProviderLinked(provider)) {
         throw new Error(`Le provider ${provider} est déjà lié à ce compte`);
       }
 
-      // Vérifier si un compte existe déjà avec cet email
-      if (checkExistingAccount(providerData.email)) {
-        throw new Error("Un compte avec cette adresse email dispose déjà d'un accès avec des données. Veuillez d'abord supprimer votre compte avant de revenir pour lier à nouveau votre compte.");
-      }
+      // IMPORTANT: Dans un cas réel, ici vous feriez un appel API au backend
+      // pour vérifier si providerData.email est déjà lié à un *autre* compte.
+      // Si oui, le backend devrait retourner une erreur appropriée.
 
-      // Ajouter le provider
-      addLinkedProvider(provider);
-      return user;
+      // Si l'email n'est pas lié à un autre compte (selon le backend), on ajoute le provider au compte actuel
+      const mergedData = mergeUserData(user, {
+        ...providerData,
+        // Assurer que le nouveau provider est ajouté à la liste des providers existants
+        providers: [...(user.providers || []), providerData.lastLoginMethod]
+      });
+      updateAndSaveUser(mergedData);
+      addLinkedProvider(providerData.lastLoginMethod);
+
+      return mergedData;
     } catch (err) {
       setError(err.message);
       throw err;
     }
   };
 
-  // Fonction pour supprimer le compte
   const deleteAccount = async () => {
     try {
-      // Ici, vous devriez appeler votre API pour supprimer le compte
-      // Pour l'instant, on simule la suppression
-      logout();
+      // Dans un vrai projet, cela ferait un appel API au backend pour supprimer le compte de la DB
       localStorage.clear();
+      setIsAuthenticated(false);
+      setUser(null);
+      setAvatar(null);
+      setLinkedProviders([]);
+      setError(null);
       return true;
     } catch (err) {
-      setError("Erreur lors de la suppression du compte");
+      setError("Erreur lors de la suppression du compte: " + err.message);
       throw err;
     }
   };
@@ -263,11 +257,9 @@ export function AuthProvider({ children }) {
   };
 
   const updateUser = (newUserData) => {
-    setUser((prev) => ({
-      ...prev,
-      ...newUserData,
-    }));
-    localStorage.setItem("user", JSON.stringify({ ...user, ...newUserData }));
+    // Utilise la fonction utilitaire pour mettre à jour l'utilisateur et sauvegarder
+    const mergedData = { ...user, ...newUserData };
+    updateAndSaveUser(mergedData);
   };
 
   return (
