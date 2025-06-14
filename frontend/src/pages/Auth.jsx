@@ -3,37 +3,33 @@ import { useNavigate, Link } from "react-router-dom";
 import orangeImage from "../assets/img/auth-orange.jpg";
 import { AppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
-import { FaGoogle, FaGithub } from "react-icons/fa";
-import { sendMagicLink, verifyMagicLink } from "../email/login";
 import Modal from "../components/ui/Modal";
 import Terms from "./Terms";
 import PrivacyPolicy from "./PrivacyPolicy";
 import UserDataDeletion from "./UserDataDeletion";
 import { toast } from "react-toastify";
+import { verifyMagicLink } from "../email/login";
+
+// Import des nouveaux composants
+import EmailConnect from "../components/auth/EmailConnect";
+import GoogleConnect from "../components/auth/GoogleConnect";
+import GithubConnect from "../components/auth/GithubConnect";
 
 export default function Auth() {
-  const {
-    login,
-    loginWithGoogle,
-    loginWithGithub,
-    authError,
-    addLinkedProvider,
-  } = useAuth();
+  const { authError, login, addLinkedProvider } = useAuth();
   const navigate = useNavigate();
   const { isSettingsOpen, setIsSettingsOpen } = useContext(AppContext);
 
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
   const [modalType, setModalType] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     if (authError) {
-      setError(authError);
+      toast.error(authError);
     }
   }, [authError]);
 
-  // Vérifier si un token est présent dans l'URL (pour la connexion par lien magique)
+  // Vérifier si un token est présent dans l'URL
   useEffect(() => {
     const checkUrlToken = async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -41,34 +37,27 @@ export default function Auth() {
 
       if (token) {
         try {
-          setIsLoading(true);
-          setError(null);
-          console.log("Token détecté dans l'URL, tentative de validation...");
+          setIsVerifying(true);
           const result = await verifyMagicLink(token);
 
           if (result.success) {
-            console.log("Authentification par email réussie !");
-            // Connecter l'utilisateur avec l'email vérifié
             await login({
               email: result.email,
-              name: result.email.split("@")[0], // Utiliser la partie avant @ comme nom
+              name: result.email.split("@")[0],
             });
             addLinkedProvider("email");
             navigate("/dashboard");
           } else {
-            console.error("Échec de la validation du token:", result.error);
-            setError(
-              result.error ||
-                "Le lien de connexion est invalide ou a expiré. Veuillez réessayer."
+            toast.error(
+              result.error || "Le lien de connexion est invalide ou a expiré"
             );
+            navigate("/auth");
           }
         } catch (error) {
-          console.error("Erreur lors de la validation du token:", error);
-          setError(
-            "Impossible de vous authentifier avec ce lien. Veuillez réessayer."
-          );
+          toast.error("Impossible de vous authentifier avec ce lien");
+          navigate("/auth");
         } finally {
-          setIsLoading(false);
+          setIsVerifying(false);
         }
       }
     };
@@ -76,72 +65,18 @@ export default function Auth() {
     checkUrlToken();
   }, [login, navigate, addLinkedProvider]);
 
-  const handleEmailSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-    try {
-      const result = await sendMagicLink(email);
-      if (result.success) {
-        const url = `${window.location.origin}/auth?token=${result.token}`;
-        console.log("URL de connexion (pour le développement):", url);
-        navigate("/validation", { state: { email } });
-      }
-    } catch (error) {
-      setError(error.message || "Erreur lors de l'envoi du lien magique");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      await loginWithGoogle();
-      navigate("/");
-    } catch (error) {
-      toast.error("Erreur lors de la connexion avec Google");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEmailSignIn = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error("Veuillez entrer une adresse email");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      console.log("=== DÉBUT LOGS AUTH ===");
-      console.log("Email saisi:", email);
-
-      const result = await sendMagicLink(email);
-      console.log("Résultat sendMagicLink:", result);
-
-      if (result.success) {
-        const url = `${window.location.origin}/auth?token=${result.token}`;
-        console.log("URL créée:", url);
-
-        const state = {
-          email: email,
-          magicLink: url,
-        };
-        console.log("State préparé:", state);
-
-        navigate("/validation", { state });
-      }
-      console.log("=== FIN LOGS AUTH ===");
-    } catch (error) {
-      console.error("Erreur dans handleEmailSignIn:", error);
-      toast.error("Erreur lors de l'envoi du lien de connexion");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (isVerifying) {
+    return (
+      <div className='h-screen flex items-center justify-center bg-white dark:bg-black'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4'></div>
+          <p className='text-gray-600 dark:text-gray-400'>
+            Vérification de votre lien de connexion...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='h-screen flex items-stretch bg-white dark:bg-black p-8 overflow-hidden'>
@@ -176,50 +111,21 @@ export default function Auth() {
               Connectez-vous pour accéder à votre espace
             </p>
           </div>
-          {/* Formulaire principal */}
-          <form className='space-y-4' onSubmit={handleEmailSignIn}>
-            <div>
-              <input
-                type='email'
-                placeholder='Email'
-                className='w-full px-5 py-3 rounded-full bg-gray-100 dark:bg-black focus:bg-white dark:focus:bg-black border border-gray-200 dark:border-gray-800 focus:border-blue-400 dark:focus:border-blue-500 outline-none text-gray-900 dark:text-white text-base placeholder-gray-400 dark:placeholder-gray-500 transition'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-              {error && (
-                <p className='mt-2 text-sm text-red-600 dark:text-red-400'>
-                  {error}
-                </p>
-              )}
-            </div>
-            <button
-              type='submit'
-              className='w-full py-3 rounded-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold text-lg shadow transition mb-2 disabled:opacity-50 disabled:cursor-not-allowed'
-              disabled={isLoading}>
-              {isLoading ? "Envoi en cours..." : "Recevoir un lien par email"}
-            </button>
-          </form>
+          {/* Composant de connexion par email */}
+          <EmailConnect />
           {/* Boutons sociaux */}
-          <div className='flex items-center my-4'>
-            <div className='flex-1 h-px bg-gray-200 dark:bg-gray-800' />
-            <span className='mx-4 text-gray-400 dark:text-gray-500 text-sm'>
-              ou
+          <div className='flex items-center my-6'>
+            <div className='flex-grow border-t border-gray-300 dark:border-gray-700'></div>
+            <span className='flex-shrink mx-4 text-gray-500 dark:text-gray-400'>
+              OU
             </span>
-            <div className='flex-1 h-px bg-gray-200 dark:bg-gray-800' />
+            <div className='flex-grow border-t border-gray-300 dark:border-gray-700'></div>
           </div>
-          <div className='flex gap-4 mb-6'>
-            <button
-              onClick={handleGoogleSignIn}
-              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900 shadow transition text-gray-900 dark:text-white font-semibold text-base'>
-              <FaGoogle className='w-5 h-5' /> Google
-            </button>
-            <button
-              onClick={loginWithGithub}
-              className='flex-1 flex items-center justify-center gap-2 py-3 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-black hover:bg-gray-50 dark:hover:bg-gray-900 shadow transition text-gray-900 dark:text-white font-semibold text-base'>
-              <FaGithub className='w-5 h-5' /> GitHub
-            </button>
+          <div className='flex gap-4'>
+            {/* Composant de connexion Google */}
+            <GoogleConnect />
+            {/* Composant de connexion GitHub */}
+            <GithubConnect />
           </div>
           {/* Mentions légales centrées */}
           <div className='flex justify-center items-center text-xs text-gray-400 dark:text-gray-500 mt-6 gap-4'>
