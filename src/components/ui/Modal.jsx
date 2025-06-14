@@ -610,13 +610,10 @@ export function ModalRecurrent({
     }
   }, [form.categorie, step, handleNext]);
 
-  const handleDayClick = useCallback(
-    (day) => {
-      setForm((prev) => ({ ...prev, jour: day.toString() }));
-      handleNext();
-    },
-    [handleNext]
-  );
+  const handleDayClick = useCallback((day) => {
+    setForm((prev) => ({ ...prev, jour: day.toString() }));
+    shouldValidateDay.current = true;
+  }, []);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -1180,7 +1177,7 @@ export function ModalEchelonne({
               />
             </div>
           )}
-          
+
           <div className='flex justify-between mt-4'>
             {step > 1 && (
               <button

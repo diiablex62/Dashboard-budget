@@ -27,7 +27,7 @@ import { useAuth } from "../context/AuthContext";
 import { useSearchParams } from "react-router-dom";
 
 const PaiementRecurrent = () => {
-  const { getData } = useAuth();
+  const { getData, updateData } = useAuth();
   const [currentTab, setCurrentTab] = useState("revenu");
   const [error] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -74,22 +74,40 @@ const PaiementRecurrent = () => {
 
   // Calcul des totaux
   const totalRevenus = useMemo(() => {
-    return calculTotalRevenusRecurrentsMois(
+    const total = calculTotalRevenusRecurrentsMois(
       paiementsRecurrents.filter((p) => p.type === "revenu"),
       selectedMonth
     );
+    console.log("Total revenus récurrents calculé:", total);
+    return total;
   }, [paiementsRecurrents, selectedMonth]);
 
   const totalDepenses = useMemo(() => {
-    return calculTotalDepensesRecurrentesMois(
+    const total = calculTotalDepensesRecurrentesMois(
       paiementsRecurrents.filter((p) => p.type === "depense"),
       selectedMonth
     );
+    console.log("Total dépenses récurrentes calculé:", total);
+    return total;
   }, [paiementsRecurrents, selectedMonth]);
+
+  // Mettre à jour le total dans le localStorage et déclencher l'événement
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const total = currentTab === "depense" ? totalDepenses : totalRevenus;
+      localStorage.setItem("paiementsRecurrentsTotal", total.toString());
+      window.paiementsRecurrentsTotal = total;
+      window.dispatchEvent(
+        new CustomEvent("paiements-recurrents-updated", {
+          detail: { total },
+        })
+      );
+    }
+  }, [totalRevenus, totalDepenses, currentTab]);
 
   // Filtrage des paiements selon le type et le mois
   const paiementsFiltres = useMemo(() => {
-    return paiementsRecurrents.filter((p) => {
+    const filtres = paiementsRecurrents.filter((p) => {
       if (p.type !== currentTab) return false;
 
       // Vérifie si le jour de prélèvement est valide pour ce mois
@@ -101,6 +119,8 @@ const PaiementRecurrent = () => {
 
       return jourValide;
     });
+    console.log("Paiements filtrés:", filtres);
+    return filtres;
   }, [paiementsRecurrents, currentTab, selectedMonth]);
 
   // Trier les paiements par jour de prélèvement
@@ -128,23 +148,46 @@ const PaiementRecurrent = () => {
 
   const handleSave = useCallback(
     (paiement) => {
+      console.log("Paiement reçu dans handleSave:", paiement);
+
+      const newPaiement = {
+        ...paiement,
+        id: Date.now(),
+        type: currentTab,
+        isRecurrent: true,
+        date: paiement.dateDebut,
+        dateDebut: paiement.dateDebut,
+        jourPrelevement: parseInt(paiement.jour),
+        montant: parseFloat(paiement.montant),
+        nom: paiement.nom,
+        categorie: paiement.categorie,
+      };
+      console.log("Nouveau paiement formaté:", newPaiement);
+
+      // Mettre à jour les paiements récurrents
       setPaiementsRecurrents((prev) => {
-        if (paiement.id) {
-          // Modification d'un paiement existant
-          return prev.map((p) => (p.id === paiement.id ? paiement : p));
-        } else {
-          // Ajout d'un nouveau paiement
-          const newPaiement = {
-            ...paiement,
-            id: Date.now(),
-            type: currentTab,
-          };
-          return [...prev, newPaiement];
-        }
+        const updated = [...prev, newPaiement];
+        console.log("Paiements récurrents mis à jour:", updated);
+        return updated;
       });
+
+      // Ajouter au tableau depenseRevenu
+      const { depenseRevenu = [] } = getData() || {};
+      console.log("DepenseRevenu actuel:", depenseRevenu);
+
+      const updatedDepenseRevenu = [...depenseRevenu, newPaiement];
+      console.log("DepenseRevenu mis à jour:", updatedDepenseRevenu);
+
+      updateData({ depenseRevenu: updatedDepenseRevenu });
+      console.log("Données mises à jour avec updateData");
+
+      // Déclencher l'événement de mise à jour
+      window.dispatchEvent(new CustomEvent("data-updated"));
+      console.log("Événement data-updated déclenché");
+
       setShowModal(false);
     },
-    [currentTab]
+    [currentTab, getData, updateData]
   );
 
   if (error) {
