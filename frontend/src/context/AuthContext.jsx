@@ -27,23 +27,31 @@ export function AuthProvider({ children }) {
     setLinkedProviders(savedLinkedProviders);
   }, []);
 
+  const isProviderLinked = (provider) => {
+    return linkedProviders.includes(provider);
+  };
+
   const addLinkedProvider = (provider) => {
-    setLinkedProviders((prev) => {
-      if (!prev.includes(provider)) {
+    if (!isProviderLinked(provider)) {
+      setLinkedProviders((prev) => {
         const newProviders = [...prev, provider];
         localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
         return newProviders;
-      }
-      return prev;
-    });
+      });
+    }
   };
 
   const removeLinkedProvider = (provider) => {
-    setLinkedProviders((prev) => {
-      const newProviders = prev.filter(p => p !== provider);
-      localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
-      return newProviders;
-    });
+    // Ne pas permettre de supprimer le dernier provider
+    if (linkedProviders.length > 1) {
+      setLinkedProviders((prev) => {
+        const newProviders = prev.filter(p => p !== provider);
+        localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
+        return newProviders;
+      });
+    } else {
+      setError("Vous devez avoir au moins une méthode de connexion active");
+    }
   };
 
   const login = async (userData) => {
@@ -77,17 +85,44 @@ export function AuthProvider({ children }) {
     localStorage.setItem("avatar", newAvatar);
   };
 
+  // Fonction pour fusionner les données de deux comptes
+  const mergeUserData = (existingData, newData) => {
+    return {
+      ...existingData,
+      ...newData,
+      // Conserver les données non nulles
+      name: newData.name || existingData.name,
+      email: newData.email || existingData.email,
+      // Fusionner les providers
+      providers: [...new Set([...(existingData.providers || []), ...(newData.providers || [])])],
+      // Fusionner les données personnalisées
+      preferences: {
+        ...existingData.preferences,
+        ...newData.preferences
+      }
+    };
+  };
+
   const loginWithGoogle = async () => {
     try {
       const googleUserData = {
-        email: "user@gmail.com",
+        email: "user@gmail.com", // À remplacer par l'email réel de Google
         name: "Utilisateur Google",
-        lastLoginMethod: "google"
+        lastLoginMethod: "google",
+        providers: ["google"]
       };
 
-      if (isAuthenticated && user?.email === googleUserData.email) {
+      // Vérifier si un utilisateur avec cet email existe déjà
+      const existingUser = user?.email === googleUserData.email;
+      
+      if (existingUser) {
+        // Si l'utilisateur existe, on fusionne les données et on ajoute le provider
+        const mergedData = mergeUserData(user, googleUserData);
+        setUser(mergedData);
+        localStorage.setItem("user", JSON.stringify(mergedData));
         addLinkedProvider("google");
       } else {
+        // Si c'est un nouvel utilisateur, on crée un nouveau compte
         await login(googleUserData);
         addLinkedProvider("google");
       }
@@ -100,19 +135,75 @@ export function AuthProvider({ children }) {
   const loginWithGithub = async () => {
     try {
       const githubUserData = {
-        email: "user@github.com",
+        email: "user@github.com", // À remplacer par l'email réel de GitHub
         name: "Utilisateur GitHub",
-        lastLoginMethod: "github"
+        lastLoginMethod: "github",
+        providers: ["github"]
       };
 
-      if (isAuthenticated && user?.email === githubUserData.email) {
+      // Vérifier si un utilisateur avec cet email existe déjà
+      const existingUser = user?.email === githubUserData.email;
+      
+      if (existingUser) {
+        // Si l'utilisateur existe, on fusionne les données et on ajoute le provider
+        const mergedData = mergeUserData(user, githubUserData);
+        setUser(mergedData);
+        localStorage.setItem("user", JSON.stringify(mergedData));
         addLinkedProvider("github");
       } else {
+        // Si c'est un nouvel utilisateur, on crée un nouveau compte
         await login(githubUserData);
         addLinkedProvider("github");
       }
     } catch (err) {
       setError("Erreur lors de la connexion avec GitHub");
+      throw err;
+    }
+  };
+
+  // Fonction pour vérifier si un compte existe déjà avec cet email
+  const checkExistingAccount = (email) => {
+    // Dans un cas réel, cette vérification se ferait côté serveur
+    // Ici, on simule la vérification avec les données locales
+    return user?.email === email;
+  };
+
+  // Fonction pour lier un provider à un compte existant
+  const linkProvider = async (provider, providerData) => {
+    try {
+      if (!user) {
+        throw new Error("Aucun utilisateur connecté");
+      }
+
+      // Vérifier si le provider est déjà lié
+      if (isProviderLinked(provider)) {
+        throw new Error(`Le provider ${provider} est déjà lié à ce compte`);
+      }
+
+      // Vérifier si un compte existe déjà avec cet email
+      if (checkExistingAccount(providerData.email)) {
+        throw new Error("Un compte avec cette adresse email dispose déjà d'un accès avec des données. Veuillez d'abord supprimer votre compte avant de revenir pour lier à nouveau votre compte.");
+      }
+
+      // Ajouter le provider
+      addLinkedProvider(provider);
+      return user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  // Fonction pour supprimer le compte
+  const deleteAccount = async () => {
+    try {
+      // Ici, vous devriez appeler votre API pour supprimer le compte
+      // Pour l'instant, on simule la suppression
+      logout();
+      localStorage.clear();
+      return true;
+    } catch (err) {
+      setError("Erreur lors de la suppression du compte");
       throw err;
     }
   };
@@ -197,6 +288,9 @@ export function AuthProvider({ children }) {
         linkedProviders,
         addLinkedProvider,
         removeLinkedProvider,
+        isProviderLinked,
+        linkProvider,
+        deleteAccount,
       }}>
       {children}
     </AuthContext.Provider>
