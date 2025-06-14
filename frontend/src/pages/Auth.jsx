@@ -36,6 +36,9 @@ export default function Auth() {
       const token = urlParams.get("token");
 
       if (token) {
+        // Nettoyer l'URL immédiatement pour éviter les re-traitements et le toast inutile.
+        navigate("/auth", { replace: true });
+
         try {
           setIsVerifying(true);
           const result = await verifyMagicLink(token);
@@ -46,16 +49,30 @@ export default function Auth() {
               name: result.email.split("@")[0],
             });
             addLinkedProvider("email");
-            navigate("/dashboard");
+            navigate("/dashboard", { replace: true });
           } else {
-            toast.error(
-              result.error || "Le lien de connexion est invalide ou a expiré"
+            // Debugging: Log the exact error message
+            console.log(
+              "Magic link verification failed. Exact error:",
+              result.error
             );
-            navigate("/auth");
+
+            const expectedErrors = [
+              "Aucun lien magique trouvé",
+              "Lien magique invalide ou expiré",
+            ];
+            if (!expectedErrors.includes(result.error)) {
+              toast.error(
+                result.error || "Le lien de connexion est invalide ou a expiré"
+              );
+            }
           }
         } catch (error) {
+          console.error(
+            "Erreur lors de la vérification du lien magique:",
+            error
+          );
           toast.error("Impossible de vous authentifier avec ce lien");
-          navigate("/auth");
         } finally {
           setIsVerifying(false);
         }
