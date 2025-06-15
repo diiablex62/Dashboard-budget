@@ -77,14 +77,24 @@ export function AuthProvider({ children }) {
 
   const login = async (userData) => {
     try {
-      const finalUserData = { ...userData };
-      if (!finalUserData.id) {
-        finalUserData.id = Date.now();
-      }
+      console.log("Données reçues pour login:", userData);
+      const finalUserData = {
+        id: userData.id,
+        name: userData.username || userData.name,
+        email: userData.email,
+        picture: userData.picture,
+        token: userData.token,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        preferences: userData.preferences
+      };
+      
+      console.log("Données utilisateur finales:", finalUserData);
       updateAndSaveUser(finalUserData);
       localStorage.setItem("isAuthenticated", "true");
       setError(null);
     } catch (err) {
+      console.error("Erreur lors de la connexion:", err);
       setError("Erreur lors de la connexion");
       throw err;
     }
