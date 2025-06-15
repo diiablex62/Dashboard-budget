@@ -89,7 +89,6 @@ userSchema.pre("save", function (next) {
 });
 
 // Index pour optimiser les recherches
-userSchema.index({ email: 1 });
 userSchema.index({ "linkedAccounts.providerId": 1 });
 
 const User = mongoose.model("User", userSchema);

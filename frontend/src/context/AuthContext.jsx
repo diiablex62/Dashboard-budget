@@ -86,12 +86,13 @@ export function AuthProvider({ children }) {
         token: userData.token,
         firstName: userData.firstName,
         lastName: userData.lastName,
-        preferences: userData.preferences
+        preferences: userData.preferences,
       };
-      
+
       console.log("Données utilisateur finales:", finalUserData);
       updateAndSaveUser(finalUserData);
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("token", userData.token);
       setError(null);
     } catch (err) {
       console.error("Erreur lors de la connexion:", err);
@@ -158,6 +159,7 @@ export function AuthProvider({ children }) {
         // Sauvegarder l'utilisateur
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", userData.token);
         toast.success("Connexion réussie !");
       } catch (error) {
         console.error("Erreur lors de la connexion Google:", error);
@@ -224,7 +226,31 @@ export function AuthProvider({ children }) {
 
   const deleteAccount = async () => {
     try {
-      // Dans un vrai projet, cela ferait un appel API au backend pour supprimer le compte de la DB
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Non authentifié");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/delete-account`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Réponse suppression de compte:", response);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Erreur réponse suppression de compte:", errorData);
+        throw new Error(
+          errorData.message || "Erreur lors de la suppression du compte"
+        );
+      }
+
+      // Nettoyage local après la suppression réussie
       localStorage.clear();
       setIsAuthenticated(false);
       setUser(null);

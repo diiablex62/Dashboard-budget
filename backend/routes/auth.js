@@ -4,6 +4,7 @@ const User = require("../models/user.schema");
 const OAuth = require("../models/oauth.schema");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const { authenticateToken } = require("../middlewares/authMiddleware");
 
 // Route pour l'authentification Google
 router.post("/google", async (req, res) => {
@@ -137,30 +138,30 @@ router.post("/google", async (req, res) => {
 });
 
 // Route pour supprimer le compte utilisateur
-router.delete("/delete-account", async (req, res) => {
+router.delete("/delete-account", authenticateToken, async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user.userId; // Correction ici : utiliser userId au lieu de id
+    console.log("ID utilisateur extrait du token pour suppression:", userId);
 
-    if (!userId) {
-      return res.status(400).json({ message: "ID utilisateur requis" });
+    // Vérifier que l'utilisateur existe
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
     // Supprimer toutes les connexions OAuth associées
     await OAuth.deleteMany({ userId });
 
     // Supprimer l'utilisateur
-    const deletedUser = await User.findByIdAndDelete(userId);
-
-    if (!deletedUser) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
-    }
+    await User.findByIdAndDelete(userId);
 
     res.json({ message: "Compte supprimé avec succès" });
   } catch (error) {
     console.error("Erreur lors de la suppression du compte:", error);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la suppression du compte" });
+    res.status(500).json({
+      message: "Erreur lors de la suppression du compte",
+      error: error.message,
+    });
   }
 });
 
