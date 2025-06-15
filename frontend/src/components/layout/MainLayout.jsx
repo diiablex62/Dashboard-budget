@@ -11,7 +11,6 @@ import SettingsPanel from "../ui/SettingsPanel";
 import { AppContext } from "../../context/AppContext";
 import { ThemeContext } from "../../context/ThemeContext";
 import AppRoutes from "../../routes/Routes";
-import { ToastContainer } from "react-toastify";
 import { useKeyboardShortcuts } from "../../utils/keyboardShortcuts";
 import KeyboardShortcutsModal from "../ui/KeyboardShortcutsModal";
 
@@ -99,18 +98,6 @@ function MainLayout() {
       <KeyboardShortcutsModal
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}
-      />
-      <ToastContainer
-        position='top-right'
-        autoClose={5000}
-        hideProgressBar={true}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme='light'
       />
     </div>
   );

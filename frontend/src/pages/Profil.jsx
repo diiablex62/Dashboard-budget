@@ -11,30 +11,12 @@ import {
   FaExclamationCircle,
 } from "react-icons/fa";
 import { AiOutlineCheckCircle } from "react-icons/ai";
-import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Style personnalisé pour les toasts
-const toastStyle = {
-  position: "top-right",
-  autoClose: 3000,
-  hideProgressBar: false,
-  closeOnClick: true,
-  pauseOnHover: true,
-  draggable: true,
-  progress: undefined,
-  style: {
-    background: "#1a1a1a",
-    color: "#fff",
-    borderRadius: "12px",
-    padding: "16px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-  },
-  progressStyle: {
-    background: "linear-gradient(to right, #4f46e5, #7c3aed)",
-  },
-};
+import {
+  showSuccessToast,
+  showErrorToast,
+} from "../components/ui/ToastMessage";
+import { showDeleteConfirmation } from "../components/ui/ToastConfirmation";
 
 export default function Profil() {
   const {
@@ -63,7 +45,6 @@ export default function Profil() {
     }
   }, [user?.picture, setAvatar]);
 
-  // Ajouter un useEffect pour mettre à jour formData quand user change
   useEffect(() => {
     console.log("User dans Profil.jsx:", user);
     if (user) {
@@ -118,32 +99,9 @@ export default function Profil() {
         lastLoginMethod: "google",
       };
       await linkProvider("google", googleData);
-      toast.success(
-        <div className='flex items-center gap-3'>
-          <FaCheckCircle className='text-green-500 text-xl' />
-          <div>
-            <p className='font-semibold'>Compte lié avec succès</p>
-            <p className='text-sm text-gray-400'>
-              Votre compte Google a été lié à votre profil
-            </p>
-          </div>
-        </div>,
-        toastStyle
-      );
+      showSuccessToast("Votre compte Google a été lié à votre profil");
     } catch (error) {
-      toast.error(
-        <div className='flex items-center gap-3'>
-          <FaExclamationCircle className='text-red-500 text-xl' />
-          <div>
-            <p className='font-semibold'>Erreur de liaison</p>
-            <p className='text-sm text-gray-400'>{error.message}</p>
-          </div>
-        </div>,
-        {
-          ...toastStyle,
-          autoClose: 5000,
-        }
-      );
+      showErrorToast(`Erreur de liaison: ${error.message}`);
     }
   };
 
@@ -159,32 +117,9 @@ export default function Profil() {
         lastLoginMethod: "github",
       };
       await linkProvider("github", githubData);
-      toast.success(
-        <div className='flex items-center gap-3'>
-          <FaCheckCircle className='text-green-500 text-xl' />
-          <div>
-            <p className='font-semibold'>Compte lié avec succès</p>
-            <p className='text-sm text-gray-400'>
-              Votre compte GitHub a été lié à votre profil
-            </p>
-          </div>
-        </div>,
-        toastStyle
-      );
+      showSuccessToast("Votre compte GitHub a été lié à votre profil");
     } catch (error) {
-      toast.error(
-        <div className='flex items-center gap-3'>
-          <FaExclamationCircle className='text-red-500 text-xl' />
-          <div>
-            <p className='font-semibold'>Erreur de liaison</p>
-            <p className='text-sm text-gray-400'>{error.message}</p>
-          </div>
-        </div>,
-        {
-          ...toastStyle,
-          autoClose: 5000,
-        }
-      );
+      showErrorToast(`Erreur de liaison: ${error.message}`);
     }
   };
 
@@ -201,77 +136,22 @@ export default function Profil() {
   };
 
   const handleDeleteAccount = async () => {
-    toast.warn(
-      <div className='flex flex-col items-center gap-2 p-5'>
-        <FaExclamationCircle className='text-yellow-500 text-3xl' />
-        <p className='font-bold text-xl text-white mt-2 mb-2'>
-          Confirmation de suppression
-        </p>
-        <p className='text-base text-gray-300 text-center mb-4'>
-          Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est
-          irréversible.
-        </p>
-        <div className='flex gap-4'>
-          <button
-            onClick={() => {
-              toast.dismiss(); // Ferme le toast
-              deleteAccount()
-                .then(() => {
-                  toast.success(
-                    <div className='flex items-center gap-3'>
-                      <FaCheckCircle className='text-green-500 text-xl' />
-                      <div>
-                        <p className='font-semibold'>Compte supprimé</p>
-                        <p className='text-sm text-gray-400'>
-                          Votre compte a été supprimé avec succès
-                        </p>
-                      </div>
-                    </div>,
-                    toastStyle
-                  );
-                  navigate("/dashboard");
-                })
-                .catch((error) => {
-                  toast.error(
-                    <div className='flex items-center gap-3'>
-                      <FaExclamationCircle className='text-red-500 text-xl' />
-                      <div>
-                        <p className='font-semibold'>Erreur de suppression</p>
-                        <p className='text-sm text-gray-400'>{error.message}</p>
-                      </div>
-                    </div>,
-                    {
-                      ...toastStyle,
-                      autoClose: 5000,
-                    }
-                  );
-                });
-            }}
-            className='px-6 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition shadow-md'>
-            Oui, Supprimer
-          </button>
-          <button
-            onClick={() => toast.dismiss()} // Ferme le toast
-            className='px-6 py-2 rounded-lg border border-gray-600 bg-gray-700 text-gray-200 font-semibold hover:bg-gray-600 transition shadow-md'>
-            Annuler
-          </button>
-        </div>
-      </div>,
-      {
-        ...toastStyle,
-        autoClose: false,
-        closeButton: false,
-        draggable: false,
-        closeOnClick: false,
-        position: "top-center",
-        className: "w-full max-w-sm", // Ajustez la largeur du toast pour qu'il soit moins large
-        bodyClassName: "p-0", // Supprime le padding par défaut du corps du toast
-        style: {
-          ...toastStyle.style,
-          border: "1px solid rgba(255, 255, 255, 0.2)", // Bordure légèrement plus visible
-        },
-      }
-    );
+    showDeleteConfirmation({
+      label: "votre compte",
+      onConfirm: () => {
+        deleteAccount()
+          .then(() => {
+            showSuccessToast("Votre compte a été supprimé avec succès");
+            navigate("/dashboard");
+          })
+          .catch((error) => {
+            showErrorToast(`Erreur de suppression: ${error.message}`);
+          });
+      },
+      onCancel: () => {
+        // Pas d'action spécifique requise, le toast est juste fermé.
+      },
+    });
   };
 
   const services = [
@@ -320,19 +200,6 @@ export default function Profil() {
 
   return (
     <div className='w-full min-h-screen bg-white dark:bg-black dark:text-white py-10 p-8'>
-      <ToastContainer
-        position='top-right'
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme='dark'
-        style={{ zIndex: 9999 }}
-      />
       <div className='max-w-4xl mx-auto'>
         <h1 className='text-3xl font-bold mb-8'>Profil</h1>
 

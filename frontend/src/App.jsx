@@ -16,6 +16,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { SynchroProvider } from "./context/SynchroContext";
 import { BudgetProvider } from "./context/BudgetContext";
 import MainLayout from "./components/layout/MainLayout";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
@@ -27,6 +28,17 @@ function App() {
               <SynchroProvider>
                 <BudgetProvider>
                   <MainLayout />
+                  <ToastContainer
+                    position='top-right'
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                  />
                 </BudgetProvider>
               </SynchroProvider>
             </AuthProvider>

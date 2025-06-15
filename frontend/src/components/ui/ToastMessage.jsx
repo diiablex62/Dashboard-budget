@@ -25,14 +25,6 @@ export const showSuccessToast = (message, options = {}) => {
       <span>{message}</span>
     </div>,
     {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
       ...options,
     }
   );
@@ -50,14 +42,6 @@ export const showErrorToast = (message, options = {}) => {
       <span>{message}</span>
     </div>,
     {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
       ...options,
     }
   );
@@ -75,14 +59,6 @@ export const showInfoToast = (message, options = {}) => {
       <span>{message}</span>
     </div>,
     {
-      position: "top-right",
-      autoClose: 4000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
       ...options,
     }
   );
@@ -100,14 +76,6 @@ export const showWarningToast = (message, options = {}) => {
       <span>{message}</span>
     </div>,
     {
-      position: "top-right",
-      autoClose: 4000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
       ...options,
     }
   );

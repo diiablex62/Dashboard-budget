@@ -9,7 +9,6 @@ const { authenticateToken } = require("../middlewares/authMiddleware");
 // Route pour l'authentification Google
 router.post("/google", async (req, res) => {
   try {
-    console.log("Données reçues du frontend:", req.body);
     const {
       accessToken,
       id,
@@ -21,20 +20,15 @@ router.post("/google", async (req, res) => {
       preferences,
     } = req.body;
 
-    // Vérifier si une connexion OAuth existe déjà pour cet ID Google
     let oauthConnection = await OAuth.findOne({
       provider: "google",
       providerId: id,
     });
-
-    console.log("Connexion OAuth existante:", oauthConnection);
-
     let user;
 
     if (oauthConnection) {
-      // Récupérer l'utilisateur associé
+      // Récupérer l'utilisateur associé à la connexion OAuth existante
       user = await User.findById(oauthConnection.userId);
-      console.log("Utilisateur existant trouvé:", user);
 
       // Mettre à jour la connexion OAuth
       oauthConnection.lastLoginAt = new Date();
@@ -43,36 +37,26 @@ router.post("/google", async (req, res) => {
       oauthConnection.picture = picture;
       await oauthConnection.save();
 
-      // Mettre à jour les champs de l'utilisateur principal uniquement s'ils ne sont pas déjà définis
-      if (!user.username) {
-        user.username = name;
-      }
-      if (!user.firstName) {
-        user.firstName = firstName;
-      }
-      if (!user.lastName) {
-        user.lastName = lastName;
-      }
+      // Mettre à jour les champs de l'utilisateur principal si nécessaire
       // La photo de profil est toujours mise à jour pour s'assurer qu'elle est à jour
       if (picture && user.picture !== picture) {
         user.picture = picture;
       }
+      // Mettre à jour les autres champs uniquement s'ils sont vides
+      if (!user.username) user.username = name;
+      if (!user.firstName) user.firstName = firstName;
+      if (!user.lastName) user.lastName = lastName;
       // L'email n'est pas mis à jour ici car il est la clé de liaison principale
-
       await user.save();
-      console.log(
-        "Informations utilisateur mises à jour depuis Google (existant)."
-      );
     } else {
       // Vérifier si un utilisateur existe déjà avec cet email
       user = await User.findOne({ email });
 
       if (!user) {
-        // Créer un nouvel utilisateur avec les informations Google
+        // Créer un nouvel utilisateur
         user = new User({
           username: name,
           email: email,
-          password: id, // TODO: Sécuriser davantage si l'utilisateur n'a pas de mot de passe
           isEmailVerified: true,
           firstName: firstName,
           lastName: lastName,
@@ -82,6 +66,7 @@ router.post("/google", async (req, res) => {
             language: "fr",
             notifications: true,
           },
+          // Pas de mot de passe traditionnel pour les connexions OAuth
           linkedAccounts: [
             {
               provider: "google",
@@ -90,61 +75,42 @@ router.post("/google", async (req, res) => {
           ],
         });
         await user.save();
-        console.log("Nouvel utilisateur créé:", user);
       } else {
         // Utilisateur existant trouvé par email, lier le compte Google
-        // Mettre à jour les champs de l'utilisateur principal uniquement s'ils ne sont pas déjà définis
-        if (!user.username) {
-          user.username = name;
-        }
-        if (!user.firstName) {
-          user.firstName = firstName;
-        }
-        if (!user.lastName) {
-          user.lastName = lastName;
-        }
-        // La photo de profil est toujours mise à jour pour s'assurer qu'elle est à jour
+        // Mettre à jour les champs de l'utilisateur principal si nécessaire
         if (picture && user.picture !== picture) {
           user.picture = picture;
         }
-        // L'email n'est pas mis à jour ici car il est la clé de liaison principale
-
+        if (!user.username) user.username = name;
+        if (!user.firstName) user.firstName = firstName;
+        if (!user.lastName) user.lastName = lastName;
         await user.save();
-        console.log(
-          "Informations utilisateur existantes mises à jour lors de la liaison Google."
-        );
 
         // Ajouter Google comme compte lié s'il n'existe pas déjà
         const hasGoogleAccount = user.linkedAccounts.some(
           (account) =>
             account.provider === "google" && account.providerId === id
         );
-
         if (!hasGoogleAccount) {
           user.linkedAccounts.push({
             provider: "google",
             providerId: id,
           });
           await user.save();
-          console.log("Compte Google lié à l'utilisateur existant.");
         }
 
-        // Créer/Mettre à jour la connexion OAuth pour cet utilisateur existant
+        // Créer une nouvelle connexion OAuth pour cet utilisateur existant
         oauthConnection = new OAuth({
           userId: user._id,
           provider: "google",
           providerId: id,
-          email: email, // L'email dans OAuth est celui de Google
+          email: email,
           name: name,
           picture: picture,
           accessToken: accessToken,
           lastLoginAt: new Date(),
         });
         await oauthConnection.save();
-        console.log(
-          "Nouvelle connexion OAuth créée pour l'utilisateur existant:",
-          oauthConnection
-        );
       }
     }
 
@@ -158,11 +124,6 @@ router.post("/google", async (req, res) => {
     // Mettre à jour le token de l'utilisateur dans la base de données
     user.token = token;
     await user.save();
-
-    console.log(
-      "Photo de profil de l'utilisateur avant envoi au frontend:",
-      user.picture
-    );
 
     const responseData = {
       user: {
@@ -178,7 +139,6 @@ router.post("/google", async (req, res) => {
       },
     };
 
-    console.log("Réponse envoyée au frontend:", responseData);
     res.json(responseData);
   } catch (error) {
     console.error("Erreur lors de l'authentification Google:", error);

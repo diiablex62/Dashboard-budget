@@ -94,16 +94,11 @@ export const showDeleteConfirmation = ({
       />
     ),
     {
-      autoClose: duration,
-      closeOnClick: false,
-      draggable: false,
-      pauseOnHover: false,
       onClose: () => {
         if (!isCancelled && onConfirm) {
           onConfirm();
         }
       },
-      position: "top-right",
       toastId: `delete-${Date.now()}`,
     }
   );
