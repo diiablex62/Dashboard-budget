@@ -13,7 +13,7 @@ import MonthPickerModal from "../components/ui/MonthPickerModal";
 import CardDesign from "../components/ui/CardDesign";
 import { ModalEchelonne } from "../components/ui/Modal";
 import { toast } from "react-toastify";
-import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
+import { showDeleteConfirmation } from "../components/ui/ToastConfirmation";
 import {
   formatMontant,
   calculTotalCreditEchelonneesMois,
@@ -49,38 +49,12 @@ export const PaiementEchelonne = () => {
   }, []);
 
   const handleDelete = useCallback((id, nom) => {
-    toast.warn(
-      <div>
-        <b>Suppression du paiement échelonné : {nom}</b>
-        <div className='mt-1'>
-          Vous allez supprimer ce paiement échelonné pour tous les mois.
-          <br />
-          Voulez-vous continuer&nbsp;?
-        </div>
-        <div className='flex justify-end gap-2 mt-3'>
-          <button
-            className='px-3 py-1 rounded bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300'
-            onClick={() => toast.dismiss()}>
-            Annuler
-          </button>
-          <button
-            className='px-3 py-1 rounded bg-red-500 text-white font-semibold hover:bg-red-600'
-            onClick={() => {
-              toast.dismiss();
-              deletePaiementWithUndo(id, setPaiementsEchelonnes, nom);
-            }}>
-            Supprimer
-          </button>
-        </div>
-      </div>,
-      {
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-        position: "top-right",
-        toastId: `alert-delete-echelonne-${id}`,
-      }
-    );
+    showDeleteConfirmation({
+      label: nom,
+      onConfirm: () => {
+        setPaiementsEchelonnes((prev) => prev.filter((p) => p.id !== id));
+      },
+    });
   }, []);
 
   const totalDepenses = useMemo(() => {

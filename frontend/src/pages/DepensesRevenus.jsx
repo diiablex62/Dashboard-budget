@@ -9,6 +9,7 @@ import TransactionCard from "../components/ui/TransactionCard";
 import { ModalDepenseRevenu } from "../components/ui/Modal";
 import { useAuth } from "../context/AuthContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { showDeleteConfirmation } from "../components/ui/ToastConfirmation";
 
 // Import des catégories et données centralisées
 import {
@@ -22,7 +23,6 @@ import {
   totalRevenusGlobalMois,
   formatMontant,
 } from "../utils/calcul";
-import { deletePaiementWithUndo } from "../utils/paiementActions.jsx";
 
 export default function DepensesRevenus() {
   const { getData } = useAuth();
@@ -114,6 +114,22 @@ export default function DepensesRevenus() {
           }
         });
       }
+    },
+    [currentTab]
+  );
+
+  const handleDelete = useCallback(
+    (transaction) => {
+      showDeleteConfirmation({
+        label: transaction.nom,
+        onConfirm: () => {
+          if (currentTab === "depense") {
+            setDepenses((prev) => prev.filter((t) => t.id !== transaction.id));
+          } else {
+            setRevenus((prev) => prev.filter((t) => t.id !== transaction.id));
+          }
+        },
+      });
     },
     [currentTab]
   );
@@ -249,34 +265,39 @@ export default function DepensesRevenus() {
                   </p>
                 </div>
               ) : (
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4 h-full'>
-                  {filteredDepenseRevenu.map((transaction) => {
-                    console.log(
-                      "Passing transaction to TransactionCard:",
-                      transaction
-                    );
-                    return (
-                      <TransactionCard
-                        key={transaction.id}
-                        transaction={transaction}
-                        onEdit={() => {
-                          setSelectedItem(transaction);
-                          setShowModal(true);
-                        }}
-                        onDelete={async () => {
-                          await deletePaiementWithUndo(transaction.id, () =>
-                            fetchDepenseRevenu()
-                          );
-                        }}
-                        categories={
-                          transaction.type === "depense"
-                            ? DEPENSES_CATEGORIES
-                            : REVENUS_CATEGORIES
-                        }
-                        type={transaction.type}
-                      />
-                    );
-                  })}
+                <div className='grid grid-cols-1 gap-4'>
+                  {filteredDepenseRevenu.map((transaction) => (
+                    <TransactionCard
+                      key={transaction.id}
+                      transaction={transaction}
+                      onEdit={() => {
+                        setSelectedItem(transaction);
+                        setShowModal(true);
+                      }}
+                      onDelete={() => {
+                        showDeleteConfirmation({
+                          label: transaction.nom,
+                          onConfirm: () => {
+                            if (currentTab === "depense") {
+                              setDepenses((prev) =>
+                                prev.filter((t) => t.id !== transaction.id)
+                              );
+                            } else {
+                              setRevenus((prev) =>
+                                prev.filter((t) => t.id !== transaction.id)
+                              );
+                            }
+                          },
+                        });
+                      }}
+                      categories={
+                        transaction.type === "depense"
+                          ? DEPENSES_CATEGORIES
+                          : REVENUS_CATEGORIES
+                      }
+                      type={transaction.type}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -301,10 +322,10 @@ export default function DepensesRevenus() {
         </div>
       );
     } catch (error) {
-      console.error("Erreur dans renderContent:", error);
+      console.error("Erreur dans le rendu:", error);
       return (
-        <div className='p-8 text-red-500 dark:text-red-400'>
-          Erreur lors du chargement des données. Veuillez réessayer.
+        <div className='text-center py-10 text-red-500'>
+          Une erreur est survenue lors du chargement des données.
         </div>
       );
     }

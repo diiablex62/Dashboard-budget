@@ -1,22 +1,11 @@
-// Fonctions utilitaires pour la gestion des paiements récurrents
+/**
+ * ToastConfirmation.jsx
+ * Composant de confirmation avec compte à rebours pour les actions de suppression
+ * Utilisé pour confirmer la suppression d'éléments avec possibilité d'annulation
+ */
 
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import React, { useRef, useEffect, useState } from "react";
-
-/**
- * Ouvre la modale d'édition pour un paiement
- */
-export function editPaiement(paiement, setSelectedPaiement, setShowModal) {
-  setSelectedPaiement(paiement);
-  setShowModal(true);
-}
-
-/**
- * Supprime un paiement de la liste
- */
-export function deletePaiement(id, setPaiements) {
-  setPaiements((prev) => prev.filter((p) => p.id !== id));
-}
 
 // Styles réutilisables pour le toast
 const toastTextStyle = {
@@ -26,6 +15,7 @@ const toastTextStyle = {
   fontWeight: 500,
   width: "calc(100% - 150px)",
 };
+
 const toastButtonContainerStyle = {
   width: 150,
   display: "flex",
@@ -33,6 +23,7 @@ const toastButtonContainerStyle = {
   alignItems: "flex-start",
   paddingRight: 32,
 };
+
 const toastButtonStyle = {
   whiteSpace: "nowrap",
   overflow: "hidden",
@@ -71,15 +62,26 @@ const ToastDeleteCountdown = ({ duration, label, onCancel }) => {
 };
 
 /**
- * Supprime un paiement avec toast d'annulation (undo)
+ * Affiche une confirmation de suppression avec compte à rebours
+ * @param {Object} options - Options de configuration
+ * @param {string} options.label - Le nom de l'élément à supprimer
+ * @param {number} options.duration - Durée du compte à rebours en ms (défaut: 5000)
+ * @param {Function} options.onConfirm - Callback appelé après le compte à rebours
+ * @param {Function} options.onCancel - Callback appelé si l'utilisateur annule
+ * @returns {string} - L'ID du toast pour pouvoir le fermer programmatiquement
  */
-export function deletePaiementWithUndo(id, setPaiements, label = "Paiement") {
-  let undo = false;
+export const showDeleteConfirmation = ({
+  label,
+  duration = 5000,
+  onConfirm,
+  onCancel,
+}) => {
   let toastId;
-  const duration = 5000;
+  let isCancelled = false;
 
   const handleCancel = () => {
-    undo = true;
+    isCancelled = true;
+    if (onCancel) onCancel();
     toast.dismiss(toastId);
   };
 
@@ -97,10 +99,38 @@ export function deletePaiementWithUndo(id, setPaiements, label = "Paiement") {
       draggable: false,
       pauseOnHover: false,
       onClose: () => {
-        if (!undo) setPaiements((prev) => prev.filter((p) => p.id !== id));
+        if (!isCancelled && onConfirm) {
+          onConfirm();
+        }
       },
       position: "top-right",
-      toastId: `delete-${id}`,
+      toastId: `delete-${Date.now()}`,
     }
   );
-}
+
+  return toastId;
+};
+
+/**
+ * Exemple d'utilisation :
+ *
+ * import { showDeleteConfirmation } from './components/ui/ToastConfirmation';
+ *
+ * const handleDelete = (item) => {
+ *   showDeleteConfirmation({
+ *     label: item.nom,
+ *     onConfirm: () => {
+ *       // Logique de suppression
+ *       setItems(prev => prev.filter(i => i.id !== item.id));
+ *     },
+ *     onCancel: () => {
+ *       // Logique d'annulation si nécessaire
+ *     }
+ *   });
+ * };
+ */
+const ToastConfirmation = {
+  showDeleteConfirmation,
+};
+
+export default ToastConfirmation;
