@@ -51,7 +51,7 @@ export default function Profil() {
   } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: user?.name || "",
+    name: user?.username || "",
     email: user?.email || "",
   });
   const [infoSaved, setInfoSaved] = useState(false);
@@ -62,6 +62,17 @@ export default function Profil() {
       setAvatar(user.picture);
     }
   }, [user?.picture, setAvatar]);
+
+  // Ajouter un useEffect pour mettre à jour formData quand user change
+  useEffect(() => {
+    console.log("User dans Profil.jsx:", user);
+    if (user) {
+      setFormData({
+        name: user.username || "",
+        email: user.email || "",
+      });
+    }
+  }, [user]);
 
   console.log("Valeur de l'avatar dans Profil.jsx:", avatar);
 
@@ -92,7 +103,7 @@ export default function Profil() {
   const handleInfoSave = (e) => {
     e.preventDefault();
     updateUser({
-      name: formData.name,
+      username: formData.name,
       email: formData.email,
     });
     setInfoSaved(true);
@@ -358,7 +369,7 @@ export default function Profil() {
               />
             </div>
             <div>
-              <h2 className='text-xl font-semibold mb-1'>{user?.name}</h2>
+              <h2 className='text-xl font-semibold mb-1'>{user?.username}</h2>
               <p className='text-gray-500 dark:text-gray-400'>{user?.email}</p>
             </div>
           </div>

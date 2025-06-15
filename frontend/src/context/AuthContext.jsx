@@ -27,10 +27,12 @@ export function AuthProvider({ children }) {
     if (authStatus && savedUser) {
       setUser(savedUser);
       setIsAuthenticated(true);
-      if (savedUser.picture) {
-        setAvatar(savedUser.picture);
-      } else if (savedAvatar) {
+      // Restaurer l'avatar depuis le localStorage ou utiliser la photo de l'utilisateur
+      if (savedAvatar) {
         setAvatar(savedAvatar);
+      } else if (savedUser.picture) {
+        setAvatar(savedUser.picture);
+        localStorage.setItem("avatar", savedUser.picture);
       }
     } else {
       // S'assurer que l'état est propre si pas authentifié
@@ -82,7 +84,8 @@ export function AuthProvider({ children }) {
       console.log("Données reçues pour login:", userData);
       const finalUserData = {
         id: userData.id,
-        name: userData.username || userData.name,
+        username: userData.username || userData.name,
+        name: userData.name,
         email: userData.email,
         picture: userData.picture
           ? `${
@@ -101,7 +104,11 @@ export function AuthProvider({ children }) {
       updateAndSaveUser(finalUserData);
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("token", userData.token);
-      setAvatar(userData.picture);
+      // Mettre à jour l'avatar avec la photo de l'utilisateur
+      if (finalUserData.picture) {
+        setAvatar(finalUserData.picture);
+        localStorage.setItem("avatar", finalUserData.picture);
+      }
       setError(null);
     } catch (err) {
       console.error("Erreur lors de la connexion:", err);
@@ -160,6 +167,7 @@ export function AuthProvider({ children }) {
         const userData = {
           id: userInfo.sub,
           email: userInfo.email,
+          username: userInfo.name,
           name: userInfo.name,
           picture: userInfo.picture,
           accessToken: response.access_token,
@@ -327,10 +335,51 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateUser = (newUserData) => {
-    // Utilise la fonction utilitaire pour mettre à jour l'utilisateur et sauvegarder
-    const mergedData = { ...user, ...newUserData };
-    updateAndSaveUser(mergedData);
+  const updateUser = async (newUserData) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Non authentifié");
+      }
+
+      // Inclure la photo actuelle dans les données envoyées
+      const dataToSend = {
+        ...newUserData,
+        picture: user?.picture || avatar, // Conserver la photo existante
+      };
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/update-profile`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(dataToSend),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Erreur lors de la mise à jour du profil"
+        );
+      }
+
+      const responseData = await response.json();
+      // Mettre à jour l'état local de l'utilisateur avec les données renvoyées par le backend
+      updateAndSaveUser(responseData.user);
+      // Mettre à jour l'avatar si une nouvelle photo est fournie
+      if (responseData.user.picture) {
+        setAvatar(responseData.user.picture);
+      }
+      toast.success("Profil mis à jour avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du profil:", error);
+      toast.error("Erreur lors de la mise à jour du profil: " + error.message);
+      throw error;
+    }
   };
 
   const value = {

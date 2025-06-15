@@ -84,6 +84,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const searchInputRef = useRef(null);
+  console.log("Valeur de l'avatar dans Sidebar.jsx:", avatar);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(() => {
     const notifications = JSON.parse(
       localStorage.getItem("notifications") || "[]"
@@ -274,7 +275,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
               {!isCollapsed && (
                 <div className='flex flex-col justify-center'>
                   <span className='font-semibold text-gray-800 dark:text-white'>
-                    {user?.name || "Utilisateur"}
+                    {user?.username || "Utilisateur"}
                   </span>
                   <span className='text-xs text-gray-500 dark:text-gray-500'>
                     {user?.email || ""}
