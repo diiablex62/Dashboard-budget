@@ -1,21 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { getFakeData } from "../utils/fakeData";
+import { useGoogleLogin } from "@react-oauth/google";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
+  const [user, setUser] = useState(
+    () => JSON.parse(localStorage.getItem("user")) || null
+  );
   const [error, setError] = useState(null);
   const [avatar, setAvatar] = useState(null);
   const [linkedProviders, setLinkedProviders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Initialisation de l'état au chargement de l'application
   useEffect(() => {
-    const savedUser = JSON.parse(localStorage.getItem('user'));
+    const savedUser = JSON.parse(localStorage.getItem("user"));
     const authStatus = localStorage.getItem("isAuthenticated") === "true";
     const savedAvatar = localStorage.getItem("avatar");
-    const savedLinkedProviders = JSON.parse(localStorage.getItem("linkedProviders") || "[]");
+    const savedLinkedProviders = JSON.parse(
+      localStorage.getItem("linkedProviders") || "[]"
+    );
 
     if (authStatus && savedUser) {
       setUser(savedUser);
@@ -31,6 +38,7 @@ export function AuthProvider({ children }) {
       // localStorage.clear(); // Ne pas effacer tout le localStorage ici, peut contenir d'autres données utiles
     }
     setLinkedProviders(savedLinkedProviders);
+    setLoading(false);
   }, []);
 
   const isProviderLinked = (provider) => {
@@ -51,7 +59,7 @@ export function AuthProvider({ children }) {
     // Ne pas permettre de supprimer le dernier provider
     if (linkedProviders.length > 1) {
       setLinkedProviders((prev) => {
-        const newProviders = prev.filter(p => p !== provider);
+        const newProviders = prev.filter((p) => p !== provider);
         localStorage.setItem("linkedProviders", JSON.stringify(newProviders));
         return newProviders;
       });
@@ -89,6 +97,7 @@ export function AuthProvider({ children }) {
     setLinkedProviders([]);
     localStorage.clear();
     setError(null);
+    toast.success("Déconnexion réussie !");
   };
 
   const updateAvatar = (newAvatar) => {
@@ -103,35 +112,52 @@ export function AuthProvider({ children }) {
       ...newData,
       name: newData.name || existingData.name,
       email: newData.email || existingData.email,
-      providers: [...new Set([...(existingData.providers || []), ...(newData.providers || [])])],
+      providers: [
+        ...new Set([
+          ...(existingData.providers || []),
+          ...(newData.providers || []),
+        ]),
+      ],
       preferences: {
         ...existingData.preferences,
-        ...newData.preferences
-      }
+        ...newData.preferences,
+      },
     };
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      const googleUserData = {
-        email: "user@gmail.com", // TODO: Remplacer par l'email réel de Google via API
-        name: "Utilisateur Google",
-        lastLoginMethod: "google",
-      };
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        // Récupérer les informations de l'utilisateur depuis Google
+        const userInfo = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${response.access_token}` },
+          }
+        ).then((res) => res.json());
 
-      if (isAuthenticated) {
-        // Si déjà authentifié, tenter de lier le provider au compte actuel
-        await linkProvider("google", googleUserData);
-      } else {
-        // Si non authentifié, tenter de se connecter ou de s'inscrire
-        await login(googleUserData);
-        addLinkedProvider("google"); // Ajouter le provider après une connexion/inscription réussie
+        // Créer l'objet utilisateur
+        const userData = {
+          id: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          accessToken: response.access_token,
+        };
+
+        // Sauvegarder l'utilisateur
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+        toast.success("Connexion réussie !");
+      } catch (error) {
+        console.error("Erreur lors de la connexion Google:", error);
+        toast.error("Erreur lors de la connexion avec Google");
       }
-    } catch (err) {
-      setError("Erreur lors de la connexion avec Google: " + err.message);
-      throw err;
-    }
-  };
+    },
+    onError: () => {
+      toast.error("Erreur lors de la connexion avec Google");
+    },
+  });
 
   const loginWithGithub = async () => {
     try {
@@ -174,7 +200,7 @@ export function AuthProvider({ children }) {
       const mergedData = mergeUserData(user, {
         ...providerData,
         // Assurer que le nouveau provider est ajouté à la liste des providers existants
-        providers: [...(user.providers || []), providerData.lastLoginMethod]
+        providers: [...(user.providers || []), providerData.lastLoginMethod],
       });
       updateAndSaveUser(mergedData);
       addLinkedProvider(providerData.lastLoginMethod);
@@ -262,31 +288,29 @@ export function AuthProvider({ children }) {
     updateAndSaveUser(mergedData);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        user,
-        error,
-        avatar,
-        setAvatar: updateAvatar,
-        login,
-        logout,
-        loginWithGoogle,
-        loginWithGithub,
-        getData,
-        updateUser,
-        updateData,
-        linkedProviders,
-        addLinkedProvider,
-        removeLinkedProvider,
-        isProviderLinked,
-        linkProvider,
-        deleteAccount,
-      }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    isAuthenticated,
+    user,
+    error,
+    avatar,
+    setAvatar: updateAvatar,
+    login,
+    logout,
+    loginWithGoogle,
+    loginWithGithub,
+    getData,
+    updateUser,
+    updateData,
+    linkedProviders,
+    addLinkedProvider,
+    removeLinkedProvider,
+    isProviderLinked,
+    linkProvider,
+    deleteAccount,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {

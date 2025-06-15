@@ -1,15 +1,14 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom"; // MANQUE Navigate
+import { Routes, Route, Navigate } from "react-router-dom";
 import IfUserConnected from "./components/auth/IfUserConnected";
 import Auth from "./pages/Auth";
 import Profil from "./pages/Profil";
 import Dashboard from "./pages/Dashboard";
 import DepensesRevenus from "./pages/DepensesRevenus";
 import Recurrents from "./pages/Recurrents";
-import Echelonne from "./pages/Echelonne";
+import PaiementEchelonne from "./pages/PaiementEchelonne";
 import Agenda from "./pages/Agenda";
 import Notifications from "./pages/Notifications";
-import Help from "./pages/Help";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import UserDataDeletion from "./pages/UserDataDeletion";
@@ -60,7 +59,7 @@ export default function AppRoutes() {
         path='/echelonne'
         element={
           <IfUserConnected>
-            <Echelonne />
+            <PaiementEchelonne />
           </IfUserConnected>
         }
       />
@@ -77,14 +76,6 @@ export default function AppRoutes() {
         element={
           <IfUserConnected>
             <Notifications />
-          </IfUserConnected>
-        }
-      />
-      <Route
-        path='/help'
-        element={
-          <IfUserConnected>
-            <Help />
           </IfUserConnected>
         }
       />
