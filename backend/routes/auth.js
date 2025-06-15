@@ -9,6 +9,9 @@ const { authenticateToken } = require("../middlewares/authMiddleware");
 // Route pour l'authentification Google
 router.post("/google", async (req, res) => {
   try {
+    console.log("----------------------------------------------------");
+    console.log("Début de l'authentification Google");
+    console.log("Données reçues du frontend (Google):", req.body);
     const {
       accessToken,
       id,
@@ -25,35 +28,60 @@ router.post("/google", async (req, res) => {
       providerId: id,
     });
     let user;
+    let isNewUser = false;
+
+    console.log("Connexion OAuth existante trouvée:", !!oauthConnection);
 
     if (oauthConnection) {
-      // Récupérer l'utilisateur associé à la connexion OAuth existante
       user = await User.findById(oauthConnection.userId);
+      console.log("Utilisateur trouvé par OAuth (avant MAJ):", user.picture);
+      console.log("OAuth Connection (avant MAJ):", oauthConnection.picture);
 
-      // Mettre à jour la connexion OAuth
       oauthConnection.lastLoginAt = new Date();
       oauthConnection.accessToken = accessToken;
       oauthConnection.name = name;
       oauthConnection.picture = picture;
       await oauthConnection.save();
+      console.log(
+        "OAuth Connection mise à jour. Photo OAuth:",
+        oauthConnection.picture
+      );
 
-      // Mettre à jour les champs de l'utilisateur principal si nécessaire
-      // La photo de profil est toujours mise à jour pour s'assurer qu'elle est à jour
-      if (picture && user.picture !== picture) {
+      // La photo de profil est mise à jour UNIQUEMENT si l'utilisateur n'en a pas encore.
+      if (!user.picture && picture) {
         user.picture = picture;
+        console.log(
+          "Photo utilisateur mise à jour via Google (car vide auparavant)."
+        );
+      } else if (user.picture && picture && user.picture === picture) {
+        console.log(
+          "Photo utilisateur inchangée (identique à Google). C'est déjà la photo Google."
+        );
+      } else if (user.picture && picture && user.picture !== picture) {
+        console.log(
+          "Photo utilisateur personnalisée existante détectée. PAS de mise à jour par Google."
+        );
+      } else {
+        console.log("Pas de photo Google ou pas de mise à jour nécessaire.");
       }
-      // Mettre à jour les autres champs uniquement s'ils sont vides
+
       if (!user.username) user.username = name;
       if (!user.firstName) user.firstName = firstName;
       if (!user.lastName) user.lastName = lastName;
-      // L'email n'est pas mis à jour ici car il est la clé de liaison principale
       await user.save();
+      console.log(
+        "Utilisateur après save (picture finale dans User Model):",
+        user.picture
+      );
     } else {
-      // Vérifier si un utilisateur existe déjà avec cet email
       user = await User.findOne({ email });
+      console.log(
+        "Utilisateur trouvé par email (avant création/liaison):",
+        user ? user.picture : "(nouvel utilisateur ou pas de photo)"
+      );
 
       if (!user) {
-        // Créer un nouvel utilisateur
+        isNewUser = true;
         user = new User({
           username: name,
           email: email,
@@ -66,7 +94,6 @@ router.post("/google", async (req, res) => {
             language: "fr",
             notifications: true,
           },
-          // Pas de mot de passe traditionnel pour les connexions OAuth
           linkedAccounts: [
             {
               provider: "google",
@@ -75,18 +102,46 @@ router.post("/google", async (req, res) => {
           ],
         });
         await user.save();
+        console.log(
+          "Nouvel utilisateur créé. Photo initiale (User Model):",
+          user.picture
+        );
       } else {
         // Utilisateur existant trouvé par email, lier le compte Google
-        // Mettre à jour les champs de l'utilisateur principal si nécessaire
-        if (picture && user.picture !== picture) {
+        console.log(
+          "Utilisateur existant par email (avant liaison/MAJ):",
+          user.picture
+        );
+
+        // La photo de profil est mise à jour UNIQUEMENT si l'utilisateur n'en a pas encore.
+        if (!user.picture && picture) {
           user.picture = picture;
+          console.log(
+            "Photo utilisateur mise à jour via Google (car vide auparavant) lors de la liaison."
+          );
+        } else if (user.picture && picture && user.picture === picture) {
+          console.log(
+            "Photo utilisateur inchangée (identique à Google) lors de la liaison."
+          );
+        } else if (user.picture && picture && user.picture !== picture) {
+          console.log(
+            "Photo utilisateur personnalisée existante détectée. PAS de mise à jour par Google lors de la liaison."
+          );
+        } else {
+          console.log(
+            "Pas de photo Google ou pas de mise à jour nécessaire lors de la liaison."
+          );
         }
+
         if (!user.username) user.username = name;
         if (!user.firstName) user.firstName = firstName;
         if (!user.lastName) user.lastName = lastName;
         await user.save();
+        console.log(
+          "Utilisateur après save (picture finale dans User Model) lors de la liaison:",
+          user.picture
+        );
 
-        // Ajouter Google comme compte lié s'il n'existe pas déjà
         const hasGoogleAccount = user.linkedAccounts.some(
           (account) =>
             account.provider === "google" && account.providerId === id
@@ -97,9 +152,9 @@ router.post("/google", async (req, res) => {
             providerId: id,
           });
           await user.save();
+          console.log("Compte Google lié à l'utilisateur existant.");
         }
 
-        // Créer une nouvelle connexion OAuth pour cet utilisateur existant
         oauthConnection = new OAuth({
           userId: user._id,
           provider: "google",
@@ -111,17 +166,19 @@ router.post("/google", async (req, res) => {
           lastLoginAt: new Date(),
         });
         await oauthConnection.save();
+        console.log(
+          "Nouvelle connexion OAuth créée/mise à jour pour l'utilisateur existant. Photo OAuth:",
+          oauthConnection.picture
+        );
       }
     }
 
-    // Générer un token JWT
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || "votre_secret_jwt",
       { expiresIn: "7d" }
     );
 
-    // Mettre à jour le token de l'utilisateur dans la base de données
     user.token = token;
     await user.save();
 
@@ -137,8 +194,14 @@ router.post("/google", async (req, res) => {
         token: user.token,
         linkedAccounts: user.linkedAccounts,
       },
+      isNewUser: isNewUser,
     };
-
+    console.log(
+      "Photo envoyée au frontend dans responseData:",
+      responseData.user.picture
+    );
+    console.log("Fin de l'authentification Google");
+    console.log("----------------------------------------------------");
     res.json(responseData);
   } catch (error) {
     console.error("Erreur lors de l'authentification Google:", error);
@@ -197,69 +260,60 @@ router.delete("/delete-account", authenticateToken, async (req, res) => {
   }
 });
 
-// Nouvelle route pour la mise à jour du profil utilisateur
+// Route pour la mise à jour du profil
 router.put("/update-profile", authenticateToken, async (req, res) => {
   try {
+    const { username, firstName, lastName, picture } = req.body;
     const userId = req.user.userId;
-    const updates = req.body; // Les données à mettre à jour envoyées par le frontend
-
-    console.log(
-      "Requête de mise à jour de profil reçue pour l'utilisateur:",
-      userId
-    );
-    console.log("Données de mise à jour (req.body):".updates);
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-    console.log("Utilisateur trouvé avant mise à jour:", user);
+    // Mise à jour des champs
+    if (username) user.username = username;
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
 
-    // Mettre à jour les champs autorisés (par exemple, username, firstName, lastName, email)
-    // Assurez-vous de ne pas permettre la mise à jour de champs sensibles comme le mot de passe ici
-    if (updates.username !== undefined) {
-      user.username = updates.username;
+    // Gestion de la photo de profil
+    if (picture) {
+      // Si c'est une image en base64, on la stocke directement
+      if (picture.startsWith("data:image")) {
+        user.picture = picture;
+      }
+      // Si c'est une URL Google proxifiée, on la stocke telle quelle
+      else if (picture.includes("/api/auth/proxy-google-image")) {
+        user.picture = picture;
+      }
+      // Sinon, on proxifie l'URL Google
+      else if (picture.includes("googleusercontent.com")) {
+        user.picture = `${
+          process.env.FRONTEND_URL
+        }/api/auth/proxy-google-image?url=${encodeURIComponent(picture)}`;
+      }
     }
-    if (updates.firstName !== undefined) {
-      user.firstName = updates.firstName;
-    }
-    if (updates.lastName !== undefined) {
-      user.lastName = updates.lastName;
-    }
-    if (updates.email !== undefined) {
-      user.email = updates.email;
-    }
-    if (updates.picture !== undefined) {
-      user.picture = updates.picture;
-    }
-    // Ajoutez d'autres champs si nécessaire
 
     await user.save();
-    console.log("Utilisateur après sauvegarde:", user);
-
-    // Retourner les informations utilisateur mises à jour (sans le token si non nécessaire)
-    const updatedUserResponse = {
-      id: user._id,
-      email: user.email,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      picture: user.picture,
-      preferences: user.preferences,
-      linkedAccounts: user.linkedAccounts,
-    };
 
     res.json({
-      message: "Profil mis à jour avec succès",
-      user: updatedUserResponse,
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        picture: user.picture,
+        preferences: user.preferences,
+        token: user.token,
+        linkedAccounts: user.linkedAccounts,
+      },
     });
   } catch (error) {
     console.error("Erreur lors de la mise à jour du profil:", error);
-    res.status(500).json({
-      message: "Erreur lors de la mise à jour du profil",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la mise à jour du profil" });
   }
 });
 

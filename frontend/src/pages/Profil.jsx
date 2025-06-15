@@ -35,6 +35,7 @@ export default function Profil() {
   const [formData, setFormData] = useState({
     name: user?.username || "",
     email: user?.email || "",
+    picture: user?.picture || "",
   });
   const [infoSaved, setInfoSaved] = useState(false);
   const fileInputRef = useRef();
@@ -51,18 +52,40 @@ export default function Profil() {
       setFormData({
         name: user.username || "",
         email: user.email || "",
+        picture: user.picture || "",
       });
     }
   }, [user]);
 
   console.log("Valeur de l'avatar dans Profil.jsx:", avatar);
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Vérifier la taille du fichier (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showErrorToast("L'image ne doit pas dépasser 5MB");
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatar(reader.result);
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result;
+          setAvatar(base64Image);
+          setFormData((prev) => ({ ...prev, picture: base64Image }));
+
+          // Mettre à jour l'utilisateur avec la nouvelle photo
+          await updateUser({
+            ...user,
+            picture: base64Image,
+          });
+
+          showSuccessToast("Photo de profil mise à jour avec succès !");
+        } catch (error) {
+          showErrorToast("Erreur lors de la mise à jour de la photo de profil");
+          console.error("Erreur lors de la mise à jour de la photo:", error);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -86,6 +109,7 @@ export default function Profil() {
     updateUser({
       username: formData.name,
       email: formData.email,
+      picture: formData.picture,
     });
     setInfoSaved(true);
     setTimeout(() => setInfoSaved(false), 1500);

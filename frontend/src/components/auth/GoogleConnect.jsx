@@ -8,7 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 // Composant pour la connexion Google utilisant @react-oauth/google
 export default function GoogleConnect() {
   const navigate = useNavigate();
-  const { login, addLinkedProvider, linkedProviders } = useAuth();
+  const { login, addLinkedProvider /*, linkedProviders */ } = useAuth();
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (response) => {
@@ -24,9 +24,6 @@ export default function GoogleConnect() {
         ).then((res) => res.json());
 
         console.log("Informations utilisateur Google:", userInfo);
-
-        // Vérifier si c'est la première connexion
-        const isFirstConnection = linkedProviders.length === 0;
 
         // Créer l'objet utilisateur avec les informations Google
         const userData = {
@@ -74,8 +71,8 @@ export default function GoogleConnect() {
         await login(savedUser.user);
         addLinkedProvider("google");
 
-        // Message de succès personnalisé selon si c'est la première connexion
-        if (isFirstConnection) {
+        // Message de succès personnalisé selon si c'est une nouvelle création d'utilisateur
+        if (savedUser.isNewUser) {
           toast.success(
             <div className='flex flex-col'>
               <span className='font-semibold'>Bienvenue {userInfo.name} !</span>

@@ -88,11 +88,17 @@ export function AuthProvider({ children }) {
         name: userData.name,
         email: userData.email,
         picture: userData.picture
-          ? `${
-              import.meta.env.VITE_API_URL
-            }/auth/proxy-google-image?url=${encodeURIComponent(
-              userData.picture
-            )}`
+          ? userData.picture.startsWith("data:image")
+            ? userData.picture // Already a base64 string, use as is
+            : /^http:\/\/localhost:3000\/api\/auth\/proxy-google-image\?url=/.test(
+                userData.picture
+              )
+            ? userData.picture // Already proxied, use as is
+            : `${
+                import.meta.env.VITE_API_URL
+              }/auth/proxy-google-image?url=${encodeURIComponent(
+                userData.picture
+              )}`
           : undefined,
         token: userData.token,
         firstName: userData.firstName,
@@ -163,20 +169,38 @@ export function AuthProvider({ children }) {
           }
         ).then((res) => res.json());
 
-        // Créer l'objet utilisateur
-        const userData = {
-          id: userInfo.sub,
-          email: userInfo.email,
-          username: userInfo.name,
-          name: userInfo.name,
-          picture: userInfo.picture,
-          accessToken: response.access_token,
-        };
+        // Envoyer les informations à notre backend pour authentification et gestion de la photo
+        const backendResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/auth/google`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              accessToken: response.access_token,
+              id: userInfo.sub,
+              email: userInfo.email,
+              name: userInfo.name,
+              picture: userInfo.picture,
+              firstName: userInfo.given_name,
+              lastName: userInfo.family_name,
+            }),
+          }
+        );
 
-        // Sauvegarder l'utilisateur
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-        localStorage.setItem("token", userData.token);
+        if (!backendResponse.ok) {
+          const errorData = await backendResponse.json();
+          throw new Error(
+            errorData.message || "Erreur du backend lors de la connexion Google"
+          );
+        }
+
+        const data = await backendResponse.json();
+
+        // Utiliser la fonction login existante qui gère la mise à jour du state et du localStorage
+        await login(data.user);
+
         toast.success("Connexion réussie !");
       } catch (error) {
         console.error("Erreur lors de la connexion Google:", error);
@@ -335,18 +359,12 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateUser = async (newUserData) => {
+  const updateUser = async (userData) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Non authentifié");
       }
-
-      // Inclure la photo actuelle dans les données envoyées
-      const dataToSend = {
-        ...newUserData,
-        picture: user?.picture || avatar, // Conserver la photo existante
-      };
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/auth/update-profile`,
@@ -356,7 +374,13 @@ export function AuthProvider({ children }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(dataToSend),
+          credentials: "include",
+          body: JSON.stringify({
+            username: userData.username,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            picture: userData.picture,
+          }),
         }
       );
 
@@ -367,17 +391,16 @@ export function AuthProvider({ children }) {
         );
       }
 
-      const responseData = await response.json();
-      // Mettre à jour l'état local de l'utilisateur avec les données renvoyées par le backend
-      updateAndSaveUser(responseData.user);
-      // Mettre à jour l'avatar si une nouvelle photo est fournie
-      if (responseData.user.picture) {
-        setAvatar(responseData.user.picture);
+      const data = await response.json();
+      updateAndSaveUser(data.user);
+      // Mettre à jour l'état de l'avatar et localStorage.avatar
+      if (data.user.picture) {
+        setAvatar(data.user.picture);
+        localStorage.setItem("avatar", data.user.picture);
       }
-      toast.success("Profil mis à jour avec succès !");
+      return data.user;
     } catch (error) {
       console.error("Erreur lors de la mise à jour du profil:", error);
-      toast.error("Erreur lors de la mise à jour du profil: " + error.message);
       throw error;
     }
   };
