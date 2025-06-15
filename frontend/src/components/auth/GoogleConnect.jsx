@@ -68,6 +68,7 @@ export default function GoogleConnect() {
 
         const savedUser = await saveUserResponse.json();
         console.log("Réponse du serveur:", savedUser);
+        console.log("Données utilisateur envoyées à login:", savedUser.user);
 
         // Utiliser la fonction login du contexte d'authentification avec les données sauvegardées
         await login(savedUser.user);

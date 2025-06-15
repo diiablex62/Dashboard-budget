@@ -27,7 +27,9 @@ export function AuthProvider({ children }) {
     if (authStatus && savedUser) {
       setUser(savedUser);
       setIsAuthenticated(true);
-      if (savedAvatar) {
+      if (savedUser.picture) {
+        setAvatar(savedUser.picture);
+      } else if (savedAvatar) {
         setAvatar(savedAvatar);
       }
     } else {
@@ -82,7 +84,13 @@ export function AuthProvider({ children }) {
         id: userData.id,
         name: userData.username || userData.name,
         email: userData.email,
-        picture: userData.picture,
+        picture: userData.picture
+          ? `${
+              import.meta.env.VITE_API_URL
+            }/auth/proxy-google-image?url=${encodeURIComponent(
+              userData.picture
+            )}`
+          : undefined,
         token: userData.token,
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -93,6 +101,7 @@ export function AuthProvider({ children }) {
       updateAndSaveUser(finalUserData);
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("token", userData.token);
+      setAvatar(userData.picture);
       setError(null);
     } catch (err) {
       console.error("Erreur lors de la connexion:", err);

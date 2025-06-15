@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiUpload } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
@@ -56,6 +56,14 @@ export default function Profil() {
   });
   const [infoSaved, setInfoSaved] = useState(false);
   const fileInputRef = useRef();
+
+  useEffect(() => {
+    if (user?.picture) {
+      setAvatar(user.picture);
+    }
+  }, [user?.picture, setAvatar]);
+
+  console.log("Valeur de l'avatar dans Profil.jsx:", avatar);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];

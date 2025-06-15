@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    picture: {
+      type: String,
+    },
     preferences: {
       theme: {
         type: String,

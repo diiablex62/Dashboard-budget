@@ -36,12 +36,19 @@ router.post("/google", async (req, res) => {
       user = await User.findById(oauthConnection.userId);
       console.log("Utilisateur existant trouvé:", user);
 
-      // Mettre à jour la connexion OAuth
+      // Mettre à jour la connexion OAuth et la photo de profil de l'utilisateur
       oauthConnection.lastLoginAt = new Date();
       oauthConnection.accessToken = accessToken;
       oauthConnection.name = name;
       oauthConnection.picture = picture;
       await oauthConnection.save();
+
+      // Mettre à jour la photo de profil de l'utilisateur si elle est disponible et différente
+      if (picture && user.picture !== picture) {
+        user.picture = picture;
+        await user.save();
+        console.log("Image de profil utilisateur mise à jour.");
+      }
     } else {
       // Vérifier si un utilisateur existe déjà avec cet email
       user = await User.findOne({ email });
@@ -56,7 +63,8 @@ router.post("/google", async (req, res) => {
           isEmailVerified: true, // Google vérifie déjà l'email
           firstName: firstName,
           lastName: lastName,
-          preferences: preferences || {
+          picture: picture,
+          preferences: {
             theme: "light",
             language: "fr",
             notifications: true,
@@ -71,6 +79,13 @@ router.post("/google", async (req, res) => {
         await user.save();
         console.log("Nouvel utilisateur créé:", user);
       } else {
+        // Mettre à jour l'image de profil de l'utilisateur existant si elle est disponible et différente
+        if (picture && user.picture !== picture) {
+          user.picture = picture;
+          await user.save();
+          console.log("Image de profil utilisateur mise à jour.");
+        }
+
         // Ajouter Google comme compte lié s'il n'existe pas déjà
         const hasGoogleAccount = user.linkedAccounts.some(
           (account) =>
@@ -113,6 +128,11 @@ router.post("/google", async (req, res) => {
     user.token = token;
     await user.save();
 
+    console.log(
+      "Photo de profil de l'utilisateur avant envoi au frontend:",
+      user.picture
+    );
+
     const responseData = {
       user: {
         id: user._id,
@@ -120,7 +140,7 @@ router.post("/google", async (req, res) => {
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
-        picture: oauthConnection.picture,
+        picture: user.picture,
         preferences: user.preferences,
         token: user.token,
         linkedAccounts: user.linkedAccounts,
@@ -134,6 +154,26 @@ router.post("/google", async (req, res) => {
     res
       .status(500)
       .json({ message: "Erreur lors de l'authentification Google" });
+  }
+});
+
+// Route pour proxyfier les images de Google
+router.get("/proxy-google-image", async (req, res) => {
+  const imageUrl = req.query.url;
+
+  if (!imageUrl || !imageUrl.startsWith("https://lh3.googleusercontent.com/")) {
+    return res
+      .status(400)
+      .json({ message: "URL d'image Google invalide ou manquante." });
+  }
+
+  try {
+    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    res.set("Content-Type", response.headers["content-type"]);
+    res.send(response.data);
+  } catch (error) {
+    console.error("Erreur lors de la proxyfication de l'image Google:", error);
+    res.status(500).json({ message: "Impossible de charger l'image." });
   }
 });
 
